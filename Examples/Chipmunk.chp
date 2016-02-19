@@ -1,0 +1,41 @@
+import chipmunk.system
+import chipmunk.io.NutCracker as TheNutCracker
+
+class Chippy {
+
+	age = 2
+	tail
+	
+	# List of nuts he has
+	nuts = []
+	
+	# Map of information on what trees he likes
+	trees = {}
+
+	# Common genus shared by all chipmunks, variable is set in the type's namespace
+	shared genus = "Tamias"
+	
+	hideNuts(){
+		tree = choose(trees)
+		self.climb(tree)
+		for( nut in nuts ){
+			tree.putInTrunk(nut)
+		}
+	}
+	
+	# Method shared by all chipmunks - can only access non-local variables
+	# in the class type and module namespaces
+	shared getGenus(){
+		return genus
+	}
+}
+
+throwNut(){
+	nut = new Nut()
+	nut.dropOnGround()
+}
+
+main(){
+	chippy = new Chippy()
+	chippy.doChipmunkThings()
+}
