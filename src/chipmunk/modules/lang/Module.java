@@ -26,4 +26,20 @@ public class Module extends CObject {
 	public void setName(String name){
 		this.name = name;
 	}
+	
+	@Override
+	public boolean equals(Object other){
+		
+		// Modules are considered equal if their names are equal
+		if(other instanceof Module){
+			if(((Module) other).getName().equals(name)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+		
+	}
 }
