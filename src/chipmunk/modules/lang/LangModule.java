@@ -25,6 +25,10 @@ public class LangModule extends Module {
 		CBooleanType boolType = new CBooleanType();
 		boolType.setModule(this);
 		namespace.setVariable("Bool", boolType);
+		
+		CMethodType methodType = new CMethodType();
+		methodType.setModule(this);
+		namespace.setVariable("Method", methodType);
 	}
 	
 }
