@@ -1,16 +1,21 @@
 package chipmunk;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.Module;
 
 public class ChipmunkContext {
 
 	List<Module> modules;
+	ArrayDeque<CObject> stack;
 	
 	public ChipmunkContext(){
 		modules = new ArrayList<Module>();
+		// initialize operand stack to be 128 elements deep
+		stack = new ArrayDeque<CObject>(128);
 	}
 	
 	public Module getModule(String name){
@@ -50,6 +55,14 @@ public class ChipmunkContext {
 			}
 		}
 		return false;
+	}
+	
+	public void push(CObject obj){
+		stack.push(obj);
+	}
+	
+	public CObject pop(){
+		return stack.pop();
 	}
 	
 }
