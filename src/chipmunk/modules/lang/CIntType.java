@@ -14,4 +14,8 @@ public class CIntType extends CType {
 	public CInt getTemp(){
 		return tempValue;
 	}
+	
+	public CObject instance(){
+		return new CInt();
+	}
 }

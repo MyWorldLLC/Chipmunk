@@ -14,5 +14,9 @@ public class CStringType extends CType {
 	public CString getTemp(){
 		return tempString;
 	}
+	
+	public CObject instance(){
+		return new CString();
+	}
 
 }

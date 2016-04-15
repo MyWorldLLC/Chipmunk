@@ -6,4 +6,8 @@ public class CMethodType extends CType {
 		super("Method");
 	}
 	
+	public CObject instance(){
+		return new CMethod();
+	}
+	
 }

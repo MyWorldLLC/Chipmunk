@@ -15,4 +15,8 @@ public class CFloatType extends CType {
 		return tempValue;
 	}
 	
+	public CObject instance(){
+		return new CFloat();
+	}
+	
 }

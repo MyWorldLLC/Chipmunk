@@ -2,15 +2,15 @@ package chipmunk.modules.lang;
 
 import chipmunk.AngryChipmunk;
 
-public class UnimplementedOperationException extends AngryChipmunk {
+public class UnimplementedOperationChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = 2415417246906136592L;
 
-	public UnimplementedOperationException(){
+	public UnimplementedOperationChipmunk(){
 		super();
 	}
 	
-	public UnimplementedOperationException(String msg){
+	public UnimplementedOperationChipmunk(String msg){
 		super(msg);
 	}
 }

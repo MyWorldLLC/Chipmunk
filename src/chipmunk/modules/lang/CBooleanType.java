@@ -14,5 +14,9 @@ public class CBooleanType extends CType {
 	public CBoolean getTemp(){
 		return tempValue;
 	}
+	
+	public CObject instance(){
+		return new CBoolean();
+	}
 
 }

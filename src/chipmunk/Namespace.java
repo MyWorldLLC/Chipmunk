@@ -1,53 +1,35 @@
 package chipmunk;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import chipmunk.modules.lang.CObject;
 
 public class Namespace {
 
-	protected List<Variable> variables;
+	protected Map<String, CObject> variables;
 	
 	public Namespace(){
-		variables = new ArrayList<Variable>();
-	}
-	
-	public CObject getObject(int index){
-		try{
-			return variables.get(index).getObject();
-		}catch(IndexOutOfBoundsException e){
-			throw new AngryChipmunk("Variable index out of range");
-		}
-		
+		variables = new HashMap<String, CObject>();
 	}
 	
 	public CObject getObject(String name){
 		
-		for(int i = 0; i < variables.size(); i++){
-			Variable var = variables.get(i);
-			if(var.getName().equals(name)){
-				return var.getObject();
-			}
+		CObject val = variables.get(name);
+		
+		if(val == null){
+			throw new MissingVariableChipmunk("No variable with name " + name);
 		}
-		throw new AngryChipmunk("No variable with name " + name);
+		
+		return val;
 	}
 	
 	public void setVariable(String name, CObject object){
-		for(int i = 0; i < variables.size(); i++){
-			
-			Variable var = variables.get(i);
-			
-			// if we already have a variable with this name,
-			// overwrite it and return
-			if(var.getName().equals(name)){
-				
-				var.setObject(object);
-				return;
-			}
+		
+		if(object == null){
+			throw new NullChipmunk("Attempt to set null variable " + name);
 		}
 		
-		// this variable doesn't yet exist - create it
-		variables.add(new Variable(name, object));
+		variables.put(name, object);
 	}
 }

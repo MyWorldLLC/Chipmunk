@@ -33,4 +33,6 @@ public abstract class CType extends CObject {
 		module.getNamespace().setVariable(name, this);
 	}
 	
+	public abstract CObject instance();
+	
 }
