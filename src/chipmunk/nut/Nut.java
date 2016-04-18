@@ -2,7 +2,6 @@ package chipmunk.nut;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,13 +12,11 @@ public class Nut {
 	
 	protected Map<String, String> metadata;
 	protected List<CObject> instances;
-	protected IdentityHashMap<CObject, Integer> identityMap;
 	
 	public Nut(){
 		
 		metadata = new HashMap<String, String>();
 		instances = new ArrayList<CObject>();
-		identityMap = new IdentityHashMap<CObject, Integer>();
 		
 	}
 
@@ -33,6 +30,10 @@ public class Nut {
 	
 	public void setMetaData(String name, String value){
 		metadata.put(name, value);
+	}
+	
+	public void addInstance(CObject obj){
+		instances.add(obj);
 	}
 	
 	public List<CObject> getInstances(){

@@ -11,6 +11,6 @@ public class UnimplementedOperationChipmunk extends AngryChipmunk {
 	}
 	
 	public UnimplementedOperationChipmunk(String msg){
-		super(msg);
+		super(msg, null);
 	}
 }

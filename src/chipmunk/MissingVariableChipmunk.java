@@ -1,18 +1,19 @@
 package chipmunk;
 
-import java.util.ArrayDeque;
-
 public class MissingVariableChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = -8159122710208246160L;
 
 	
 	public MissingVariableChipmunk(){
-		this("");
+		this("", null);
 	}
 	
-	public MissingVariableChipmunk(String message){
-		super(message);
-		traceFrames = new ArrayDeque<DebugInfo>();
+	public MissingVariableChipmunk(String msg){
+		this(msg, null);
+	}
+	
+	public MissingVariableChipmunk(String message, Throwable cause){
+		super(message, cause);
 	}
 }

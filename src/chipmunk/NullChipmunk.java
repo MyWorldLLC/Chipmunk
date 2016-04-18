@@ -5,10 +5,14 @@ public class NullChipmunk extends AngryChipmunk {
 	private static final long serialVersionUID = -5334774990948047966L;
 
 	public NullChipmunk(){
-		this("");
+		this("", null);
 	}
 	
 	public NullChipmunk(String message){
-		super(message);
+		this(message, null);
+	}
+	
+	public NullChipmunk(String message, Throwable cause){
+		super(message, cause);
 	}
 }

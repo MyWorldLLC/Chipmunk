@@ -89,7 +89,7 @@ public class NutPacker {
 		
 	}
 	
-	private void register(CObject obj, boolean primary){
+	private int register(CObject obj, boolean primary){
 		
 		int identity = identityCounter;
 		identityMap.put(obj, identityCounter);
@@ -101,15 +101,21 @@ public class NutPacker {
 		}
 		
 		types.add(obj.getType());
-		
+		return identity;
 	}
 	
-	protected void registerSecondary(CObject obj){
+	public void registerSecondary(CObject obj){
 		register(obj, false);
 	}
 	
 	protected int getPackIndex(CObject obj){
-		return identityMap.get(obj);
+		
+		if(identityMap.containsKey(obj)){
+			return identityMap.get(obj);
+		}else{
+			return register(obj, false);
+		}
+		
 	}
 	
 	public byte[] pack(Nut nut){
@@ -222,7 +228,7 @@ public class NutPacker {
 		
 		// write magic number and version
 		
-		buffer.putLong(NutFormat.MAGIC_NUMBER);
+		buffer.put(NutFormat.MAGIC_NUMBER);
 		buffer.put(NUT_VERSION);
 		
 		// write metadata

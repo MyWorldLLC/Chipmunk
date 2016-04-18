@@ -12,10 +12,10 @@ public class AngryChipmunk extends RuntimeException {
 	protected CObject payload;
 
 	public AngryChipmunk(){
-		this("");
+		this("", null);
 	}
 	
-	public AngryChipmunk(String message){
+	public AngryChipmunk(String message, Throwable cause){
 		super(message);
 		traceFrames = new ArrayDeque<DebugInfo>();
 	}

@@ -6,12 +6,12 @@ public class UnknownTypeChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = 8229356869225924938L;
 
-	UnknownTypeChipmunk(){
+	public UnknownTypeChipmunk(){
 		super();
 	}
 	
-	UnknownTypeChipmunk(String msg){
-		super(msg);
+	public UnknownTypeChipmunk(String msg){
+		super(msg, null);
 	}
 	
 }
