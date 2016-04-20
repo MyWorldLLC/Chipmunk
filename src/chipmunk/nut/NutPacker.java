@@ -28,8 +28,6 @@ public class NutPacker {
 	
 	private boolean isPackingCode;
 	
-	protected List<byte[]> buffers;
-	
 	public NutPacker(){
 		
 		identityMap = new IdentityHashMap<CObject, Integer>();
