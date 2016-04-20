@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.ChipmunkContext;
 import chipmunk.modules.lang.CObject;
 
 public class Nut {
@@ -39,10 +38,5 @@ public class Nut {
 	public List<CObject> getInstances(){
 		return instances;
 	}
-	
-	public List<CObject> unpack(ChipmunkContext context, byte[] data){
-		return null;
-	}
-
 	
 }

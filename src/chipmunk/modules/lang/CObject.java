@@ -3,8 +3,10 @@ package chipmunk.modules.lang;
 import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkContext;
 import chipmunk.Namespace;
+import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
+import chipmunk.nut.OutputCapsule;
 
 public abstract class CObject {
 	
@@ -121,11 +123,11 @@ public abstract class CObject {
 	
 	public void __prePack__(NutPacker packer){}
 	
-	public void __pack__(NutPacker packer){
+	public void __pack__(NutPacker packer, OutputCapsule out){
 		throw new UnimplementedOperationChipmunk("Operation __pack__ not defined for type " + type.getName());
 	}
 	
-	public void __unpack__(NutCracker cracker){
+	public void __unpack__(NutCracker cracker, InputCapsule in){
 		throw new UnimplementedOperationChipmunk("Operation __unpack__ not defined for type " + type.getName());
 	}
 }
