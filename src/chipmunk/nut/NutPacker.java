@@ -137,10 +137,12 @@ public class NutPacker {
 			capsule.write(metadata.get(s));
 		}
 		
-		capsule.write(NutFormat.TABLE_MARKER);
-		
 		// write type table. Each entry is the string serialized type name,
 		// followed by the string serialized name of the module defining the type
+		capsule.write(NutFormat.TABLE_MARKER);
+		
+		capsule.write(indexedTypes.size());
+		
 		for(int i = 0; i < indexedTypes.size(); i++){
 			
 			CType type = indexedTypes.get(i);
