@@ -14,14 +14,7 @@ public class Namespace {
 	}
 	
 	public CObject getObject(String name){
-		
-		CObject val = variables.get(name);
-		
-		if(val == null){
-			throw new MissingVariableChipmunk("No variable with name " + name);
-		}
-		
-		return val;
+		return variables.get(name);
 	}
 	
 	public void setVariable(String name, CObject object){

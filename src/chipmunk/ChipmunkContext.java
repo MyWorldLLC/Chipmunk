@@ -22,6 +22,11 @@ public class ChipmunkContext {
 		return modules.get(name);
 	}
 	
+	public Module resolveModule(String name){
+		// TODO - resolve module name, loading it if needed
+		return null;
+	}
+	
 	public void addModule(Module module){
 		modules.put(module.getName(), module);
 	}

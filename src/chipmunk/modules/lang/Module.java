@@ -27,6 +27,14 @@ public class Module extends CObject {
 		this.name = name;
 	}
 	
+	public CObject getAttribute(String name){
+		return namespace.getObject(name);
+	}
+	
+	public void setAttribute(String name, CObject obj){
+		namespace.setVariable(name, obj);
+	}
+	
 	@Override
 	public boolean equals(Object other){
 		

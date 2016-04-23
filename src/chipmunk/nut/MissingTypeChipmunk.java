@@ -2,15 +2,15 @@ package chipmunk.nut;
 
 import chipmunk.AngryChipmunk;
 
-public class UnknownTypeChipmunk extends AngryChipmunk {
+public class MissingTypeChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = 8229356869225924938L;
 
-	public UnknownTypeChipmunk(){
+	public MissingTypeChipmunk(){
 		super();
 	}
 	
-	public UnknownTypeChipmunk(String msg){
+	public MissingTypeChipmunk(String msg){
 		super(msg, null);
 	}
 	

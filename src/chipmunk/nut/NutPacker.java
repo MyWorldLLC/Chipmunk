@@ -130,6 +130,9 @@ public class NutPacker {
 		capsule.write(NutFormat.TABLE_MARKER);
 		
 		Map<String, String> metadata = nut.getMetaData();
+		
+		capsule.write(metadata.size());
+		
 		for(String s : metadata.keySet()){
 			capsule.write(s);
 			capsule.write(metadata.get(s));
@@ -164,6 +167,7 @@ public class NutPacker {
 			Integer index = primaries.peek();
 			if(index != null && index == i){
 				capsule.write(NutFormat.PRIMARY_INSTANCE);
+				primaries.pop();
 			}else{
 				capsule.write(NutFormat.SECONDARY_INSTANCE);
 			}
