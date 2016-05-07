@@ -2,6 +2,7 @@ package chipmunk;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import chipmunk.modules.lang.CObject;
 
@@ -24,5 +25,9 @@ public class Namespace {
 		}
 		
 		variables.put(name, object);
+	}
+	
+	public Set<String> variableNames(){
+		return variables.keySet();
 	}
 }

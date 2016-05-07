@@ -69,15 +69,15 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __neg__ not defined for type " + type.getName());
 	}
 	
-	public CObject __and__(){
+	public CObject __and__(CObject other){
 		throw new UnimplementedOperationChipmunk("Operation __and__ not defined for type " + type.getName());
 	}
 	
-	public CObject __or__(){
+	public CObject __or__(CObject other){
 		throw new UnimplementedOperationChipmunk("Operation __or__ not defined for type " + type.getName());
 	}
 	
-	public CObject __xor__(){
+	public CObject __xor__(CObject other){
 		throw new UnimplementedOperationChipmunk("Operation __xor__ not defined for type " + type.getName());
 	}
 	
@@ -85,15 +85,15 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __bneg__ not defined for type " + type.getName());
 	}
 	
-	public CObject __lshift__(){
+	public CObject __lshift__(CObject places){
 		throw new UnimplementedOperationChipmunk("Operation __lshift__ not defined for type " + type.getName());
 	}
 	
-	public CObject __rshift__(){
+	public CObject __rshift__(CObject places){
 		throw new UnimplementedOperationChipmunk("Operation __rshift__ not defined for type " + type.getName());
 	}
 	
-	public CObject __urshift__(){
+	public CObject __urshift__(CObject places){
 		throw new UnimplementedOperationChipmunk("Operation __urshift__ not defined for type " + type.getName());
 	}
 	
@@ -119,6 +119,10 @@ public abstract class CObject {
 	
 	public boolean __truth__(){
 		throw new UnimplementedOperationChipmunk("Operation __truth__ not defined for type " + type.getName());
+	}
+	
+	public CObject __as__(CObject convertType){
+		throw new UnimplementedOperationChipmunk("Operation __as__ not defined for type " + type.getName());
 	}
 	
 	public void __prePack__(NutPacker packer){}

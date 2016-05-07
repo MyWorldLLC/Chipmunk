@@ -28,6 +28,10 @@ public class NutCracker {
 		primaries.clear();
 	}
 	
+	public CObject getInstance(int index){
+		return instances.get(index);
+	}
+	
 	public Nut unpack(ChipmunkContext context, InputStream in){
 		
 		InputCapsule capsule = new InputCapsule(in);

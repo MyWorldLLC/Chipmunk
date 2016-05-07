@@ -15,6 +15,10 @@ public class AngryChipmunk extends RuntimeException {
 		this("", null);
 	}
 	
+	public AngryChipmunk(String message){
+		this(message, null);
+	}
+	
 	public AngryChipmunk(String message, Throwable cause){
 		super(message);
 		traceFrames = new ArrayDeque<DebugInfo>();

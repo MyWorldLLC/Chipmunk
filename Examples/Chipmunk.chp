@@ -1,5 +1,7 @@
 import chipmunk.system
-import chipmunk.io.NutCracker as TheNutCracker
+from chipmunk.coolstuff import *
+from chipmunk.io import NutCracker as TheNutCracker
+from chipmunk.io import NutPacker, NutFormat as TheNutPacker, TheNutFormat
 
 class Chippy {
 
@@ -14,6 +16,23 @@ class Chippy {
 
 	# Common genus shared by all chipmunks, variable is set in the type's namespace
 	shared genus = "Tamias"
+	
+	# Constructor
+	Chippy(){
+	
+		# local variable
+		x = 1234
+		
+		# instance variable - type convert string literal to integer
+		self.x = "1234" as Int
+		
+		# shared variable - set in type namespace
+		shared x = "asdf"
+		
+		# equivalent to (if "type" attribute has not been altered)
+		self.type.x = "asdf"
+
+	}
 	
 	hideNuts(){
 		tree = choose(trees)
