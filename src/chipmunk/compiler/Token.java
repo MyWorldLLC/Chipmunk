@@ -15,20 +15,29 @@ public class Token {
 		LBRACE("{"), RBRACE("}"), LBRACKET("["), RBRACKET("]"), LPAREN("("), RPAREN(")"),
 		COMMA(","), SEMICOLON(";"), NEWLINE("\n|\r\n|\r"), EQUALS("="), DOT("."), STAR("*"), PLUS("+"),
 		MINUS("-"), FSLASH("/"), BSLASH("\\"), BAR("|"), EXCLAMATION("!"), POUND("#"), TILDE("~"), CARET("^"),
-		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("[+?-?][0-9]+"),
-		BINARYLITERAL("0b|0B[01]+"), HEXLITERAL("0x|0X[a-fA-F0-9]+"), FLOATLITERAL("[-+]?[0-9]+\\.[0-9]+([eE][-+]?[0-9]+)?"),
+		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("[0-9]+"),
+		BINARYLITERAL("0b|0B[01]+"), HEXLITERAL("0x|0X[a-fA-F0-9]+"), FLOATLITERAL("[0-9]*\\.[0-9]*([eE][-+]?[0-9]+)?"),
 		BOOLLITERAL("true|false"), STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'"),
-		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), FROM("from"), IMPORT("import"), AS("as"), IN("in"), CLASS("class"),
-		SHARED("shared"), NEW("new"), EOF("");
+		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), FROM("from", true), IMPORT("import", true), AS("as", true), IN("in", true),
+		CLASS("class", true), SHARED("shared", true), NEW("new", true), EOF("");
 		
 		protected Pattern pattern;
+		protected boolean keyword;
 		
 		Type(String regex){
+			this(regex, false);
+		}
+		
+		Type(String regex, boolean keyword){
 			pattern = Pattern.compile(regex);
 		}
 		
 		public Pattern getPattern(){
 			return pattern;
+		}
+		
+		public boolean isKeyword(){
+			return keyword;
 		}
 		
 	}
