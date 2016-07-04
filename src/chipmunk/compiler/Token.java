@@ -16,12 +16,12 @@ public class Token {
 		COMMA(","), SEMICOLON(";"), NEWLINE("\n|\r\n|\r"), EQUALS("="), DOT("."), STAR("*"), PLUS("+"),
 		MINUS("-"), FSLASH("/"), BSLASH("\\"), BAR("|"), EXCLAMATION("!"), POUND("#"), TILDE("~"), CARET("^"),
 		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("[0-9]+"),
-		BINARYLITERAL("0b|0B[01]+"), HEXLITERAL("0x|0X[a-fA-F0-9]+"), FLOATLITERAL("[0-9]*\\.[0-9]*([eE][-+]?[0-9]+)?"),
+		BINARYLITERAL("0b|0B[01]+"), HEXLITERAL("0x|0X[a-fA-F0-9]+"), FLOATLITERAL("[-+]?[0-9]*\\.?[0-9]*([eE][-+]?[0-9]+)?"),
 		BOOLLITERAL("true|false"), STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'"),
 		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), FROM("from", true), IMPORT("import", true), AS("as", true), IN("in", true),
 		CLASS("class", true), SHARED("shared", true), NEW("new", true), IF("if", true), ELSE("else", true), FOR("for", true),
 		WHILE("while", true), BREAK("break", true), CONTINUE("continue", true), RETURN("return", true), TRY("try", true),
-		EXCEPT("except", true), THROW("throw", true), EOF("");
+		EXCEPT("except", true), THROW("throw", true), DEF("def", true), EOF("");
 		
 		protected Pattern pattern;
 		protected boolean keyword;

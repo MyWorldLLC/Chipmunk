@@ -68,4 +68,14 @@ public class TokenStream {
 		}
 		
 	}
+	
+	public void skip(int places){
+		
+		cursor += places;
+		
+		if(cursor >= tokens.size()){
+			cursor = tokens.size() - 1;
+		}
+		
+	}
 }
