@@ -12,11 +12,16 @@ import chipmunk.nut.OutputCapsule;
 public class Module extends CObject {
 	
 	protected String name;
-	protected List<Module> modules;
+	protected List<Import> imports;
+	
+	public class Import {
+		String module;
+		String[] symbols;
+	}
 	
 	
 	public Module(){
-		modules = new ArrayList<Module>();
+		imports = new ArrayList<Import>();
 		type = new ModuleType();
 	}
 	

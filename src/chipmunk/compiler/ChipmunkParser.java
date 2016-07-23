@@ -1,12 +1,20 @@
 package chipmunk.compiler;
 
+import chipmunk.modules.lang.Module;
+
 public class ChipmunkParser {
 	
 	protected TokenStream tokens;
 	protected ASTNode ast;
 	
+	protected Module module;
+	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
+	}
+	
+	public void parse(){
+		
 	}
 	
 	public void parseModule(){
@@ -110,7 +118,7 @@ public class ChipmunkParser {
 	}
 	
 	public ASTNode parseMethodDef(){
-		// statements, class & method definitions
+		// statements & method definitions
 		return null;
 	}
 	
