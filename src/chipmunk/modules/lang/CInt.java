@@ -10,6 +10,11 @@ public class CInt extends CObject {
 		intValue = 0;
 	}
 	
+	public CInt(int value){
+		super();
+		intValue = value;
+	}
+	
 	public int getValue(){
 		return intValue;
 	}

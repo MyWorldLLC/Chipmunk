@@ -77,7 +77,15 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __or__ not defined for type " + type.getName());
 	}
 	
-	public CObject __xor__(CObject other){
+	public CObject __bxor__(CObject other){
+		throw new UnimplementedOperationChipmunk("Operation __xor__ not defined for type " + type.getName());
+	}
+	
+	public CObject __band__(CObject other){
+		throw new UnimplementedOperationChipmunk("Operation __xor__ not defined for type " + type.getName());
+	}
+	
+	public CObject __bor__(CObject other){
 		throw new UnimplementedOperationChipmunk("Operation __xor__ not defined for type " + type.getName());
 	}
 	
@@ -109,11 +117,11 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __getAt__ not defined for type " + type.getName());
 	}
 	
-	public CObject __setAt__(CObject index){
+	public CObject __setAt__(CObject index, CObject value){
 		throw new UnimplementedOperationChipmunk("Operation __setAt__ not defined for type " + type.getName());
 	}
 	
-	public CObject __call__(ChipmunkContext context, int paramCount, boolean resuming) throws AngryChipmunk {
+	public CObject __call__(ChipmunkContext context, int paramCount, CObject[] outerLocals, boolean resuming) throws AngryChipmunk {
 		throw new UnimplementedOperationChipmunk("Operation __call__ not defined for type " + type.getName());
 	}
 	
@@ -123,6 +131,10 @@ public abstract class CObject {
 	
 	public CObject __as__(CObject convertType){
 		throw new UnimplementedOperationChipmunk("Operation __as__ not defined for type " + type.getName());
+	}
+	
+	public int __compare__(CObject other){
+		throw new UnimplementedOperationChipmunk("Operation __compare__ not defined for type " + type.getName());
 	}
 	
 	public void __prePack__(NutPacker packer){}

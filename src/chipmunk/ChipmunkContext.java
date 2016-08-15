@@ -1,7 +1,9 @@
 package chipmunk;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chipmunk.modules.lang.CObject;
@@ -9,13 +11,14 @@ import chipmunk.modules.lang.Module;
 
 public class ChipmunkContext {
 
-	Map<String, Module> modules;
-	ArrayDeque<CObject> stack;
+	protected Map<String, Module> modules;
+	protected List<CObject> stack;
+	public volatile boolean interrupted;
 	
 	public ChipmunkContext(){
 		modules = new HashMap<String, Module>();
 		// initialize operand stack to be 128 elements deep
-		stack = new ArrayDeque<CObject>(128);
+		stack = new ArrayList<CObject>(128);
 	}
 	
 	public Module getModule(String name){
@@ -44,11 +47,27 @@ public class ChipmunkContext {
 	}
 	
 	public void push(CObject obj){
-		stack.push(obj);
+		stack.add(obj);
 	}
 	
 	public CObject pop(){
-		return stack.pop();
+		return stack.remove(stack.size() - 1);
+	}
+	
+	public void dup(int index){
+		CObject obj = stack.get(stack.size() - (index + 1));
+		stack.add(obj);
+	}
+	
+	public void swap(int index1, int index2){
+		int stackIndex1 = stack.size() - (index1 + 1);
+		int stackIndex2 = stack.size() - (index2 + 1);
+		
+		CObject obj1 = stack.get(stackIndex1);
+		CObject obj2 = stack.get(stackIndex2);
+		
+		stack.set(index1, obj2);
+		stack.set(index2, obj1);
 	}
 	
 }
