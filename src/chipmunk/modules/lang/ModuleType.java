@@ -7,8 +7,4 @@ public class ModuleType extends CType {
 		super("Module");
 	}
 	
-	public CObject instance(){
-		return new Module();
-	}
-	
 }

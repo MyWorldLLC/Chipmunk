@@ -16,5 +16,7 @@ public class CFloat extends CObject {
 		floatValue = value;
 	}
 	
-	
+	public float getValue(){
+		return floatValue;
+	}
 }

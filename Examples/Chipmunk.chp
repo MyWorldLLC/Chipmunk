@@ -1,7 +1,19 @@
+# imports symbol 'system' from module chipmunk
 import chipmunk.system
+
+# imports all symbols from module chipmunk.coolstuff
 from chipmunk.coolstuff import *
+
+# imports symbol NutCracker from chipmunk.io, aliased as TheNutCracker
 from chipmunk.io import NutCracker as TheNutCracker
+
+# imports and aliases multiple classes from a module at once
 from chipmunk.io import NutPacker, NutFormat as TheNutPacker, TheNutFormat
+
+# declares the module that all classes/methods/variables following this statement will
+# be in. A source file can contain multiple module declarations, and any code following
+# each module declaration will execute as part of that module
+module chipmunk
 
 class Chippy {
 
@@ -18,43 +30,53 @@ class Chippy {
 	shared genus = "Tamias"
 	
 	# Constructor
-	Chippy(){
+	def Chippy(){
 	
 		# local variable
 		x = 1234
 		
 		# instance variable - type convert string literal to integer
+		# this will result in calling __as__ on the string object
+		# with the Int type as a parameter
 		self.x = "1234" as Int
 		
-		# shared variable - set in type namespace
+		# shared variable - set in type namespace. Shared variables (including methods)
+		# can be accessed by code outside this class as Chippy.x
 		shared x = "asdf"
 		
-		# equivalent to (if "type" attribute has not been altered)
+		# "shared.x = ..." is equivalent to
 		self.type.x = "asdf"
+		
+		# access a shared variable. 'shared.x' is effectively an alias for
+		# self.type.x or Chippy.x
+		print(shared.x)
 
 	}
 	
-	hideNuts(){
+	def hideNuts(){
 		tree = choose(trees)
 		self.climb(tree)
+		# 'in' keyword uses an iterator returned by the instance on the right
 		for( nut in nuts ){
 			tree.putInTrunk(nut)
 		}
 	}
 	
-	# Method shared by all chipmunks - can only access non-local variables
-	# in the class type and module namespaces
-	shared getGenus(){
+	# Method shared by all chipmunks - can only access shared variables of the Chipmunk class and symbols in
+	# the module
+	shared def getGenus(){
 		return genus
 	}
 }
 
-throwNut(){
-	nut = new Nut()
+def throwNut(){
+	nut = Nut()
 	nut.dropOnGround()
 }
 
-main(){
-	chippy = new Chippy()
+def main(){
+	# create a new instance. Calls to a class symbol create a new instance of the class
+	# and call the constructor with any parameters passed
+	chippy = Chippy()
 	chippy.doChipmunkThings()
 }

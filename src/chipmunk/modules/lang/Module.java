@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import chipmunk.Namespace;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
@@ -12,6 +13,7 @@ import chipmunk.nut.OutputCapsule;
 public class Module extends CObject {
 	
 	protected String name;
+	protected Namespace namespace;
 	protected List<Import> imports;
 	
 	public class Import {
@@ -23,6 +25,7 @@ public class Module extends CObject {
 	public Module(){
 		imports = new ArrayList<Import>();
 		type = new ModuleType();
+		namespace = new Namespace();
 	}
 	
 	public Module(String name){
@@ -46,11 +49,15 @@ public class Module extends CObject {
 		namespace.setVariable(name, obj);
 	}
 	
+	public Namespace getNamespace(){
+		return namespace;
+	}
+	
 	public CObject __getAttr__(CObject name){
 		
 		if(name instanceof CString){
 			
-			String attrName = ((CString)name).getString();
+			String attrName = ((CString)name).getValue();
 			CObject attr = getAttribute(attrName);
 			
 			if(attr == null){
@@ -67,7 +74,7 @@ public class Module extends CObject {
 	public void __setAttr__(CObject name, CObject value){
 		
 		if(name instanceof CString){
-			String attrName = ((CString)name).getString();
+			String attrName = ((CString)name).getValue();
 			setAttribute(attrName, value);
 		}else{
 			throw new UnimplementedOperationChipmunk("Operation __setAttr__ for type Module undefined for name type " + name.getType().getName());

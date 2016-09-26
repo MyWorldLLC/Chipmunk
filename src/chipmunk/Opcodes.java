@@ -41,19 +41,18 @@ public class Opcodes {
 	public static final byte POP = 0x1F;
 	public static final byte DUP = 0x20;
 	public static final byte SWAP = 0x21;
-	public static final byte NEW = 0x22;
-	public static final byte PUSHI = 0x23;
-	public static final byte PUSHF = 0x24;
-	public static final byte PUSHB = 0x25;
-	public static final byte PUSHSTR = 0x26;
-	public static final byte PUSHNULL = 0x27;
+	public static final byte PUSHI = 0x22;
+	public static final byte PUSHF = 0x23;
+	public static final byte PUSHB = 0x24;
+	public static final byte PUSHSTR = 0x25;
+	public static final byte PUSHNULL = 0x26;
 	
 	// Comparison
-	public static final byte EQ = 0x28;
-	public static final byte GT = 0x29;
-	public static final byte LT = 0x2A;
-	public static final byte GE = 0x2B;
-	public static final byte LE = 0x2C;
-	public static final byte IS = 0x2D;
+	public static final byte EQ = 0x27;
+	public static final byte GT = 0x28;
+	public static final byte LT = 0x29;
+	public static final byte GE = 0x2A;
+	public static final byte LE = 0x2B;
+	public static final byte IS = 0x2C;
 	
 }

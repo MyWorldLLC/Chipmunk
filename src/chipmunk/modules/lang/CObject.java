@@ -10,8 +10,8 @@ import chipmunk.nut.OutputCapsule;
 
 public abstract class CObject {
 	
-	protected Namespace namespace;
 	protected CType type;
+	protected Namespace namespace;
 	
 	public CObject(){
 		namespace = new Namespace();
@@ -19,10 +19,6 @@ public abstract class CObject {
 	
 	public CType getType(){
 		return type;
-	}
-	
-	public Namespace getNamespace(){
-		return namespace;
 	}
 	
 	public CObject __plus__(CObject other){
@@ -121,7 +117,7 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __setAt__ not defined for type " + type.getName());
 	}
 	
-	public CObject __call__(ChipmunkContext context, int paramCount, CObject[] outerLocals, boolean resuming) throws AngryChipmunk {
+	public CObject __call__(ChipmunkContext context, int paramCount, boolean resuming) throws AngryChipmunk {
 		throw new UnimplementedOperationChipmunk("Operation __call__ not defined for type " + type.getName());
 	}
 	

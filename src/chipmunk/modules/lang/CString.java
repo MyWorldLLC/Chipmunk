@@ -15,11 +15,11 @@ public class CString extends CObject {
 		string = str;
 	}
 	
-	public String getString(){
+	public String getValue(){
 		return string;
 	}
 	
-	public void setString(String str){
+	public void setValue(String str){
 		string = str;
 	}
 }

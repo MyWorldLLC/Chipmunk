@@ -64,7 +64,7 @@ public class CMethod extends CObject {
 	}
 	
 	@Override
-	public CObject __call__(ChipmunkContext context, int paramCount, CObject[] outerLocals, boolean resuming){
+	public CObject __call__(ChipmunkContext context, int paramCount, boolean resuming){
 		
 		int ip = 0;
 		CObject[] locals;
@@ -263,7 +263,7 @@ public class CMethod extends CObject {
 				// TODO
 				int args = fetchInt(ip + 1);
 				ins = context.pop();
-				context.push(ins.__call__(context, args, outerLocals, false));
+				context.push(ins.__call__(context, args, false));
 				ip += 5;
 				break;
 			case GOTO:
@@ -290,15 +290,6 @@ public class CMethod extends CObject {
 				int swapIndex2 = fetchInt(ip + 5);
 				context.swap(swapIndex1, swapIndex2);
 				ip += 9;
-				break;
-			case NEW:
-				ins = context.pop();
-				if(ins instanceof CType){
-					context.push(((CType)ins).instance());
-				}else{
-					throw new ExceptionChipmunk(ins);
-				}
-				ip++;
 				break;
 			case PUSHI:
 				context.push(new CInt(fetchInt(ip + 1)));

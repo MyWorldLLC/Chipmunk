@@ -7,6 +7,7 @@ public abstract class CType extends CObject {
 	protected Module module;
 	
 	public CType(){
+		super();
 		name = "";
 		type = this;
 	}
@@ -32,7 +33,5 @@ public abstract class CType extends CObject {
 		module = typeModule;
 		module.getNamespace().setVariable(name, this);
 	}
-	
-	public abstract CObject instance();
 	
 }
