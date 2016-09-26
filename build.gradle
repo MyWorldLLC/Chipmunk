@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'antlr'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -11,12 +12,13 @@ repositories {
 
 dependencies {
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
+	antlr 'org.antlr:antlr4:4.5.3'
 }
 
 uploadArchives {
     repositories {
        flatDir {
-           dirs 'release'
+           dirs 'dist'
        }
     }
 }
@@ -24,7 +26,10 @@ uploadArchives {
 sourceSets {
 	main {
 	  java {
-		srcDir 'src/'
+		srcDir 'src/main/java'
+	  }
+	  antlr {
+		  srcDir 'src/main/antlr'
 	  }
 	}
 }

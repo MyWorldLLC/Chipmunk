@@ -29,6 +29,8 @@ public abstract class CType extends CObject {
 		return module;
 	}
 	
+	public abstract CObject instance();
+	
 	public void setModule(Module typeModule){
 		module = typeModule;
 		module.getNamespace().setVariable(name, this);

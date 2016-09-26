@@ -22,4 +22,9 @@ public class CClassType extends CType {
 	public CObject getField(String name){
 		return typeFields.getObject(name);
 	}
+	
+	public CObject instance(){
+		// TODO
+		return null;
+	}
 }

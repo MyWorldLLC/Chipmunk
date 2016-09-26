@@ -17,6 +17,10 @@ public class CStringType extends CType {
 		return tempString;
 	}
 	
+	public CObject instance(){
+		return new CString();
+	}
+	
 	@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){

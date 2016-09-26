@@ -17,6 +17,10 @@ public class CFloatType extends CType {
 		return tempValue;
 	}
 	
+	public CObject instance(){
+		return new CFloat();
+	}
+	
 	@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){
