@@ -142,4 +142,12 @@ public abstract class CObject {
 	public void __unpack__(NutCracker cracker, InputCapsule in){
 		throw new UnimplementedOperationChipmunk("Operation __unpack__ not defined for type " + type.getName());
 	}
+	
+	public int __hash__(){
+		return this.hashCode();
+	}
+	
+	public CString __string__(){
+		return new CString(this.toString());
+	}
 }
