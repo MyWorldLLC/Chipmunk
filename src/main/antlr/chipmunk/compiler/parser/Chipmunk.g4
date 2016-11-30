@@ -78,6 +78,7 @@ TRY			: 'try';
 CATCH		: 'catch';
 THROW		: 'throw';
 
+// TODO - float and string literals
 INTLITERAL	: (ADD|SUB)? [0-9_]+;
 HEXLITERAL	: ('0x'|'0X') [0-9a-fA-F_]+;
 OCTLITERAL	: ('0o'|'0O') [0-7_]+;
@@ -121,7 +122,7 @@ nameList 	: NAME (COMMA NAME)*
 moduleDec 	: moduleID
 		  	;
 
-moduleImport : IMPORT moduleID (AS NAME)?
+importStatement		 : IMPORT moduleID (AS NAME)?
 			 | FROM moduleID IMPORT (MUL | nameList (AS nameList)?)
 			 ;
 			 
@@ -132,7 +133,11 @@ varDec 		: nameList
 	   		| varSet
 	   		;
 
-expression 	: 'todo'
+expression 	: NAME
+			//| unaryOp? expression
+			//| expression unaryOp?
+			//| expression binaryOp expression
+			//| LPAREN expression RPAREN
 		   	;
 		   	
 expressionList : expression (COMMA expression)*
@@ -144,8 +149,8 @@ tuple : LPAREN (expressionList)? RPAREN
 dict  : LBRACE (expression COLON expression (COMMA expression COLON expression)* )? RBRACE
 	  ;
 	  
-list  : LBRACK (expressionList)? RBRACK
+list  : LBRACK expressionList? RBRACK
 	  ;
 	  
 	  
-script : 'foo';
+module : moduleDec? importStatement*;
