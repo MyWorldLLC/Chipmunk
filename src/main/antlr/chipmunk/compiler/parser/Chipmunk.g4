@@ -134,10 +134,10 @@ varDec 		: nameList
 	   		;
 
 expression 	: NAME
-			//| unaryOp? expression
-			//| expression unaryOp?
-			//| expression binaryOp expression
-			//| LPAREN expression RPAREN
+			| unaryOp expression
+			| expression unaryOp
+			| expression binaryOp expression
+			| LPAREN expression RPAREN
 		   	;
 		   	
 expressionList : expression (COMMA expression)*
