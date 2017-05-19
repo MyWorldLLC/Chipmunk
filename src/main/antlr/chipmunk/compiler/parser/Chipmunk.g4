@@ -94,8 +94,6 @@ WS : [ \t\r\n\u000C]+ -> skip;
 // of them are valid names
 NAME : [a-zA-Z_] [a-zA-Z0-9_]*;
 
-// TODO - eventually we need to handle these somewhat more intelligently,
-// as comments may be used for documentation.
 COMMENT 	: '#' ~[\r\n]* -> skip
 			;
 		
@@ -119,30 +117,11 @@ moduleID 	: NAME (DOT NAME)*
 nameList 	: NAME (COMMA NAME)*
 		 	;
 
-moduleDec 	: moduleID
-		  	;
 
-importStatement		 : IMPORT moduleID (AS NAME)?
-			 | FROM moduleID IMPORT (MUL | nameList (AS nameList)?)
-			 ;
+importStatement : IMPORT moduleID (AS NAME)?
+			 	| FROM moduleID IMPORT (MUL | nameList (AS nameList)?)
+			 	;
 			 
-varSet 		: nameList assign expressionList
-	   		;
-
-varDec 		: nameList
-	   		| varSet
-	   		;
-
-expression 	: NAME
-			| unaryOp expression
-			| expression unaryOp
-			| expression binaryOp expression
-			| LPAREN expression RPAREN
-		   	;
-		   	
-expressionList : expression (COMMA expression)*
-			   ;
-			   
 tuple : LPAREN (expressionList)? RPAREN
 	  ;
 	  
@@ -151,6 +130,30 @@ dict  : LBRACE (expression COLON expression (COMMA expression COLON expression)*
 	  
 list  : LBRACK expressionList? RBRACK
 	  ;
+
+expression 	: NAME
+			| unaryOp expression
+			| expression unaryOp
+			| expression binaryOp expression
+			| LPAREN expression RPAREN
+			| tuple
+			| dict
+			| list
+		   	;
+		   	
+expressionList : expression (COMMA expression)*
+			   ;
+			   
+assignment : expression assign expression
+		   ;
+		   
+assignAt : expression LBRACK expression RBRACK ASSIGN expression
+		 ;
 	  
+statement : importStatement
+		  | NAME
+		  | assignment
+		  | assignAt
+		  ;
 	  
-module : moduleDec? importStatement*;
+module : statement*;
