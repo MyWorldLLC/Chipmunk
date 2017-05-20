@@ -9,7 +9,7 @@ import java.util.List;
 import chipmunk.ChipmunkContext;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CType;
-import chipmunk.modules.lang.Module;
+import chipmunk.modules.lang.CModule;
 
 public class NutCracker {
 
@@ -86,7 +86,7 @@ public class NutCracker {
 			String typeName = capsule.readString();
 			String moduleName = capsule.readString();
 			
-			Module module = context.resolveModule(moduleName);
+			CModule module = context.resolveModule(moduleName);
 			CObject symbolAttr = module.getAttribute(typeName);
 			
 			if(symbolAttr == null){

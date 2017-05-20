@@ -1,14 +1,14 @@
 package chipmunk.modules.lang;
 
 
-public class ModuleType extends CType {
+public class CModuleType extends CType {
 
-	public ModuleType(){
+	public CModuleType(){
 		super("Module");
 	}
 	
 	public CObject instance(){
-		return new Module();
+		return new CModule();
 	}
 	
 }

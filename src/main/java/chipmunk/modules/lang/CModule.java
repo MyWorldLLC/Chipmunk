@@ -10,7 +10,7 @@ import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
 
-public class Module extends CObject {
+public class CModule extends CObject {
 	
 	protected String name;
 	protected Namespace namespace;
@@ -22,13 +22,13 @@ public class Module extends CObject {
 	}
 	
 	
-	public Module(){
+	public CModule(){
 		imports = new ArrayList<Import>();
-		type = new ModuleType();
+		type = new CModuleType();
 		namespace = new Namespace();
 	}
 	
-	public Module(String name){
+	public CModule(String name){
 		this();
 		this.setName(name);
 	}
@@ -142,8 +142,8 @@ public class Module extends CObject {
 	public boolean equals(Object other){
 		
 		// Modules are considered equal if their names are equal
-		if(other instanceof Module){
-			if(((Module) other).getName().equals(name)){
+		if(other instanceof CModule){
+			if(((CModule) other).getName().equals(name)){
 				return true;
 			}else{
 				return false;

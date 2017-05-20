@@ -4,7 +4,7 @@ package chipmunk.modules.lang;
 public abstract class CType extends CObject {
 
 	protected String name;
-	protected Module module;
+	protected CModule module;
 	
 	public CType(){
 		super();
@@ -25,13 +25,13 @@ public abstract class CType extends CObject {
 		return name;
 	}
 	
-	public Module getModule(){
+	public CModule getModule(){
 		return module;
 	}
 	
 	public abstract CObject instance();
 	
-	public void setModule(Module typeModule){
+	public void setModule(CModule typeModule){
 		module = typeModule;
 		module.getNamespace().setVariable(name, this);
 	}

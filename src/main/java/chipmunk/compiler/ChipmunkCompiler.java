@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 import chipmunk.modules.lang.CObject;
-import chipmunk.modules.lang.Module;
+import chipmunk.modules.lang.CModule;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.parser.ChipmunkLexer;
 import chipmunk.compiler.CompileChipmunk;
@@ -56,7 +56,7 @@ public class ChipmunkCompiler {
 		//stream = lexer.lex(src);
 	}
 	
-	public Module compile(String src){
+	public CModule compile(String src){
 		
 		CommonTokenStream tokens = new CommonTokenStream(new ChipmunkLexer(new ANTLRInputStream(src)));
 		ChipmunkParser parser = new ChipmunkParser(tokens);
@@ -64,7 +64,7 @@ public class ChipmunkCompiler {
 		return null;
 	}
 	
-	public Module compile(InputStream src) throws IOException {
+	public CModule compile(InputStream src) throws IOException {
 		
 		CommonTokenStream tokens = new CommonTokenStream(new ChipmunkLexer(new ANTLRInputStream(src)));
 		ChipmunkParser parser = new ChipmunkParser(tokens);

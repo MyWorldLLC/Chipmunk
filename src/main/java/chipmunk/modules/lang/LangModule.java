@@ -1,7 +1,7 @@
 package chipmunk.modules.lang;
 
 
-public class LangModule extends Module {
+public class LangModule extends CModule {
 
 	public LangModule(){
 		super("chipmunk.lang");

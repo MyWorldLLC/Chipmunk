@@ -6,36 +6,36 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.modules.lang.CObject;
-import chipmunk.modules.lang.Module;
+import chipmunk.modules.lang.CModule;
 
 public class ChipmunkContext {
 
-	protected Map<String, Module> modules;
+	protected Map<String, CModule> modules;
 	protected List<CObject> stack;
 	public volatile boolean interrupted;
 	
 	public ChipmunkContext(){
-		modules = new HashMap<String, Module>();
+		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
 		stack = new ArrayList<CObject>(128);
 	}
 	
-	public Module getModule(String name){
+	public CModule getModule(String name){
 		return modules.get(name);
 	}
 	
-	public Module resolveModule(String name){
+	public CModule resolveModule(String name){
 		// TODO - resolve module name, loading it if needed
 		return null;
 	}
 	
-	public void addModule(Module module){
+	public void addModule(CModule module){
 		modules.put(module.getName(), module);
 	}
 	
-	public boolean removeModule(Module module){
+	public boolean removeModule(CModule module){
 		
-		Module removed = modules.remove(module.getName());
+		CModule removed = modules.remove(module.getName());
 		
 		if(removed == null){
 			return false;

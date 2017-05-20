@@ -1,6 +1,8 @@
 package chipmunk.compiler;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,92 @@ public class ChipmunkAssembler {
 		
 		labels = new ArrayList<Label>();
 		labelTargets = new ArrayList<LabelTarget>();
+	}
+	
+	public byte[] makeModuleBinary(){
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
+		// write magic number
+		for(int i = 0; i < BinaryModuleFormat.MAGIC_NUMBER.length; i++){
+			os.write(BinaryModuleFormat.MAGIC_NUMBER[i]);
+		}
+		
+		// write constant pool
+		os.write(BinaryModuleFormat.CONSTANT_POOL);
+		
+		for(int i = 0; i < constantPool.size(); i++){
+			CObject obj = constantPool.get(i);
+			
+			if(obj instanceof CBoolean){
+				CBoolean cBool = (CBoolean) obj;
+				os.write(BinaryModuleFormat.CONSTANT_BOOL);
+				
+				if(cBool.getValue() == true){
+					os.write(1);
+				}else{
+					os.write(0);
+				}
+				
+			}else if(obj instanceof CInt){
+				CInt cInt = (CInt) obj;
+				os.write(BinaryModuleFormat.CONSTANT_INT);
+				
+				int value = cInt.getValue();
+				os.write(value >> 24);
+				os.write(value >> 16);
+				os.write(value >> 8);
+				os.write(value);
+				
+			}else if(obj instanceof CFloat){
+				CFloat cFloat = (CFloat) obj;
+				os.write(BinaryModuleFormat.CONSTANT_FLOAT);
+				
+				int value = Float.floatToIntBits(cFloat.getValue());
+				os.write(value >> 24);
+				os.write(value >> 16);
+				os.write(value >> 8);
+				os.write(value);
+				
+			}else if(obj instanceof CString){
+				CString cString = (CString) obj;
+				os.write(BinaryModuleFormat.CONSTANT_STRING);
+				
+				byte[] utfBytes = cString.getValue().getBytes(Charset.forName("UTF-8"));
+				int length = utfBytes.length;
+				
+				os.write(length >> 24);
+				os.write(length >> 16);
+				os.write(length >> 8);
+				os.write(length);
+				
+				for(int index = 0; index < utfBytes.length; index++){
+					os.write(utfBytes[index]);
+				}
+			}else if(obj instanceof Null){
+				os.write(BinaryModuleFormat.CONSTANT_NULL);
+			}
+		}
+		
+		os.write(BinaryModuleFormat.CONSTANT_POOL);
+		
+		// write code section
+		os.write(BinaryModuleFormat.CODE_SECTION);
+		
+		byte[] codeBytes = code.toByteArray();
+		int codeLength = codeBytes.length;
+		
+		os.write(codeLength >> 24);
+		os.write(codeLength >> 16);
+		os.write(codeLength >> 8);
+		os.write(codeLength);
+		
+		for(int i = 0; i < codeBytes.length; i++){
+			os.write(codeBytes[i]);
+		}
+		
+		os.write(BinaryModuleFormat.CODE_SECTION);
+		
+		return os.toByteArray();
 	}
 	
 	public void add(){
@@ -177,6 +265,10 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
+	public void _if(Label elseLabel){
+		_if(elseLabel.getName());
+	}
+	
 	public void _if(String elseLabel){
 		code.write(Opcodes.IF);
 		
@@ -226,6 +318,10 @@ public class ChipmunkAssembler {
 		LabelTarget target = new LabelTarget(label.getName(), index);
 		labelTargets.add(target);
 		return target;
+	}
+	
+	public void _goto(Label label){
+		_goto(label.getName());
 	}
 	
 	public void _goto(String label){
