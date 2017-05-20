@@ -1,13 +1,13 @@
 package chipmunk.compiler;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.Opcodes;
 import chipmunk.modules.lang.CBoolean;
+import chipmunk.modules.lang.CCode;
 import chipmunk.modules.lang.CFloat;
 import chipmunk.modules.lang.CInt;
 import chipmunk.modules.lang.CObject;
@@ -26,14 +26,54 @@ public class ChipmunkAssembler {
 	private List<LabelTarget> labelTargets;
 	
 	public ChipmunkAssembler(){
+		this(new ArrayList<CObject>());
+	}
+	
+	private ChipmunkAssembler(List<CObject> constants){
 		code = new ByteArrayOutputStream();
 		index = 0;
 		labelNumber = 0;
 		
-		constantPool = new ArrayList<CObject>();
+		constantPool = constants;
 		
 		labels = new ArrayList<Label>();
 		labelTargets = new ArrayList<LabelTarget>();
+	}
+	
+	public ChipmunkAssembler createMethodAssembler(){
+		ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
+		return assembler;
+	}
+	
+	public byte[] getCodeSegment(){
+		// resolve labels
+		byte[] codeBytes = code.toByteArray();
+		for(int i = 0; i < labels.size(); i++){
+			Label label = labels.get(i);
+			
+			boolean resolved = false;
+			for(int target = 0; target < labelTargets.size(); target++){
+				
+				LabelTarget labelTarget = labelTargets.get(target);
+				if(labelTarget.getName().equals(label.getName())){
+					
+					int targetIndex = labelTarget.getCodeIndex();
+					int labelIndex = label.getCodeIndex();
+					
+					codeBytes[labelIndex] = (byte) (targetIndex >> 24);
+					codeBytes[labelIndex + 1] = (byte) (targetIndex >> 16);
+					codeBytes[labelIndex + 2] = (byte) (targetIndex >> 8);
+					codeBytes[labelIndex + 3] = (byte) targetIndex;
+					
+					resolved = true;
+				}
+			}
+			
+			if(!resolved){
+				// TODO - throw error. Label was not resolved.
+			}
+		}
+		return codeBytes;
 	}
 	
 	public byte[] makeModuleBinary(){
@@ -97,6 +137,20 @@ public class ChipmunkAssembler {
 				}
 			}else if(obj instanceof Null){
 				os.write(BinaryModuleFormat.CONSTANT_NULL);
+			}else if(obj instanceof CCode){
+				os.write(BinaryModuleFormat.CONSTANT_CODE);
+				
+				byte[] codeBytes = ((CCode) obj).getCode();
+				int length = codeBytes.length;
+				
+				os.write(length >> 24);
+				os.write(length >> 16);
+				os.write(length >> 8);
+				os.write(length);
+				
+				for(int index = 0; index < length; index++){
+					os.write(codeBytes[index]);
+				}
 			}
 		}
 		
@@ -105,7 +159,7 @@ public class ChipmunkAssembler {
 		// write code section
 		os.write(BinaryModuleFormat.CODE_SECTION);
 		
-		byte[] codeBytes = code.toByteArray();
+		byte[] codeBytes = getCodeSegment();
 		int codeLength = codeBytes.length;
 		
 		os.write(codeLength >> 24);

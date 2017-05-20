@@ -14,6 +14,7 @@ public class BinaryModuleFormat {
 	public static final byte CONSTANT_FLOAT = (byte) 0x02;
 	public static final byte CONSTANT_STRING = (byte) 0x03;
 	public static final byte CONSTANT_NULL = (byte) 0x04;
+	public static final byte CONSTANT_CODE = (byte) 0x05;
 	
 	public static final byte CODE_SECTION = (byte) 0xFF;
 
