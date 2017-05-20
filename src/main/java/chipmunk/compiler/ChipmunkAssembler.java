@@ -1,18 +1,37 @@
 package chipmunk.compiler;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import chipmunk.Opcodes;
+import chipmunk.modules.lang.CBoolean;
+import chipmunk.modules.lang.CFloat;
+import chipmunk.modules.lang.CInt;
 import chipmunk.modules.lang.CObject;
+import chipmunk.modules.lang.CString;
+import chipmunk.modules.lang.Null;
 
 public class ChipmunkAssembler {
 	
 	private ByteArrayOutputStream code;
 	private int index;
+	private int labelNumber;
+	
+	private List<CObject> constantPool;
+	
+	private List<Label> labels;
+	private List<LabelTarget> labelTargets;
 	
 	public ChipmunkAssembler(){
 		code = new ByteArrayOutputStream();
 		index = 0;
+		labelNumber = 0;
+		
+		constantPool = new ArrayList<CObject>();
+		
+		labels = new ArrayList<Label>();
+		labelTargets = new ArrayList<LabelTarget>();
 	}
 	
 	public void add(){
@@ -158,9 +177,17 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void _if(){
+	public void _if(String elseLabel){
 		code.write(Opcodes.IF);
-		index++;
+		
+		label(elseLabel);
+		
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		
+		index += 5;
 	}
 	
 	public void call(byte paramCount){
@@ -169,9 +196,49 @@ public class ChipmunkAssembler {
 		index += 2;
 	}
 	
-	public void _goto(){
+	public Label label(String labelName){
+		Label label = new Label(labelName, index);
+		labels.add(label);
+		return label;
+	}
+	
+	public Label label(){
+		
+		Label label = new Label(nextLabelName(), index);
+		labels.add(label);
+		
+		return label;
+	}
+	
+	public String nextLabelName(){
+		String name = Integer.toString(labelNumber);
+		labelNumber++;
+		return name;
+	}
+	
+	public LabelTarget setLabelTarget(String label){
+		LabelTarget target = new LabelTarget(label, index);
+		labelTargets.add(target);
+		return target;
+	}
+	
+	public LabelTarget setLabelTarget(Label label){
+		LabelTarget target = new LabelTarget(label.getName(), index);
+		labelTargets.add(target);
+		return target;
+	}
+	
+	public void _goto(String label){
 		code.write(Opcodes.GOTO);
-		index++;
+		
+		label(label);
+		
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		
+		index += 5;
 	}
 	
 	public void _throw(){
@@ -199,10 +266,45 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void push(CObject value){
-		// TODO
+	private short getConstantPoolEntry(CObject value){
+		int index = constantPool.indexOf(value);
+		
+		if(index == -1){
+			constantPool.add(value);
+			index = constantPool.size() - 1;
+		}
+			
+		return (short) index;
+	}
+	
+	private void push(CObject value){
+		
+		short entryIndex = getConstantPoolEntry(value);
+		
 		code.write(Opcodes.PUSH);
-		index++;
+		code.write(entryIndex >> 8);
+		code.write(entryIndex);
+		index += 3;
+	}
+	
+	public void push(CBoolean value){
+		push((CObject)value);
+	}
+	
+	public void push(CInt value){
+		push((CObject)value);
+	}
+	
+	public void push(CFloat value){
+		push((CObject)value);
+	}
+	
+	public void push(CString value){
+		push((CObject)value);
+	}
+	
+	public void push(Null value){
+		push((CObject)value);
 	}
 	
 	public void eq(){
