@@ -252,6 +252,12 @@ public class CMethod extends CObject {
 				context.push(ins.__as__(lh));
 				ip++;
 				break;
+			case MAKECLASS:
+				// TODO
+				break;
+			case MAKEMETHOD:
+				// TODO
+				break;
 			case IF:
 				ins = context.pop();
 				if(!ins.__truth__()){
@@ -291,33 +297,8 @@ public class CMethod extends CObject {
 				context.swap(swapIndex1, swapIndex2);
 				ip += 9;
 				break;
-			case PUSHI:
-				context.push(new CInt(fetchInt(ip + 1)));
-				ip += 5;
-				break;
-			case PUSHF:
-				context.push(new CFloat(Float.intBitsToFloat(fetchInt(ip + 1))));
-				ip += 5;
-				break;
-			case PUSHB:
-				byte b = fetchByte(ip + 1);
-				if(b == 1){
-					context.push(new CBoolean(true));
-				}else{
-					context.push(new CBoolean(false));
-				}
-				ip += 5;
-				break;
-			case PUSHSTR:
-				int strBytes = fetchInt(ip + 1);
-				byte[] utfBytes = new byte[strBytes];
-				String str = new String(utfBytes, 0, utfBytes.length, Charset.forName("UTF-8"));
-				context.push(new CString(str));
-				ip += 5 + strBytes;
-				break;
-			case PUSHNULL:
-				context.push(new Null());
-				ip++;
+			case PUSH:
+				// TODO
 				break;
 			case EQ:
 				lh = context.pop();

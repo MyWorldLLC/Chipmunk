@@ -29,30 +29,28 @@ public class Opcodes {
 	public static final byte SETAT = 0x17;
 	public static final byte TRUTH = 0x18;
 	public static final byte AS = 0x19;
+	public static final byte MAKECLASS = 0x1A;
+	public static final byte MAKEMETHOD = 0x1B;
 
 	// Flow
-	public static final byte IF = 0x1A;
-	public static final byte CALL = 0x1B;
-	public static final byte GOTO = 0x1C;
-	public static final byte THROW = 0x1D;
-	public static final byte RETURN = 0x1E;
+	public static final byte IF = 0x1C;
+	public static final byte CALL = 0x1D;
+	public static final byte GOTO = 0x1E;
+	public static final byte THROW = 0x1F;
+	public static final byte RETURN = 0x20;
 	
 	// Stack
-	public static final byte POP = 0x1F;
-	public static final byte DUP = 0x20;
-	public static final byte SWAP = 0x21;
-	public static final byte PUSHI = 0x22;
-	public static final byte PUSHF = 0x23;
-	public static final byte PUSHB = 0x24;
-	public static final byte PUSHSTR = 0x25;
-	public static final byte PUSHNULL = 0x26;
+	public static final byte POP = 0x21;
+	public static final byte DUP = 0x22;
+	public static final byte SWAP = 0x23;
+	public static final byte PUSH = 0x24;
 	
 	// Comparison
-	public static final byte EQ = 0x27;
-	public static final byte GT = 0x28;
-	public static final byte LT = 0x29;
-	public static final byte GE = 0x2A;
-	public static final byte LE = 0x2B;
-	public static final byte IS = 0x2C;
+	public static final byte EQ = 0x25;
+	public static final byte GT = 0x26;
+	public static final byte LT = 0x27;
+	public static final byte GE = 0x28;
+	public static final byte LE = 0x29;
+	public static final byte IS = 0x2A;
 	
 }
