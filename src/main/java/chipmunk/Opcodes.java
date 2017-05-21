@@ -53,4 +53,9 @@ public class Opcodes {
 	public static final byte LE = 0x29;
 	public static final byte IS = 0x2A;
 	
+	// Import
+	public static final byte IMPORT = 0x2B;
+	public static final byte FROM_IMPORT = 0x2C;
+	public static final byte FROM_IMPORT_AS = 0x2D;
+	
 }
