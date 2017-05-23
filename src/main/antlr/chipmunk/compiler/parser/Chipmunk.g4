@@ -77,12 +77,20 @@ RETURN		: 'return';
 TRY			: 'try';
 CATCH		: 'catch';
 THROW		: 'throw';
+TRUE		: 'true';
+FALSE		: 'false';
+NULL		: 'null';
 
-// TODO - float and string literals
-INTLITERAL	: (ADD|SUB)? [0-9_]+;
+// TODO - string literals
+INTLITERAL	: [0-9_]+;
 HEXLITERAL	: ('0x'|'0X') [0-9a-fA-F_]+;
 OCTLITERAL	: ('0o'|'0O') [0-7_]+;
 BINLITERAL	: ('0b'|'0B') [01_]+;
+BOOLLITERAL : TRUE | FALSE;
+
+FLOATLITERAL : INTLITERAL? '.' INTLITERAL ([eE] (SUB)? INTLITERAL)?
+			 | INTLITERAL [eE] (SUB)? INTLITERAL
+			 ;
 
 WS : [ \t\r\n\u000C]+ -> skip;
 
@@ -121,6 +129,14 @@ nameList 	: NAME (COMMA NAME)*
 importStatement : IMPORT moduleID (AS NAME)?
 			 	| FROM moduleID IMPORT (MUL | nameList (AS nameList)?)
 			 	;
+			 	
+literal : INTLITERAL
+		| HEXLITERAL
+		| OCTLITERAL
+		| BINLITERAL
+		| BOOLLITERAL
+		| FLOATLITERAL
+		;
 			 
 tuple : LPAREN (expressionList)? RPAREN
 	  ;
