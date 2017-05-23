@@ -2,14 +2,14 @@ package chipmunk.compiler;
 
 import chipmunk.modules.lang.CModule;
 
-public class ChipmunkParser {
+public class OldChipmunkParser {
 	
 	protected TokenStream tokens;
 	protected ASTNode ast;
 	
 	protected CModule module;
 	
-	public ChipmunkParser(TokenStream source){
+	public OldChipmunkParser(TokenStream source){
 		tokens = source;
 	}
 	

@@ -6,14 +6,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
-import chipmunk.modules.lang.CObject;
-import chipmunk.modules.lang.CModule;
-import chipmunk.compiler.parser.ChipmunkParser;
-import chipmunk.compiler.parser.ChipmunkLexer;
-import chipmunk.compiler.CompileChipmunk;
-
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+
+import chipmunk.compiler.parser.ChipmunkBaseListener;
+import chipmunk.compiler.parser.ChipmunkLexer;
+import chipmunk.compiler.parser.ChipmunkParser;
+import chipmunk.compiler.parser.ChipmunkParser.ModuleContext;
+import chipmunk.modules.lang.CModule;
+import chipmunk.modules.lang.CObject;
 
 public class ChipmunkCompiler {
 	
@@ -60,6 +61,11 @@ public class ChipmunkCompiler {
 		
 		CommonTokenStream tokens = new CommonTokenStream(new ChipmunkLexer(new ANTLRInputStream(src)));
 		ChipmunkParser parser = new ChipmunkParser(tokens);
+		
+		parser.addParseListener(new ChipmunkBaseListener(){
+			
+		});
+		parser.module();
 		
 		return null;
 	}

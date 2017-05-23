@@ -57,7 +57,6 @@ RSHIFT_ASSIGN 		: '>>=';
 URSHIFT_ASSIGN 		: '>>>=';
 
 // Keywords
-MODULE		: 'module';
 FROM		: 'from';
 IMPORT		: 'import';
 SELF		: 'self';
