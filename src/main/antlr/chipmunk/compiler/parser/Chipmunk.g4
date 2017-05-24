@@ -85,7 +85,6 @@ INTLITERAL	: [0-9_]+;
 HEXLITERAL	: ('0x'|'0X') [0-9a-fA-F_]+;
 OCTLITERAL	: ('0o'|'0O') [0-7_]+;
 BINLITERAL	: ('0b'|'0B') [01_]+;
-BOOLLITERAL : TRUE | FALSE;
 
 FLOATLITERAL : INTLITERAL? '.' INTLITERAL ([eE] (SUB)? INTLITERAL)?
 			 | INTLITERAL [eE] (SUB)? INTLITERAL
@@ -112,6 +111,32 @@ binaryOp 	: (ADD | SUB | MUL | DIV | FDIV | POW | MOD | XOR
 			| AND | LSHIFT | RSHIFT | URSHIFT)
 			;
 			
+powOp       : POW
+            ;
+			
+multOp      : MUL
+            | DIV
+            | FDIV
+            | MOD
+            ;
+            
+addOp       : ADD
+            | SUB
+            ;
+            
+shiftOp     : LSHIFT
+            | RSHIFT
+            ;
+            
+bAnd        : BAND
+            ;
+            
+bXor        : XOR
+            ;
+            
+bOr         : BOR
+            ;
+			
 assign 		: (ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN
 			| DIV_ASSIGN | FDIV_ASSIGN | BAND_ASSIGN | BOR_ASSIGN
 			| XOR_ASSIGN | BNOT_ASSIGN | MOD_ASSIGN | LSHIFT_ASSIGN
@@ -129,13 +154,28 @@ importStatement : IMPORT moduleID (AS NAME)?
 			 	| FROM moduleID IMPORT (MUL | nameList (AS nameList)?)
 			 	;
 			 	
-literal : INTLITERAL
-		| HEXLITERAL
-		| OCTLITERAL
-		| BINLITERAL
-		| BOOLLITERAL
-		| FLOATLITERAL
+// helper parser rules so that we don't
+// need to figure out what type of literal we got
+intliteral	: INTLITERAL;
+hexliteral	: HEXLITERAL;
+octliteral	: OCTLITERAL;
+binliteral	: BINLITERAL;
+boolliteral : TRUE | FALSE;
+floatliteral: FLOATLITERAL;
+
+literal : intliteral
+		| hexliteral
+		| octliteral
+		| binliteral
+		| boolliteral
+		| floatliteral
 		;
+
+name : NAME
+     ;
+		
+call : expression LPAREN expressionList? RPAREN
+	 ;
 			 
 tuple : LPAREN (expressionList)? RPAREN
 	  ;
@@ -146,7 +186,7 @@ dict  : LBRACE (expression COLON expression (COMMA expression COLON expression)*
 list  : LBRACK expressionList? RBRACK
 	  ;
 
-expression 	: NAME
+expression 	: expression DOT expression
 			| unaryOp expression
 			| expression unaryOp
 			| expression binaryOp expression
@@ -154,6 +194,8 @@ expression 	: NAME
 			| tuple
 			| dict
 			| list
+			| literal
+			| name
 		   	;
 		   	
 expressionList : expression (COMMA expression)*
