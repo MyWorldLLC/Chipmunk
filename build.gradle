@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'antlr'
+apply plugin: 'eclipse'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -12,8 +13,8 @@ repositories {
 
 dependencies {
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
-	antlr 'org.antlr:antlr4:4.5.3'
-	compile 'org.antlr:antlr4-runtime:4.5.3'
+	antlr 'org.antlr:antlr4:4.7'
+	compile 'org.antlr:antlr4-runtime:4.7'
 }
 
 uploadArchives {

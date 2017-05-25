@@ -1,7 +1,5 @@
 package chipmunk.modules.lang;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import chipmunk.Namespace;
@@ -14,16 +12,10 @@ public class CModule extends CObject {
 	
 	protected String name;
 	protected Namespace namespace;
-	protected List<Import> imports;
-	
-	public class Import {
-		String module;
-		String[] symbols;
-	}
+	protected CCode code;
 	
 	
 	public CModule(){
-		imports = new ArrayList<Import>();
 		type = new CModuleType();
 		namespace = new Namespace();
 	}
@@ -67,7 +59,7 @@ public class CModule extends CObject {
 			return attr;
 			
 		}else{
-			throw new UnimplementedOperationChipmunk("Operation __getAttr__(" + name.getType().getName() + ") undefined for type Module");
+			throw new UnimplementedOperationChipmunk("Operation __getAttr__(" + name.getType().getName() + ") undefined for type CModule");
 		}
 	}
 	
@@ -77,7 +69,7 @@ public class CModule extends CObject {
 			String attrName = ((CString)name).getValue();
 			setAttribute(attrName, value);
 		}else{
-			throw new UnimplementedOperationChipmunk("Operation __setAttr__ for type Module undefined for name type " + name.getType().getName());
+			throw new UnimplementedOperationChipmunk("Operation __setAttr__ for type CModule undefined for name type " + name.getType().getName());
 		}
 		
 	}

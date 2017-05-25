@@ -1,6 +1,5 @@
 package chipmunk.modules.lang;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +16,7 @@ public class CMethod extends CObject {
 	protected Map<String, Integer> localNames;
 	
 	protected byte[] instructions;
+	protected CCode code;
 	
 	public CMethod(){
 		super();
@@ -39,12 +39,13 @@ public class CMethod extends CObject {
 		argCount = count;
 	}
 	
-	public byte[] getInstructions() {
-		return instructions;
+	public CCode getCode(){
+		return code;
 	}
-
-	public void setInstructions(byte[] instructions) {
-		this.instructions = instructions;
+	
+	public void setCode(CCode code){
+		this.code = code;
+		instructions = code.getCode();
 	}
 
 	public int getLocalIndex(String name){
