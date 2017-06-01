@@ -17,23 +17,23 @@ module chipmunk
 
 class Chippy {
 
-	age = 2
-	tail
+	var age = 2
+	var tail
 	
 	# List of nuts he has
-	nuts = []
+	var nuts = []
 	
 	# Map of information on what trees he likes
-	trees = {}
+	var trees = {}
 
 	# Common genus shared by all chipmunks, variable is set in the type's namespace
-	shared genus = "Tamias"
+	shared var genus = "Tamias"
 	
 	# Constructor
 	def Chippy(){
 	
 		# local variable
-		x = 1234
+		var x = 1234
 		
 		# instance variable - type convert string literal to integer
 		# this will result in calling __as__ on the string object
@@ -42,7 +42,7 @@ class Chippy {
 		
 		# shared variable - set in type namespace. Shared variables (including methods)
 		# can be accessed by code outside this class as Chippy.x
-		shared x = "asdf"
+		shared var x = "asdf"
 		
 		# "shared.x = ..." is equivalent to
 		self.type.x = "asdf"
@@ -54,10 +54,10 @@ class Chippy {
 	}
 	
 	def hideNuts(){
-		tree = choose(trees)
+		var tree = choose(trees)
 		self.climb(tree)
 		# 'in' keyword uses an iterator returned by the instance on the right
-		for( nut in nuts ){
+		for(var nut in nuts ){
 			tree.putInTrunk(nut)
 		}
 	}
@@ -70,13 +70,13 @@ class Chippy {
 }
 
 def throwNut(){
-	nut = Nut()
+	var nut = Nut()
 	nut.dropOnGround()
 }
 
 def main(){
 	# create a new instance. Calls to a class symbol create a new instance of the class
 	# and call the constructor with any parameters passed
-	chippy = Chippy()
+	var chippy = Chippy()
 	chippy.doChipmunkThings()
 }

@@ -15,23 +15,28 @@ public class Token {
 		LBRACE("{"), RBRACE("}"), LBRACKET("["), RBRACKET("]"), LPAREN("("), RPAREN(")"),
 		COMMA(","), SEMICOLON(";"), NEWLINE("\n|\r\n|\r"), EQUALS("="), DOT("."), STAR("*"), PLUS("+"),
 		MINUS("-"), FSLASH("/"), BSLASH("\\"), BAR("|"), EXCLAMATION("!"), POUND("#"), TILDE("~"), CARET("^"),
-		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("[0-9]+"),
-		BINARYLITERAL("0b|0B[01]+"), HEXLITERAL("0x|0X[a-fA-F0-9]+"), FLOATLITERAL("[-+]?[0-9]*\\.?[0-9]*([eE][-+]?[0-9]+)?"),
-		BOOLLITERAL("true|false"), STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'"),
-		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), FROM("from", true), IMPORT("import", true), AS("as", true), IN("in", true),
-		CLASS("class", true), SHARED("shared", true), NEW("new", true), IF("if", true), ELSE("else", true), FOR("for", true),
-		WHILE("while", true), BREAK("break", true), CONTINUE("continue", true), RETURN("return", true), TRY("try", true),
-		EXCEPT("except", true), THROW("throw", true), DEF("def", true), EOF("");
+		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("-?[0-9_]+", false, true),
+		BINARYLITERAL("0b|0B[01_]+", false, true), OCTLITERAL("0o|0O[0-7_]+", false, true), HEXLITERAL("0x|0X[a-fA-F0-9_]+", false, true),
+		FLOATLITERAL("-?[0-9]*\\.?[0-9]*((e|E)-?[0-9]+)?", false, true), BOOLLITERAL("true|false", false, true),
+		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true), IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), 
+		FROM("from", true, false), IMPORT("import", true, false), AS("as", true, false), IN("in", true, false),
+		CLASS("class", true, false), SHARED("shared", true, false), NEW("new", true, false), IF("if", true, false),
+		ELSE("else", true, false), FOR("for", true, false), WHILE("while", true, false), BREAK("break", true, false),
+		CONTINUE("continue", true, false), RETURN("return", true, false), TRY("try", true, false),
+		CATCH("catch", true, false), THROW("throw", true, false), DEF("def", true, false), VAR("var", true, false), EOF("");
 		
 		protected Pattern pattern;
 		protected boolean keyword;
+		protected boolean literal;
 		
 		Type(String regex){
-			this(regex, false);
+			this(regex, false, false);
 		}
 		
-		Type(String regex, boolean keyword){
+		Type(String regex, boolean keyword, boolean literal){
 			pattern = Pattern.compile(regex);
+			this.keyword = keyword;
+			this.literal = literal;
 		}
 		
 		public Pattern getPattern(){
@@ -40,6 +45,10 @@ public class Token {
 		
 		public boolean isKeyword(){
 			return keyword;
+		}
+		
+		public boolean isLiteral(){
+			return literal;
 		}
 		
 	}

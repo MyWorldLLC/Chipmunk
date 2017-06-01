@@ -3,13 +3,16 @@ package chipmunk.compiler.ir;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImportBlock {
+public class ImportBlock extends Block {
 
 	protected String module;
 	protected List<String> symbols;
+	protected List<String> aliases;
 	
 	public ImportBlock(){
+		super();
 		symbols = new ArrayList<String>();
+		aliases = new ArrayList<String>();
 	}
 	
 	public String getModule(){
@@ -34,5 +37,9 @@ public class ImportBlock {
 	
 	public List<String> getSymbols(){
 		return symbols;
+	}
+	
+	public List<String> getAliases(){
+		return aliases;
 	}
 }
