@@ -1,6 +1,6 @@
 package chipmunk.compiler.ir;
 
-public class IfBlock extends ScopedBlock {
+public class IfBlock extends ParentBlock {
 
 	public IfBlock(){
 		super();

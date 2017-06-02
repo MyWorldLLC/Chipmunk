@@ -3,7 +3,7 @@ package chipmunk.compiler.ir;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ParentBlock extends Block {
+public class ParentBlock extends Block {
 
 	protected List<Block> children;
 	
@@ -19,4 +19,5 @@ public abstract class ParentBlock extends Block {
 	public List<Block> getChildren(){
 		return children;
 	}
+	
 }

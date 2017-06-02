@@ -45,7 +45,7 @@ public class OldChipmunkParser {
 				
 			}else if(checkImport()){
 				
-				module.addChild(parseImport());
+				module.addImport(parseImport());
 				
 			}else if(checkVarSet()){
 				
@@ -131,6 +131,18 @@ public class OldChipmunkParser {
 	
 	public MethodBlock parseMethodDef(){
 		// statements & method definitions
+		return null;
+	}
+	
+	public boolean checkVarDec(){
+		if(tokens.peek(1).getType() == Token.Type.VAR && tokens.peek(2).getType() == Token.Type.IDENTIFIER){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public Block parseVarDec(){
 		return null;
 	}
 	

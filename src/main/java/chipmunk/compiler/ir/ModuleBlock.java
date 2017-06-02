@@ -7,7 +7,7 @@ public class ModuleBlock extends ParentBlock {
 	
 	protected String name;
 	protected List<ImportBlock> imports;
-		
+	
 	public ModuleBlock(){
 		super();
 		imports = new ArrayList<ImportBlock>();

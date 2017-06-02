@@ -6,7 +6,7 @@ import java.util.Deque;
 import chipmunk.compiler.Token;
 
 
-public class MethodBlock extends ScopedBlock {
+public class MethodBlock extends ParentBlock {
 
 	protected String name;
 	protected Deque<Token> exp;
