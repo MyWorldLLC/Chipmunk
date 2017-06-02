@@ -1,27 +1,35 @@
 package chipmunk.compiler;
 
-import chipmunk.modules.lang.CModule;
+import java.util.List;
+
+import chipmunk.compiler.ir.*;
 
 public class OldChipmunkParser {
 	
 	protected TokenStream tokens;
 	protected ASTNode ast;
 	
-	protected CModule module;
+	
+	protected List<ModuleBlock> modules;
+	
+	private ModuleBlock module;
 	
 	public OldChipmunkParser(TokenStream source){
 		tokens = source;
 	}
 	
+	/**
+	 * Parses all modules in the source stream.
+	 */
 	public void parse(){
-		
+		while(tokens.remaining() > 0){
+			parseModule();
+		}
 	}
 	
 	public void parseModule(){
-		// parse imports, literal assignments, class definitions, and method definitions
-		
-		ASTNode module = new ASTNode();
-		module.setType(ASTNode.Type.MODULE);
+		module = new ModuleBlock();
+		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		
 		Token next = tokens.peek();
 		Token.Type nextType = next.getType();
@@ -30,6 +38,10 @@ public class OldChipmunkParser {
 			if(nextType == Token.Type.NEWLINE){
 				
 				tokens.skip(1);
+				
+			}else if(nextType == Token.Type.MODULE){
+				
+				// add current module block to list and create new module block
 				
 			}else if(checkImport()){
 				
@@ -65,7 +77,7 @@ public class OldChipmunkParser {
 		}
 	}
 	
-	public ASTNode parseClassDef(){
+	public ClassBlock parseClassDef(){
 		// assignments, class definitions, method definitions
 		return null;
 	}
@@ -117,7 +129,7 @@ public class OldChipmunkParser {
 		return false;
 	}
 	
-	public ASTNode parseMethodDef(){
+	public MethodBlock parseMethodDef(){
 		// statements & method definitions
 		return null;
 	}
@@ -134,7 +146,7 @@ public class OldChipmunkParser {
 		return false;
 	}
 	
-	public ASTNode parseVarSet(){
+	public Block parseVarSet(){
 		return null;
 	}
 	
@@ -143,7 +155,7 @@ public class OldChipmunkParser {
 		return true;
 	}
 	
-	public ASTNode parseExpression(){
+	public Block parseExpression(){
 		return null;
 	}
 	
@@ -151,7 +163,7 @@ public class OldChipmunkParser {
 		return true;
 	}
 	
-	public ASTNode parseStatement(){
+	public Block parseStatement(){
 		return null;
 	}
 	
@@ -174,7 +186,7 @@ public class OldChipmunkParser {
 	 * Consumes the next import statement from the token stream.
 	 * @return an AST of the next import statement
 	 */
-	public ASTNode parseImport(){
+	public ImportBlock parseImport(){
 		return null;
 	}
 

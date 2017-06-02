@@ -18,7 +18,7 @@ public class Token {
 		LESSTHAN("<"), MORETHAN(">"), PERCENT("%"), AMPERSAND("&"), INTLITERAL("-?[0-9_]+", false, true),
 		BINARYLITERAL("0b|0B[01_]+", false, true), OCTLITERAL("0o|0O[0-7_]+", false, true), HEXLITERAL("0x|0X[a-fA-F0-9_]+", false, true),
 		FLOATLITERAL("-?[0-9]*\\.?[0-9]*((e|E)-?[0-9]+)?", false, true), BOOLLITERAL("true|false", false, true),
-		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true), IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), 
+		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true), IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), MODULE("module", true, false),
 		FROM("from", true, false), IMPORT("import", true, false), AS("as", true, false), IN("in", true, false),
 		CLASS("class", true, false), SHARED("shared", true, false), NEW("new", true, false), IF("if", true, false),
 		ELSE("else", true, false), FOR("for", true, false), WHILE("while", true, false), BREAK("break", true, false),
