@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OldChipmunkLexer {
+public class ChipmunkLexer {
 	
 	protected TokenStream stream;
 	protected Map<Token.Type, Matcher> matchers;

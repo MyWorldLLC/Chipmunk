@@ -4,17 +4,14 @@ import java.util.List;
 
 import chipmunk.compiler.ir.*;
 
-public class OldChipmunkParser {
+public class ChipmunkParser {
 	
 	protected TokenStream tokens;
-	protected ASTNode ast;
-	
-	
 	protected List<ModuleBlock> modules;
 	
 	private ModuleBlock module;
 	
-	public OldChipmunkParser(TokenStream source){
+	public ChipmunkParser(TokenStream source){
 		tokens = source;
 	}
 	
@@ -42,22 +39,24 @@ public class OldChipmunkParser {
 			}else if(nextType == Token.Type.MODULE){
 				
 				// add current module block to list and create new module block
+				modules.add(module);
+				module = new ModuleBlock();
 				
 			}else if(checkImport()){
 				
 				module.addImport(parseImport());
 				
-			}else if(checkVarSet()){
+			}else if(checkVarDec()){
 				
-				module.addChild(parseVarSet());
+				module.addVariableDeclaration(parseVarDec());
 				
 			}else if(checkMethodDef()){
 				
-				module.addChild(parseMethodDef());
+				module.addMethodDeclaration(parseMethodDef());
 				
 			}else if(checkClassDef()){
 				
-				module.addChild(parseClassDef());
+				module.addClassDeclaration(parseClassDef());
 				
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
@@ -142,7 +141,7 @@ public class OldChipmunkParser {
 		}
 	}
 	
-	public Block parseVarDec(){
+	public VarDecBlock parseVarDec(){
 		return null;
 	}
 	
