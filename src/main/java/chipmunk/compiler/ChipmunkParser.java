@@ -32,11 +32,9 @@ public class ChipmunkParser {
 		Token.Type nextType = next.getType();
 		while(nextType != Token.Type.EOF){
 			
-			if(nextType == Token.Type.NEWLINE){
-				
-				tokens.skip(1);
-				
-			}else if(nextType == Token.Type.MODULE){
+			skipNewlines();
+			
+			if(nextType == Token.Type.MODULE){
 				
 				// add current module block to list and create new module block
 				modules.add(module);
@@ -88,10 +86,26 @@ public class ChipmunkParser {
 		
 		while(!peek(Token.Type.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
+			skipNewlines();
+			
+			boolean shared = false;
+			if(peek(Token.Type.SHARED)){
+				forceNext(Token.Type.SHARED);
+				shared = true;
+			}
+			
 			if(checkVarDec()){
-				block.addChild(parseVarDec());
+				if(shared){
+					block.addChild(new SharedBlock(parseVarDec()));
+				}else{
+					block.addChild(parseVarDec());
+				}
 			}else if(checkMethodDef()){
-				block.addChild(parseMethodDef());
+				if(shared){
+					block.addChild(new SharedBlock(parseMethodDef()));
+				}else{
+					block.addChild(parseMethodDef());
+				}
 			}else{
 				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class body");
 				error.setExpected(new Token.Type[]{Token.Type.VAR, Token.Type.DEF});
@@ -105,7 +119,7 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkMethodDef(){
-		return tokens.peek().getType() == Token.Type.DEF;
+		return peek(Token.Type.DEF);
 	}
 	
 	public MethodBlock parseMethodDef(){
@@ -114,27 +128,22 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkVarDec(){
-		return tokens.peek(1).getType() == Token.Type.VAR && tokens.peek(2).getType() == Token.Type.IDENTIFIER;
+		return peek(1, Token.Type.VAR) && peek(2, Token.Type.IDENTIFIER);
 	}
 	
 	public VarDecBlock parseVarDec(){
-		return null;
-	}
-	
-	public boolean checkVarSet(){
+		forceNext(Token.Type.VAR);
+		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		if(tokens.peek(1).getType() == Token.Type.IDENTIFIER){
-			
-			Token.Type equalsOrNewline = tokens.peek(2).getType();
-			if(equalsOrNewline == Token.Type.EQUALS || equalsOrNewline == Token.Type.NEWLINE){
-				return true;
-			}
+		VarDecBlock dec = new VarDecBlock();
+		dec.setName(id.getText());
+		
+		if(peek(Token.Type.EQUALS)){
+			tokens.get();
+			dec.addChild(parseExpression());
 		}
-		return false;
-	}
-	
-	public Block parseVarSet(){
-		return null;
+		
+		return dec;
 	}
 	
 	public boolean checkExpression(){
@@ -180,6 +189,19 @@ public class ChipmunkParser {
 			
 			throw error;
 		}
+	}
+	
+	private void skipNewlines(){
+		while(dropNext(Token.Type.NEWLINE)){}
+	}
+	
+	private boolean dropNext(Token.Type type){
+		if(peek(type)){
+			tokens.get();
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private boolean peek(Token.Type type){
