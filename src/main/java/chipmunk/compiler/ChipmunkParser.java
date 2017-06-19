@@ -44,19 +44,19 @@ public class ChipmunkParser {
 				
 			}else if(checkImport()){
 				
-				module.addImport(parseImport());
+				module.addChild(parseImport());
 				
 			}else if(checkVarDec()){
 				
-				module.addVariableDeclaration(parseVarDec());
+				module.addChild(parseVarDec());
 				
 			}else if(checkMethodDef()){
 				
-				module.addMethodDeclaration(parseMethodDef());
+				module.addChild(parseMethodDef());
 				
 			}else if(checkClassDef()){
 				
-				module.addClassDeclaration(parseClassDef());
+				module.addChild(parseClassDef());
 				
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
@@ -77,55 +77,35 @@ public class ChipmunkParser {
 	}
 	
 	public ClassBlock parseClassDef(){
-		// assignments, class definitions, method definitions
-		return null;
+		
+		forceNext(Token.Type.CLASS);
+		Token id = getNext(Token.Type.IDENTIFIER);
+		
+		// TODO - support inheritance
+		
+		ClassBlock block = new ClassBlock();
+		block.setName(id.getText());
+		
+		while(!peek(Token.Type.RBRACE)){
+			// parse class body (only variable declarations and method definitions allowed)
+			if(checkVarDec()){
+				block.addChild(parseVarDec());
+			}else if(checkMethodDef()){
+				block.addChild(parseMethodDef());
+			}else{
+				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class body");
+				error.setExpected(new Token.Type[]{Token.Type.VAR, Token.Type.DEF});
+				error.setGot(tokens.peek());
+				throw error;
+			}
+		}
+		forceNext(Token.Type.RBRACE);
+		
+		return block;
 	}
 	
 	public boolean checkMethodDef(){
-		Token.Type identifier = tokens.peek().getType();
-		
-		if(identifier == Token.Type.IDENTIFIER){
-			
-			if(tokens.peek(1).getType() == Token.Type.LPAREN){
-				
-				int parenCount = 1;
-				int peekIndex = 2;
-
-				Token peekToken = tokens.peek(peekIndex);
-				Token.Type peekType = peekToken.getType();
-				
-				// count past nested parens to allow for nested expressions within method def
-				while(parenCount > 0){
-					
-					if(peekType == Token.Type.LPAREN){
-						parenCount++;
-					}else if(peekType == Token.Type.RPAREN){
-						parenCount--;
-					}else if(peekType == Token.Type.EOF){
-						throw new CompileChipmunk("Unexpected EOF at line " + peekToken.getLine() + ", column " + peekToken.getColumn());
-					}
-					peekIndex++;
-					peekToken = tokens.peek(peekIndex);
-					peekType = peekToken.getType();
-				}
-				
-				// we've reached the end of any nested parens. Check for left curly brace
-				
-				// look past any newlines. Any non newline token following the parentheses
-				// must be a left curly brace, or this was a method call, not a method definition
-				while(peekType == Token.Type.NEWLINE){
-					peekIndex++;
-					peekToken = tokens.peek(peekIndex);
-					peekType = peekToken.getType();
-				}
-				
-				if(peekType == Token.Type.LBRACE){
-					return true;
-				}
-				
-			}
-		}
-		return false;
+		return tokens.peek().getType() == Token.Type.DEF;
 	}
 	
 	public MethodBlock parseMethodDef(){
@@ -134,11 +114,7 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkVarDec(){
-		if(tokens.peek(1).getType() == Token.Type.VAR && tokens.peek(2).getType() == Token.Type.IDENTIFIER){
-			return true;
-		}else{
-			return false;
-		}
+		return tokens.peek(1).getType() == Token.Type.VAR && tokens.peek(2).getType() == Token.Type.IDENTIFIER;
 	}
 	
 	public VarDecBlock parseVarDec(){
@@ -176,6 +152,45 @@ public class ChipmunkParser {
 	
 	public Block parseStatement(){
 		return null;
+	}
+	
+	private Token getNext(Token.Type type){
+		Token token = tokens.get();
+		
+		if(token.getType() != type){
+			
+			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class");
+			error.setExpected(new Token.Type[]{type});
+			error.setGot(token);
+			
+			throw error;
+		}
+		
+		return token;
+	}
+	
+	private void forceNext(Token.Type type){
+		Token token = tokens.get();
+		
+		if(token.getType() != type){
+			
+			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class");
+			error.setExpected(new Token.Type[]{type});
+			error.setGot(token);
+			
+			throw error;
+		}
+	}
+	
+	private boolean peek(Token.Type type){
+		Token token = tokens.peek();
+		
+		return token.getType() == type;
+	}
+	
+	private boolean peek(int places, Token.Type type){
+		Token token = tokens.peek(places);
+		return token.getType() == type;
 	}
 	
 	/**

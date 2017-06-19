@@ -4,7 +4,7 @@ public class SyntaxErrorChipmunk extends CompileChipmunk {
 
 	private static final long serialVersionUID = 1758610427119118408L;
 	
-	private Token[] expected;
+	private Token.Type[] expected;
 	private Token got;
 
 	public SyntaxErrorChipmunk(){
@@ -19,11 +19,11 @@ public class SyntaxErrorChipmunk extends CompileChipmunk {
 		super(msg, cause);
 	}
 
-	public Token[] getExpected() {
+	public Token.Type[] getExpected() {
 		return expected;
 	}
 
-	public void setExpected(Token[] expected) {
+	public void setExpected(Token.Type[] expected) {
 		this.expected = expected;
 	}
 

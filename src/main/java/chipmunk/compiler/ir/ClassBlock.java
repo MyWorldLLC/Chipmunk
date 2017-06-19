@@ -1,6 +1,6 @@
 package chipmunk.compiler.ir;
 
-public class ClassBlock extends Block {
+public class ClassBlock extends ParentBlock {
 	
 	protected String name;
 	protected String superName;
