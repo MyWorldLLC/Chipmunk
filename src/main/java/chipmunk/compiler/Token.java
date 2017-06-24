@@ -20,10 +20,11 @@ public class Token {
 		FLOATLITERAL("-?[0-9]*\\.?[0-9]*((e|E)-?[0-9]+)?", false, true), BOOLLITERAL("true|false", false, true),
 		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true), IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"), MODULE("module", true, false),
 		FROM("from", true, false), IMPORT("import", true, false), AS("as", true, false), IN("in", true, false),
-		CLASS("class", true, false), SHARED("shared", true, false), NEW("new", true, false), IF("if", true, false),
-		ELSE("else", true, false), FOR("for", true, false), WHILE("while", true, false), BREAK("break", true, false),
-		CONTINUE("continue", true, false), RETURN("return", true, false), TRY("try", true, false),
-		CATCH("catch", true, false), THROW("throw", true, false), DEF("def", true, false), VAR("var", true, false), EOF("");
+		CLASS("class", true, false), SHARED("shared", true, false), NEW("new", true, false), NULL("null", true, false),
+		IF("if", true, false), ELSE("else", true, false), FOR("for", true, false), WHILE("while", true, false),
+		BREAK("break", true, false), CONTINUE("continue", true, false), RETURN("return", true, false),
+		TRY("try", true, false), CATCH("catch", true, false), THROW("throw", true, false), DEF("def", true, false),
+		VAR("var", true, false), EOF("");
 		
 		protected Pattern pattern;
 		protected boolean keyword;
