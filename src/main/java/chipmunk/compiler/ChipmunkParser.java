@@ -5,7 +5,9 @@ import java.util.List;
 
 import chipmunk.compiler.ir.Block;
 import chipmunk.compiler.ir.ClassBlock;
+import chipmunk.compiler.ir.ExpressionBlock;
 import chipmunk.compiler.ir.ImportBlock;
+import chipmunk.compiler.ir.ListBlock;
 import chipmunk.compiler.ir.MethodBlock;
 import chipmunk.compiler.ir.ModuleBlock;
 import chipmunk.compiler.ir.SharedBlock;
@@ -158,12 +160,38 @@ public class ChipmunkParser {
 		return dec;
 	}
 	
-	public boolean checkExpression(){
+	public ListBlock parseList(){
+		skipNewlines();
 		
-		return true;
+		ListBlock block = new ListBlock();
+		startBlock(block);
+		
+		forceNext(Token.Type.LBRACKET);
+		skipNewlines();
+		
+		while(!peek(Token.Type.RBRACKET)){
+			skipNewlines();
+			
+			ExpressionBlock element = parseExpression();
+			block.addElement(element);
+			skipNewlines();
+			
+			if(peek(Token.Type.COMMA)){
+				dropNext(Token.Type.COMMA);
+			}else if(!peek(Token.Type.RBRACKET)){
+				syntaxError("Invalid list", tokens.get(), Token.Type.COMMA, Token.Type.RBRACKET);
+			}
+			
+			skipNewlines();
+		}
+		
+		forceNext(Token.Type.RBRACKET);
+		
+		endBlock(block);
+		return block;
 	}
 	
-	public Block parseExpression(){
+	public ExpressionBlock parseExpression(){
 		return null;
 	}
 	
