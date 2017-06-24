@@ -13,6 +13,10 @@ public class TokenStream {
 		cursor = 0;
 	}
 	
+	public int getStreamPosition(){
+		return cursor;
+	}
+	
 	public void append(Token token){
 		tokens.add(token);
 	}

@@ -26,6 +26,7 @@ public class ChipmunkParser {
 	
 	public void parseModule(){
 		module = new ModuleBlock();
+		startBlock(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		
 		Token next = tokens.peek();
@@ -63,7 +64,7 @@ public class ChipmunkParser {
 			next = tokens.peek();
 			nextType = next.getType();
 		}
-		
+		endBlock(module);
 	}
 	
 	public boolean checkClassDef(){
@@ -82,6 +83,7 @@ public class ChipmunkParser {
 		// TODO - support inheritance
 		
 		ClassBlock block = new ClassBlock();
+		startBlock(block);
 		block.setName(id.getText());
 		
 		while(!peek(Token.Type.RBRACE)){
@@ -114,7 +116,7 @@ public class ChipmunkParser {
 			}
 		}
 		forceNext(Token.Type.RBRACE);
-		
+		endBlock(block);
 		return block;
 	}
 	
@@ -136,6 +138,7 @@ public class ChipmunkParser {
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
 		VarDecBlock dec = new VarDecBlock();
+		startBlock(dec);
 		dec.setName(id.getText());
 		
 		if(peek(Token.Type.EQUALS)){
@@ -143,6 +146,7 @@ public class ChipmunkParser {
 			dec.addChild(parseExpression());
 		}
 		
+		endBlock(dec);
 		return dec;
 	}
 	
@@ -213,6 +217,14 @@ public class ChipmunkParser {
 	private boolean peek(int places, Token.Type type){
 		Token token = tokens.peek(places);
 		return token.getType() == type;
+	}
+	
+	private void startBlock(Block block){
+		block.setTokenBeginIndex(tokens.getStreamPosition());
+	}
+	
+	private void endBlock(Block block){
+		block.setTokenEndIndex(tokens.getStreamPosition());
 	}
 	
 	/**
