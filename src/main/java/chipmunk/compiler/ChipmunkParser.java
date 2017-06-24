@@ -83,6 +83,7 @@ public class ChipmunkParser {
 	}
 	
 	public ClassBlock parseClassDef(){
+		skipNewlines();
 		
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
@@ -188,6 +189,7 @@ public class ChipmunkParser {
 	 * @return the import block for the statement
 	 */
 	public ImportBlock parseImport(){
+		skipNewlines();
 		ImportBlock block = new ImportBlock();
 		startBlock(block);
 		
@@ -199,7 +201,13 @@ public class ChipmunkParser {
 			
 			while(peek(Token.Type.DOT)){
 				dropNext(Token.Type.DOT);
-				identifiers.add(getNext(Token.Type.IDENTIFIER));
+				if(peek(Token.Type.IDENTIFIER)){
+					identifiers.add(getNext(Token.Type.IDENTIFIER));
+				}else if(peek(Token.Type.STAR)){
+					identifiers.add(getNext(Token.Type.STAR));
+				}else{
+					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
+				}
 			}
 			
 			block.addSymbol(identifiers.get(identifiers.size() - 1).getText());
@@ -222,7 +230,13 @@ public class ChipmunkParser {
 			
 			while(peek(Token.Type.DOT)){
 				dropNext(Token.Type.DOT);
-				identifiers.add(getNext(Token.Type.IDENTIFIER));
+				if(peek(Token.Type.IDENTIFIER)){
+					identifiers.add(getNext(Token.Type.IDENTIFIER));
+				}else if(peek(Token.Type.STAR)){
+					identifiers.add(getNext(Token.Type.STAR));
+				}else{
+					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
+				}
 			}
 			
 			StringBuilder moduleName = new StringBuilder();
@@ -248,6 +262,11 @@ public class ChipmunkParser {
 		}
 		
 		if(peek(Token.Type.AS)){
+			
+			if(block.getSymbols().contains("*")){
+				throw new IllegalImportChipmunk("Cannot alias a * import");
+			}
+			
 			dropNext(Token.Type.AS);
 			// parse aliases
 			block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
@@ -261,6 +280,11 @@ public class ChipmunkParser {
 			if(block.getSymbols().size() < block.getAliases().size()){
 				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
 			}
+			
+			if(block.getSymbols().contains("*") && block.getSymbols().size() > 1){
+				throw new IllegalImportChipmunk("Cannot import multiple symbols and *");
+			}
+			
 		}
 		
 		endBlock(block);
