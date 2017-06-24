@@ -1,8 +1,15 @@
 package chipmunk.compiler;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.compiler.ir.*;
+import chipmunk.compiler.ir.Block;
+import chipmunk.compiler.ir.ClassBlock;
+import chipmunk.compiler.ir.ImportBlock;
+import chipmunk.compiler.ir.MethodBlock;
+import chipmunk.compiler.ir.ModuleBlock;
+import chipmunk.compiler.ir.SharedBlock;
+import chipmunk.compiler.ir.VarDecBlock;
 
 public class ChipmunkParser {
 	
@@ -167,6 +174,99 @@ public class ChipmunkParser {
 		return null;
 	}
 	
+	/**
+	 * Checks if the next token sequence is an import. Does not modify the token stream.
+	 * @return true if the next token sequence should be parsed as an import, false if not
+	 */
+	public boolean checkImport(){
+		Token.Type nextType = tokens.peek().getType();
+		return nextType == Token.Type.FROM || nextType == Token.Type.IMPORT;
+	}
+	
+	/**
+	 * Consumes the next import statement from the token stream.
+	 * @return the import block for the statement
+	 */
+	public ImportBlock parseImport(){
+		ImportBlock block = new ImportBlock();
+		startBlock(block);
+		
+		if(peek(Token.Type.IMPORT)){
+			dropNext(Token.Type.IMPORT);
+			// import single symbol
+			List<Token> identifiers = new ArrayList<Token>();
+			identifiers.add(getNext(Token.Type.IDENTIFIER));
+			
+			while(peek(Token.Type.DOT)){
+				dropNext(Token.Type.DOT);
+				identifiers.add(getNext(Token.Type.IDENTIFIER));
+			}
+			
+			block.addSymbol(identifiers.get(identifiers.size() - 1).getText());
+			
+			// piece module name back together
+			StringBuilder moduleName = new StringBuilder();
+			for(int i = 0; i < identifiers.size() - 1; i++){
+				moduleName.append(identifiers.get(i).getText());
+				if(i < identifiers.size() - 2){
+					moduleName.append('.');
+				}
+			}
+			block.setModule(moduleName.toString());
+		}else if(peek(Token.Type.FROM)){
+			dropNext(Token.Type.FROM);
+			
+			// import multiple symbols
+			List<Token> identifiers = new ArrayList<Token>();
+			identifiers.add(getNext(Token.Type.IDENTIFIER));
+			
+			while(peek(Token.Type.DOT)){
+				dropNext(Token.Type.DOT);
+				identifiers.add(getNext(Token.Type.IDENTIFIER));
+			}
+			
+			StringBuilder moduleName = new StringBuilder();
+			for(int i = 0; i < identifiers.size(); i++){
+				moduleName.append(identifiers.get(i).getText());
+				if(i < identifiers.size() - 1){
+					moduleName.append('.');
+				}
+			}
+			block.setModule(moduleName.toString());
+			
+			forceNext(Token.Type.IMPORT);
+			block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+			
+			while(peek(Token.Type.COMMA)){
+				dropNext(Token.Type.COMMA);
+				block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+			}
+			block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+			
+		}else{
+			syntaxError("Invalid import", tokens.get(), Token.Type.IMPORT, Token.Type.FROM);
+		}
+		
+		if(peek(Token.Type.AS)){
+			dropNext(Token.Type.AS);
+			// parse aliases
+			block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			
+			while(peek(Token.Type.COMMA)){
+				dropNext(Token.Type.COMMA);
+				block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			}
+			block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			
+			if(block.getSymbols().size() < block.getAliases().size()){
+				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
+			}
+		}
+		
+		endBlock(block);
+		return block;
+	}
+	
 	private Token getNext(Token.Type type){
 		Token token = tokens.get();
 		
@@ -227,27 +327,10 @@ public class ChipmunkParser {
 		block.setTokenEndIndex(tokens.getStreamPosition());
 	}
 	
-	/**
-	 * Checks if the next token sequence is an import. Does not modify the token stream.
-	 * @return true if the next token sequence should be parsed as an import, false if not
-	 */
-	public boolean checkImport(){
-		
-		Token.Type nextType = tokens.peek().getType();
-		
-		if(nextType == Token.Type.FROM || nextType == Token.Type.IMPORT){
-			return true;
-		}
-		
-		return false;
+	private void syntaxError(String msg, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
+		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
+		error.setExpected(expected);
+		error.setGot(got);
+		throw error;
 	}
-	
-	/**
-	 * Consumes the next import statement from the token stream.
-	 * @return an AST of the next import statement
-	 */
-	public ImportBlock parseImport(){
-		return null;
-	}
-
 }

@@ -27,6 +27,10 @@ public class ImportBlock extends Block {
 		symbols.add(symbol);
 	}
 	
+	public void addAlias(String alias){
+		aliases.add(alias);
+	}
+	
 	public void removeSymbol(String symbol){
 		symbols.remove(symbol);
 	}
