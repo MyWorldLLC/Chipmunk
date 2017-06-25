@@ -1,21 +1,21 @@
 package chipmunk.compiler.ir;
 
-public class ClassBlock extends ParentBlock {
+public class ClassBlock extends ScopedBlock {
 	
 	protected String name;
 	protected String superName;
 	
-	public ClassBlock(){
-		super();
+	public ClassBlock(ScopedBlock parent){
+		super(parent.getScope());
 	}
 	
-	public ClassBlock(String name){
-		this();
+	public ClassBlock(ScopedBlock parent, String name){
+		this(parent);
 		this.name = name;
 	}
 	
-	public ClassBlock(String name, String superName){
-		this.name = name;
+	public ClassBlock(ScopedBlock parent, String name, String superName){
+		this(parent, name);
 		this.superName = superName;
 	}
 
@@ -34,7 +34,5 @@ public class ClassBlock extends ParentBlock {
 	public void setSuperName(String superName) {
 		this.superName = superName;
 	}
-	
-	
 
 }

@@ -1,11 +1,12 @@
 package chipmunk.compiler.ir;
 
-public class ModuleBlock extends ParentBlock {
+public class ModuleBlock extends ScopedBlock {
 	
 	protected String name;
 	
 	public ModuleBlock(){
 		super();
+		scope.setAllowOverrides(true);
 		name = "";
 	}
 

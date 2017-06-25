@@ -7,6 +7,7 @@ public class Scope {
 
 	protected List<String> names;
 	protected Scope enclosing;
+	protected boolean allowOverrides;
 	
 	public Scope(){
 		names = new ArrayList<String>();
@@ -38,5 +39,13 @@ public class Scope {
 	
 	public void setEnclosing(Scope scope){
 		enclosing = scope;
+	}
+	
+	public boolean allowOverrides(){
+		return allowOverrides;
+	}
+	
+	public void setAllowOverrides(boolean allow){
+		allowOverrides = allow;
 	}
 }

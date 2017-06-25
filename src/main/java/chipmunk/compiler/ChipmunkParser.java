@@ -91,9 +91,7 @@ public class ChipmunkParser {
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		// TODO - support inheritance
-		
-		ClassBlock block = new ClassBlock();
+		ClassBlock block = new ClassBlock(module);
 		startBlock(block);
 		block.setName(id.getText());
 		

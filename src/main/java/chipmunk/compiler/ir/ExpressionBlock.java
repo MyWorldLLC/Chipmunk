@@ -6,7 +6,7 @@ import java.util.Deque;
 import chipmunk.compiler.Operator;
 import chipmunk.compiler.Token;
 
-public class ExpressionBlock extends Block {
+public class ExpressionBlock extends ParentBlock {
 	
 	protected Deque<ExpressionElement> elements;
 	
