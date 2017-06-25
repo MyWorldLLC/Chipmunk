@@ -1,19 +1,22 @@
+# declares the module that all classes/methods/variables following this statement will
+# be in. A source file can contain multiple module declarations, and any code following
+# each module declaration will execute as part of that module
+module chipmunk
+
 # imports symbol 'system' from module chipmunk
 import chipmunk.system
 
 # imports all symbols from module chipmunk.coolstuff
 from chipmunk.coolstuff import *
 
+# imports all symbols from module chipmunk.morecoolstuff
+import chipmunk.morecoolstuff.*
+
 # imports symbol NutCracker from chipmunk.io, aliased as TheNutCracker
 from chipmunk.io import NutCracker as TheNutCracker
 
 # imports and aliases multiple classes from a module at once
 from chipmunk.io import NutPacker, NutFormat as TheNutPacker, TheNutFormat
-
-# declares the module that all classes/methods/variables following this statement will
-# be in. A source file can contain multiple module declarations, and any code following
-# each module declaration will execute as part of that module
-module chipmunk
 
 class Chippy {
 
@@ -63,20 +66,19 @@ class Chippy {
 	}
 	
 	# Method shared by all chipmunks - can only access shared variables of the Chipmunk class and symbols in
-	# the module
+	# the module (self refers to the type object)
 	shared def getGenus(){
 		return genus
 	}
 }
 
 def throwNut(){
-	var nut = Nut()
+	var nut = new Nut()
 	nut.dropOnGround()
 }
 
 def main(){
-	# create a new instance. Calls to a class symbol create a new instance of the class
-	# and call the constructor with any parameters passed
-	var chippy = Chippy()
+	# create a new instance.
+	var chippy = new Chippy()
 	chippy.doChipmunkThings()
 }
