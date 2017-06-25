@@ -1,6 +1,6 @@
 package chipmunk.compiler.ir;
 
-public class ScopedBlock extends ParentBlock {
+public class ScopedBlock extends Block {
 	
 	protected Scope scope;
 	

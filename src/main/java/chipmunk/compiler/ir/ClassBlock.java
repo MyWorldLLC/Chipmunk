@@ -1,20 +1,20 @@
 package chipmunk.compiler.ir;
 
-public class ClassBlock extends ScopedBlock {
+public class ClassBlock extends ParentBlock {
 	
 	protected String name;
 	protected String superName;
 	
-	public ClassBlock(ScopedBlock parent){
-		super(parent.getScope());
+	public ClassBlock(Scope parent){
+		super(parent);
 	}
 	
-	public ClassBlock(ScopedBlock parent, String name){
+	public ClassBlock(Scope parent, String name){
 		this(parent);
 		this.name = name;
 	}
 	
-	public ClassBlock(ScopedBlock parent, String name, String superName){
+	public ClassBlock(Scope parent, String name, String superName){
 		this(parent, name);
 		this.superName = superName;
 	}

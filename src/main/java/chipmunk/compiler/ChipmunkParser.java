@@ -91,7 +91,7 @@ public class ChipmunkParser {
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		ClassBlock block = new ClassBlock(module);
+		ClassBlock block = new ClassBlock(module.getScope());
 		startBlock(block);
 		block.setName(id.getText());
 		

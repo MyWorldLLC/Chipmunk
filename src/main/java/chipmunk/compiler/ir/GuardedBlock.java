@@ -1,16 +1,15 @@
 package chipmunk.compiler.ir;
 
-public class GuardedBlock extends ScopedBlock {
+import java.util.ArrayList;
+import java.util.List;
+
+public class GuardedBlock extends Block {
 	
 	protected ExpressionBlock guard;
-	protected Block guarded;
-	
-	public GuardedBlock(Scope parent){
-		super(parent);
-	}
+	protected List<Block> guarded;
 	
 	public GuardedBlock(){
-		super();
+		guarded = new ArrayList<Block>();
 	}
 	
 	public void setGuard(ExpressionBlock guard){
@@ -21,11 +20,11 @@ public class GuardedBlock extends ScopedBlock {
 		return guard;
 	}
 	
-	public void setGuarded(Block guarded){
-		this.guarded = guarded;
+	public void addGuarded(Block guarded){
+		this.guarded.add(guarded);
 	}
 	
-	public Block getGuarded(){
+	public List<Block> getGuarded(){
 		return guarded;
 	}
 }

@@ -1,6 +1,6 @@
 package chipmunk.compiler.ir;
 
-public class ModuleBlock extends ScopedBlock {
+public class ModuleBlock extends ParentBlock {
 	
 	protected String name;
 	

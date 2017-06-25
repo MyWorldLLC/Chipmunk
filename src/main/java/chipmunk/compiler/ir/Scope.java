@@ -8,6 +8,7 @@ public class Scope {
 	protected List<String> names;
 	protected Scope enclosing;
 	protected boolean allowOverrides;
+	protected boolean local;
 	
 	public Scope(){
 		names = new ArrayList<String>();
@@ -47,5 +48,13 @@ public class Scope {
 	
 	public void setAllowOverrides(boolean allow){
 		allowOverrides = allow;
+	}
+	
+	public boolean isLocal(){
+		return local;
+	}
+	
+	public void setLocal(boolean isLocal){
+		local = isLocal;
 	}
 }
