@@ -47,6 +47,7 @@ public class ChipmunkParser {
 			if(nextType == Token.Type.MODULE){
 				
 				// add current module block to list and create new module block
+				endBlock(module);
 				modules.add(module);
 				module = new ModuleBlock();
 				
