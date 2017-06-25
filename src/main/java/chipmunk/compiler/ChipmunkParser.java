@@ -286,6 +286,10 @@ public class ChipmunkParser {
 			}
 			block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
 			
+			if(block.getSymbols().contains("*") && block.getSymbols().size() > 1){
+				throw new IllegalImportChipmunk("Cannot import multiple symbols and *");
+			}
+			
 		}else{
 			syntaxError("Invalid import", tokens.get(), Token.Type.IMPORT, Token.Type.FROM);
 		}
@@ -308,10 +312,6 @@ public class ChipmunkParser {
 			
 			if(block.getSymbols().size() < block.getAliases().size()){
 				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
-			}
-			
-			if(block.getSymbols().contains("*") && block.getSymbols().size() > 1){
-				throw new IllegalImportChipmunk("Cannot import multiple symbols and *");
 			}
 			
 		}
