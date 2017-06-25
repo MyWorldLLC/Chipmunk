@@ -95,6 +95,16 @@ public class ChipmunkParser {
 		startBlock(block);
 		block.setName(id.getText());
 		
+		if(peek(Token.Type.EXTENDS)){
+			dropNext(Token.Type.EXTENDS);
+			block.addSuperName(getNext(Token.Type.IDENTIFIER).getText());
+			
+			while(peek(Token.Type.COMMA)){
+				dropNext(Token.Type.COMMA);
+				block.addSuperName(getNext(Token.Type.IDENTIFIER).getText());
+			}
+		}
+		
 		while(!peek(Token.Type.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
 			skipNewlines();

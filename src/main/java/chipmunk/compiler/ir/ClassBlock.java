@@ -1,12 +1,16 @@
 package chipmunk.compiler.ir;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ClassBlock extends ParentBlock {
 	
 	protected String name;
-	protected String superName;
+	protected List<String> superNames;
 	
 	public ClassBlock(Scope parent){
 		super(parent);
+		superNames = new ArrayList<String>();
 	}
 	
 	public ClassBlock(Scope parent, String name){
@@ -14,9 +18,12 @@ public class ClassBlock extends ParentBlock {
 		this.name = name;
 	}
 	
-	public ClassBlock(Scope parent, String name, String superName){
+	public ClassBlock(Scope parent, String name, String... supers){
 		this(parent, name);
-		this.superName = superName;
+		
+		for(String superName : supers){
+			superNames.add(superName);
+		}
 	}
 
 	public String getName() {
@@ -27,12 +34,12 @@ public class ClassBlock extends ParentBlock {
 		this.name = name;
 	}
 
-	public String getSuperName() {
-		return superName;
+	public List<String> getSuperNames() {
+		return superNames;
 	}
 
-	public void setSuperName(String superName) {
-		this.superName = superName;
+	public void addSuperName(String superName) {
+		superNames.add(superName);
 	}
 
 }
