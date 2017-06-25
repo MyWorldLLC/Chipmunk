@@ -120,10 +120,7 @@ public class ChipmunkParser {
 					block.addChild(parseMethodDef());
 				}
 			}else{
-				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class body");
-				error.setExpected(new Token.Type[]{Token.Type.VAR, Token.Type.DEF});
-				error.setGot(tokens.peek());
-				throw error;
+				syntaxError("Error parsing class body", tokens.peek(), Token.Type.VAR, Token.Type.DEF);
 			}
 		}
 		forceNext(Token.Type.RBRACE);
