@@ -3,7 +3,7 @@ package chipmunk.compiler.ir;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuardedBlock extends Block {
+public class GuardedBlock extends ParentBlock {
 	
 	protected ExpressionBlock guard;
 	protected List<Block> guarded;
@@ -20,11 +20,4 @@ public class GuardedBlock extends Block {
 		return guard;
 	}
 	
-	public void addGuarded(Block guarded){
-		this.guarded.add(guarded);
-	}
-	
-	public List<Block> getGuarded(){
-		return guarded;
-	}
 }

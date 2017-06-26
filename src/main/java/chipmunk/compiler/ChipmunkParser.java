@@ -10,7 +10,6 @@ import chipmunk.compiler.ir.ImportBlock;
 import chipmunk.compiler.ir.ListBlock;
 import chipmunk.compiler.ir.MethodBlock;
 import chipmunk.compiler.ir.ModuleBlock;
-import chipmunk.compiler.ir.SharedBlock;
 import chipmunk.compiler.ir.VarDecBlock;
 
 public class ChipmunkParser {
@@ -115,18 +114,22 @@ public class ChipmunkParser {
 				shared = true;
 			}
 			
+			boolean isFinal = false;
+			if(peek(Token.Type.FINAL)){
+				forceNext(Token.Type.FINAL);
+				isFinal = true;
+			}
+			
 			if(checkVarDec()){
-				if(shared){
-					block.addChild(new SharedBlock(parseVarDec()));
-				}else{
-					block.addChild(parseVarDec());
-				}
+				VarDecBlock varBlock = parseVarDec();
+				varBlock.setShared(shared);
+				varBlock.setFinal(isFinal);
+				block.addChild(varBlock);
 			}else if(checkMethodDef()){
-				if(shared){
-					block.addChild(new SharedBlock(parseMethodDef()));
-				}else{
-					block.addChild(parseMethodDef());
-				}
+				MethodBlock methodBlock = parseMethodDef();
+				methodBlock.setShared(shared);
+				methodBlock.setFinal(isFinal);
+				block.addChild(methodBlock);
 			}else{
 				syntaxError("Error parsing class body", tokens.peek(), Token.Type.VAR, Token.Type.DEF);
 			}

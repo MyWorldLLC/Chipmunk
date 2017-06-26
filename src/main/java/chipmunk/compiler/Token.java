@@ -24,7 +24,7 @@ public class Token {
 		IF("if", true, false), ELSE("else", true, false), FOR("for", true, false), WHILE("while", true, false),
 		BREAK("break", true, false), CONTINUE("continue", true, false), RETURN("return", true, false),
 		TRY("try", true, false), CATCH("catch", true, false), THROW("throw", true, false), DEF("def", true, false),
-		VAR("var", true, false), EXTENDS("extends", true, false), EOF("");
+		VAR("var", true, false), EXTENDS("extends", true, false), FINAL("final", true, false), EOF("");
 		
 		protected Pattern pattern;
 		protected boolean keyword;
