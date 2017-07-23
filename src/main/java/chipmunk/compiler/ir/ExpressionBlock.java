@@ -6,28 +6,35 @@ import java.util.Deque;
 import chipmunk.compiler.Operator;
 import chipmunk.compiler.Token;
 
-public class ExpressionBlock extends ParentBlock {
+public class ExpressionBlock extends Block {
 	
-	protected Deque<ExpressionElement> elements;
+	protected Deque<ExpressionPiece> pieces;
 	
 	public ExpressionBlock(){
-		elements = new ArrayDeque<ExpressionElement>();
+		pieces = new ArrayDeque<ExpressionPiece>();
 	}
 	
-	public Deque<ExpressionElement> getExpression(){
-		return elements;
+	public Deque<ExpressionPiece> getExpression(){
+		return pieces;
 	}
 	
-	public class ExpressionElement {
+	public class ExpressionPiece {
 		
 		protected Token token;
 		protected Operator operator;
+		protected boolean openGroup;
+		protected boolean closeGroup;
 		
-		public ExpressionElement(Token token){
+		public ExpressionPiece(boolean openGroup){
+			this.openGroup = openGroup;
+			this.closeGroup = !openGroup;
+		}
+		
+		public ExpressionPiece(Token token){
 			this.token = token;
 		}
 		
-		public ExpressionElement(Operator operator){
+		public ExpressionPiece(Operator operator){
 			this.operator = operator;
 		}
 		
@@ -37,6 +44,14 @@ public class ExpressionBlock extends ParentBlock {
 		
 		public boolean isOperator(){
 			return operator != null;
+		}
+		
+		public boolean isOpenGroup(){
+			return openGroup;
+		}
+		
+		public boolean isCloseGroup(){
+			return closeGroup;
 		}
 		
 		public Token getIDOrLiteral(){

@@ -1,7 +1,9 @@
 package chipmunk.compiler;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.Stack;
 
 import chipmunk.compiler.ir.Block;
 import chipmunk.compiler.ir.ClassBlock;
@@ -201,7 +203,67 @@ public class ChipmunkParser {
 	}
 	
 	public ExpressionBlock parseExpression(){
-		return null;
+		
+		// expression is:
+		// id or literal
+		// pre unary operator -> expression
+		// expression -> post unary operator
+		// expression -> binary operator -> expression
+		// ( expression )
+		
+		ExpressionBlock expression = new ExpressionBlock();
+		startBlock(expression);
+		
+		Deque<ExpressionBlock.ExpressionPiece> output = expression.getExpression();
+		Stack<Operator> operators = new Stack<Operator>();
+		
+		// TODO - need to determine proper end condition
+		boolean nextParenIsCall = false;
+		boolean foo = true;
+		while(foo){
+			
+			if(peek(Token.Type.IDENTIFIER)){
+				output.push(expression.new ExpressionPiece(tokens.get()));
+				nextParenIsCall = true;
+				
+			}else if(peek( Token.Type.BINARYLITERAL,
+					Token.Type.BOOLLITERAL, Token.Type.FLOATLITERAL,
+					Token.Type.STRINGLITERAL)){
+				output.push(expression.new ExpressionPiece(tokens.get()));
+				nextParenIsCall = true;
+				
+			}else if(Operator.match(tokens.peek().getType()) != null){
+				
+				Operator operator = Operator.match(tokens.peek().getType());
+					
+				while(operators.peek().getPrecedence() >= operator.getPrecedence()){
+					output.push(expression.new ExpressionPiece(operators.pop()));
+				}
+				operators.push(operator);
+				nextParenIsCall = false;
+			}else if(peek(Token.Type.LPAREN) && !nextParenIsCall){
+				operators.push(null);
+			}else if(peek(Token.Type.RPAREN)){
+				
+				while(operators.peek() != null){
+					output.push(expression.new ExpressionPiece(operators.pop()));
+				}
+				operators.pop();
+			}else{
+				// Error. Input didn't match literal, operator
+			}
+		}
+		
+		while(!operators.isEmpty()){
+			if(operators.peek() == null){
+				// Error! Last thing pushed on stack was an open paren
+			}
+			output.push(expression.new ExpressionPiece(operators.pop()));
+		}
+		
+		// TODO
+		endBlock(expression);
+		return expression;
 	}
 	
 	public boolean checkStatement(){
@@ -378,6 +440,15 @@ public class ChipmunkParser {
 	private boolean peek(int places, Token.Type type){
 		Token token = tokens.peek(places);
 		return token.getType() == type;
+	}
+	
+	private boolean peek(Token.Type... oneOf){
+		for(Token.Type type : oneOf){
+			if(peek(type)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private void startBlock(Block block){
