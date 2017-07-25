@@ -127,7 +127,13 @@ public class ChipmunkLexer {
 							}
 						}
 
-						String subStr = src.subSequence(cursor, matcher.end()).toString();
+						String subStr = null;
+						if(type == Token.Type.COMMENT){
+							// strip # character from beginning of comments
+							subStr = src.subSequence(cursor + 1, matcher.end()).toString();
+						}else{
+							subStr = src.subSequence(cursor, matcher.end()).toString();
+						}
 						stream.append(new Token(subStr, type, line, column));
 
 						cursor += matcher.end();
