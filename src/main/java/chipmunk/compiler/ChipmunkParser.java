@@ -8,6 +8,7 @@ import java.util.Stack;
 import chipmunk.compiler.ir.Block;
 import chipmunk.compiler.ir.ClassBlock;
 import chipmunk.compiler.ir.ExpressionBlock;
+import chipmunk.compiler.ir.ExpressionNode;
 import chipmunk.compiler.ir.ImportBlock;
 import chipmunk.compiler.ir.ListBlock;
 import chipmunk.compiler.ir.MethodBlock;
@@ -202,6 +203,267 @@ public class ChipmunkParser {
 		return block;
 	}
 	
+	private ExpressionNode parseExpLevel12(){
+		// Logical OR
+		ExpressionNode left = parseExpLevel11();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOUBLEBAR)){
+			op = tokens.get();
+			right = parseExpLevel12();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel11(){
+		// Logical AND
+		ExpressionNode left = parseExpLevel10();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOUBLEAMPERSAND)){
+			op = tokens.get();
+			right = parseExpLevel11();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel10(){
+		// Bitwise OR
+		ExpressionNode left = parseExpLevel9();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.BAR)){
+			op = tokens.get();
+			right = parseExpLevel10();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel9(){
+		// Bitwise XOR
+		ExpressionNode left = parseExpLevel8();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.CARET)){
+			op = tokens.get();
+			right = parseExpLevel9();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel8(){
+		// Bitwise AND
+		ExpressionNode left = parseExpLevel7();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.AMPERSAND)){
+			op = tokens.get();
+			right = parseExpLevel8();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel7(){
+		// == and !=
+		ExpressionNode left = parseExpLevel6();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOUBLEEQUAlS) || peek(Token.Type.EXCLAMATIONEQUALS)){
+			op = tokens.get();
+			right = parseExpLevel7();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel6(){
+		// <, >, <=, >=
+		ExpressionNode left = parseExpLevel5();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.LESSTHAN) || peek(Token.Type.MORETHAN)
+				|| peek(Token.Type.LESSEQUALS) || peek(Token.Type.MOREEQUALS)){
+			op = tokens.get();
+			right = parseExpLevel6();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel5(){
+		// <<, >>, >>>, ..
+		ExpressionNode left = parseExpLevel4();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOUBLELESSTHAN) || peek(Token.Type.DOUBLEMORETHAN)
+				|| peek(Token.Type.TRIPLEMORETHAN) || peek(Token.Type.DOUBLEDOT)){
+			op = tokens.get();
+			right = parseExpLevel5();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel4(){
+		// +, - (add, sub)
+		ExpressionNode left = parseExpLevel3();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.PLUS) || peek(Token.Type.MINUS)){
+			op = tokens.get();
+			right = parseExpLevel4();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel3(){
+		// *, /, //, %, ++ and -- (pre), +, -, !, ~ (unary)
+		
+		if(peek(Token.Type.DOUBLEPLUS) || peek(Token.Type.DOUBLEMINUS) || peek(Token.Type.PLUS)
+				|| peek(Token.Type.MINUS) || peek(Token.Type.EXCLAMATION) || peek(Token.Type.TILDE)){
+			// unary operator matched.
+			Token op = tokens.get();
+			return new ExpressionNode(op, parseExpLevel3());
+		}else{
+			ExpressionNode left = parseExpLevel2();
+			ExpressionNode right = null;
+			
+			Token op = null;
+			if(peek(Token.Type.STAR) || peek(Token.Type.FSLASH)
+					|| peek(Token.Type.DOUBLEFSLASH) || peek(Token.Type.PERCENT)){
+				op = tokens.get();
+				right = parseExpLevel3();
+			}
+			
+			if(right != null){
+				return new ExpressionNode(op, left, right);
+			}else{
+				return left;
+			}
+		}
+		
+	}
+	
+	private ExpressionNode parseExpLevel2(){
+		// ++ and -- (post)
+		ExpressionNode left = parseExpLevel1();
+		if(peek(Token.Type.DOUBLEPLUS) || peek(Token.Type.DOUBLEMINUS)){
+			return new ExpressionNode(tokens.get(), left);
+		}
+		return left;
+	}
+	
+	private ExpressionNode parseExpLevel1(){
+		// **
+		ExpressionNode left = parseExpLevel0();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOUBLESTAR)){
+			op = tokens.get();
+			right = parseExpLevel1();
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseExpLevel0(){
+		// ., [], ()
+		ExpressionNode left = parseLiteralIDOrSubExp();
+		ExpressionNode right = null;
+		
+		Token op = null;
+		if(peek(Token.Type.DOT)){
+			op = tokens.get();
+			right = parseExpLevel0();
+			return new ExpressionNode(op, left, right);
+		}else if(peek(Token.Type.LBRACKET)){
+			op = tokens.get();
+			right = parseExpLevel12();
+			forceNext(Token.Type.RBRACKET);
+			return new ExpressionNode(op, left, right);
+		}else if(peek(Token.Type.LPAREN)){
+			// TODO
+		}
+		
+		if(right != null){
+			return new ExpressionNode(op, left, right);
+		}else{
+			return left;
+		}
+	}
+	
+	private ExpressionNode parseLiteralIDOrSubExp(){
+		// literal | id | LPAREN expression RPAREN
+		Token.Type tokenType = tokens.peek().getType();
+		if(tokenType.isLiteral()){
+			
+		}else if(tokenType == Token.Type.IDENTIFIER){
+			
+		}else if(tokenType == Token.Type.LPAREN){
+			dropNext();
+			ExpressionNode node = parseExpLevel12();
+			forceNext(Token.Type.RPAREN);
+			return node;
+		}
+		return null;
+	}
+	
 	public ExpressionBlock parseExpression(){
 		
 		// expression is:
@@ -217,18 +479,17 @@ public class ChipmunkParser {
 		Deque<ExpressionBlock.ExpressionPiece> output = expression.getExpression();
 		Stack<Operator> operators = new Stack<Operator>();
 		
-		// TODO - need to determine proper end condition
+		
 		boolean nextParenIsCall = false;
-		boolean foo = true;
-		while(foo){
+		
+		// loop until the end of the expression is detected
+		while(true){
 			
 			if(peek(Token.Type.IDENTIFIER)){
 				output.push(expression.new ExpressionPiece(tokens.get()));
 				nextParenIsCall = true;
 				
-			}else if(peek( Token.Type.BINARYLITERAL,
-					Token.Type.BOOLLITERAL, Token.Type.FLOATLITERAL,
-					Token.Type.STRINGLITERAL)){
+			}else if(tokens.peek().getType().isLiteral()){
 				output.push(expression.new ExpressionPiece(tokens.get()));
 				nextParenIsCall = true;
 				
@@ -250,7 +511,9 @@ public class ChipmunkParser {
 				}
 				operators.pop();
 			}else{
-				// Error. Input didn't match literal, operator
+				// Input didn't match literal or operator, so the expression's end has been
+				// reached. Break from the loop.
+				break;
 			}
 		}
 		
@@ -429,6 +692,10 @@ public class ChipmunkParser {
 		}
 		
 		return false;
+	}
+	
+	private void dropNext(){
+		tokens.get();
 	}
 	
 	private boolean peek(Token.Type type){
