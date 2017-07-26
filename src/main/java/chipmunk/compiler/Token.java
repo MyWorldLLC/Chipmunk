@@ -23,6 +23,15 @@ public class Token {
 		// comments and newlines
 		COMMENT("#.*"), NEWLINE("\n|\r\n|\r"),
 		
+		// literals
+		FLOATLITERAL("-?[0-9]*\\.[0-9]*((e|E)-?[0-9]+)?", false, true),
+		INTLITERAL("\\-?[0-9_]+", false, true),
+		BINARYLITERAL("0b|0B[01_]+", false, true),
+		OCTLITERAL("0o|0O[0-7_]+", false, true),
+		HEXLITERAL("0x|0X[a-fA-F0-9_]+", false, true),
+		BOOLLITERAL("true|false", true, true),
+		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true),
+		
 		// blocks, indexing, grouping, and calling
 		LBRACE("\\{"), RBRACE("\\}"), LBRACKET("\\["), RBRACKET("\\]"), LPAREN("\\("), RPAREN("\\)"), COMMA(","),
 		
@@ -37,14 +46,6 @@ public class Token {
 		DOUBLELESSTHAN("<<"), LESSTHAN("<"), TRIPLEMORETHAN(">>>"), DOUBLEMORETHAN(">>"), MORETHAN(">"),
 		PERCENT("%"), DOUBLEAMPERSAND("&&"), AMPERSAND("&"),
 		
-		// literals
-		FLOATLITERAL("-?[0-9]*\\.[0-9]*((e|E)-?[0-9]+)?", false, true),
-		INTLITERAL("\\-?[0-9_]+", false, true),
-		BINARYLITERAL("0b|0B[01_]+", false, true),
-		OCTLITERAL("0o|0O[0-7_]+", false, true),
-		HEXLITERAL("0x|0X[a-fA-F0-9_]+", false, true),
-		BOOLLITERAL("true|false", true, true),
-		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true),
 		
 		// keywords
 		MODULE("module", true, false),
