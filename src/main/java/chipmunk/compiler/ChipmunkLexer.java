@@ -45,7 +45,7 @@ public class ChipmunkLexer {
 		while(cursor < src.length()){
 			
 			// check for spaces
-			space.region(cursor, src.length() - 1);
+			space.region(cursor, src.length());
 			if(space.lookingAt()){
 				cursor += 1;
 				column += 1;
@@ -53,7 +53,7 @@ public class ChipmunkLexer {
 			}
 			
 			// check for tabs
-			tab.region(cursor, src.length() - 1);
+			tab.region(cursor, src.length());
 			if(tab.lookingAt()){
 				cursor += 1;
 				column += 4;
@@ -61,32 +61,32 @@ public class ChipmunkLexer {
 			}
 			
 			// if skipping the whitespace brings us to the end of the source, break
-			if(cursor == src.length() - 1){
+			if(cursor == src.length()){
 				break;
 			}
 			
 			boolean foundToken = false;
 			
 			// try to match correct token
-			for(int i = 0; i < tokenTypes.length; i++){
+			for(int i = 0; i < tokenTypes.length - 1; i++){
 				
 				Token.Type type = tokenTypes[i];
 
 				Matcher matcher = matchers.get(type);
-				matcher.region(cursor, src.length() - 1);
-
-				if (matcher.lookingAt() && !matcher.hitEnd()) {
+				matcher.region(cursor, src.length());
+				
+				if (matcher.lookingAt()){
 
 					String subStr = src.subSequence(cursor, matcher.end()).toString();
 					stream.append(new Token(subStr, type, line, column));
 
-					cursor += matcher.end();
+					cursor = matcher.end();
 
 					if (type == Token.Type.NEWLINE) {
 						column = 1;
 						line += 1;
 					} else {
-						column += matcher.end();
+						column = matcher.end();
 					}
 
 					foundToken = true;
@@ -96,7 +96,7 @@ public class ChipmunkLexer {
 			}
 			
 			// error - we couldn't match a valid token
-			if(!foundToken){
+			if(!foundToken && cursor != source.length() - 1){
 				throw new SyntaxErrorChipmunk("Syntax error at line " + line + ", column " + column + ": Could not match a valid syntax element");
 			}
 		}

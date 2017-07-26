@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'antlr'
 apply plugin: 'eclipse'
 
@@ -34,4 +35,5 @@ sourceSets {
 		  srcDir 'src/main/antlr'
 	  }
 	}
+	
 }
