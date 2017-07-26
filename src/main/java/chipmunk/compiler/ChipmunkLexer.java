@@ -42,11 +42,6 @@ public class ChipmunkLexer {
 		Pattern tabPattern = Pattern.compile("\\t");
 		Matcher tab = tabPattern.matcher(src);
 		
-		// any whitespace
-		Pattern wsPattern = Pattern.compile("\\s");
-		Matcher ws = wsPattern.matcher(src);
-		
-		
 		while(cursor < src.length()){
 			
 			// check for spaces
@@ -65,90 +60,38 @@ public class ChipmunkLexer {
 				continue;
 			}
 			
+			// if skipping the whitespace brings us to the end of the source, break
+			if(cursor == src.length() - 1){
+				break;
+			}
+			
 			boolean foundToken = false;
 			
-			// try to match keywords first - this ensures that keywords (with trailing whitespace)
-			// are not matched as identifiers because of the order of evaluation of token expressions.
+			// try to match correct token
 			for(int i = 0; i < tokenTypes.length; i++){
 				
 				Token.Type type = tokenTypes[i];
-				if(type.isKeyword()){
-					
-					Matcher matcher = matchers.get(type);
-					matcher.region(cursor, src.length() - 1);
-					
-					if(matcher.lookingAt() && !matcher.hitEnd()){
-						
-						ws.region(matcher.end(), src.length() - 1);
 
-						if(ws.lookingAt()){
-							
-							String subStr = src.subSequence(cursor, matcher.end()).toString();
-							stream.append(new Token(subStr, type, line, column));
-							
-							cursor += matcher.end();
-							column += matcher.end();
-							
-							foundToken = true;
-							break;
-						}
-						
+				Matcher matcher = matchers.get(type);
+				matcher.region(cursor, src.length() - 1);
+
+				if (matcher.lookingAt() && !matcher.hitEnd()) {
+
+					String subStr = src.subSequence(cursor, matcher.end()).toString();
+					stream.append(new Token(subStr, type, line, column));
+
+					cursor += matcher.end();
+
+					if (type == Token.Type.NEWLINE) {
+						column = 1;
+						line += 1;
+					} else {
+						column += matcher.end();
 					}
-				}
-			}
-			
-			// try to match non-keyword tokens
-			for (int i = 0; (i < tokenTypes.length) && !foundToken; i++) {
 
-				Token.Type type = tokenTypes[i];
+					foundToken = true;
+					break;
 
-				if (!type.isKeyword()) {
-
-					Matcher matcher = matchers.get(type);
-					matcher.region(cursor, src.length() - 1);
-
-					if (matcher.lookingAt()) {
-						
-						// float literals may be detected as int.int if the integer literal
-						// token type is checked before the float literal token type is checked.
-						// This ensures that any time an int literal is matched that it really is
-						// an int literal and not a float literal
-						if(type == Token.Type.INTLITERAL){
-							
-							Matcher floatMatcher = matchers.get(Token.Type.FLOATLITERAL);
-							floatMatcher.region(cursor, src.length() - 1);
-							
-							if(floatMatcher.lookingAt()){
-								// if we really have a float, change token type
-								// and matcher
-								type = Token.Type.FLOATLITERAL;
-								matcher = floatMatcher;
-								
-							}
-						}
-
-						String subStr = null;
-						if(type == Token.Type.COMMENT){
-							// strip # character from beginning of comments
-							subStr = src.subSequence(cursor + 1, matcher.end()).toString();
-						}else{
-							subStr = src.subSequence(cursor, matcher.end()).toString();
-						}
-						stream.append(new Token(subStr, type, line, column));
-
-						cursor += matcher.end();
-						
-						if (type == Token.Type.NEWLINE) {
-							column = 1;
-							line += 1;
-						} else {
-							column += matcher.end();
-						}
-						
-						foundToken = true;
-						break;
-					
-					}
 				}
 			}
 			
