@@ -1,5 +1,6 @@
 package chipmunk.compiler
 
+import chipmunk.compiler.Token.Type
 import spock.lang.Specification
 
 class ChipmunkLexerSpecification extends Specification {
@@ -72,6 +73,33 @@ class ChipmunkLexerSpecification extends Specification {
 		def tok7 = tokens.get()
 		tok7.getText() == "-2.5E-10"
 		tok7.getType() == Token.Type.FLOATLITERAL
+	}
+	
+	def "Tokenize a comment"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		
+		when:
+		def tokens = lexer.lex("3 # This is a comment.\n4")
+		
+		then:
+		notThrown(SyntaxErrorChipmunk)
+		
+		def tok = tokens.get()
+		tok.getText() == "3"
+		tok.getType() == Token.Type.INTLITERAL
+		
+		def tok1 = tokens.get()
+		tok1.getText() == "# This is a comment."
+		tok1.getType() == Token.Type.COMMENT
+		
+		def tok2 = tokens.get()
+		tok2.getText() == "\n"
+		tok2.getType() == Token.Type.NEWLINE
+		
+		def tok3 = tokens.get()
+		tok3.getText() == "4"
+		tok3.getType() == Token.Type.INTLITERAL
 	}
 
 }
