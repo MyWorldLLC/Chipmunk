@@ -253,10 +253,7 @@ public class CMethod extends CObject {
 				context.push(ins.__as__(lh));
 				ip++;
 				break;
-			case MAKECLASS:
-				// TODO
-				break;
-			case MAKEMETHOD:
+			case NEW:
 				// TODO
 				break;
 			case IF:

@@ -309,16 +309,6 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void makeclass(){
-		code.write(Opcodes.MAKECLASS);
-		index++;
-	}
-	
-	public void makemethod(){
-		code.write(Opcodes.MAKEMETHOD);
-		index++;
-	}
-	
 	public void _if(Label elseLabel){
 		_if(elseLabel.getName());
 	}

@@ -534,6 +534,9 @@ public class ChipmunkParser {
 	}
 	
 	public Block parseStatement(){
+		// statements are either (a) variable declarations and assignments
+		// (b) expressions (including assignments)
+		// or (c) block beginnings
 		return null;
 	}
 	
