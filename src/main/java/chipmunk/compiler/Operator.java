@@ -5,7 +5,7 @@ import static chipmunk.compiler.Token.Type.*;
 public enum Operator {
 	
 	DOTOP(0, false, DOT), OPENINDEX(0, true, LBRACKET), CLOSEINDEX(0, true, RBRACKET), OPENCALL(0, true, LPAREN), CLOSECALL(0, true, RPAREN),
-	POW(1, false, STAR, STAR),
+	POW(1, false, false, STAR, STAR),
 	POSTINC(2, true, PLUS, PLUS), POSTDEC(2, true, MINUS, MINUS),
 	PREINC(3, true, PLUS, PLUS), PREDEC(3, true, MINUS, MINUS), POS(3, true, PLUS), NEG(3, true, MINUS), NOT(3, true, EXCLAMATION), BNOT(3, true, TILDE),
 	MULT(3, false, STAR), DIV(3, false, FSLASH), FDIV(3, false, FSLASH, FSLASH), MOD(3, false, PERCENT),
@@ -18,18 +18,27 @@ public enum Operator {
 	BITOR(10, false, BAR),
 	AND(11, false, AMPERSAND, AMPERSAND),
 	OR(12, false, BAR, BAR),
-	ASSIGN(13, false, EQUALS), ADDASSIGN(13, false, PLUS, EQUALS), SUBASSIGN(13, false, MINUS, EQUALS), MULASSIGN(13, false, STAR, EQUALS),
-	DIVASSIGN(13, false, FSLASH, EQUALS), MODASSIGN(13, false, PERCENT, EQUALS), BITANDASSIGN(13, false, AMPERSAND, EQUALS), BITXORASSIGN(13, false, CARET, EQUALS),
-	BITORASSIGN(13, false, BAR, EQUALS), LSHIFTASSIGN(13, false, LESSTHAN, LESSTHAN, EQUALS), RSHIFTASSIGN(13, false, MORETHAN, MORETHAN),
-	URSHIFTASSIGN(13, false, MORETHAN, MORETHAN, MORETHAN, EQUALS);
+	ASSIGN(13, false, false, EQUALS), ADDASSIGN(13, false, false, PLUS, EQUALS), SUBASSIGN(13, false, false, MINUS, EQUALS), MULASSIGN(13, false, false, STAR, EQUALS),
+	DIVASSIGN(13, false, false, FSLASH, EQUALS), MODASSIGN(13, false, false, PERCENT, EQUALS), BITANDASSIGN(13, false, false, AMPERSAND, EQUALS), BITXORASSIGN(13, false, false, CARET, EQUALS),
+	BITORASSIGN(13, false, false, BAR, EQUALS), LSHIFTASSIGN(13, false, false, LESSTHAN, LESSTHAN, EQUALS), RSHIFTASSIGN(13, false, false, MORETHAN, MORETHAN),
+	URSHIFTASSIGN(13, false, false, MORETHAN, MORETHAN, MORETHAN, EQUALS);
 	
 	private int precedence;
 	private boolean unary;
+	private boolean leftAssoc;
 	private Token.Type[] tokens;
 	
 	private Operator(int precedence, boolean unary, Token.Type... tokens){
 		this.precedence = precedence;
 		this.unary = unary;
+		this.leftAssoc = true;
+		this.tokens = tokens;
+	}
+	
+	private Operator(int precedence, boolean unary, boolean leftAssoc, Token.Type... tokens){
+		this.precedence = precedence;
+		this.unary = unary;
+		this.leftAssoc = leftAssoc;
 		this.tokens = tokens;
 	}
 	
@@ -39,6 +48,10 @@ public enum Operator {
 	
 	public boolean isUnary(){
 		return unary;
+	}
+	
+	public boolean isLeftAssociative(){
+		return leftAssoc;
 	}
 	
 	public boolean isBinary(){

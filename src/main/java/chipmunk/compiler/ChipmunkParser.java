@@ -5,6 +5,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Stack;
 
+import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ir.Block;
 import chipmunk.compiler.ir.ClassBlock;
 import chipmunk.compiler.ir.ExpressionBlock;
@@ -165,7 +166,7 @@ public class ChipmunkParser {
 		
 		if(peek(Token.Type.EQUALS)){
 			tokens.get();
-			dec.addChild(parseExpression());
+			dec.addChild(parseExpressionOld());
 		}
 		
 		endBlock(dec);
@@ -184,7 +185,7 @@ public class ChipmunkParser {
 		while(!peek(Token.Type.RBRACKET)){
 			skipNewlines();
 			
-			ExpressionBlock element = parseExpression();
+			ExpressionBlock element = parseExpressionOld();
 			block.addElement(element);
 			skipNewlines();
 			
@@ -464,7 +465,7 @@ public class ChipmunkParser {
 		return null;
 	}
 	
-	public ExpressionBlock parseExpression(){
+	public ExpressionBlock parseExpressionOld(){
 		
 		// expression is:
 		// id or literal
@@ -654,6 +655,15 @@ public class ChipmunkParser {
 		
 		endBlock(block);
 		return block;
+	}
+	
+	/**
+	 * Parse expressions with precedence climbing algorithm
+	 * @return AST of the expression
+	 */
+	public AstNode parseExpression(){
+		
+		return null;
 	}
 	
 	private Token getNext(Token.Type type){
