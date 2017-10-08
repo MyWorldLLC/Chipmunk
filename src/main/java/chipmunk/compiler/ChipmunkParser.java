@@ -796,14 +796,15 @@ public class ChipmunkParser {
 		
 		Token token = tokens.get();
 		
-		PrefixParselet prefixParser = prefix.get(token);
+		PrefixParselet prefixParser = prefix.get(token.getType());
 		
 		if(prefixParser == null){
-			throw new SyntaxErrorChipmunk("Expected a prefix operator", token);
+			throw new SyntaxErrorChipmunk("Expected a literal, id, or prefix operator", token);
 		}
 		
 		AstNode left = prefixParser.parse(this, token);
 		
+		token = tokens.peek();
 		while(minPrecedence < getPrecedence(token)){
 			token = tokens.get();
 			
@@ -814,14 +815,14 @@ public class ChipmunkParser {
 			}
 			
 			left = infixParser.parse(this, left, token);
+			token = tokens.peek();
 		}
 		
 		return left;
 	}
 	
 	private int getPrecedence(Token token){
-		InfixParselet parselet = infix.get(token);
-		
+		InfixParselet parselet = infix.get(token.getType());
 		if(parselet != null){
 			return parselet.getPrecedence();
 		}else{

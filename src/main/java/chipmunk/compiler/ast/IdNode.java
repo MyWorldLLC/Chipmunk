@@ -28,7 +28,7 @@ public class IdNode extends AstNode {
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append("(id ");
-		builder.append(id.toString());
+		builder.append(id.getText());
 		builder.append(')');
 		
 		return builder.toString();

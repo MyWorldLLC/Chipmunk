@@ -30,7 +30,7 @@ public class OperatorNode extends AstNode {
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append('(');
-		builder.append(op.toString());
+		builder.append(op.getText());
 		builder.append(' ');
 		
 		for(AstNode child : children){

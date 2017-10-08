@@ -28,7 +28,7 @@ public class LiteralNode extends AstNode {
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append("(literal ");
-		builder.append(literal.toString());
+		builder.append(literal.getText());
 		builder.append(')');
 		
 		return builder.toString();
