@@ -22,5 +22,16 @@ public class IdNode extends AstNode {
 	public void setID(Token id){
 		this.id = id;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("(id ");
+		builder.append(id.toString());
+		builder.append(')');
+		
+		return builder.toString();
+	}
 
 }

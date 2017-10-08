@@ -22,4 +22,15 @@ public class LiteralNode extends AstNode {
 	public void setLiteral(Token literalValue){
 		literal = literalValue;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("(literal ");
+		builder.append(literal.toString());
+		builder.append(')');
+		
+		return builder.toString();
+	}
 }

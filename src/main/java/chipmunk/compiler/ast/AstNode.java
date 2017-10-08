@@ -51,5 +51,18 @@ public class AstNode {
 	public void setEndTokenIndex(int index){
 		endTokenIndex = index;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append('(');
+		
+		for(AstNode child : children){
+			builder.append(child.toString());
+		}
+		
+		builder.append(')');
+		return builder.toString();
+	}
 
 }

@@ -25,5 +25,20 @@ public class OperatorNode extends AstNode {
 	public Token getOperator(){
 		return op;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append('(');
+		builder.append(op.toString());
+		builder.append(' ');
+		
+		for(AstNode child : children){
+			builder.append(child.toString());
+		}
+		
+		builder.append(')');
+		return builder.toString();
+	}
 
 }
