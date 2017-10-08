@@ -82,5 +82,44 @@ class ChipmunkParserSpecification extends Specification {
 		then:
 		ast.toString() == "(** (** (literal 1)(literal 2))(literal 3))"
 	}
+	
+	def "parse foo(true)"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("foo(true)")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(( (id foo)(literal true))"
+	}
+	
+	def "parse foo(true, false)"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("foo(true, false)")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(( (id foo)(literal true)(literal false))"
+	}
+	
+	def "parse 1 + foo(true, false)"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("1 + foo(true, false)")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(+ (literal 1)(( (id foo)(literal true)(literal false)))"
+	}
 
 }
