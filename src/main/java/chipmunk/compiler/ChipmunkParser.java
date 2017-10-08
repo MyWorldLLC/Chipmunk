@@ -74,6 +74,9 @@ public class ChipmunkParser {
 		prefixOp(Token.Type.EXCLAMATION);
 		prefixOp(Token.Type.TILDE);
 		
+		// parentheses for grouping in expressions
+		register(Token.Type.LPAREN, new GroupingParselet());
+		
 		// binary infix operators
 		register(Token.Type.PLUS, new AddSubOperatorParselet());
 		register(Token.Type.MINUS, new AddSubOperatorParselet());
