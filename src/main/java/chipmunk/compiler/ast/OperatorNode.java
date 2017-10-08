@@ -1,26 +1,29 @@
 package chipmunk.compiler.ast;
 
-import chipmunk.compiler.Operator;
+import chipmunk.compiler.Token;
 
 public class OperatorNode extends AstNode {
 	
-	protected Operator op;
+	protected Token op;
 	
-	public OperatorNode(){
-		super();
-	}
-	
-	public OperatorNode(Operator op){
+	public OperatorNode(Token op){
 		super();
 		this.op = op;
 	}
 	
-	public Operator getOperator(){
+	public OperatorNode(Token op, AstNode operand){
+		this(op);
+		addChild(operand);
+	}
+	
+	public OperatorNode(Token op, AstNode lhs, AstNode rhs){
+		this(op);
+		addChild(lhs);
+		addChild(rhs);
+	}
+	
+	public Token getOperator(){
 		return op;
-	}
-	
-	public void setOperator(Operator op){
-		this.op = op;
 	}
 
 }

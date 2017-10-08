@@ -2,10 +2,14 @@ package chipmunk.compiler;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ast.IdNode;
+import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ir.Block;
 import chipmunk.compiler.ir.ClassBlock;
 import chipmunk.compiler.ir.ExpressionBlock;
@@ -15,16 +19,139 @@ import chipmunk.compiler.ir.ListBlock;
 import chipmunk.compiler.ir.MethodBlock;
 import chipmunk.compiler.ir.ModuleBlock;
 import chipmunk.compiler.ir.VarDecBlock;
+import chipmunk.compiler.parselets.*;
 
+/**
+ * Parses the Chipmunk language using a Pratt parser design for expressions. Many thanks to 
+ * Fredrik Lundh (http://effbot.org/zone/simple-top-down-parsing.htm) for his
+ * extensive work in explaining the Pratt design and to
+ * Bob Nystrom (http://journal.stuffwithstuff.com/2011/03/19/pratt-parsers-expression-parsing-made-easy/)
+ * for his extensive work in explaining the design and providing a complete working Java example of a 
+ * beautifully clean implementation of a Pratt parser for a complete example expression language.
+ * 
+ * Traditional recursive-descent is used to parse module, class, and method structures, which naturally
+ * fit the recursive-descent paradigm.
+ */
 public class ChipmunkParser {
 	
 	protected TokenStream tokens;
-	protected List<ModuleBlock> modules;
 	
+	private Map<Token.Type, InfixParselet> infix;
+	private Map<Token.Type, PrefixParselet> prefix;
+	
+	// TODO - deprecated
+	protected List<ModuleBlock> modules;
 	private ModuleBlock module;
+	
+	private List<AstNode> moduleRoots;
+	private AstNode root;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
+		moduleRoots = new ArrayList<AstNode>();
+		
+		infix = new HashMap<Token.Type, InfixParselet>();
+		prefix = new HashMap<Token.Type, PrefixParselet>();
+		
+		// register parselets
+		
+		// identifiers and literals
+		register(Token.Type.IDENTIFIER, new NameParselet());
+		register(Token.Type.BOOLLITERAL, new LiteralParselet());
+		register(Token.Type.BINARYLITERAL, new LiteralParselet());
+		register(Token.Type.HEXLITERAL, new LiteralParselet());
+		register(Token.Type.OCTLITERAL, new LiteralParselet());
+		register(Token.Type.INTLITERAL, new LiteralParselet());
+		register(Token.Type.FLOATLITERAL, new LiteralParselet());
+		register(Token.Type.STRINGLITERAL, new LiteralParselet());
+		// TODO - add list & map literals
+		
+		// prefix operators
+		prefixOp(Token.Type.PLUS);
+		prefixOp(Token.Type.MINUS);
+		prefixOp(Token.Type.DOUBLEPLUS);
+		prefixOp(Token.Type.DOUBLEMINUS);
+		prefixOp(Token.Type.EXCLAMATION);
+		prefixOp(Token.Type.TILDE);
+		
+		// binary infix operators
+		register(Token.Type.PLUS, new AddSubOperatorParselet());
+		register(Token.Type.MINUS, new AddSubOperatorParselet());
+		register(Token.Type.STAR, new MulDivOperatorParselet());
+		register(Token.Type.FSLASH, new MulDivOperatorParselet());
+		register(Token.Type.DOUBLEFSLASH, new MulDivOperatorParselet());
+		register(Token.Type.PERCENT, new MulDivOperatorParselet());
+		
+		register(Token.Type.DOUBLESTAR, new PowerOperatorParselet());
+		
+		register(Token.Type.DOT, new DotOperatorParselet());
+		
+		register(Token.Type.DOUBLELESSTHAN, new ShiftRangeOperatorParselet());
+		register(Token.Type.DOUBLEMORETHAN, new ShiftRangeOperatorParselet());
+		register(Token.Type.DOUBLEDOT, new ShiftRangeOperatorParselet());
+		
+		register(Token.Type.LESSTHAN, new LessGreaterOperatorParselet());
+		register(Token.Type.LESSEQUALS, new LessGreaterOperatorParselet());
+		register(Token.Type.MORETHAN, new LessGreaterOperatorParselet());
+		register(Token.Type.MOREEQUALS, new LessGreaterOperatorParselet());
+		
+		register(Token.Type.DOUBLEEQUAlS, new EqualityOperatorParselet());
+		register(Token.Type.EXCLAMATIONEQUALS, new EqualityOperatorParselet());
+		
+		register(Token.Type.AMPERSAND, new BitAndOperatorParselet());
+		register(Token.Type.BAR, new BitOrOperatorParselet());
+		register(Token.Type.CARET, new BitXOrOperatorParselet());
+		
+		register(Token.Type.DOUBLEAMPERSAND, new AndOperatorParselet());
+		register(Token.Type.DOUBLEBAR, new OrOperatorParselet());
+		
+		register(Token.Type.EQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEPLUSEQUALS, new AssignOperatorParselet());
+		register(Token.Type.PLUSEQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEMINUSEQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLESTAREQUALS, new AssignOperatorParselet());
+		register(Token.Type.STAREQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEFSLASHEQUALS, new AssignOperatorParselet());
+		register(Token.Type.FSLASHEQUALS, new AssignOperatorParselet());
+		register(Token.Type.PERCENTEQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEAMPERSANDEQUALS, new AssignOperatorParselet());
+		register(Token.Type.AMPERSANDEQUALS, new AssignOperatorParselet());
+		register(Token.Type.CARETEQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEBAREQUALS, new AssignOperatorParselet());
+		register(Token.Type.BAREQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLELESSEQUALS, new AssignOperatorParselet());
+		register(Token.Type.LESSEQUALS, new AssignOperatorParselet());
+		register(Token.Type.TRIPLEMOREQUALS, new AssignOperatorParselet());
+		register(Token.Type.DOUBLEMOREEQUALS, new AssignOperatorParselet());
+		register(Token.Type.MOREEQUALS, new AssignOperatorParselet());
+		register(Token.Type.TILDEEQUALS, new AssignOperatorParselet());
+		
+		// postfix operators
+		register(Token.Type.DOUBLEPLUS, new PostIncDecParselet());
+		register(Token.Type.DOUBLEMINUS, new PostIncDecParselet());
+		register(Token.Type.LPAREN, new CallOperatorParselet());
+		register(Token.Type.LBRACKET, new IndexOperatorParselet());
+		
+		// method def operator (allow method definitions in expressions)
+		register(Token.Type.DEF, new MethodDefParselet());
+		// class definition operator (allows creating anonymous classes in expressions)
+		register(Token.Type.CLASS, new ClassDefParselet());
+	}
+	
+	protected void register(Token.Type type, InfixParselet parselet){
+		infix.put(type, parselet);
+	}
+	
+	protected void register(Token.Type type, PrefixParselet parselet){
+		prefix.put(type, parselet);
+	}
+	
+	protected void prefixOp(Token.Type op){
+		prefix.put(op, new PrefixOperatorParselet());
+	}
+	
+	public TokenStream getTokens(){
+		return tokens;
 	}
 	
 	/**
@@ -64,11 +191,11 @@ public class ChipmunkParser {
 				
 			}else if(checkMethodDef()){
 				
-				module.addChild(parseMethodDef());
+				//module.addChild(parseMethodDef());
 				
 			}else if(checkClassDef()){
 				
-				module.addChild(parseClassDef());
+				//module.addChild(parseClassDef());
 				
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
@@ -88,7 +215,7 @@ public class ChipmunkParser {
 		}
 	}
 	
-	public ClassBlock parseClassDef(){
+	public AstNode parseClassDef(){
 		skipNewlines();
 		
 		forceNext(Token.Type.CLASS);
@@ -130,7 +257,7 @@ public class ChipmunkParser {
 				varBlock.setFinal(isFinal);
 				block.addChild(varBlock);
 			}else if(checkMethodDef()){
-				MethodBlock methodBlock = parseMethodDef();
+				MethodBlock methodBlock = null;//parseMethodDef();
 				methodBlock.setShared(shared);
 				methodBlock.setFinal(isFinal);
 				block.addChild(methodBlock);
@@ -140,14 +267,14 @@ public class ChipmunkParser {
 		}
 		forceNext(Token.Type.RBRACE);
 		endBlock(block);
-		return block;
+		return null;
 	}
 	
 	public boolean checkMethodDef(){
 		return peek(Token.Type.DEF);
 	}
 	
-	public MethodBlock parseMethodDef(){
+	public AstNode parseMethodDef(){
 		// statements & method definitions
 		return null;
 	}
@@ -662,11 +789,70 @@ public class ChipmunkParser {
 	 * @return AST of the expression
 	 */
 	public AstNode parseExpression(){
+		return parseExpression(0);
+	}
+	
+	public AstNode parseExpression(int minPrecedence){
 		
+		Token token = tokens.get();
+		
+		PrefixParselet prefixParser = prefix.get(token);
+		
+		if(prefixParser == null){
+			throw new SyntaxErrorChipmunk("Expected a prefix operator", token);
+		}
+		
+		AstNode left = prefixParser.parse(this, token);
+		
+		while(minPrecedence < getPrecedence(token)){
+			token = tokens.get();
+			
+			InfixParselet infixParser = infix.get(token.getType());
+			
+			if(infixParser == null){
+				throw new SyntaxErrorChipmunk("Expected an infix operator", token);
+			}
+			
+			left = infixParser.parse(this, left, token);
+		}
+		
+		return left;
+	}
+	
+	private int getPrecedence(Token token){
+		InfixParselet parselet = infix.get(token);
+		
+		if(parselet != null){
+			return parselet.getPrecedence();
+		}else{
+			return 0;
+		}
+	}
+	
+	private AstNode parseIdOrLiteral(int minPrecedence){
+		// get next id or literal
+		Token nextToken = peek();
+		Token.Type nextType = nextToken.getType();
+		
+		if(nextType.isLiteral()){
+			return new LiteralNode(nextToken);
+		}else if(nextToken.getType() == Token.Type.IDENTIFIER){
+			return new IdNode(nextToken);
+		}else if(nextType == Token.Type.LPAREN){
+			forceNext(Token.Type.LPAREN);
+			AstNode result = parseExpression(minPrecedence);
+			forceNext(Token.Type.RPAREN);
+			return result;
+		}else{
+			syntaxError("Error parsing expression", nextToken,
+					new Token.Type[] { Token.Type.IDENTIFIER, Token.Type.BINARYLITERAL, Token.Type.BOOLLITERAL,
+							Token.Type.FLOATLITERAL, Token.Type.HEXLITERAL, Token.Type.INTLITERAL,
+							Token.Type.OCTLITERAL, Token.Type.STRINGLITERAL });
+		}
 		return null;
 	}
 	
-	private Token getNext(Token.Type type){
+	public Token getNext(Token.Type type){
 		Token token = tokens.get();
 		
 		if(token.getType() != type){
@@ -681,7 +867,7 @@ public class ChipmunkParser {
 		return token;
 	}
 	
-	private void forceNext(Token.Type type){
+	public void forceNext(Token.Type type){
 		Token token = tokens.get();
 		
 		if(token.getType() != type){
@@ -707,17 +893,21 @@ public class ChipmunkParser {
 		return false;
 	}
 	
-	private void dropNext(){
+	public void dropNext(){
 		tokens.get();
 	}
 	
-	private boolean peek(Token.Type type){
+	public Token peek(){
+		return tokens.peek();
+	}
+	
+	public boolean peek(Token.Type type){
 		Token token = tokens.peek();
 		
 		return token.getType() == type;
 	}
 	
-	private boolean peek(int places, Token.Type type){
+	public boolean peek(int places, Token.Type type){
 		Token token = tokens.peek(places);
 		return token.getType() == type;
 	}

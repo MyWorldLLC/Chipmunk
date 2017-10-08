@@ -15,6 +15,11 @@ public class SyntaxErrorChipmunk extends CompileChipmunk {
 		super(msg);
 	}
 	
+	public SyntaxErrorChipmunk(String msg, Token got){
+		super(msg);
+		this.got = got;
+	}
+	
 	public SyntaxErrorChipmunk(String msg, Throwable cause){
 		super(msg, cause);
 	}
