@@ -26,6 +26,18 @@ public class OperatorNode extends AstNode {
 		return op;
 	}
 	
+	public AstNode getLeft(){
+		return children.size() > 0 ? children.get(0) : null;
+	}
+	
+	public AstNode getRight(){
+		return children.size() > 1 ? children.get(children.size() - 1) : null;
+	}
+	
+	public void addOperand(AstNode operand){
+		super.addChild(operand);
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();

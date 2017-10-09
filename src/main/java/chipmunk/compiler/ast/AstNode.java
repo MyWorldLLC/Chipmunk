@@ -20,19 +20,11 @@ public class AstNode {
 		}
 	}
 	
-	public AstNode getLeft(){
-		return children.size() > 0 ? children.get(0) : null;
-	}
-	
-	public AstNode getRight(){
-		return children.size() > 1 ? children.get(children.size() - 1) : null;
-	}
-	
 	public List<AstNode> getChildren(){
 		return children;
 	}
 	
-	public void addChild(AstNode child){
+	protected void addChild(AstNode child){
 		children.add(child);
 	}
 	

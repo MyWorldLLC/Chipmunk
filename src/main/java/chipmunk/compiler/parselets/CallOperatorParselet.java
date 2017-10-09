@@ -15,7 +15,7 @@ public class CallOperatorParselet implements InfixParselet {
 		
 		while(parser.getTokens().peek().getType() != Token.Type.RPAREN){
 			AstNode arg = parser.parseExpression();
-			node.addChild(arg);
+			node.addOperand(arg);
 			
 			if(parser.peek(Token.Type.COMMA)){
 				parser.dropNext();

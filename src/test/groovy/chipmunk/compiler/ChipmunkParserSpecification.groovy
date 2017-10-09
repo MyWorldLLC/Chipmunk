@@ -239,6 +239,82 @@ class ChipmunkParserSpecification extends Specification {
 		ast.toString() == "(! (( (. (id foo)(id bar))))"
 	}
 	
+	def "parse []"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("[]")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(list )"
+	}
 	
+	def "parse {}"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("{}")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(map )"
+	}
+	
+	def "parse [a]"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("[a]")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(list (id a))"
+	}
+	
+	def "parse [a, b, c]"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("[a, b, c]")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(list (id a)(id b)(id c))"
+	}
+	
+	def "parse {a:b}"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("{a:b}")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(map ((id a)(id b)))"
+	}
+	
+	def "parse {a:b, b: c}"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("{a:b, b: c}")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(map ((id a)(id b))((id b)(id c)))"
+	}
 
 }

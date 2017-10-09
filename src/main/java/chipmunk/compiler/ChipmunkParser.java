@@ -64,7 +64,8 @@ public class ChipmunkParser {
 		register(Token.Type.INTLITERAL, new LiteralParselet());
 		register(Token.Type.FLOATLITERAL, new LiteralParselet());
 		register(Token.Type.STRINGLITERAL, new LiteralParselet());
-		// TODO - add list & map literals
+		register(Token.Type.LBRACKET, new ListParselet());
+		register(Token.Type.LBRACE, new MapParselet());
 		
 		// prefix operators
 		prefixOp(Token.Type.PLUS);
@@ -538,11 +539,11 @@ public class ChipmunkParser {
 		}
 	}
 	
-	private void skipNewlines(){
+	public void skipNewlines(){
 		while(dropNext(Token.Type.NEWLINE)){}
 	}
 	
-	private boolean dropNext(Token.Type type){
+	public boolean dropNext(Token.Type type){
 		if(peek(type)){
 			tokens.get();
 			return true;
@@ -578,7 +579,7 @@ public class ChipmunkParser {
 		block.setTokenEndIndex(tokens.getStreamPosition());
 	}
 	
-	private void syntaxError(String msg, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
+	public void syntaxError(String msg, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
 		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
 		error.setExpected(expected);
 		error.setGot(got);
