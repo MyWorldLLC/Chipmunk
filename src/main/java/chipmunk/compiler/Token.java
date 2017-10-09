@@ -24,7 +24,7 @@ public class Token {
 		COMMENT("#.*"), NEWLINE("\n|\r\n|\r"),
 		
 		// literals
-		FLOATLITERAL("-?[0-9]*\\.[0-9]*((e|E)-?[0-9]+)?", false, true),
+		FLOATLITERAL("-?[0-9]*\\.[0-9]+((e|E)-?[0-9]+)?", false, true),
 		INTLITERAL("\\-?[0-9_]+", false, true),
 		BINARYLITERAL("0b|0B[01_]+", false, true),
 		OCTLITERAL("0o|0O[0-7_]+", false, true),
@@ -38,7 +38,7 @@ public class Token {
 		// symbols - multiple and single forms
 		DOUBLEPLUSEQUALS("\\+\\+\\="), PLUSEQUALS("\\+\\="), DOUBLEMINUSEQUALS("\\-\\-\\="), MINUSEQUALS("\\-\\="), DOUBLESTAREQUALS("\\*\\*\\="), STAREQUALS("\\*="),
 		DOUBLEFSLASHEQUALS("//\\="), FSLASHEQUALS("/\\="), PERCENTEQUALS("%\\="), DOUBLEAMPERSANDEQUALS("&&\\="), AMPERSANDEQUALS("&\\="),
-		CARETEQUALS("^="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
+		CARETEQUALS("\\^="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
 		DOUBLEMOREEQUALS(">>\\="), MOREEQUALS(">\\="), EXCLAMATIONEQUALS("\\!\\="), TILDEEQUALS("~\\="), 
 		DOUBLEEQUAlS("\\=\\="), EQUALS("\\="), DOUBLEDOT("\\.\\."), DOT("\\."), DOUBLESTAR("\\*\\*"), STAR("\\*"),
 		DOUBLEPLUS("\\+\\+"),PLUS("\\+"), DOUBLEMINUS("\\-\\-"), MINUS("\\-"), DOUBLEFSLASH("//"), FSLASH("/"),

@@ -4,15 +4,13 @@ import chipmunk.compiler.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ast.OperatorNode;
 
 public class IndexOperatorParselet implements InfixParselet {
 
 	@Override
 	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
-		AstNode node = new AstNode();
-		
-		node.addChild(parser.parseExpression());
-		
+		OperatorNode node = new OperatorNode(token, left, parser.parseExpression());
 		parser.forceNext(Token.Type.RBRACKET);
 		return node;
 	}
