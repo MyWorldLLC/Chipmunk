@@ -5,8 +5,7 @@ public class OperatorPrecedence {
 	public static final int DOT_INDEX_CALL = 14;
 	public static final int POW = 13;
 	public static final int POST_INC_DEC = 12;
-	public static final int PRE_INC_DEC = 11;
-	public static final int POS_NEG_NOT_BNOT = 11;
+	public static final int PRE_OP = 11;
 	public static final int MULT_DIV_MOD = 11;
 	public static final int ADD_SUB = 10;
 	public static final int SHIFT_L_R_RANGE = 9;

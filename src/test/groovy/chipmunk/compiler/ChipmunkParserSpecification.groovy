@@ -140,7 +140,6 @@ class ChipmunkParserSpecification extends Specification {
 		def lexer = new ChipmunkLexer()
 		lexer.lex("foo.bar[0] = 5")
 		def parser = new ChipmunkParser(lexer.getLastTokens())
-		print(lexer.getLastTokens().peek(6).getType())
 		
 		when:
 		AstNode ast = parser.parseExpression()
@@ -174,5 +173,59 @@ class ChipmunkParserSpecification extends Specification {
 		then:
 		ast.toString() == "(= (id a)(** (literal 2)(literal 3)))"
 	}
+	
+	def "parse a++"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("a++")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(++ (id a))"
+	}
+	
+	def "parse ++a"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("++a")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(++ (id a))"
+	}
+	
+	def "parse ++!a"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("++!a")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(++ (! (id a)))"
+	}
+	
+	def "parse ++!a--"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("++!a--")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(++ (! (-- (id a))))"
+	}
+	
+	
 
 }
