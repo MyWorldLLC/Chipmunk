@@ -40,7 +40,7 @@ public class Token {
 		DOUBLEFSLASHEQUALS("//\\="), FSLASHEQUALS("/\\="), PERCENTEQUALS("%\\="), DOUBLEAMPERSANDEQUALS("&&\\="), AMPERSANDEQUALS("&\\="),
 		CARETEQUALS("\\^="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
 		DOUBLEMOREEQUALS(">>\\="), MOREEQUALS(">\\="), EXCLAMATIONEQUALS("\\!\\="), TILDEEQUALS("~\\="), 
-		DOUBLEEQUAlS("\\=\\="), EQUALS("\\="), DOUBLEDOT("\\.\\."), DOT("\\."), DOUBLESTAR("\\*\\*"), STAR("\\*"),
+		DOUBLEEQUAlS("\\=\\="), EQUALS("\\="), DOUBLEDOTLESS("\\.\\.<"), DOUBLEDOT("\\.\\."), DOT("\\."), DOUBLESTAR("\\*\\*"), STAR("\\*"),
 		DOUBLEPLUS("\\+\\+"),PLUS("\\+"), DOUBLEMINUS("\\-\\-"), MINUS("\\-"), DOUBLEFSLASH("//"), FSLASH("/"),
 		DOUBLEBAR("\\|\\|"), BAR("\\|"), EXCLAMATION("\\!"), TILDE("~"), CARET("\\^"),
 		DOUBLELESSTHAN("<<"), LESSTHAN("<"), TRIPLEMORETHAN(">>>"), DOUBLEMORETHAN(">>"), MORETHAN(">"),

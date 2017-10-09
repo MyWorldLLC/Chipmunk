@@ -226,6 +226,19 @@ class ChipmunkParserSpecification extends Specification {
 		ast.toString() == "(++ (! (-- (id a))))"
 	}
 	
+	def "parse !foo.bar()"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("!foo.bar()")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(! (( (. (id foo)(id bar))))"
+	}
+	
 	
 
 }
