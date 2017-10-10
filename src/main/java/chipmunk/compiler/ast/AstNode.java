@@ -44,6 +44,14 @@ public class AstNode {
 		endTokenIndex = index;
 	}
 	
+	public void visit(AstVisitor visitor){
+		visitor.preVisit(this);
+		for(AstNode child : children){
+			child.visit(visitor);
+		}
+		visitor.postVisit(this);
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
