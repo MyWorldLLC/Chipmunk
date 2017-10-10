@@ -45,9 +45,12 @@ public class AstNode {
 	}
 	
 	public void visit(AstVisitor visitor){
-		visitor.preVisit(this);
-		for(AstNode child : children){
-			child.visit(visitor);
+		
+		if(visitor.preVisit(this)){
+			// only visit children if preVisit() returns true
+			for(AstNode child : children){
+				child.visit(visitor);
+			}
 		}
 		visitor.postVisit(this);
 	}

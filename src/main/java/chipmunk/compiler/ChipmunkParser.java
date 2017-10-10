@@ -170,7 +170,7 @@ public class ChipmunkParser {
 	
 	public void parseModule(){
 		module = new ModuleBlock();
-		startBlock(module);
+		//startBlock(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		
 		Token next = tokens.peek();
@@ -182,7 +182,7 @@ public class ChipmunkParser {
 			if(nextType == Token.Type.MODULE){
 				
 				// add current module block to list and create new module block
-				endBlock(module);
+				//endBlock(module);
 				modules.add(module);
 				module = new ModuleBlock();
 				
@@ -209,7 +209,7 @@ public class ChipmunkParser {
 			next = tokens.peek();
 			nextType = next.getType();
 		}
-		endBlock(module);
+		//endBlock(module);
 	}
 	
 	public boolean checkClassDef(){
@@ -227,7 +227,7 @@ public class ChipmunkParser {
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
 		ClassBlock block = new ClassBlock(module.getScope());
-		startBlock(block);
+		//startBlock(block);
 		block.setName(id.getText());
 		
 		if(peek(Token.Type.EXTENDS)){
@@ -271,7 +271,7 @@ public class ChipmunkParser {
 			}
 		}
 		forceNext(Token.Type.RBRACE);
-		endBlock(block);
+		//endBlock(block);
 		return null;
 	}
 	
@@ -293,7 +293,7 @@ public class ChipmunkParser {
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
 		VarDecBlock dec = new VarDecBlock();
-		startBlock(dec);
+		//startBlock(dec);
 		dec.setName(id.getText());
 		
 		if(peek(Token.Type.EQUALS)){
@@ -301,7 +301,7 @@ public class ChipmunkParser {
 			//dec.addChild(parseExpressionOld());
 		}
 		
-		endBlock(dec);
+		//endBlock(dec);
 		return dec;
 	}
 	
@@ -309,7 +309,7 @@ public class ChipmunkParser {
 		skipNewlines();
 		
 		ListBlock block = new ListBlock();
-		startBlock(block);
+		//startBlock(block);
 		
 		forceNext(Token.Type.LBRACKET);
 		skipNewlines();
@@ -332,7 +332,7 @@ public class ChipmunkParser {
 		
 		forceNext(Token.Type.RBRACKET);
 		
-		endBlock(block);
+		//endBlock(block);
 		return block;
 	}
 	
@@ -365,7 +365,7 @@ public class ChipmunkParser {
 	public ImportBlock parseImport(){
 		skipNewlines();
 		ImportBlock block = new ImportBlock();
-		startBlock(block);
+		//startBlock(block);
 		
 		if(peek(Token.Type.IMPORT)){
 			dropNext(Token.Type.IMPORT);
@@ -461,7 +461,7 @@ public class ChipmunkParser {
 			
 		}
 		
-		endBlock(block);
+		//endBlock(block);
 		return block;
 	}
 	
@@ -571,12 +571,12 @@ public class ChipmunkParser {
 		return token.getType() == type;
 	}
 	
-	private void startBlock(Block block){
-		block.setTokenBeginIndex(tokens.getStreamPosition());
+	private void startNode(AstNode node){
+		node.setBeginTokenIndex(tokens.getStreamPosition());
 	}
 	
-	private void endBlock(Block block){
-		block.setTokenEndIndex(tokens.getStreamPosition());
+	private void endNode(AstNode node){
+		node.setEndTokenIndex(tokens.getStreamPosition());
 	}
 	
 	public void syntaxError(String msg, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
