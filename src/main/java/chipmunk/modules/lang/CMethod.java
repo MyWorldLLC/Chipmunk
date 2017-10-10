@@ -1,12 +1,56 @@
 package chipmunk.modules.lang;
 
+import static chipmunk.Opcodes.ADD;
+import static chipmunk.Opcodes.AND;
+import static chipmunk.Opcodes.AS;
+import static chipmunk.Opcodes.BAND;
+import static chipmunk.Opcodes.BNEG;
+import static chipmunk.Opcodes.BOR;
+import static chipmunk.Opcodes.BXOR;
+import static chipmunk.Opcodes.CALL;
+import static chipmunk.Opcodes.DEC;
+import static chipmunk.Opcodes.DIV;
+import static chipmunk.Opcodes.DUP;
+import static chipmunk.Opcodes.EQ;
+import static chipmunk.Opcodes.FDIV;
+import static chipmunk.Opcodes.GE;
+import static chipmunk.Opcodes.GETAT;
+import static chipmunk.Opcodes.GETATTR;
+import static chipmunk.Opcodes.GOTO;
+import static chipmunk.Opcodes.GT;
+import static chipmunk.Opcodes.IF;
+import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.IS;
+import static chipmunk.Opcodes.LE;
+import static chipmunk.Opcodes.LSHIFT;
+import static chipmunk.Opcodes.LT;
+import static chipmunk.Opcodes.MOD;
+import static chipmunk.Opcodes.MUL;
+import static chipmunk.Opcodes.NEG;
+import static chipmunk.Opcodes.NEW;
+import static chipmunk.Opcodes.OR;
+import static chipmunk.Opcodes.POP;
+import static chipmunk.Opcodes.POS;
+import static chipmunk.Opcodes.POW;
+import static chipmunk.Opcodes.PUSH;
+import static chipmunk.Opcodes.RETURN;
+import static chipmunk.Opcodes.RSHIFT;
+import static chipmunk.Opcodes.SETAT;
+import static chipmunk.Opcodes.SETATTR;
+import static chipmunk.Opcodes.SUB;
+import static chipmunk.Opcodes.SWAP;
+import static chipmunk.Opcodes.THROW;
+import static chipmunk.Opcodes.TRUTH;
+import static chipmunk.Opcodes.URSHIFT;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import static chipmunk.Opcodes.*;
+import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkContext;
 import chipmunk.ExceptionChipmunk;
 import chipmunk.InvalidOpcodeChipmunk;
+import chipmunk.SuspendedChipmunk;
 
 public class CMethod extends CObject {
 	
@@ -71,10 +115,28 @@ public class CMethod extends CObject {
 		CObject[] locals;
 		
 		if(resuming){
-			// handle resume
+			ChipmunkContext.CallFrame frame = context.unfreezeNext();
+			ip = frame.ip;
+			locals = frame.locals;
+			
+			// call into the next method to resume call stack
+			if(frame.next != null){
+				try{
+					context.push(frame.next.__call__(context, 0, true));
+				}catch(SuspendedChipmunk e){
+					context.freeze(this, frame.next, ip, locals);
+				}catch(AngryChipmunk e){
+					// TODO - fill in stack trace
+				}
+				
+			}
 		}else{
 			locals = new CObject[localCount];
-			// TODO - pop args
+			// pop arguments right->left
+			// TODO - handle references to this (binding vs passing)
+			for(int i = paramCount - 1; i >= 0; i++){
+				locals[i] = context.pop();
+			}
 		}
 		
 		while(true){
@@ -264,11 +326,21 @@ public class CMethod extends CObject {
 				ip += 5;
 				break;
 			case CALL:
-				// TODO
 				int args = fetchInt(ip + 1);
 				ins = context.pop();
-				context.push(ins.__call__(context, args, false));
+				// Need to bump ip BEFORE calling next method. Otherwise,
+				// if suspended the ip will be stored in its old state
+				// and when this method resumes after being suspended,
+				// it will try to re-run this call.
 				ip += 5;
+				try{
+					context.push(ins.__call__(context, args, false));
+				}catch(SuspendedChipmunk e){
+					context.freeze(this, ins, ip, locals);
+				}catch(AngryChipmunk e){
+					// TODO - fill in stack trace
+				}
+				
 				break;
 			case GOTO:
 				int gotoIndex = fetchInt(ip + 1);

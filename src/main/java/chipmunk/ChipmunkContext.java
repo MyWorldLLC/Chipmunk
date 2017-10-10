@@ -1,23 +1,43 @@
 package chipmunk;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.modules.lang.CObject;
+import chipmunk.modules.lang.CMethod;
 import chipmunk.modules.lang.CModule;
+import chipmunk.modules.lang.CObject;
 
 public class ChipmunkContext {
+	
+	public class CallFrame {
+		public final CMethod method;
+		public final CObject next;
+		public final int ip;
+		public final CObject[] locals;
+		
+		public CallFrame(CMethod method, CObject next, int ip, CObject[] locals){
+			this.method = method;
+			this.next = next;
+			this.ip = ip;
+			this.locals = locals;
+		}
+	}
 
 	protected Map<String, CModule> modules;
 	protected List<CObject> stack;
+	protected Deque<CallFrame> frozenCallStack;
 	public volatile boolean interrupted;
 	
 	public ChipmunkContext(){
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
 		stack = new ArrayList<CObject>(128);
+		
+		frozenCallStack = new ArrayDeque<CallFrame>(128);
 	}
 	
 	public CModule getModule(String name){
@@ -67,6 +87,19 @@ public class ChipmunkContext {
 		
 		stack.set(index1, obj2);
 		stack.set(index2, obj1);
+	}
+	
+	public void freeze(CMethod method, CObject next, int ip, CObject[] locals ){
+		frozenCallStack.push(new CallFrame(method, next, ip, locals));
+	}
+	
+	public CallFrame unfreezeNext(){
+		return frozenCallStack.pop();
+	}
+	
+	public void resume(){
+		// TODO - if frozen call stack isn't empty,
+		// get method at top and call it.
 	}
 	
 }
