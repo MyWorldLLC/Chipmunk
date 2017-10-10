@@ -21,7 +21,7 @@ public class ExpressionBlock extends Block {
 	public class ExpressionPiece {
 		
 		protected Token token;
-		protected Operator operator;
+		//protected Operator operator;
 		protected boolean openGroup;
 		protected boolean closeGroup;
 		
@@ -33,18 +33,18 @@ public class ExpressionBlock extends Block {
 		public ExpressionPiece(Token token){
 			this.token = token;
 		}
-		
+		/*
 		public ExpressionPiece(Operator operator){
 			this.operator = operator;
-		}
+		}*/
 		
 		public boolean isIDOrLiteral(){
 			return token != null;
 		}
-		
+		/*
 		public boolean isOperator(){
 			return operator != null;
-		}
+		}*/
 		
 		public boolean isOpenGroup(){
 			return openGroup;
@@ -57,9 +57,9 @@ public class ExpressionBlock extends Block {
 		public Token getIDOrLiteral(){
 			return token;
 		}
-		
+		/*
 		public Operator getOperator(){
 			return operator;
-		}
+		}*/
 	}
 }
