@@ -126,7 +126,7 @@ public class CMethod extends CObject {
 				}catch(SuspendedChipmunk e){
 					context.freeze(this, frame.next, ip, locals);
 				}catch(AngryChipmunk e){
-					// TODO - fill in stack trace
+					// TODO - fill in stack trace or jump to exception handler
 				}
 				
 			}
@@ -338,7 +338,7 @@ public class CMethod extends CObject {
 				}catch(SuspendedChipmunk e){
 					context.freeze(this, ins, ip, locals);
 				}catch(AngryChipmunk e){
-					// TODO - fill in stack trace
+					// TODO - fill in stack trace or jump to exception handler
 				}
 				
 				break;

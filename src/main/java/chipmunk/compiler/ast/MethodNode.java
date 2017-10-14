@@ -1,6 +1,6 @@
 package chipmunk.compiler.ast;
 
-public class MethodNode extends AstNode {
+public class MethodNode extends ScopedNode {
 
 	protected String name;
 	protected int defaultParamCount;
