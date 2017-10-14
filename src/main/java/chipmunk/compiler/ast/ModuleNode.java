@@ -1,6 +1,6 @@
 package chipmunk.compiler.ast;
 
-public class ModuleNode extends AstNode {
+public class ModuleNode extends ScopedNode {
 
 	protected String name;
 	
