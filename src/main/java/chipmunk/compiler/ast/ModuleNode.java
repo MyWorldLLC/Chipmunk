@@ -1,11 +1,13 @@
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.SymbolTable;
+
 public class ModuleNode extends ScopedNode {
 
 	protected String name;
 	
 	public ModuleNode(){
-		super();
+		super(SymbolTable.Scope.MODULE);
 		name = "";
 	}
 	

@@ -11,9 +11,19 @@ public class ScopedNode extends AstNode {
 		symTab = new SymbolTable();
 	}
 	
+	public ScopedNode(SymbolTable.Scope scope){
+		super();
+		symTab = new SymbolTable(scope);
+	}
+	
 	public ScopedNode(AstNode... children){
 		super(children);
 		symTab = new SymbolTable();
+	}
+	
+	public ScopedNode(SymbolTable.Scope scope, AstNode... children){
+		super(children);
+		symTab = new SymbolTable(scope);
 	}
 	
 	public SymbolTable getSymbolTable(){

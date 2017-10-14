@@ -24,6 +24,11 @@ public class SymbolTable {
 		symbols = new HashMap<String, Symbol>();
 	}
 	
+	public SymbolTable(SymbolTable.Scope scope){
+		this();
+		this.scope = scope;
+	}
+	
 	public void setSymbol(Symbol symbol){
 		symbols.put(symbol.getName(), symbol);
 	}

@@ -1,12 +1,14 @@
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.SymbolTable;
+
 public class MethodNode extends ScopedNode {
 
 	protected String name;
 	protected int defaultParamCount;
 	
 	public MethodNode(){
-		super();
+		super(SymbolTable.Scope.LOCAL);
 		name = "";
 	}
 	
