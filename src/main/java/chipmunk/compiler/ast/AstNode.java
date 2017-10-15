@@ -1,6 +1,7 @@
 package chipmunk.compiler.ast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AstNode {
@@ -26,6 +27,14 @@ public class AstNode {
 	
 	protected void addChild(AstNode child){
 		children.add(child);
+	}
+	
+	protected void addChildren(AstNode... children){
+		this.children.addAll(Arrays.asList(children));
+	}
+	
+	protected void addChildFirst(AstNode child){
+		children.add(0, child);
 	}
 	
 	public int getBeginTokenIndex(){
