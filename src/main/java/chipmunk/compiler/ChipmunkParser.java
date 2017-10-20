@@ -406,16 +406,16 @@ public class ChipmunkParser {
 			node.setModule(moduleName.toString());
 			
 			forceNext(Token.Type.IMPORT);
-			node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
 			
-			while(peek(Token.Type.COMMA)){
-				dropNext(Token.Type.COMMA);
+			if(peek(Token.Type.IDENTIFIER)){
 				node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
-			}
-			node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
-			
-			if(node.getSymbols().contains("*") && node.getSymbols().size() > 1){
-				throw new IllegalImportChipmunk("Cannot import multiple symbols and *");
+				while(peek(Token.Type.COMMA)){
+					dropNext(Token.Type.COMMA);
+					node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+				}
+			}else{
+				forceNext(Token.Type.STAR);
+				node.addSymbol("*");
 			}
 			
 		}else{
@@ -428,7 +428,7 @@ public class ChipmunkParser {
 				throw new IllegalImportChipmunk("Cannot alias a * import");
 			}
 			
-			dropNext(Token.Type.AS);
+			dropNext();
 			// parse aliases
 			node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			
@@ -436,7 +436,6 @@ public class ChipmunkParser {
 				dropNext(Token.Type.COMMA);
 				node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			}
-			node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			
 			if(node.getSymbols().size() < node.getAliases().size()){
 				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
@@ -499,7 +498,7 @@ public class ChipmunkParser {
 		
 		if(token.getType() != type){
 			
-			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class");
+			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing: expected %s, got %s", type.name(), token.getType().name()));
 			error.setExpected(new Token.Type[]{type});
 			error.setGot(token);
 			
@@ -514,7 +513,7 @@ public class ChipmunkParser {
 		
 		if(token.getType() != type){
 			
-			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk("Error parsing class");
+			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing: expected %s, got %s", type.name(), token.getType().name()));
 			error.setExpected(new Token.Type[]{type});
 			error.setGot(token);
 			
@@ -531,7 +530,6 @@ public class ChipmunkParser {
 			tokens.get();
 			return true;
 		}
-		
 		return false;
 	}
 	

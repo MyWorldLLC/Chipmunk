@@ -72,6 +72,10 @@ public class ImportNode extends AstNode {
 			symbol++;
 		}
 		
+		if(aliases.size() > 0){
+			builder.append("as ");
+		}
+		
 		int alias = 0;
 		while(alias < aliases.size()){
 			builder.append(aliases.get(alias));
