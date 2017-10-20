@@ -348,26 +348,34 @@ public class ChipmunkParser {
 			identifiers.add(getNext(Token.Type.IDENTIFIER));
 			
 			while(peek(Token.Type.DOT)){
-				dropNext(Token.Type.DOT);
+				dropNext();
 				if(peek(Token.Type.IDENTIFIER)){
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else if(peek(Token.Type.STAR)){
 					identifiers.add(getNext(Token.Type.STAR));
+					break;
 				}else{
 					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
 				}
 			}
 			
-			node.addSymbol(identifiers.get(identifiers.size() - 1).getText());
-			
 			// piece module name back together
 			StringBuilder moduleName = new StringBuilder();
-			for(int i = 0; i < identifiers.size() - 1; i++){
-				moduleName.append(identifiers.get(i).getText());
-				if(i < identifiers.size() - 2){
-					moduleName.append('.');
+			if(identifiers.size() == 1){
+				moduleName.append(identifiers.get(0).getText());
+			}else{
+				for(int i = 0; i < identifiers.size() - 1; i++){
+					moduleName.append(identifiers.get(i).getText());
+					if (i < identifiers.size() - 2) {
+						moduleName.append('.');
+					}
 				}
 			}
+			
+			if(identifiers.size() > 1){
+				node.addSymbol(identifiers.get(identifiers.size() - 1).getText());
+			}
+			
 			node.setModule(moduleName.toString());
 		}else if(peek(Token.Type.FROM)){
 			dropNext(Token.Type.FROM);
@@ -394,6 +402,7 @@ public class ChipmunkParser {
 					moduleName.append('.');
 				}
 			}
+			
 			node.setModule(moduleName.toString());
 			
 			forceNext(Token.Type.IMPORT);

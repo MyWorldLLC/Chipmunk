@@ -54,4 +54,41 @@ public class ImportNode extends AstNode {
 	public boolean hasAliases(){
 		return aliases.size() != 0;
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("(import ");
+		
+		int symbol = 0;
+		while(symbol < symbols.size()){
+			builder.append(symbols.get(symbol));
+			
+			if(symbol < symbols.size() - 1){
+				builder.append(',');
+			}else{
+				builder.append(' ');
+			}
+			symbol++;
+		}
+		
+		int alias = 0;
+		while(alias < aliases.size()){
+			builder.append(aliases.get(alias));
+			
+			if(alias < aliases.size() - 1){
+				builder.append(',');
+			}else{
+				builder.append(' ');
+			}
+			alias++;
+		}
+		
+		if(symbols.size() > 0){
+			builder.append("from ");
+		}
+		builder.append(module);
+		builder.append(")");
+		return builder.toString();
+	}
 }
