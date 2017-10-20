@@ -1,25 +1,43 @@
 package chipmunk.compiler;
 
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.IdNode;
-import chipmunk.compiler.ast.LiteralNode;
-import chipmunk.compiler.ir.Block;
-import chipmunk.compiler.ir.ClassBlock;
-import chipmunk.compiler.ir.ExpressionBlock;
-import chipmunk.compiler.ir.ExpressionNode;
-import chipmunk.compiler.ir.ImportBlock;
-import chipmunk.compiler.ir.ListBlock;
+import chipmunk.compiler.ast.ClassNode;
+import chipmunk.compiler.ast.ImportNode;
+import chipmunk.compiler.ast.MethodNode;
+import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.ir.MethodBlock;
-import chipmunk.compiler.ir.ModuleBlock;
 import chipmunk.compiler.ir.VarDecBlock;
-import chipmunk.compiler.parselets.*;
+import chipmunk.compiler.parselets.AddSubOperatorParselet;
+import chipmunk.compiler.parselets.AndOperatorParselet;
+import chipmunk.compiler.parselets.AssignOperatorParselet;
+import chipmunk.compiler.parselets.BitAndOperatorParselet;
+import chipmunk.compiler.parselets.BitOrOperatorParselet;
+import chipmunk.compiler.parselets.BitXOrOperatorParselet;
+import chipmunk.compiler.parselets.CallOperatorParselet;
+import chipmunk.compiler.parselets.ClassDefParselet;
+import chipmunk.compiler.parselets.DotOperatorParselet;
+import chipmunk.compiler.parselets.EqualityOperatorParselet;
+import chipmunk.compiler.parselets.GroupingParselet;
+import chipmunk.compiler.parselets.IndexOperatorParselet;
+import chipmunk.compiler.parselets.InfixParselet;
+import chipmunk.compiler.parselets.LessGreaterOperatorParselet;
+import chipmunk.compiler.parselets.ListParselet;
+import chipmunk.compiler.parselets.LiteralParselet;
+import chipmunk.compiler.parselets.MapParselet;
+import chipmunk.compiler.parselets.MethodDefParselet;
+import chipmunk.compiler.parselets.MulDivOperatorParselet;
+import chipmunk.compiler.parselets.NameParselet;
+import chipmunk.compiler.parselets.OrOperatorParselet;
+import chipmunk.compiler.parselets.PostIncDecParselet;
+import chipmunk.compiler.parselets.PowerOperatorParselet;
+import chipmunk.compiler.parselets.PrefixOperatorParselet;
+import chipmunk.compiler.parselets.PrefixParselet;
+import chipmunk.compiler.parselets.ShiftRangeOperatorParselet;
 
 /**
  * Parses the Chipmunk language using a Pratt parser design for expressions. Many thanks to 
@@ -39,15 +57,15 @@ public class ChipmunkParser {
 	private Map<Token.Type, InfixParselet> infix;
 	private Map<Token.Type, PrefixParselet> prefix;
 	
-	// TODO - deprecated
-	protected List<ModuleBlock> modules;
-	private ModuleBlock module;
+	protected List<ModuleNode> modules;
+	private ModuleNode module;
 	
 	private List<AstNode> moduleRoots;
 	private AstNode root;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
+		modules = new ArrayList<ModuleNode>();
 		moduleRoots = new ArrayList<AstNode>();
 		
 		infix = new HashMap<Token.Type, InfixParselet>();
@@ -168,76 +186,69 @@ public class ChipmunkParser {
 		}
 	}
 	
-	public void parseModule(){
-		module = new ModuleBlock();
-		//startBlock(module);
+	public ModuleNode parseModule(){
+		module = new ModuleNode();
+		startNode(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
+		forceNext(Token.Type.MODULE);
+		module.setName(getNext(Token.Type.IDENTIFIER).getText());
+		
+		skipNewlines();
 		
 		Token next = tokens.peek();
 		Token.Type nextType = next.getType();
 		while(nextType != Token.Type.EOF){
-			
-			skipNewlines();
-			
-			if(nextType == Token.Type.MODULE){
+			if(checkImport()){
 				
-				// add current module block to list and create new module block
-				//endBlock(module);
-				modules.add(module);
-				module = new ModuleBlock();
-				
-			}else if(checkImport()){
-				
-				module.addChild(parseImport());
+				module.addImport(parseImport());
 				
 			}else if(checkVarDec()){
 				
-				module.addChild(parseVarDec());
+				//module.addChild(parseVarDec());
 				
 			}else if(checkMethodDef()){
 				
-				//module.addChild(parseMethodDef());
+				MethodNode node = parseMethodDef();
+				node.setParentSymbolTable(module);
+				module.addMethodDef(node);
 				
 			}else if(checkClassDef()){
 				
-				//module.addChild(parseClassDef());
+				ClassNode node = parseClassDef();
+				module.addClassDef(node);
+				node.setParentSymbolTable(module);
 				
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
 			}
 			
+			skipNewlines();
+			
 			next = tokens.peek();
 			nextType = next.getType();
 		}
-		//endBlock(module);
+		endNode(module);
+		return module;
 	}
 	
 	public boolean checkClassDef(){
-		if(tokens.peek().getType() == Token.Type.CLASS){
-			return true;
-		}else{
-			return false;
-		}
+		return tokens.peek().getType() == Token.Type.CLASS ? true : false;
 	}
 	
-	public AstNode parseClassDef(){
+	public ClassNode parseClassDef(){
 		skipNewlines();
 		
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		ClassBlock block = new ClassBlock(module.getScope());
-		//startBlock(block);
-		block.setName(id.getText());
+		ClassNode node = new ClassNode();
+		
+		startNode(node);
+		node.setName(id.getText());
 		
 		if(peek(Token.Type.EXTENDS)){
 			dropNext(Token.Type.EXTENDS);
-			block.addSuperName(getNext(Token.Type.IDENTIFIER).getText());
-			
-			while(peek(Token.Type.COMMA)){
-				dropNext(Token.Type.COMMA);
-				block.addSuperName(getNext(Token.Type.IDENTIFIER).getText());
-			}
+			node.setSuperName(getNext(Token.Type.IDENTIFIER).getText());
 		}
 		
 		while(!peek(Token.Type.RBRACE)){
@@ -260,26 +271,26 @@ public class ChipmunkParser {
 				VarDecBlock varBlock = parseVarDec();
 				varBlock.setShared(shared);
 				varBlock.setFinal(isFinal);
-				block.addChild(varBlock);
+				//node.addChild(varBlock);
 			}else if(checkMethodDef()){
 				MethodBlock methodBlock = null;//parseMethodDef();
 				methodBlock.setShared(shared);
 				methodBlock.setFinal(isFinal);
-				block.addChild(methodBlock);
+				//node.addChild(methodBlock);
 			}else{
 				syntaxError("Error parsing class body", tokens.peek(), Token.Type.VAR, Token.Type.DEF);
 			}
 		}
 		forceNext(Token.Type.RBRACE);
-		//endBlock(block);
-		return null;
+		endNode(node);
+		return node;
 	}
 	
 	public boolean checkMethodDef(){
 		return peek(Token.Type.DEF);
 	}
 	
-	public AstNode parseMethodDef(){
+	public MethodNode parseMethodDef(){
 		// statements & method definitions
 		return null;
 	}
@@ -305,44 +316,7 @@ public class ChipmunkParser {
 		return dec;
 	}
 	
-	public ListBlock parseList(){
-		skipNewlines();
-		
-		ListBlock block = new ListBlock();
-		//startBlock(block);
-		
-		forceNext(Token.Type.LBRACKET);
-		skipNewlines();
-		
-		while(!peek(Token.Type.RBRACKET)){
-			skipNewlines();
-			
-			ExpressionBlock element = null;//parseExpressionOld();
-			block.addElement(element);
-			skipNewlines();
-			
-			if(peek(Token.Type.COMMA)){
-				dropNext(Token.Type.COMMA);
-			}else if(!peek(Token.Type.RBRACKET)){
-				syntaxError("Invalid list", tokens.get(), Token.Type.COMMA, Token.Type.RBRACKET);
-			}
-			
-			skipNewlines();
-		}
-		
-		forceNext(Token.Type.RBRACKET);
-		
-		//endBlock(block);
-		return block;
-	}
-	
-	
-	
-	public boolean checkStatement(){
-		return true;
-	}
-	
-	public Block parseStatement(){
+	public AstNode parseStatement(){
 		// statements are either (a) variable declarations and assignments
 		// (b) expressions (including assignments)
 		// or (c) block beginnings
@@ -362,10 +336,10 @@ public class ChipmunkParser {
 	 * Consumes the next import statement from the token stream.
 	 * @return the import block for the statement
 	 */
-	public ImportBlock parseImport(){
+	public ImportNode parseImport(){
 		skipNewlines();
-		ImportBlock block = new ImportBlock();
-		//startBlock(block);
+		ImportNode node = new ImportNode();
+		startNode(node);
 		
 		if(peek(Token.Type.IMPORT)){
 			dropNext(Token.Type.IMPORT);
@@ -384,7 +358,7 @@ public class ChipmunkParser {
 				}
 			}
 			
-			block.addSymbol(identifiers.get(identifiers.size() - 1).getText());
+			node.addSymbol(identifiers.get(identifiers.size() - 1).getText());
 			
 			// piece module name back together
 			StringBuilder moduleName = new StringBuilder();
@@ -394,7 +368,7 @@ public class ChipmunkParser {
 					moduleName.append('.');
 				}
 			}
-			block.setModule(moduleName.toString());
+			node.setModule(moduleName.toString());
 		}else if(peek(Token.Type.FROM)){
 			dropNext(Token.Type.FROM);
 			
@@ -420,18 +394,18 @@ public class ChipmunkParser {
 					moduleName.append('.');
 				}
 			}
-			block.setModule(moduleName.toString());
+			node.setModule(moduleName.toString());
 			
 			forceNext(Token.Type.IMPORT);
-			block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+			node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
 			
 			while(peek(Token.Type.COMMA)){
 				dropNext(Token.Type.COMMA);
-				block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+				node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
 			}
-			block.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+			node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
 			
-			if(block.getSymbols().contains("*") && block.getSymbols().size() > 1){
+			if(node.getSymbols().contains("*") && node.getSymbols().size() > 1){
 				throw new IllegalImportChipmunk("Cannot import multiple symbols and *");
 			}
 			
@@ -441,28 +415,28 @@ public class ChipmunkParser {
 		
 		if(peek(Token.Type.AS)){
 			
-			if(block.getSymbols().contains("*")){
+			if(node.getSymbols().contains("*")){
 				throw new IllegalImportChipmunk("Cannot alias a * import");
 			}
 			
 			dropNext(Token.Type.AS);
 			// parse aliases
-			block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			
 			while(peek(Token.Type.COMMA)){
 				dropNext(Token.Type.COMMA);
-				block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+				node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			}
-			block.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
 			
-			if(block.getSymbols().size() < block.getAliases().size()){
+			if(node.getSymbols().size() < node.getAliases().size()){
 				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
 			}
 			
 		}
 		
-		//endBlock(block);
-		return block;
+		endNode(node);
+		return node;
 	}
 	
 	/**

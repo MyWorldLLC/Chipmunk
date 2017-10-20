@@ -101,5 +101,19 @@ class ChipmunkLexerSpecification extends Specification {
 		tok3.getText() == "4"
 		tok3.getType() == Token.Type.INTLITERAL
 	}
+	
+	def "Tokenize empty module def"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		
+		when:
+		def tokens = lexer.lex("module foobar")
+		
+		then:
+		notThrown(SyntaxErrorChipmunk)
+		tokens.get().getType() == Token.Type.MODULE
+		tokens.get().getType() == Token.Type.IDENTIFIER
+		tokens.get().getType() == Token.Type.EOF
+	}
 
 }

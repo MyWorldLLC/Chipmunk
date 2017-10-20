@@ -23,4 +23,30 @@ public class ModuleNode extends ScopedNode {
 	public void setName(String name){
 		this.name = name;
 	}
+	
+	public void addImport(ImportNode node){
+		addChild(node);
+	}
+	
+	public void addClassDef(ClassNode node){
+		addChild(node);
+	}
+	
+	public void addMethodDef(MethodNode node){
+		addChild(node);
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("(module ");
+		builder.append(name);
+		
+		for(AstNode child : children){
+			builder.append(child.toString());
+		}
+		
+		builder.append(')');
+		return builder.toString();
+	}
 }

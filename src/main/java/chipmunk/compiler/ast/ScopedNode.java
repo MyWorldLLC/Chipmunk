@@ -29,5 +29,9 @@ public class ScopedNode extends AstNode {
 	public SymbolTable getSymbolTable(){
 		return symTab;
 	}
+	
+	public void setParentSymbolTable(ScopedNode node){
+		symTab.setParent(node.getSymbolTable());
+	}
 
 }

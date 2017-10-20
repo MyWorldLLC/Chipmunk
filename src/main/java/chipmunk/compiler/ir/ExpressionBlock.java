@@ -3,7 +3,6 @@ package chipmunk.compiler.ir;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import chipmunk.compiler.Operator;
 import chipmunk.compiler.Token;
 
 public class ExpressionBlock extends Block {

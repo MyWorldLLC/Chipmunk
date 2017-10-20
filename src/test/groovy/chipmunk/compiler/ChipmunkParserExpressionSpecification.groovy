@@ -3,7 +3,7 @@ package chipmunk.compiler
 import chipmunk.compiler.ast.AstNode
 import spock.lang.Specification
 
-class ChipmunkParserSpecification extends Specification {
+class ChipmunkParserExpressionSpecification extends Specification {
 	
 	def "parse 1 + 2"(){
 		setup:

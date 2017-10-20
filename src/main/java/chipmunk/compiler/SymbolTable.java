@@ -58,4 +58,12 @@ public class SymbolTable {
 		this.node = node;
 	}
 	
+	public SymbolTable getParent(){
+		return parent;
+	}
+	
+	public void setParent(SymbolTable parent){
+		this.parent = parent;
+	}
+	
 }
