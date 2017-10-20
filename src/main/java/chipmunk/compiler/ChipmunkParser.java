@@ -57,16 +57,12 @@ public class ChipmunkParser {
 	private Map<Token.Type, InfixParselet> infix;
 	private Map<Token.Type, PrefixParselet> prefix;
 	
-	protected List<ModuleNode> modules;
-	private ModuleNode module;
-	
-	private List<AstNode> moduleRoots;
+	private List<ModuleNode> moduleRoots;
 	private AstNode root;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
-		modules = new ArrayList<ModuleNode>();
-		moduleRoots = new ArrayList<AstNode>();
+		moduleRoots = new ArrayList<ModuleNode>();
 		
 		infix = new HashMap<Token.Type, InfixParselet>();
 		prefix = new HashMap<Token.Type, PrefixParselet>();
@@ -182,16 +178,21 @@ public class ChipmunkParser {
 	 */
 	public void parse(){
 		while(tokens.remaining() > 0){
-			parseModule();
+			moduleRoots.add(parseModule());
 		}
 	}
 	
 	public ModuleNode parseModule(){
-		module = new ModuleNode();
+		ModuleNode module = new ModuleNode();
 		startNode(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
-		forceNext(Token.Type.MODULE);
-		module.setName(getNext(Token.Type.IDENTIFIER).getText());
+		
+		if(peek(Token.Type.MODULE)){
+			forceNext(Token.Type.MODULE);
+			module.setName(getNext(Token.Type.IDENTIFIER).getText());
+		}else{
+			module.setName("");
+		}
 		
 		skipNewlines();
 		
@@ -218,8 +219,15 @@ public class ChipmunkParser {
 				module.addClassDef(node);
 				node.setParentSymbolTable(module);
 				
+			}else if(peek(Token.Type.MODULE)){
+				// Start of next module. Return this module node.
+				break;
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
+				Token got = peek();
+				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing module: expected module start, class or method def, or variable declaration, got %s", got.getType().name()));
+				error.setGot(got);
+				throw error;
 			}
 			
 			skipNewlines();
@@ -296,7 +304,7 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkVarDec(){
-		return peek(1, Token.Type.VAR) && peek(2, Token.Type.IDENTIFIER);
+		return peek(Token.Type.VAR);
 	}
 	
 	public VarDecBlock parseVarDec(){
@@ -440,7 +448,6 @@ public class ChipmunkParser {
 			if(node.getSymbols().size() < node.getAliases().size()){
 				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
 			}
-			
 		}
 		
 		endNode(node);
