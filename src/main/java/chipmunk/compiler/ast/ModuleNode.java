@@ -32,6 +32,10 @@ public class ModuleNode extends ScopedNode {
 		addChild(node);
 	}
 	
+	public void addVarDec(VarDecNode node){
+		addChild(node);
+	}
+	
 	public void addMethodDef(MethodNode node){
 		addChild(node);
 	}
@@ -43,6 +47,7 @@ public class ModuleNode extends ScopedNode {
 		builder.append(name);
 		
 		for(AstNode child : children){
+			builder.append(' ');
 			builder.append(child.toString());
 		}
 		

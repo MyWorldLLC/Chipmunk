@@ -18,5 +18,22 @@ class ChipmunkParserModuleSpecification extends Specification {
 		node.toString() == "(module foobar)"
 	}
 	
-	
+	def "parse module def with var defs"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		def tokens = lexer.lex(
+			"""module foobar
+			   
+			   var foo
+			   var foo2 = 1 + 2
+			"""
+			)
+		def parser = new ChipmunkParser(tokens)
+		
+		when:
+		ModuleNode node = parser.parseModule();
+		
+		then:
+		node.toString() == "(module foobar (vardec foo) (vardec foo2 (+ (literal 1)(literal 2))))"
+	}
 }

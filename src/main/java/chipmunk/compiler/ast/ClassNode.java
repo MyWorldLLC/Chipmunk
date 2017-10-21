@@ -42,4 +42,24 @@ public class ClassNode extends ScopedNode {
 	public void addChild(AstNode child){
 		super.addChild(child);
 	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("(class ");
+		builder.append(name);
+		
+		if(superName != null){
+			builder.append(" extends ");
+			builder.append(superName);
+		}
+		
+		for(AstNode child : children){
+			builder.append(' ');
+			builder.append(child.toString());
+		}
+		
+		builder.append(")");
+		return builder.toString();
+	}
 }

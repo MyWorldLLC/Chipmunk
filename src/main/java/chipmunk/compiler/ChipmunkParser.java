@@ -201,7 +201,7 @@ public class ChipmunkParser {
 				
 			}else if(checkVarDec()){
 				
-				//module.addChild(parseVarDec());
+				module.addVarDec(parseVarDec());
 				
 			}else if(checkMethodDef()){
 				
@@ -221,6 +221,7 @@ public class ChipmunkParser {
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
 				Token got = peek();
+				System.out.println(module.toString());
 				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing module: expected module start, class or method def, or variable declaration, got %s", got.getType().name()));
 				error.setGot(got);
 				throw error;
@@ -255,6 +256,7 @@ public class ChipmunkParser {
 			node.setSuperName(getNext(Token.Type.IDENTIFIER).getText());
 		}
 		
+		forceNext(Token.Type.LBRACE);
 		while(!peek(Token.Type.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
 			skipNewlines();
