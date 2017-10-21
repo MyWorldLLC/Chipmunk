@@ -24,8 +24,8 @@ class ChipmunkParserModuleSpecification extends Specification {
 		def tokens = lexer.lex(
 			"""module foobar
 			   
-			   var foo
-			   var foo2 = 1 + 2
+			   var asdf
+			   var asdf2 = 1 + 2
 			"""
 			)
 		def parser = new ChipmunkParser(tokens)
@@ -34,6 +34,6 @@ class ChipmunkParserModuleSpecification extends Specification {
 		ModuleNode node = parser.parseModule();
 		
 		then:
-		node.toString() == "(module foobar (vardec foo) (vardec foo2 (+ (literal 1)(literal 2))))"
+		node.toString() == "(module foobar (vardec asdf) (vardec asdf2 (+ (literal 1)(literal 2))))"
 	}
 }
