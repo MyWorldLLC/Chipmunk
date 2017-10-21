@@ -5,11 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.ImportNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.ir.MethodBlock;
 import chipmunk.compiler.ir.VarDecBlock;
 import chipmunk.compiler.parselets.AddSubOperatorParselet;
@@ -275,19 +271,26 @@ public class ChipmunkParser {
 				isFinal = true;
 			}
 			
+			Symbol symbol = new Symbol();
+			symbol.setFinal(isFinal);
+			symbol.setShared(shared);
+			
 			if(checkVarDec()){
-				VarDecBlock varBlock = parseVarDec();
-				varBlock.setShared(shared);
-				varBlock.setFinal(isFinal);
-				//node.addChild(varBlock);
+				VarDecNode varNode = parseVarDec();
+				symbol.setName(varNode.getVarName());
+				node.addChild(varNode);
 			}else if(checkMethodDef()){
-				MethodBlock methodBlock = null;//parseMethodDef();
-				methodBlock.setShared(shared);
-				methodBlock.setFinal(isFinal);
-				//node.addChild(methodBlock);
+				MethodNode methodNode = parseMethodDef();
+				symbol.setName(methodNode.getName());
+				node.addChild(methodNode);
 			}else{
 				syntaxError("Error parsing class body", tokens.peek(), Token.Type.VAR, Token.Type.DEF);
 			}
+			
+			// TODO - symbol search rules
+			node.getSymbolTable().setSymbol(symbol);
+			
+			skipNewlines();
 		}
 		forceNext(Token.Type.RBRACE);
 		endNode(node);
@@ -307,20 +310,20 @@ public class ChipmunkParser {
 		return peek(Token.Type.VAR);
 	}
 	
-	public VarDecBlock parseVarDec(){
+	public VarDecNode parseVarDec(){
 		forceNext(Token.Type.VAR);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		VarDecBlock dec = new VarDecBlock();
-		//startBlock(dec);
-		dec.setName(id.getText());
+		VarDecNode dec = new VarDecNode();
+		startNode(dec);
+		dec.setVar(new IdNode(id));
 		
 		if(peek(Token.Type.EQUALS)){
-			tokens.get();
-			//dec.addChild(parseExpressionOld());
+			forceNext(Token.Type.EQUALS);
+			dec.setAssignExpr(parseExpression());
 		}
 		
-		//endBlock(dec);
+		endNode(dec);
 		return dec;
 	}
 	

@@ -39,4 +39,7 @@ public class ClassNode extends ScopedNode {
 		this.superName = superName;
 	}
 
+	public void addChild(AstNode child){
+		super.addChild(child);
+	}
 }

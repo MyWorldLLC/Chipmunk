@@ -5,6 +5,7 @@ public class VarDecNode extends AstNode {
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
 	
+	
 	public VarDecNode(){
 		super();
 		hasVar = false;
@@ -43,6 +44,10 @@ public class VarDecNode extends AstNode {
 	
 	public AstNode getAssignExpr(){
 		return hasAssignExpr ? children.get(1) : null;
+	}
+	
+	public String getVarName(){
+		return hasVar ? getIDNode().getID().getText() : null;
 	}
 	
 	@Override
