@@ -104,4 +104,25 @@ class ChipmunkParserClassSpecification extends Specification {
 		then:
 		node.toString() == "(class Foobar (vardec a (literal 1)) (vardec b (+ (literal 2)(literal 3))))"
 	}
+	
+	def "parse class with shared and final variable initialization"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		def tokens = lexer.lex(
+			"""
+			class Foobar{
+				shared var a = 0
+				final var b = 1
+				shared final var c = 1 + 2
+			}
+			"""
+			)
+		
+		when:
+		ChipmunkParser parser = new ChipmunkParser(tokens)
+		ClassNode node = parser.parseClassDef()
+		
+		then:
+		node.toString() == "(class Foobar (vardec a (literal 0)) (vardec b (literal 1)) (vardec c (+ (literal 1)(literal 2))))"
+	}
 }

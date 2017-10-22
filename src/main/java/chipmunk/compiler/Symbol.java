@@ -10,9 +10,13 @@ public class Symbol {
 	protected SymbolTable table;
 	
 	public Symbol(){
+		this("");
+	}
+	
+	public Symbol(String name){
 		isShared = false;
 		isFinal = false;
-		name = "";
+		this.name = name;
 		localIndex = 0;
 	}
 

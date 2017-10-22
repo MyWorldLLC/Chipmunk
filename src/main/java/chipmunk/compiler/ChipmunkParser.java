@@ -6,34 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.compiler.ast.*;
-import chipmunk.compiler.ir.MethodBlock;
-import chipmunk.compiler.ir.VarDecBlock;
-import chipmunk.compiler.parselets.AddSubOperatorParselet;
-import chipmunk.compiler.parselets.AndOperatorParselet;
-import chipmunk.compiler.parselets.AssignOperatorParselet;
-import chipmunk.compiler.parselets.BitAndOperatorParselet;
-import chipmunk.compiler.parselets.BitOrOperatorParselet;
-import chipmunk.compiler.parselets.BitXOrOperatorParselet;
-import chipmunk.compiler.parselets.CallOperatorParselet;
-import chipmunk.compiler.parselets.ClassDefParselet;
-import chipmunk.compiler.parselets.DotOperatorParselet;
-import chipmunk.compiler.parselets.EqualityOperatorParselet;
-import chipmunk.compiler.parselets.GroupingParselet;
-import chipmunk.compiler.parselets.IndexOperatorParselet;
-import chipmunk.compiler.parselets.InfixParselet;
-import chipmunk.compiler.parselets.LessGreaterOperatorParselet;
-import chipmunk.compiler.parselets.ListParselet;
-import chipmunk.compiler.parselets.LiteralParselet;
-import chipmunk.compiler.parselets.MapParselet;
-import chipmunk.compiler.parselets.MethodDefParselet;
-import chipmunk.compiler.parselets.MulDivOperatorParselet;
-import chipmunk.compiler.parselets.NameParselet;
-import chipmunk.compiler.parselets.OrOperatorParselet;
-import chipmunk.compiler.parselets.PostIncDecParselet;
-import chipmunk.compiler.parselets.PowerOperatorParselet;
-import chipmunk.compiler.parselets.PrefixOperatorParselet;
-import chipmunk.compiler.parselets.PrefixParselet;
-import chipmunk.compiler.parselets.ShiftRangeOperatorParselet;
+import chipmunk.compiler.parselets.*;
 
 /**
  * Parses the Chipmunk language using a Pratt parser design for expressions. Many thanks to 
@@ -304,8 +277,30 @@ public class ChipmunkParser {
 	}
 	
 	public MethodNode parseMethodDef(){
-		// statements & method definitions
-		return null;
+		MethodNode node = new MethodNode();
+		startNode(node);
+		
+		forceNext(Token.Type.DEF);
+		node.setName(getNext(Token.Type.IDENTIFIER).getText());
+		
+		forceNext(Token.Type.LPAREN);
+		while(peek(Token.Type.IDENTIFIER)){
+			// TODO - local indices, default parameters
+			node.getSymbolTable().setSymbol(new Symbol(getNext(Token.Type.IDENTIFIER).getText()));
+			dropNext(Token.Type.COMMA);
+		}
+		forceNext(Token.Type.RPAREN);
+		skipNewlines();
+		forceNext(Token.Type.LBRACE);
+		skipNewlines();
+		while(!peek(Token.Type.RBRACE)){
+			node.addToBody(parseStatement());
+			skipNewlines();
+		}
+		forceNext(Token.Type.RBRACE);
+		
+		endNode(node);
+		return node;
 	}
 	
 	public boolean checkVarDec(){
@@ -330,9 +325,43 @@ public class ChipmunkParser {
 	}
 	
 	public AstNode parseStatement(){
-		// statements are either (a) variable declarations and assignments
-		// (b) expressions (including assignments)
-		// or (c) block beginnings
+		// statements are:
+		// (a) variable declarations and assignments
+		// (b) method definitions
+		// (c) class definitions
+		// (d) block beginnings
+		// (e) expressions (including assignments of existing variables)
+		
+		// TODO - support final variables/methods/classes
+		skipNewlines();
+		System.out.println(peek().getText());
+		if(checkVarDec()){
+			return parseVarDec();
+		}else if(checkMethodDef()){
+			return parseMethodDef();
+		}else if(checkClassDef()){
+			return parseClassDef();
+		}else if(peek().getType().isKeyword()){
+			// parse block
+			Token token = peek();
+			Token.Type type = token.getType();
+			
+			switch(type){
+			case IF:
+				return null; // TODO
+			case WHILE:
+				return null; // TODO
+			case FOR:
+				return null; // TODO
+			case TRY:
+				return null; // TODO
+			default:
+				syntaxError("Unexpected keyword", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY);
+			}
+		}else{
+			// it's an expression
+			return parseExpression();
+		}
 		return null;
 	}
 	
@@ -553,6 +582,10 @@ public class ChipmunkParser {
 		return tokens.peek();
 	}
 	
+	public Token peek(int places){
+		return tokens.peek(places);
+	}
+	
 	public boolean peek(Token.Type type){
 		Token token = tokens.peek();
 		
@@ -562,6 +595,15 @@ public class ChipmunkParser {
 	public boolean peek(int places, Token.Type type){
 		Token token = tokens.peek(places);
 		return token.getType() == type;
+	}
+	
+	public boolean peek(Token.Type... types){
+		for(int i = 1; i <= types.length; i++){
+			if(peek(i).getType() != types[i - 1]){
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	private void startNode(AstNode node){
