@@ -23,4 +23,16 @@ public class CInt extends CObject {
 		intValue = value;
 	}
 	
+	@Override
+	public CObject __plus__(CObject other){
+		
+		if(other instanceof CInt){
+			return new CInt(intValue + ((CInt) other).intValue);
+		}else if(other instanceof CFloat){
+			return new CFloat((float)intValue + ((CFloat) other).floatValue);
+		}else{
+			throw new UnimplementedOperationChipmunk("Undefined operation");
+		}
+	}
+	
 }
