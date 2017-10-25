@@ -52,6 +52,7 @@ class CIntSpecification extends Specification {
 		def result = first.__plus__(second)
 		
 		then:
-		thrown(UnimplementedOperationChipmunk)
+		def ex = thrown(UnimplementedOperationChipmunk)
+		ex.getMessage() == "Undefined operation: cannot perform int + CString addition"
 	}
 }

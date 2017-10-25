@@ -31,7 +31,7 @@ public class CInt extends CObject {
 		}else if(other instanceof CFloat){
 			return new CFloat((float)intValue + ((CFloat) other).floatValue);
 		}else{
-			throw new UnimplementedOperationChipmunk("Undefined operation");
+			throw new UnimplementedOperationChipmunk(String.format("Undefined operation: cannot perform int + %s addition", other.getClass().getSimpleName()));
 		}
 	}
 	
