@@ -1,7 +1,5 @@
 package chipmunk.modules.lang;
 
-import chipmunk.AngryChipmunk;
-import chipmunk.ChipmunkContext;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
