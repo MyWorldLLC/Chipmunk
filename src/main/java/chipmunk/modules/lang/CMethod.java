@@ -44,6 +44,7 @@ import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chipmunk.AngryChipmunk;
@@ -61,6 +62,7 @@ public class CMethod extends CObject {
 	
 	protected byte[] instructions;
 	protected CCode code;
+	protected List<CObject> constantPool;
 	
 	public CMethod(){
 		super();
@@ -90,6 +92,14 @@ public class CMethod extends CObject {
 	public void setCode(CCode code){
 		this.code = code;
 		instructions = code.getCode();
+	}
+	
+	public void setConstantPool(List<CObject> constantPool){
+		this.constantPool = constantPool;
+	}
+	
+	public List<CObject> getConstantPool(){
+		return constantPool;
 	}
 
 	public int getLocalIndex(String name){
@@ -368,7 +378,9 @@ public class CMethod extends CObject {
 				ip += 9;
 				break;
 			case PUSH:
-				// TODO
+				int constIndex = fetchInt(ip + 1);
+				context.push(constantPool.get(constIndex));
+				ip += 5;
 				break;
 			case EQ:
 				lh = context.pop();
@@ -433,13 +445,8 @@ public class CMethod extends CObject {
 			default:
 				throw new InvalidOpcodeChipmunk(op);
 			}
-			
-			
-			
-			break;
 		}
 		
-		return null;
 	}
 	
 	private int fetchInt(int ip){

@@ -3,6 +3,7 @@ package chipmunk.compiler;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import chipmunk.Opcodes;
@@ -43,6 +44,10 @@ public class ChipmunkAssembler {
 	public ChipmunkAssembler createMethodAssembler(){
 		ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
 		return assembler;
+	}
+	
+	public List<CObject> getConstantPool(){
+		return Collections.unmodifiableList(constantPool);
 	}
 	
 	public byte[] getCodeSegment(){
@@ -406,7 +411,7 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	private short getConstantPoolEntry(CObject value){
+	private int getConstantPoolEntry(CObject value){
 		int index = constantPool.indexOf(value);
 		
 		if(index == -1){
@@ -414,17 +419,19 @@ public class ChipmunkAssembler {
 			index = constantPool.size() - 1;
 		}
 			
-		return (short) index;
+		return index;
 	}
 	
 	private void push(CObject value){
 		
-		short entryIndex = getConstantPoolEntry(value);
+		int entryIndex = getConstantPoolEntry(value);
 		
 		code.write(Opcodes.PUSH);
+		code.write(entryIndex >> 24);
+		code.write(entryIndex >> 16);
 		code.write(entryIndex >> 8);
 		code.write(entryIndex);
-		index += 3;
+		index += 5;
 	}
 	
 	public void push(CBoolean value){
