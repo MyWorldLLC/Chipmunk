@@ -12,14 +12,14 @@ class AssemblerSpecification extends Specification {
 	def "Assemble and run 1 + 2"(){
 		when:
 		ChipmunkAssembler assembler = new ChipmunkAssembler()
-		assembler.push(new CInt(1));
-		assembler.push(new CInt(2));
-		assembler.add();
-		assembler._return();
+		assembler.push(new CInt(1))
+		assembler.push(new CInt(2))
+		assembler.add()
+		assembler._return()
 		
-		CMethod method = new CMethod();
-		method.setCode(new CCode(assembler.getCodeSegment()));
-		method.setConstantPool(assembler.getConstantPool());
+		CMethod method = new CMethod()
+		method.setCode(new CCode(assembler.getCodeSegment()))
+		method.setConstantPool(assembler.getConstantPool())
 		
 		CObject result = method.__call__(new ChipmunkContext(), 0, false)
 		
