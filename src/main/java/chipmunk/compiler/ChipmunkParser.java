@@ -307,13 +307,12 @@ public class ChipmunkParser {
 		forceNext(Token.Type.LBRACE);
 		skipNewlines();
 		while(!peek(Token.Type.RBRACE)){
-			// Parse statements.
-			// Statements are:
+			// Parse method body.
+			// Allowed statements are:
 			// (a) variable declarations and assignments
 			// (b) method definitions
 			// (c) class definitions
-			// (d) block beginnings
-			// (e) expressions (including assignments of existing variables)
+			// (d) blocks and expressions
 			
 			if(checkVarDec()){
 				
@@ -327,6 +326,7 @@ public class ChipmunkParser {
 				Symbol symbol = new Symbol(varDec.getVarName());
 				symbol.setFinal(isFinal);
 				node.getSymbolTable().setSymbol(symbol);
+				node.addToBody(varDec);
 			
 			}else if(checkMethodDef()){
 
@@ -340,6 +340,7 @@ public class ChipmunkParser {
 				Symbol symbol = new Symbol(innerMethod.getName());
 				symbol.setFinal(isFinal);
 				node.getSymbolTable().setSymbol(symbol);
+				node.addToBody(innerMethod);
 				
 			}else if(checkClassDef()){
 
@@ -353,33 +354,12 @@ public class ChipmunkParser {
 				Symbol symbol = new Symbol(classDef.getName());
 				symbol.setFinal(isFinal);
 				node.getSymbolTable().setSymbol(symbol);
+				node.addToBody(classDef);
 				
-			}else if(peek().getType().isKeyword()){
-				// parse block
-				Token token = peek();
-				Token.Type type = token.getType();
-				
-				switch(type){
-				case IF:
-					return null; // TODO
-				case WHILE:
-					return null; // TODO
-				case FOR:
-					return null; // TODO
-				case TRY:
-					return null; // TODO
-				case RETURN:
-					return null; // TODO
-				case THROW:
-					return null; // TODO
-				default:
-					syntaxError("Unexpected keyword", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY);
-				}
 			}else{
-				// it's an expression
-				node.addToBody(parseExpression());
+				node.addToBody(parseStatement());
 			}
-			skipNewlines();
+			skipNewlinesAndComments();
 		}
 		forceNext(Token.Type.RBRACE);
 		
@@ -420,14 +400,18 @@ public class ChipmunkParser {
 	}
 	
 	public AstNode parseStatement(){
-		// statements are:
+		return parseStatement(false);
+	}
+	
+	public AstNode parseStatement(boolean insideLoop){
+		// Statements are:
 		// (a) variable declarations and assignments
 		// (b) method definitions
 		// (c) class definitions
 		// (d) block beginnings
 		// (e) expressions (including assignments of existing variables)
 		
-		skipNewlines();
+		skipNewlinesAndComments();
 		
 		if(checkVarDec()){
 			return parseVarDec();
@@ -436,29 +420,39 @@ public class ChipmunkParser {
 		}else if(checkClassDef()){
 			return parseClassDef();
 		}else if(peek().getType().isKeyword()){
-			// parse block
+			// parse block or keyword statement
 			Token token = peek();
 			Token.Type type = token.getType();
 			
 			switch(type){
 			case IF:
-				return null; // TODO
+				return parseIfElse();
 			case WHILE:
-				return null; // TODO
+				return parseWhile();
 			case FOR:
-				return null; // TODO
+				return parseFor();
 			case TRY:
-				return null; // TODO
-			case BREAK:
-				return null; // TODO
-			case CONTINUE:
-				return null; // TODO
+				return parseTryCatch();
 			case RETURN:
-				return null; // TODO
 			case THROW:
-				return null; // TODO
+				dropNext();
+				return new FlowControlNode(token);
+			case BREAK:
+			case CONTINUE:
+				dropNext();
+				if(insideLoop){
+					return new FlowControlNode(token);
+				}else{
+					syntaxError("Break and continue can only be used inside a loop", token);
+				}
 			default:
-				syntaxError("Unexpected keyword", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY);
+				if(insideLoop){
+					syntaxError("Unexpected token", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY,
+							Token.Type.RETURN, Token.Type.THROW, Token.Type.BREAK, Token.Type.CONTINUE);
+				}else{
+					syntaxError("Unexpected token", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY,
+							Token.Type.RETURN, Token.Type.THROW);
+				}
 			}
 		}else{
 			// it's an expression
@@ -472,13 +466,19 @@ public class ChipmunkParser {
 		forceNext(Token.Type.WHILE);
 		forceNext(Token.Type.LPAREN);
 		
-		skipNewlines();
+		skipNewlinesAndComments();
 		node.setGuard(parseExpression());
 		
-		skipNewlines();
+		skipNewlinesAndComments();
 		forceNext(Token.Type.RPAREN);
 		forceNext(Token.Type.LBRACE);
-		return null;
+		
+		while(!peek(Token.Type.RBRACE)){
+			skipNewlinesAndComments();
+			node.addChild(parseStatement(true));
+		}
+		forceNext(Token.Type.RBRACE);
+		return node;
 	}
 	
 	public AstNode parseFor(){
@@ -688,6 +688,10 @@ public class ChipmunkParser {
 	
 	public void skipNewlines(){
 		while(dropNext(Token.Type.NEWLINE)){}
+	}
+	
+	public void skipNewlinesAndComments(){
+		while(dropNext(Token.Type.NEWLINE) || dropNext(Token.Type.COMMENT)){}
 	}
 	
 	public boolean dropNext(Token.Type type){
