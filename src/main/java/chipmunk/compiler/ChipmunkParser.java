@@ -194,7 +194,6 @@ public class ChipmunkParser {
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
 				Token got = peek();
-				System.out.println(module.toString());
 				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing module: expected module start, class or method def, or variable declaration, got %s", got.getType().name()));
 				error.setGot(got);
 				throw error;
@@ -210,7 +209,15 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkClassDef(){
-		return tokens.peek().getType() == Token.Type.CLASS ? true : false;
+		return checkClassDef(true);
+	}
+	
+	public boolean checkClassDef(boolean allowFinal){
+		if(allowFinal){
+			return peek(Token.Type.FINAL) && peek(2, Token.Type.CLASS);
+		}else{
+			return peek(Token.Type.CLASS);
+		}
 	}
 	
 	public ClassNode parseClassDef(){
@@ -235,14 +242,12 @@ public class ChipmunkParser {
 			skipNewlines();
 			
 			boolean shared = false;
-			if(peek(Token.Type.SHARED)){
-				forceNext(Token.Type.SHARED);
+			if(dropNext(Token.Type.SHARED)){
 				shared = true;
 			}
 			
 			boolean isFinal = false;
-			if(peek(Token.Type.FINAL)){
-				forceNext(Token.Type.FINAL);
+			if(dropNext(Token.Type.FINAL)){
 				isFinal = true;
 			}
 			
@@ -273,7 +278,15 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkMethodDef(){
-		return peek(Token.Type.DEF);
+		return checkMethodDef(true);
+	}
+	
+	public boolean checkMethodDef(boolean allowFinal){
+		if(allowFinal){
+			return peek(Token.Type.FINAL) && peek(2, Token.Type.DEF);
+		}else{
+			return peek(Token.Type.DEF);
+		}
 	}
 	
 	public MethodNode parseMethodDef(){
@@ -294,7 +307,78 @@ public class ChipmunkParser {
 		forceNext(Token.Type.LBRACE);
 		skipNewlines();
 		while(!peek(Token.Type.RBRACE)){
-			node.addToBody(parseStatement());
+			// Parse statements.
+			// Statements are:
+			// (a) variable declarations and assignments
+			// (b) method definitions
+			// (c) class definitions
+			// (d) block beginnings
+			// (e) expressions (including assignments of existing variables)
+			
+			if(checkVarDec()){
+				
+				boolean isFinal = false;
+				if(dropNext(Token.Type.FINAL)){
+					isFinal = true;
+				}
+			
+				// Add to symbol table
+				VarDecNode varDec = parseVarDec();
+				Symbol symbol = new Symbol(varDec.getVarName());
+				symbol.setFinal(isFinal);
+				node.getSymbolTable().setSymbol(symbol);
+			
+			}else if(checkMethodDef()){
+
+				boolean isFinal = false;
+				if(dropNext(Token.Type.FINAL)){
+					isFinal = true;
+				}
+				
+				// Add to symbol table
+				MethodNode innerMethod = parseMethodDef();
+				Symbol symbol = new Symbol(innerMethod.getName());
+				symbol.setFinal(isFinal);
+				node.getSymbolTable().setSymbol(symbol);
+				
+			}else if(checkClassDef()){
+
+				boolean isFinal = false;
+				if(dropNext(Token.Type.FINAL)){
+					isFinal = true;
+				}
+				
+				// Add to symbol table
+				ClassNode classDef = parseClassDef();
+				Symbol symbol = new Symbol(classDef.getName());
+				symbol.setFinal(isFinal);
+				node.getSymbolTable().setSymbol(symbol);
+				
+			}else if(peek().getType().isKeyword()){
+				// parse block
+				Token token = peek();
+				Token.Type type = token.getType();
+				
+				switch(type){
+				case IF:
+					return null; // TODO
+				case WHILE:
+					return null; // TODO
+				case FOR:
+					return null; // TODO
+				case TRY:
+					return null; // TODO
+				case RETURN:
+					return null; // TODO
+				case THROW:
+					return null; // TODO
+				default:
+					syntaxError("Unexpected keyword", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY);
+				}
+			}else{
+				// it's an expression
+				node.addToBody(parseExpression());
+			}
 			skipNewlines();
 		}
 		forceNext(Token.Type.RBRACE);
@@ -303,10 +387,21 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public boolean checkVarDec(){
-		return peek(Token.Type.VAR);
+	public IfElseNode parseIfElse(){
+		return null;
 	}
 	
+	public boolean checkVarDec(){
+		return checkVarDec(true);
+	}
+	
+	public boolean checkVarDec(boolean allowFinal){
+		if(allowFinal){
+			return peek(Token.Type.FINAL) && peek(2, Token.Type.VAR);
+		}else{
+			return peek(Token.Type.VAR);
+		}
+	}
 	public VarDecNode parseVarDec(){
 		forceNext(Token.Type.VAR);
 		Token id = getNext(Token.Type.IDENTIFIER);
@@ -332,9 +427,8 @@ public class ChipmunkParser {
 		// (d) block beginnings
 		// (e) expressions (including assignments of existing variables)
 		
-		// TODO - support final variables/methods/classes
 		skipNewlines();
-		System.out.println(peek().getText());
+		
 		if(checkVarDec()){
 			return parseVarDec();
 		}else if(checkMethodDef()){
@@ -355,6 +449,14 @@ public class ChipmunkParser {
 				return null; // TODO
 			case TRY:
 				return null; // TODO
+			case BREAK:
+				return null; // TODO
+			case CONTINUE:
+				return null; // TODO
+			case RETURN:
+				return null; // TODO
+			case THROW:
+				return null; // TODO
 			default:
 				syntaxError("Unexpected keyword", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY);
 			}
@@ -362,6 +464,28 @@ public class ChipmunkParser {
 			// it's an expression
 			return parseExpression();
 		}
+		return null;
+	}
+	
+	public AstNode parseWhile(){
+		WhileNode node = new WhileNode();
+		forceNext(Token.Type.WHILE);
+		forceNext(Token.Type.LPAREN);
+		
+		skipNewlines();
+		node.setGuard(parseExpression());
+		
+		skipNewlines();
+		forceNext(Token.Type.RPAREN);
+		forceNext(Token.Type.LBRACE);
+		return null;
+	}
+	
+	public AstNode parseFor(){
+		return null;
+	}
+	
+	public AstNode parseTryCatch(){
 		return null;
 	}
 	
