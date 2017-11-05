@@ -151,6 +151,10 @@ public class ChipmunkParser {
 		}
 	}
 	
+	public List<ModuleNode> getModuleRoots(){
+		return moduleRoots;
+	}
+	
 	public ModuleNode parseModule(){
 		ModuleNode module = new ModuleNode();
 		startNode(module);

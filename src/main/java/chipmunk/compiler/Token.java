@@ -24,11 +24,13 @@ public class Token {
 		COMMENT("#.*"), NEWLINE("\n|\r\n|\r"),
 		
 		// literals
+		// Binary, octal, and hex literals must go before the int and float literals
+		// or the leading 0s get matched as ints
+		BINARYLITERAL("(0b|0B)[01_]+", false, true),
+		OCTLITERAL("(0o|0O)[0-7_]+", false, true),
+		HEXLITERAL("(0x|0X)[a-fA-F0-9_]+", false, true),
 		FLOATLITERAL("-?[0-9]*\\.[0-9]+((e|E)-?[0-9]+)?", false, true),
-		INTLITERAL("\\-?[0-9_]+", false, true),
-		BINARYLITERAL("0b|0B[01_]+", false, true),
-		OCTLITERAL("0o|0O[0-7_]+", false, true),
-		HEXLITERAL("0x|0X[a-fA-F0-9_]+", false, true),
+		INTLITERAL("-?[0-9_]+", false, true),
 		BOOLLITERAL("true|false", true, true),
 		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true),
 		

@@ -39,13 +39,13 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.push(new CInt(Integer.parseInt(literal.getText(), 10)));
 				return false;
 			case HEXLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText(), 16)));
+				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 16)));
 				return false;
 			case OCTLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText(), 8)));
+				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 8)));
 				return false;
 			case BINARYLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText(), 2)));
+				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 2)));
 				return false;
 			case FLOATLITERAL:
 				assembler.push(new CFloat(Float.parseFloat(literal.getText())));

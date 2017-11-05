@@ -115,5 +115,18 @@ class ChipmunkLexerSpecification extends Specification {
 		tokens.get().getType() == Token.Type.IDENTIFIER
 		tokens.get().getType() == Token.Type.EOF
 	}
+	
+	def "Tokenize oct literal 0o12"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		
+		when:
+		def tokens = lexer.lex("0o12")
+		def token = tokens.get()
+		
+		then:
+		token.getType() == Token.Type.OCTLITERAL
+		token.getText() == "0o12"
+	}
 
 }

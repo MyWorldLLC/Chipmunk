@@ -5,31 +5,35 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.List;
 
+import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.codegen.ModuleVisitor;
 import chipmunk.modules.lang.CModule;
 
 public class ChipmunkCompiler {
 	
-	protected TokenStream stream;
-	protected ChipmunkLexer lexer;
-	protected Deque<ChipmunkAssembler> assemblers;
-	
-	public ChipmunkCompiler(){
-		lexer = new ChipmunkLexer();
-		assemblers = new ArrayDeque<ChipmunkAssembler>();
-	}
-	
-	
-	public CModule compile(CharSequence src) throws CompileChipmunk, SyntaxErrorChipmunk {
-		TokenStream tokens = lexer.lex(src);
-		ChipmunkParser parser = new ChipmunkParser(tokens);
+	public List<CModule> compile(CharSequence src) throws CompileChipmunk, SyntaxErrorChipmunk {
 		
-		return compile(parser);
+		List<CModule> modules = new ArrayList<CModule>();
+		ChipmunkLexer lexer = new ChipmunkLexer();
+		TokenStream tokens = lexer.lex(src);
+		
+		ChipmunkParser parser = new ChipmunkParser(tokens);
+		parser.parse();
+		List<ModuleNode> roots = parser.getModuleRoots();
+		
+		for(ModuleNode node : roots){
+			ModuleVisitor visitor = new ModuleVisitor();
+			node.visit(visitor);
+			modules.add(visitor.getModule());
+		}
+		
+		return modules;
 	}
 	
-	public CModule compile(InputStream src) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
+	public List<CModule> compile(InputStream src) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
 		StringBuilder builder = new StringBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
@@ -39,16 +43,7 @@ public class ChipmunkCompiler {
 			line = reader.readLine();
 		}
 		
-		TokenStream tokens = lexer.lex(builder);
-		ChipmunkParser parser = new ChipmunkParser(tokens);
-		
-		return compile(parser);
-	}
-	
-	private CModule compile(ChipmunkParser parser){
-		// TODO
-		assemblers.push(new ChipmunkAssembler());
-		return null;
+		return compile(builder);
 	}
 
 }
