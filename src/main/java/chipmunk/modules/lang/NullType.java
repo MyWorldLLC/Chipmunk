@@ -3,7 +3,7 @@ package chipmunk.modules.lang;
 
 public class NullType extends CType {
 
-	protected Null nullObject;
+	public static final Null nullObject = new Null();
 	
 	public NullType(){
 		super("Null");

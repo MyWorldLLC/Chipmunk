@@ -14,6 +14,7 @@ import chipmunk.modules.lang.CInt;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CString;
 import chipmunk.modules.lang.Null;
+import chipmunk.modules.lang.NullType;
 
 public class ChipmunkAssembler {
 	
@@ -464,8 +465,8 @@ public class ChipmunkAssembler {
 		push((CObject)value);
 	}
 	
-	public void push(Null value){
-		push((CObject)value);
+	public void pushNull(){
+		push(NullType.nullObject);
 	}
 	
 	public void eq(){

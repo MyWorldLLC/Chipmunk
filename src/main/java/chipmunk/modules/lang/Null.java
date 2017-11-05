@@ -6,7 +6,6 @@ public class Null extends CObject {
 	public Null(){
 		NullType nullType = new NullType();
 		type = nullType;
-		nullType.nullObject = this;
 		namespace.setVariable("type", nullType);
 	}
 	

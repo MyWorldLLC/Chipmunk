@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 public class ChipmunkLexer {
 	
 	protected TokenStream stream;
-	protected Map<Token.Type, Matcher> matchers;
 	protected CharSequence src;
 	
 	private int line;
+	private int lineBegin;
 	private int column;
 	private int cursor;
 
@@ -21,12 +21,13 @@ public class ChipmunkLexer {
 		
 		src = source;
 		
+		lineBegin = 0;
 		line = 1;
 		column = 1;
 		cursor = 0;
 		
 		// fill matcher cache
-		matchers = new HashMap<Token.Type, Matcher>();
+		Map<Token.Type, Matcher> matchers = new HashMap<Token.Type, Matcher>();
 		
 		Token.Type[] tokenTypes = Token.Type.values();
 		for(int i = 0; i < tokenTypes.length; i++){
@@ -85,8 +86,9 @@ public class ChipmunkLexer {
 					if (type == Token.Type.NEWLINE) {
 						column = 1;
 						line += 1;
+						lineBegin = cursor;
 					} else {
-						column = matcher.end();
+						column += matcher.end() - lineBegin;
 					}
 
 					foundToken = true;
@@ -101,7 +103,7 @@ public class ChipmunkLexer {
 			}
 		}
 
-		stream.append(new Token("", Token.Type.EOF));
+		stream.append(new Token("", Token.Type.EOF, line, column));
 		return stream;
 	}
 	

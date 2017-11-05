@@ -128,5 +128,31 @@ class ChipmunkLexerSpecification extends Specification {
 		token.getType() == Token.Type.OCTLITERAL
 		token.getText() == "0o12"
 	}
+	
+	def "Tokenize and verify line and column numbers"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		
+		when:
+		def tokens = lexer.lex("""foo
+			 | asdf
+			 |	1""".stripMargin())
+		
+		def token1 = tokens.get()
+		tokens.get()
+		def token2 = tokens.get()
+		tokens.get()
+		def token3 = tokens.get()
+		
+		then:
+		token1.getLine() == 1
+		token1.getColumn() == 1
+		
+		token2.getLine() == 2
+		token2.getColumn() == 2
+		
+		token3.getLine() == 3
+		token3.getColumn() == 5
+	}
 
 }

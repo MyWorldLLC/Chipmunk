@@ -44,6 +44,14 @@ public class CMethod extends CObject {
 		argCount = count;
 	}
 	
+	public int getLocalCount(){
+		return localCount;
+	}
+	
+	public void setLocalCount(int count){
+		localCount = count;
+	}
+	
 	public CCode getCode(){
 		return code;
 	}
@@ -272,6 +280,14 @@ public class CMethod extends CObject {
 				ins = context.pop();
 				context.push(ins.__setAt__(lh, rh));
 				ip++;
+				break;
+			case GETLOCAL:
+				context.push(locals[fetchByte(ip + 1)]);
+				ip += 2;
+				break;
+			case SETLOCAL:
+				locals[fetchByte(ip + 1)] = context.pop();
+				ip += 2;
 				break;
 			case TRUTH:
 				rh = context.pop();

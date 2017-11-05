@@ -27,7 +27,6 @@ public class ChipmunkParser {
 	private Map<Token.Type, PrefixParselet> prefix;
 	
 	private List<ModuleNode> moduleRoots;
-	private AstNode root;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
@@ -294,6 +293,8 @@ public class ChipmunkParser {
 	}
 	
 	public MethodNode parseMethodDef(){
+		skipNewlinesAndComments();
+		
 		MethodNode node = new MethodNode();
 		startNode(node);
 		
@@ -364,6 +365,9 @@ public class ChipmunkParser {
 				node.addToBody(parseStatement());
 			}
 			skipNewlinesAndComments();
+			if(peek(Token.Type.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+			}
 		}
 		forceNext(Token.Type.RBRACE);
 		
@@ -438,14 +442,35 @@ public class ChipmunkParser {
 			case TRY:
 				return parseTryCatch();
 			case RETURN:
-			case THROW:
+				FlowControlNode returnNode = new FlowControlNode();
+				startNode(returnNode);
 				dropNext();
-				return new FlowControlNode(token); // TODO - return/throw value
+				returnNode.setControlToken(token);
+				
+				if(!peek(Token.Type.NEWLINE)){
+					returnNode.addControlExpression(parseExpression());
+				}
+				
+				endNode(returnNode);
+				return returnNode;
+			case THROW:
+				FlowControlNode throwNode = new FlowControlNode();
+				startNode(throwNode);
+				dropNext();
+				throwNode.setControlToken(token);
+				throwNode.addControlExpression(parseExpression());
+				endNode(throwNode);
+				return throwNode;
 			case BREAK:
 			case CONTINUE:
 				dropNext();
 				if(insideLoop){
-					return new FlowControlNode(token);
+					FlowControlNode node = new FlowControlNode();
+					startNode(node);
+					dropNext();
+					node.setControlToken(token);
+					endNode(node);
+					return node;
 				}else{
 					syntaxError("Break and continue can only be used inside a loop", token);
 				}
@@ -458,7 +483,7 @@ public class ChipmunkParser {
 							Token.Type.RETURN, Token.Type.THROW);
 				}
 			}
-		}else{
+		}else if(!peek(Token.Type.EOF)){
 			// it's an expression
 			return parseExpression();
 		}
@@ -631,7 +656,7 @@ public class ChipmunkParser {
 		PrefixParselet prefixParser = prefix.get(token.getType());
 		
 		if(prefixParser == null){
-			throw new SyntaxErrorChipmunk("Expected a literal, id, or prefix operator", token);
+			throw new SyntaxErrorChipmunk(String.format("Expected a literal, id, or prefix operator at %d:%d, got %s", token.getLine(), token.getColumn(), token.getType()), token);
 		}
 		
 		AstNode left = prefixParser.parse(this, token);

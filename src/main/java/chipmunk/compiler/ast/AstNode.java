@@ -25,6 +25,10 @@ public class AstNode {
 		return children;
 	}
 	
+	public boolean hasChildren(){
+		return children.size() > 0;
+	}
+	
 	protected void addChild(AstNode child){
 		children.add(child);
 	}

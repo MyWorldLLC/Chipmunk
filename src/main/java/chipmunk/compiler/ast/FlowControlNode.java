@@ -22,4 +22,8 @@ public class FlowControlNode extends AstNode {
 	public void setControlToken(Token controlToken){
 		token = controlToken;
 	}
+	
+	public void addControlExpression(AstNode expression){
+		addChild(expression);
+	}
 }

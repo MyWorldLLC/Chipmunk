@@ -5,6 +5,32 @@ import spock.lang.Specification
 
 class ChipmunkParserExpressionSpecification extends Specification {
 	
+	def "parse 1"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("1")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(literal 1)"
+	}
+	
+	def "parse foo"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+		lexer.lex("foo")
+		def parser = new ChipmunkParser(lexer.getLastTokens())
+		
+		when:
+		AstNode ast = parser.parseExpression()
+		
+		then:
+		ast.toString() == "(id foo)"
+	}
+	
 	def "parse 1 + 2"(){
 		setup:
 		def lexer = new ChipmunkLexer()
