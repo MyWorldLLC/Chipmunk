@@ -21,7 +21,7 @@ public class Symbol {
 		isShared = false;
 		isFinal = false;
 		this.name = name;
-		localIndex = localIndex;
+		this.localIndex = localIndex;
 	}
 
 	public boolean isShared(){
