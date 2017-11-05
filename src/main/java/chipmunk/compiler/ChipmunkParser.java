@@ -214,7 +214,7 @@ public class ChipmunkParser {
 	
 	public boolean checkClassDef(boolean allowFinal){
 		if(allowFinal){
-			return peek(Token.Type.FINAL) && peek(2, Token.Type.CLASS);
+			return (peek(Token.Type.FINAL) && peek(2, Token.Type.CLASS)) || peek(Token.Type.CLASS);
 		}else{
 			return peek(Token.Type.CLASS);
 		}
@@ -283,7 +283,7 @@ public class ChipmunkParser {
 	
 	public boolean checkMethodDef(boolean allowFinal){
 		if(allowFinal){
-			return peek(Token.Type.FINAL) && peek(2, Token.Type.DEF);
+			return (peek(Token.Type.FINAL) && peek(2, Token.Type.DEF)) || peek(Token.Type.DEF);
 		}else{
 			return peek(Token.Type.DEF);
 		}
@@ -377,7 +377,7 @@ public class ChipmunkParser {
 	
 	public boolean checkVarDec(boolean allowFinal){
 		if(allowFinal){
-			return peek(Token.Type.FINAL) && peek(2, Token.Type.VAR);
+			return (peek(Token.Type.FINAL) && peek(2, Token.Type.VAR)) || peek(Token.Type.VAR);
 		}else{
 			return peek(Token.Type.VAR);
 		}
@@ -436,7 +436,7 @@ public class ChipmunkParser {
 			case RETURN:
 			case THROW:
 				dropNext();
-				return new FlowControlNode(token);
+				return new FlowControlNode(token); // TODO - return/throw value
 			case BREAK:
 			case CONTINUE:
 				dropNext();
