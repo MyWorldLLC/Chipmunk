@@ -33,6 +33,13 @@ public class SymbolTable {
 		symbols.put(symbol.getName(), symbol);
 	}
 	
+	public Symbol getSymbol(String name){
+		if(!symbols.containsKey(name) && parent != null){
+			return parent.getSymbol(name);
+		}
+		return symbols.get(name);
+	}
+	
 	public boolean isSymbolSet(String name, boolean searchParents){
 		if(searchParents && parent != null){
 			if(parent.isSymbolSet(name, true)){

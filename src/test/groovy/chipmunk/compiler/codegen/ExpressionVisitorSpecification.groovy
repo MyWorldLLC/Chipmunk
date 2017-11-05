@@ -119,7 +119,34 @@ class ExpressionVisitorSpecification extends Specification {
 		result instanceof CInt
 		result.getValue() == 3
 	}
+	
+	def "Generate and run code for +1"(){
+		when:
+		def result = parseAndCall("+1")
 
+		then:
+		result instanceof CInt
+		result.getValue() == 1
+	}
+	
+	def "Generate and run code for -1"(){
+		when:
+		def result = parseAndCall("-1")
+
+		then:
+		result instanceof CInt
+		result.getValue() == -1
+	}
+
+	def "Generate and run code for +-1"(){
+		when:
+		def result = parseAndCall("+-1")
+
+		then:
+		result instanceof CInt
+		result.getValue() == 1
+	}
+	
 	def "Generate and run code for 1 * 2"(){
 		when:
 		def result = parseAndCall("1 * 2")
@@ -154,6 +181,15 @@ class ExpressionVisitorSpecification extends Specification {
 		then:
 		result instanceof CInt
 		result.getValue() == 1
+	}
+	
+	def "Generate and run code for 2**1**2"(){
+		when:
+		def result = parseAndCall("2**1**2")
+
+		then:
+		result instanceof CInt
+		result.getValue() == 2
 	}
 
 	def parseAndCall(String expression){

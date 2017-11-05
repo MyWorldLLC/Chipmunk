@@ -1,5 +1,6 @@
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 
 public class MethodNode extends ScopedNode {
@@ -11,6 +12,7 @@ public class MethodNode extends ScopedNode {
 	public MethodNode(){
 		super(SymbolTable.Scope.LOCAL);
 		name = "";
+		symTab.setSymbol(new Symbol("self", 0));
 	}
 	
 	public MethodNode(String name){

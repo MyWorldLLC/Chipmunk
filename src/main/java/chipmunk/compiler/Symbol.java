@@ -10,14 +10,18 @@ public class Symbol {
 	protected SymbolTable table;
 	
 	public Symbol(){
-		this("");
+		this("", -1);
 	}
 	
 	public Symbol(String name){
+		this(name, -1);
+	}
+	
+	public Symbol(String name, int localIndex){
 		isShared = false;
 		isFinal = false;
 		this.name = name;
-		localIndex = 0;
+		localIndex = localIndex;
 	}
 
 	public boolean isShared(){

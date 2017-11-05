@@ -30,7 +30,7 @@ public class ChipmunkAssembler {
 		this(new ArrayList<CObject>());
 	}
 	
-	private ChipmunkAssembler(List<CObject> constants){
+	public ChipmunkAssembler(List<CObject> constants){
 		code = new ByteArrayOutputStream();
 		index = 0;
 		labelNumber = 0;
@@ -246,6 +246,11 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
+	public void not(){
+		code.write(Opcodes.NOT);
+		index++;
+	}
+	
 	public void bxor(){
 		code.write(Opcodes.BXOR);
 		index++;
@@ -266,22 +271,19 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void lshift(byte places){
+	public void lshift(){
 		code.write(Opcodes.LSHIFT);
-		code.write(places);
-		index += 2;
+		index++;
 	}
 	
-	public void rshift(byte places){
+	public void rshift(){
 		code.write(Opcodes.RSHIFT);
-		code.write(places);
-		index += 2;
+		index++;
 	}
 	
-	public void urshift(int places){
+	public void urshift(){
 		code.write(Opcodes.URSHIFT);
-		code.write(places);
-		index += 2;
+		index++;
 	}
 	
 	public void setattr(){
@@ -302,6 +304,18 @@ public class ChipmunkAssembler {
 	public void setat(){
 		code.write(Opcodes.SETAT);
 		index++;
+	}
+	
+	public void getLocal(int localIndex){
+		code.write(Opcodes.GETLOCAL);
+		code.write(localIndex);
+		index += 2;
+	}
+	
+	public void setLocal(int localIndex){
+		code.write(Opcodes.SETLOCAL);
+		code.write(localIndex);
+		index += 2;
 	}
 	
 	public void truth(){

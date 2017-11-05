@@ -1,8 +1,10 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
+import chipmunk.compiler.UnresolvedSymbolChipmunk;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;
@@ -26,13 +28,20 @@ public class ExpressionVisitor implements AstVisitor {
 	@Override
 	public boolean preVisit(AstNode node) {
 		if(node instanceof IdNode){
-			// TODO - get symbol table mappings
+			IdNode id = (IdNode) node;
+			Symbol symbol = symbols.getSymbol(id.getID().getText());
+			
+			if(symbol == null){
+				throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d", id.getID().getText(), id.getID().getFile(), id.getBeginTokenIndex()), id.getID());
+			}
+			
+			// TODO - support instance, shared, and module level variables
+			assembler.getLocal(symbol.getLocalIndex());
 			return false;
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
 			case BOOLLITERAL:
-				// TODO - handle invalid booleans
 				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
 				return false;
 			case INTLITERAL:
@@ -76,6 +85,9 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.add();
 				}
 				return;
+			case DOUBLEPLUS:
+				assembler.inc();
+				return;
 			case MINUS:
 				if(rhs == null){
 					assembler.neg();
@@ -83,6 +95,8 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.sub();
 				}
 				return;
+			case DOUBLEMINUS:
+				assembler.dec();
 			case STAR:
 				assembler.mul();
 				return;
@@ -98,8 +112,61 @@ public class ExpressionVisitor implements AstVisitor {
 			case DOUBLESTAR:
 				assembler.pow();
 				return;
+			case DOUBLEDOTLESS:
+				// TODO - ranges
+			case DOUBLEDOT:
+				return;
+			case DOUBLEBAR:
+				assembler.or();
+				return;
+			case BAR:
+				assembler.bor();
+				return;
+			case EXCLAMATION:
+				assembler.not();
+				return;
+			case TILDE:
+				assembler.bneg();
+				return;
+			case CARET:
+				assembler.bxor();
+				return;
+			case DOUBLELESSTHAN:
+				assembler.lshift();
+				return;
+			case LESSTHAN:
+				assembler.lt();
+				return;
+			case TRIPLEMORETHAN:
+				assembler.urshift();
+				return;
+			case DOUBLEMORETHAN:
+				assembler.rshift();
+				return;
+			case MORETHAN:
+				assembler.gt();
+				return;
+			case DOUBLEAMPERSAND:
+				assembler.and();
+				return;
+			case AMPERSAND:
+				assembler.band();
+				return;
+			case LBRACKET:
+				assembler.getat();
+				return;
+			case LPAREN:
+				int argCount = 0;
+				if(rhs != null){
+					argCount = rhs.getChildren().size() - 1;
+				}
+				assembler.call((byte)argCount);
+				return;
+			case DOT:
+				assembler.getattr();
+				return;
 			default:
-				// TODO - extend to include all operators
+				// TODO - assignment
 				return;
 			}
 		}

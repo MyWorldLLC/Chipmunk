@@ -1,47 +1,6 @@
 package chipmunk.modules.lang;
 
-import static chipmunk.Opcodes.ADD;
-import static chipmunk.Opcodes.AND;
-import static chipmunk.Opcodes.AS;
-import static chipmunk.Opcodes.BAND;
-import static chipmunk.Opcodes.BNEG;
-import static chipmunk.Opcodes.BOR;
-import static chipmunk.Opcodes.BXOR;
-import static chipmunk.Opcodes.CALL;
-import static chipmunk.Opcodes.DEC;
-import static chipmunk.Opcodes.DIV;
-import static chipmunk.Opcodes.DUP;
-import static chipmunk.Opcodes.EQ;
-import static chipmunk.Opcodes.FDIV;
-import static chipmunk.Opcodes.GE;
-import static chipmunk.Opcodes.GETAT;
-import static chipmunk.Opcodes.GETATTR;
-import static chipmunk.Opcodes.GOTO;
-import static chipmunk.Opcodes.GT;
-import static chipmunk.Opcodes.IF;
-import static chipmunk.Opcodes.INC;
-import static chipmunk.Opcodes.IS;
-import static chipmunk.Opcodes.LE;
-import static chipmunk.Opcodes.LSHIFT;
-import static chipmunk.Opcodes.LT;
-import static chipmunk.Opcodes.MOD;
-import static chipmunk.Opcodes.MUL;
-import static chipmunk.Opcodes.NEG;
-import static chipmunk.Opcodes.NEW;
-import static chipmunk.Opcodes.OR;
-import static chipmunk.Opcodes.POP;
-import static chipmunk.Opcodes.POS;
-import static chipmunk.Opcodes.POW;
-import static chipmunk.Opcodes.PUSH;
-import static chipmunk.Opcodes.RETURN;
-import static chipmunk.Opcodes.RSHIFT;
-import static chipmunk.Opcodes.SETAT;
-import static chipmunk.Opcodes.SETATTR;
-import static chipmunk.Opcodes.SUB;
-import static chipmunk.Opcodes.SWAP;
-import static chipmunk.Opcodes.THROW;
-import static chipmunk.Opcodes.TRUTH;
-import static chipmunk.Opcodes.URSHIFT;
+import static chipmunk.Opcodes.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -317,6 +276,11 @@ public class CMethod extends CObject {
 			case TRUTH:
 				rh = context.pop();
 				context.push(new CBoolean(rh.__truth__()));
+				ip++;
+				break;
+			case NOT:
+				rh = context.pop();
+				context.push(new CBoolean(!rh.__truth__()));
 				ip++;
 				break;
 			case AS:
