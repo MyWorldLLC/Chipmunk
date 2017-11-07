@@ -13,8 +13,8 @@ import chipmunk.modules.lang.CFloat;
 import chipmunk.modules.lang.CInt;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CString;
-import chipmunk.modules.lang.Null;
-import chipmunk.modules.lang.NullType;
+import chipmunk.modules.lang.CNull;
+import chipmunk.modules.lang.CNullType;
 
 public class ChipmunkAssembler {
 	
@@ -141,7 +141,7 @@ public class ChipmunkAssembler {
 				for(int index = 0; index < utfBytes.length; index++){
 					os.write(utfBytes[index]);
 				}
-			}else if(obj instanceof Null){
+			}else if(obj instanceof CNull){
 				os.write(BinaryModuleFormat.CONSTANT_NULL);
 			}else if(obj instanceof CCode){
 				os.write(BinaryModuleFormat.CONSTANT_CODE);
@@ -466,7 +466,7 @@ public class ChipmunkAssembler {
 	}
 	
 	public void pushNull(){
-		push(NullType.nullObject);
+		push(CNullType.nullObject);
 	}
 	
 	public void eq(){

@@ -1,17 +1,17 @@
 package chipmunk.modules.lang;
 
 
-public class Null extends CObject {
+public class CNull extends CObject {
 	
-	public Null(){
-		NullType nullType = new NullType();
+	public CNull(){
+		CNullType nullType = new CNullType();
 		type = nullType;
 		namespace.setVariable("type", nullType);
 	}
 	
 	@Override
 	public boolean equals(Object other){
-		if(other instanceof Null){
+		if(other instanceof CNull){
 			return true;
 		}else{
 			return false;

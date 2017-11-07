@@ -1,14 +1,13 @@
 package chipmunk.modules.lang;
 
-
 public class LangModule extends CModule {
 
 	public LangModule(){
 		super("chipmunk.lang");
 		
-		Null nullObject = new Null();
+		CNull nullObject = new CNull();
 		nullObject.getType().setModule(this);
-		namespace.setVariable("Null", nullObject);
+		namespace.setVariable("null", CNullType.nullObject);
 		
 		CStringType stringType = new CStringType();
 		stringType.setModule(this);
@@ -16,15 +15,15 @@ public class LangModule extends CModule {
 		
 		CFloatType floatType = new CFloatType();
 		floatType.setModule(this);
-		namespace.setVariable("Float", floatType);
+		namespace.setVariable("float", floatType);
 		
 		CIntType intType = new CIntType();
 		intType.setModule(this);
-		namespace.setVariable("Int", intType);
+		namespace.setVariable("int", intType);
 		
 		CBooleanType boolType = new CBooleanType();
 		boolType.setModule(this);
-		namespace.setVariable("Bool", boolType);
+		namespace.setVariable("boolean", boolType);
 		
 		CMethodType methodType = new CMethodType();
 		methodType.setModule(this);

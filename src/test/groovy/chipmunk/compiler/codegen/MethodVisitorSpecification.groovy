@@ -6,7 +6,7 @@ import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.lang.CInt
 import chipmunk.modules.lang.CMethod
-import chipmunk.modules.lang.Null
+import chipmunk.modules.lang.CNull
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -18,7 +18,7 @@ class MethodVisitorSpecification extends Specification {
 	
 	def "Parse, generate, and run empty method def"(){
 		expect:
-		parseAndCall("def method(){}") instanceof Null
+		parseAndCall("def method(){}") instanceof CNull
 	}
 	
 	def "Parse, generate, and run return expression method def"(){
@@ -45,6 +45,18 @@ class MethodVisitorSpecification extends Specification {
 		then:
 		result instanceof CInt
 		result.getValue() == 3
+	}
+	
+	def "Parse, generate, and run method def with undefined var dec and return"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var foobar
+				return foobar
+		}""")
+		
+		then:
+		result instanceof CNull
 	}
 	
 	def parseAndCall(String expression){

@@ -49,6 +49,9 @@ public class MethodVisitor implements AstVisitor {
 			if(dec.getAssignExpr() != null){
 				dec.getAssignExpr().visit(new ExpressionVisitor(assembler, symbols));
 				assembler.setLocal(1);
+			}else{
+				assembler.pushNull();
+				assembler.setLocal(1);
 			}
 			return false;
 		}else if(node instanceof FlowControlNode){

@@ -1,11 +1,11 @@
 package chipmunk.modules.lang;
 
 
-public class NullType extends CType {
+public class CNullType extends CType {
 
-	public static final Null nullObject = new Null();
+	public static final CNull nullObject = new CNull();
 	
-	public NullType(){
+	public CNullType(){
 		super("Null");
 	}
 	
