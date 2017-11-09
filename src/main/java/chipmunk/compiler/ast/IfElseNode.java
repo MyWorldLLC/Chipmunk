@@ -8,18 +8,21 @@ public class IfElseNode extends GuardedNode {
 		hasElse = false;
 	}
 	
-	public AstNode getElseBranch(){
+	public ScopedNode getElseBranch(){
 		if(hasElse){
-			return children.get(children.size() - 1);
+			return (ScopedNode) children.get(children.size() - 1);
 		}else{
 			return null;
 		}
 	}
 	
-	public void setElseBranch(AstNode branch){
+	public void setElseBranch(ScopedNode branch){
 		if(branch != null){
-			hasElse = true;
+			if(hasElse){
+				children.remove(children.size() - 1);
+			}
 			super.addChild(branch);
+			hasElse = true;
 		}else{
 			if(hasElse){
 				children.remove(children.size() - 1);
@@ -28,16 +31,15 @@ public class IfElseNode extends GuardedNode {
 		}
 	}
 	
-	public void addChild(AstNode child){
+	public void addGuardedBranch(GuardedNode child){
 		if(!hasElse){
 			super.addChild(child);
 		}else{
 			children.add(children.size() - 2, child);
 		}
-		
 	}
 	
-	public void addChildren(AstNode... children){
+	public void addGuardedBranches(GuardedNode... children){
 		if(!hasElse){
 			super.addChildren(children);
 		}else{

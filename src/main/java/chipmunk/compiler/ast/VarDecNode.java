@@ -12,6 +12,12 @@ public class VarDecNode extends AstNode {
 		hasAssignExpr = false;
 	}
 	
+	public VarDecNode(IdNode id){
+		this();
+		hasVar = true;
+		super.addChild(id);
+	}
+	
 	public void setVar(IdNode id){
 		if(hasVar){
 			children.remove(0);

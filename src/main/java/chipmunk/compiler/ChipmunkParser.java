@@ -375,10 +375,6 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public IfElseNode parseIfElse(){
-		return null;
-	}
-	
 	public boolean checkVarDec(){
 		return checkVarDec(true);
 	}
@@ -490,28 +486,64 @@ public class ChipmunkParser {
 		return null;
 	}
 	
-	public AstNode parseWhile(){
+	public IfElseNode parseIfElse(){
+		return null;
+	}
+	
+	public WhileNode parseWhile(){
 		WhileNode node = new WhileNode();
 		forceNext(Token.Type.WHILE);
 		forceNext(Token.Type.LPAREN);
 		
-		skipNewlinesAndComments();
+		skipNewlines();
 		node.setGuard(parseExpression());
 		
-		skipNewlinesAndComments();
+		skipNewlines();
 		forceNext(Token.Type.RPAREN);
 		forceNext(Token.Type.LBRACE);
 		
 		while(!peek(Token.Type.RBRACE)){
 			skipNewlinesAndComments();
 			node.addChild(parseStatement(true));
+			
+			skipNewlinesAndComments();
+			if(peek(Token.Type.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+			}
 		}
 		forceNext(Token.Type.RBRACE);
 		return node;
 	}
 	
-	public AstNode parseFor(){
-		return null;
+	public ForNode parseFor(){
+		ForNode node = new ForNode();
+		forceNext(Token.Type.FOR);
+		forceNext(Token.Type.LPAREN);
+		
+		skipNewlines();
+		dropNext(Token.Type.VAR);
+		IdNode varID = new IdNode(getNext(Token.Type.IDENTIFIER));
+		forceNext(Token.Type.IN);
+		
+		AstNode expr = parseExpression();
+		
+		node.setID(new VarDecNode(varID));
+		node.setIter(expr);
+		
+		skipNewlines();
+		forceNext(Token.Type.RPAREN);
+		forceNext(Token.Type.LBRACE);
+		
+		while(!peek(Token.Type.RBRACE)){
+			skipNewlinesAndComments();
+			node.addChild(parseStatement(true));
+			
+			skipNewlinesAndComments();
+			if(peek(Token.Type.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+			}
+		}
+		return node;
 	}
 	
 	public AstNode parseTryCatch(){
