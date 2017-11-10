@@ -227,6 +227,7 @@ public class ChipmunkParser {
 		skipNewlines();
 		
 		ClassNode node = new ClassNode();
+		startNode(node);
 		if(dropNext(Token.Type.FINAL)){
 			node.setFinal(true);
 		}
@@ -234,7 +235,6 @@ public class ChipmunkParser {
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		startNode(node);
 		node.setName(id.getText());
 		
 		if(peek(Token.Type.EXTENDS)){
@@ -380,6 +380,7 @@ public class ChipmunkParser {
 	}
 	public VarDecNode parseVarDec(){
 		VarDecNode dec = new VarDecNode();
+		startNode(dec);
 		if(dropNext(Token.Type.FINAL)){
 			dec.setFinal(true);
 		}
@@ -387,7 +388,6 @@ public class ChipmunkParser {
 		forceNext(Token.Type.VAR);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		startNode(dec);
 		dec.setVar(new IdNode(id));
 		
 		if(peek(Token.Type.EQUALS)){
@@ -484,6 +484,7 @@ public class ChipmunkParser {
 	
 	public IfElseNode parseIfElse(){
 		IfElseNode node = new IfElseNode();
+		startNode(node);
 		
 		// keep parsing if & else-if branches until something causes this to break
 		while(true){
@@ -521,11 +522,14 @@ public class ChipmunkParser {
 			}
 		}
 		
+		endNode(node);
 		return node;
 	}
 	
 	public GuardedNode parseIfBranch(){
 		GuardedNode ifBranch = new GuardedNode();
+		startNode(ifBranch);
+		
 		forceNext(Token.Type.IF);
 		forceNext(Token.Type.LPAREN);
 		skipNewlines();
@@ -537,11 +541,14 @@ public class ChipmunkParser {
 		
 		parseBlockBody(ifBranch);
 		
+		endNode(ifBranch);
 		return ifBranch;
 	}
 	
 	public WhileNode parseWhile(){
 		WhileNode node = new WhileNode();
+		startNode(node);
+		
 		forceNext(Token.Type.WHILE);
 		forceNext(Token.Type.LPAREN);
 		
@@ -554,11 +561,14 @@ public class ChipmunkParser {
 		
 		parseBlockBody(node);
 		
+		endNode(node);
 		return node;
 	}
 	
 	public ForNode parseFor(){
 		ForNode node = new ForNode();
+		startNode(node);
+		
 		forceNext(Token.Type.FOR);
 		forceNext(Token.Type.LPAREN);
 		
@@ -577,6 +587,7 @@ public class ChipmunkParser {
 		
 		parseBlockBody(node);
 		
+		endNode(node);
 		return node;
 	}
 	
@@ -596,7 +607,22 @@ public class ChipmunkParser {
 	}
 	
 	public AstNode parseTryCatch(){
-		return null;
+		TryCatchNode node = new TryCatchNode();
+		startNode(node);
+		
+		forceNext(Token.Type.TRY);
+		BlockNode bodyNode = new BlockNode();
+		
+		startNode(bodyNode);
+		parseBlockBody(bodyNode);
+		endNode(bodyNode);
+		// add try block to body
+		node.setTryBlock(bodyNode);
+		
+		// parse and add catch blocks
+		
+		endNode(node);
+		return node;
 	}
 	
 	/**
