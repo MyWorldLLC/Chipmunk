@@ -620,7 +620,30 @@ public class ChipmunkParser {
 		node.setTryBlock(bodyNode);
 		
 		// parse and add catch blocks
-		
+		while(true){
+			forceNext(Token.Type.CATCH);
+			forceNext(Token.Type.LPAREN);
+			
+			CatchNode catchNode = new CatchNode();
+			startNode(catchNode);
+			
+			// if catch block has type of exception, include in node
+			if(peek(Token.Type.IDENTIFIER, Token.Type.IDENTIFIER)){
+				catchNode.setExceptionType(getNext(Token.Type.IDENTIFIER));
+			}
+			
+			catchNode.setExceptionName(getNext(Token.Type.IDENTIFIER));
+			forceNext(Token.Type.RPAREN);
+			
+			parseBlockBody(catchNode);
+			
+			endNode(catchNode);
+			node.addCatchBlock(catchNode);
+			
+			if(!peek(Token.Type.CATCH)){
+				break;
+			}
+		}
 		endNode(node);
 		return node;
 	}
