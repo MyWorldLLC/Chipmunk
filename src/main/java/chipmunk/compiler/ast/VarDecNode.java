@@ -4,12 +4,14 @@ public class VarDecNode extends AstNode {
 	
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
+	protected boolean isFinal;
 	
 	
 	public VarDecNode(){
 		super();
 		hasVar = false;
 		hasAssignExpr = false;
+		isFinal = false;
 	}
 	
 	public VarDecNode(IdNode id){
@@ -54,6 +56,14 @@ public class VarDecNode extends AstNode {
 	
 	public String getVarName(){
 		return hasVar ? getIDNode().getID().getText() : null;
+	}
+	
+	public void setFinal(boolean isFinal){
+		this.isFinal = isFinal;
+	}
+	
+	public boolean isFinal(){
+		return isFinal;
 	}
 	
 	@Override

@@ -2,14 +2,16 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.SymbolTable;
 
-public class ClassNode extends ScopedNode {
+public class ClassNode extends BlockNode {
 	
 	protected String name;
+	protected boolean isFinal;
 	protected String superName;
 	
 	public ClassNode(){
 		super(SymbolTable.Scope.CLASS);
 		name = "";
+		isFinal = false;
 	}
 	
 	public ClassNode(String name){
@@ -29,6 +31,14 @@ public class ClassNode extends ScopedNode {
 
 	public void setName(String name){
 		this.name = name;
+	}
+	
+	public boolean isFinal(){
+		return isFinal;
+	}
+	
+	public void setFinal(boolean isFinal){
+		this.isFinal = isFinal;
 	}
 
 	public String getSuperName(){

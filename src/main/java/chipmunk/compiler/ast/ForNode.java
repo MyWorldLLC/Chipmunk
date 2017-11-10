@@ -1,6 +1,6 @@
 package chipmunk.compiler.ast;
 
-public class ForNode extends ScopedNode {
+public class ForNode extends BlockNode {
 	
 	protected boolean hasIter;
 	protected boolean hasID;
@@ -70,10 +70,6 @@ public class ForNode extends ScopedNode {
 		}else{
 			return null;
 		}
-	}
-	
-	public void addChild(AstNode node){
-		super.addChild(node);
 	}
 
 }

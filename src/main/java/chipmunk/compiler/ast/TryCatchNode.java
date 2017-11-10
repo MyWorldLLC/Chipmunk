@@ -12,7 +12,7 @@ public class TryCatchNode extends AstNode {
 		return hasTry;
 	}
 	
-	public void setTryBlock(ScopedNode tryBlock){
+	public void setTryBlock(BlockNode tryBlock){
 		if(tryBlock != null){
 			if(hasTry){
 				children.remove(children.size() - 1);

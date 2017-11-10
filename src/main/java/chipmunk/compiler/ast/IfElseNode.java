@@ -1,6 +1,6 @@
 package chipmunk.compiler.ast;
 
-public class IfElseNode extends GuardedNode {
+public class IfElseNode extends AstNode {
 	
 	protected boolean hasElse;
 	
@@ -8,15 +8,15 @@ public class IfElseNode extends GuardedNode {
 		hasElse = false;
 	}
 	
-	public ScopedNode getElseBranch(){
+	public BlockNode getElseBranch(){
 		if(hasElse){
-			return (ScopedNode) children.get(children.size() - 1);
+			return (BlockNode) children.get(children.size() - 1);
 		}else{
 			return null;
 		}
 	}
 	
-	public void setElseBranch(ScopedNode branch){
+	public void setElseBranch(BlockNode branch){
 		if(branch != null){
 			if(hasElse){
 				children.remove(children.size() - 1);

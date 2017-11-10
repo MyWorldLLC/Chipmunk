@@ -2,26 +2,26 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.SymbolTable;
 
-public class ScopedNode extends AstNode {
+public class BlockNode extends AstNode {
 	
 	protected SymbolTable symTab;
 	
-	public ScopedNode(){
+	public BlockNode(){
 		super();
 		symTab = new SymbolTable();
 	}
 	
-	public ScopedNode(SymbolTable.Scope scope){
+	public BlockNode(SymbolTable.Scope scope){
 		super();
 		symTab = new SymbolTable(scope);
 	}
 	
-	public ScopedNode(AstNode... children){
+	public BlockNode(AstNode... children){
 		super(children);
 		symTab = new SymbolTable();
 	}
 	
-	public ScopedNode(SymbolTable.Scope scope, AstNode... children){
+	public BlockNode(SymbolTable.Scope scope, AstNode... children){
 		super(children);
 		symTab = new SymbolTable(scope);
 	}
@@ -30,8 +30,16 @@ public class ScopedNode extends AstNode {
 		return symTab;
 	}
 	
-	public void setParentSymbolTable(ScopedNode node){
+	public void setParentSymbolTable(BlockNode node){
 		symTab.setParent(node.getSymbolTable());
+	}
+	
+	public void addToBody(AstNode node){
+		super.addChild(node);
+	}
+	
+	public void addToBody(AstNode... nodes){
+		super.addChildren(nodes);
 	}
 
 }

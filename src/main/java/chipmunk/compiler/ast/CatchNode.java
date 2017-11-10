@@ -2,7 +2,7 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.Token;
 
-public class CatchNode extends ScopedNode {
+public class CatchNode extends BlockNode {
 	
 	protected boolean hasExceptionName;
 	protected Token exceptionType;

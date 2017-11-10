@@ -3,7 +3,7 @@ package chipmunk.compiler;
 import java.util.HashMap;
 import java.util.Map;
 
-import chipmunk.compiler.ast.ScopedNode;
+import chipmunk.compiler.ast.BlockNode;
 
 public class SymbolTable {
 	
@@ -14,7 +14,7 @@ public class SymbolTable {
 	protected Map<String, Symbol> symbols;
 	protected SymbolTable parent;
 	protected Scope scope;
-	protected ScopedNode node;
+	protected BlockNode node;
 	
 	public SymbolTable(SymbolTable parent){
 		this();
@@ -57,11 +57,11 @@ public class SymbolTable {
 		this.scope = scope;
 	}
 	
-	public ScopedNode getNode(){
+	public BlockNode getNode(){
 		return node;
 	}
 	
-	public void setNode(ScopedNode node){
+	public void setNode(BlockNode node){
 		this.node = node;
 	}
 	

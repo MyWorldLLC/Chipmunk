@@ -2,7 +2,7 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.SymbolTable;
 
-public class ModuleNode extends ScopedNode {
+public class ModuleNode extends BlockNode {
 
 	protected String name;
 	

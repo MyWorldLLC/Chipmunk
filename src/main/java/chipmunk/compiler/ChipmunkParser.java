@@ -217,7 +217,7 @@ public class ChipmunkParser {
 	
 	public boolean checkClassDef(boolean allowFinal){
 		if(allowFinal){
-			return (peek(Token.Type.FINAL) && peek(2, Token.Type.CLASS)) || peek(Token.Type.CLASS);
+			return peek(Token.Type.FINAL, Token.Type.CLASS) || peek(Token.Type.CLASS);
 		}else{
 			return peek(Token.Type.CLASS);
 		}
@@ -226,10 +226,13 @@ public class ChipmunkParser {
 	public ClassNode parseClassDef(){
 		skipNewlines();
 		
+		ClassNode node = new ClassNode();
+		if(dropNext(Token.Type.FINAL)){
+			node.setFinal(true);
+		}
+		
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
-		
-		ClassNode node = new ClassNode();
 		
 		startNode(node);
 		node.setName(id.getText());
@@ -249,31 +252,31 @@ public class ChipmunkParser {
 				shared = true;
 			}
 			
-			boolean isFinal = false;
-			if(dropNext(Token.Type.FINAL)){
-				isFinal = true;
-			}
-			
 			Symbol symbol = new Symbol();
-			symbol.setFinal(isFinal);
 			symbol.setShared(shared);
 			
 			if(checkVarDec()){
 				VarDecNode varNode = parseVarDec();
 				symbol.setName(varNode.getVarName());
+				symbol.setFinal(varNode.isFinal());
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
 				MethodNode methodNode = parseMethodDef();
 				symbol.setName(methodNode.getName());
+				symbol.setFinal(methodNode.isFinal());
 				node.addChild(methodNode);
 			}else{
-				syntaxError("Error parsing class body", tokens.peek(), Token.Type.VAR, Token.Type.DEF);
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
 			}
 			
 			// TODO - symbol search rules
 			node.getSymbolTable().setSymbol(symbol);
 			
 			skipNewlines();
+			
+			if(peek(Token.Type.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+			}
 		}
 		forceNext(Token.Type.RBRACE);
 		endNode(node);
@@ -286,7 +289,7 @@ public class ChipmunkParser {
 	
 	public boolean checkMethodDef(boolean allowFinal){
 		if(allowFinal){
-			return (peek(Token.Type.FINAL) && peek(2, Token.Type.DEF)) || peek(Token.Type.DEF);
+			return peek(Token.Type.FINAL, Token.Type.DEF) || peek(Token.Type.DEF);
 		}else{
 			return peek(Token.Type.DEF);
 		}
@@ -297,6 +300,10 @@ public class ChipmunkParser {
 		
 		MethodNode node = new MethodNode();
 		startNode(node);
+		
+		if(dropNext(Token.Type.FINAL)){
+			node.setFinal(true);
+		}
 		
 		forceNext(Token.Type.DEF);
 		node.setName(getNext(Token.Type.IDENTIFIER).getText());
@@ -320,44 +327,29 @@ public class ChipmunkParser {
 			// (d) blocks and expressions
 			
 			if(checkVarDec()){
-				
-				boolean isFinal = false;
-				if(dropNext(Token.Type.FINAL)){
-					isFinal = true;
-				}
 			
 				// Add to symbol table
 				VarDecNode varDec = parseVarDec();
 				Symbol symbol = new Symbol(varDec.getVarName());
-				symbol.setFinal(isFinal);
+				symbol.setFinal(varDec.isFinal());
 				node.getSymbolTable().setSymbol(symbol);
 				node.addToBody(varDec);
 			
 			}else if(checkMethodDef()){
-
-				boolean isFinal = false;
-				if(dropNext(Token.Type.FINAL)){
-					isFinal = true;
-				}
 				
 				// Add to symbol table
 				MethodNode innerMethod = parseMethodDef();
 				Symbol symbol = new Symbol(innerMethod.getName());
-				symbol.setFinal(isFinal);
+				symbol.setFinal(innerMethod.isFinal());
 				node.getSymbolTable().setSymbol(symbol);
 				node.addToBody(innerMethod);
 				
 			}else if(checkClassDef()){
-
-				boolean isFinal = false;
-				if(dropNext(Token.Type.FINAL)){
-					isFinal = true;
-				}
 				
 				// Add to symbol table
 				ClassNode classDef = parseClassDef();
 				Symbol symbol = new Symbol(classDef.getName());
-				symbol.setFinal(isFinal);
+				symbol.setFinal(classDef.isFinal());
 				node.getSymbolTable().setSymbol(symbol);
 				node.addToBody(classDef);
 				
@@ -381,16 +373,20 @@ public class ChipmunkParser {
 	
 	public boolean checkVarDec(boolean allowFinal){
 		if(allowFinal){
-			return (peek(Token.Type.FINAL) && peek(2, Token.Type.VAR)) || peek(Token.Type.VAR);
+			return peek(Token.Type.FINAL, Token.Type.VAR) || peek(Token.Type.VAR);
 		}else{
 			return peek(Token.Type.VAR);
 		}
 	}
 	public VarDecNode parseVarDec(){
+		VarDecNode dec = new VarDecNode();
+		if(dropNext(Token.Type.FINAL)){
+			dec.setFinal(true);
+		}
+		
 		forceNext(Token.Type.VAR);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		VarDecNode dec = new VarDecNode();
 		startNode(dec);
 		dec.setVar(new IdNode(id));
 		
@@ -487,7 +483,61 @@ public class ChipmunkParser {
 	}
 	
 	public IfElseNode parseIfElse(){
-		return null;
+		IfElseNode node = new IfElseNode();
+		
+		// keep parsing if & else-if branches until something causes this to break
+		while(true){
+			// Parse if branch
+			GuardedNode ifBranch = new GuardedNode();
+			forceNext(Token.Type.IF);
+			forceNext(Token.Type.LPAREN);
+			skipNewlines();
+			
+			ifBranch.setGuard(parseExpression());
+			
+			skipNewlines();
+			forceNext(Token.Type.RPAREN);
+			
+			parseBlockBody(ifBranch);
+			
+			node.addGuardedBranch(ifBranch);
+			
+			if(dropNext(Token.Type.ELSE)){
+				
+				skipNewlines();
+				// it's the else block
+				if(peek(Token.Type.LBRACE)){
+					BlockNode elseBlock = new BlockNode();
+					
+					parseBlockBody(elseBlock);
+					
+					break;
+				}
+				// if peek() result is not '{', assume it's another if branch
+				// and keep going
+			}else{
+				// it's the end of the if-else chain
+				break;
+			}
+		}
+		
+		return node;
+	}
+	
+	public GuardedNode parseIfBranch(){
+		GuardedNode ifBranch = new GuardedNode();
+		forceNext(Token.Type.IF);
+		forceNext(Token.Type.LPAREN);
+		skipNewlines();
+		
+		ifBranch.setGuard(parseExpression());
+		
+		skipNewlines();
+		forceNext(Token.Type.RPAREN);
+		
+		parseBlockBody(ifBranch);
+		
+		return ifBranch;
 	}
 	
 	public WhileNode parseWhile(){
@@ -502,16 +552,8 @@ public class ChipmunkParser {
 		forceNext(Token.Type.RPAREN);
 		forceNext(Token.Type.LBRACE);
 		
-		while(!peek(Token.Type.RBRACE)){
-			skipNewlinesAndComments();
-			node.addChild(parseStatement(true));
-			
-			skipNewlinesAndComments();
-			if(peek(Token.Type.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
-			}
-		}
-		forceNext(Token.Type.RBRACE);
+		parseBlockBody(node);
+		
 		return node;
 	}
 	
@@ -532,18 +574,25 @@ public class ChipmunkParser {
 		
 		skipNewlines();
 		forceNext(Token.Type.RPAREN);
+		
+		parseBlockBody(node);
+		
+		return node;
+	}
+	
+	public void parseBlockBody(BlockNode node){
 		forceNext(Token.Type.LBRACE);
 		
 		while(!peek(Token.Type.RBRACE)){
 			skipNewlinesAndComments();
-			node.addChild(parseStatement(true));
-			
+			node.addToBody(parseStatement(true));
 			skipNewlinesAndComments();
+			
 			if(peek(Token.Type.EOF)){
 				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
 			}
 		}
-		return node;
+		forceNext(Token.Type.RBRACE);
 	}
 	
 	public AstNode parseTryCatch(){
@@ -782,13 +831,12 @@ public class ChipmunkParser {
 	}
 	
 	public boolean peek(int places, Token.Type type){
-		Token token = tokens.peek(places);
-		return token.getType() == type;
+		return tokens.peek(places).getType() == type;
 	}
 	
 	public boolean peek(Token.Type... types){
-		for(int i = 1; i <= types.length; i++){
-			if(peek(i).getType() != types[i - 1]){
+		for(int i = 0; i < types.length; i++){
+			if(peek(i).getType() != types[i]){
 				return false;
 			}
 		}

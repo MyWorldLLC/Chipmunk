@@ -3,15 +3,17 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 
-public class MethodNode extends ScopedNode {
+public class MethodNode extends BlockNode {
 
 	protected String name;
+	protected boolean isFinal;
 	protected int defaultParamCount;
 	protected int paramCount;
 	
 	public MethodNode(){
 		super(SymbolTable.Scope.LOCAL);
 		name = "";
+		isFinal = false;
 		symTab.setSymbol(new Symbol("self", 0));
 	}
 	
@@ -46,6 +48,14 @@ public class MethodNode extends ScopedNode {
 	
 	public void addToBody(AstNode node){
 		addChild(node);
+	}
+	
+	public void setFinal(boolean isFinal){
+		this.isFinal = isFinal;
+	}
+	
+	public boolean isFinal(){
+		return isFinal;
 	}
 	
 	@Override

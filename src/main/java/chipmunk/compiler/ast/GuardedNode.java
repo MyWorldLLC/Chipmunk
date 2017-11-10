@@ -1,6 +1,6 @@
 package chipmunk.compiler.ast;
 
-public class GuardedNode extends ScopedNode {
+public class GuardedNode extends BlockNode {
 	
 	protected boolean hasGuard;
 	
