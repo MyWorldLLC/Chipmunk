@@ -257,13 +257,11 @@ public class ChipmunkParser {
 			
 			if(checkVarDec()){
 				VarDecNode varNode = parseVarDec();
-				symbol.setName(varNode.getVarName());
-				symbol.setFinal(varNode.isFinal());
+				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
 				MethodNode methodNode = parseMethodDef();
-				symbol.setName(methodNode.getName());
-				symbol.setFinal(methodNode.isFinal());
+				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
 			}else{
 				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
@@ -302,7 +300,7 @@ public class ChipmunkParser {
 		startNode(node);
 		
 		if(dropNext(Token.Type.FINAL)){
-			node.setFinal(true);
+			node.getSymbol().setFinal(true);
 		}
 		
 		forceNext(Token.Type.DEF);
@@ -316,52 +314,7 @@ public class ChipmunkParser {
 		}
 		forceNext(Token.Type.RPAREN);
 		skipNewlines();
-		forceNext(Token.Type.LBRACE);
-		skipNewlines();
-		while(!peek(Token.Type.RBRACE)){
-			// Parse method body.
-			// Allowed statements are:
-			// (a) variable declarations and assignments
-			// (b) method definitions
-			// (c) class definitions
-			// (d) blocks and expressions
-			
-			if(checkVarDec()){
-			
-				// Add to symbol table
-				VarDecNode varDec = parseVarDec();
-				Symbol symbol = new Symbol(varDec.getVarName());
-				symbol.setFinal(varDec.isFinal());
-				node.getSymbolTable().setSymbol(symbol);
-				node.addToBody(varDec);
-			
-			}else if(checkMethodDef()){
-				
-				// Add to symbol table
-				MethodNode innerMethod = parseMethodDef();
-				Symbol symbol = new Symbol(innerMethod.getName());
-				symbol.setFinal(innerMethod.isFinal());
-				node.getSymbolTable().setSymbol(symbol);
-				node.addToBody(innerMethod);
-				
-			}else if(checkClassDef()){
-				
-				// Add to symbol table
-				ClassNode classDef = parseClassDef();
-				Symbol symbol = new Symbol(classDef.getName());
-				symbol.setFinal(classDef.isFinal());
-				node.getSymbolTable().setSymbol(symbol);
-				node.addToBody(classDef);
-				
-			}else{
-				node.addToBody(parseStatement());
-			}
-			skipNewlinesAndComments();
-			if(peek(Token.Type.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
-			}
-		}
-		forceNext(Token.Type.RBRACE);
+		parseBlockBody(node);
 		
 		endNode(node);
 		return node;
@@ -382,7 +335,7 @@ public class ChipmunkParser {
 		VarDecNode dec = new VarDecNode();
 		startNode(dec);
 		if(dropNext(Token.Type.FINAL)){
-			dec.setFinal(true);
+			dec.getSymbol().setFinal(true);
 		}
 		
 		forceNext(Token.Type.VAR);

@@ -1,17 +1,19 @@
 package chipmunk.compiler.ast;
 
-public class VarDecNode extends AstNode {
+import chipmunk.compiler.Symbol;
+
+public class VarDecNode extends AstNode implements SymbolNode {
 	
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
-	protected boolean isFinal;
+	protected Symbol symbol;
 	
 	
 	public VarDecNode(){
 		super();
 		hasVar = false;
 		hasAssignExpr = false;
-		isFinal = false;
+		symbol = new Symbol();
 	}
 	
 	public VarDecNode(IdNode id){
@@ -27,6 +29,7 @@ public class VarDecNode extends AstNode {
 		
 		if(id != null){
 			this.addChildFirst(id);
+			symbol.setName(id.getID().getText());
 			hasVar = true;
 		}else{
 			hasVar = false;
@@ -58,14 +61,6 @@ public class VarDecNode extends AstNode {
 		return hasVar ? getIDNode().getID().getText() : null;
 	}
 	
-	public void setFinal(boolean isFinal){
-		this.isFinal = isFinal;
-	}
-	
-	public boolean isFinal(){
-		return isFinal;
-	}
-	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
@@ -85,6 +80,11 @@ public class VarDecNode extends AstNode {
 		}
 		builder.append(")");
 		return builder.toString();
+	}
+
+	@Override
+	public Symbol getSymbol() {
+		return symbol;
 	}
 
 }

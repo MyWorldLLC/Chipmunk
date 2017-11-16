@@ -14,6 +14,8 @@ public class SymbolTable {
 	protected Map<String, Symbol> symbols;
 	protected SymbolTable parent;
 	protected Scope scope;
+	protected int localMin;
+	protected int localMax;
 	protected BlockNode node;
 	
 	public SymbolTable(SymbolTable parent){
@@ -22,15 +24,20 @@ public class SymbolTable {
 	}
 	public SymbolTable(){
 		symbols = new HashMap<String, Symbol>();
+		localMin = -1;
+		localMax = -1;
 	}
 	
 	public SymbolTable(SymbolTable.Scope scope){
 		this();
-		this.scope = scope;
+		setScope(scope);
 	}
 	
 	public void setSymbol(Symbol symbol){
-		symbols.put(symbol.getName(), symbol);
+		if(!symbols.containsKey(symbol.getName()) && scope == SymbolTable.Scope.LOCAL){
+			localMax++;
+		}
+		symbols.put(symbol.getName(), symbol);	
 	}
 	
 	public Symbol getSymbol(String name){
@@ -38,6 +45,12 @@ public class SymbolTable {
 			return parent.getSymbol(name);
 		}
 		return symbols.get(name);
+	}
+	
+	public void clearSymbol(String name){
+		if(symbols.remove(name) != null && scope == SymbolTable.Scope.LOCAL){
+			localMax--;
+		}
 	}
 	
 	public boolean isSymbolSet(String name, boolean searchParents){
@@ -55,6 +68,13 @@ public class SymbolTable {
 	
 	public void setScope(Scope scope){
 		this.scope = scope;
+		if(scope == SymbolTable.Scope.LOCAL){
+			localMin = 0;
+			localMax = 0;
+		}else{
+			localMin = -1;
+			localMax = -1;
+		}
 	}
 	
 	public BlockNode getNode(){

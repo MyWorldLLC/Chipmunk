@@ -23,8 +23,15 @@ public class MethodVisitor implements AstVisitor {
 	protected SymbolTable symbols;
 	protected MethodNode methodNode;
 	
+	protected int localIndex;
+	
 	public MethodVisitor(List<CObject> constantPool){
+		this(constantPool, 1);
+	}
+	
+	private MethodVisitor(List<CObject> constantPool, int localIndex){
 		assembler = new ChipmunkAssembler(constantPool);
+		this.localIndex = localIndex;
 	}
 	
 	@Override
@@ -44,7 +51,8 @@ public class MethodVisitor implements AstVisitor {
 			return false;
 		}else if(node instanceof VarDecNode){
 			VarDecNode dec = (VarDecNode) node;
-			symbols.setSymbol(new Symbol(dec.getVarName(), 1)); // TODO - local var indices
+			symbols.setSymbol(new Symbol(dec.getVarName(), localIndex)); // TODO - local var indices
+			localIndex++;
 			
 			if(dec.getAssignExpr() != null){
 				dec.getAssignExpr().visit(new ExpressionVisitor(assembler, symbols));

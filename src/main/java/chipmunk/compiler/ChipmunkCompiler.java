@@ -8,11 +8,24 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.ModuleVisitor;
+import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
 import chipmunk.modules.lang.CModule;
 
 public class ChipmunkCompiler {
+	
+	protected List<AstVisitor> visitors;
+	
+	public ChipmunkCompiler(){
+		visitors = new ArrayList<AstVisitor>();
+		visitors.add(new SymbolTableBuilderVisitor());
+	}
+	
+	public List<AstVisitor> getVisitors(){
+		return visitors;
+	}
 	
 	public List<CModule> compile(CharSequence src) throws CompileChipmunk, SyntaxErrorChipmunk {
 		
@@ -24,7 +37,13 @@ public class ChipmunkCompiler {
 		parser.parse();
 		List<ModuleNode> roots = parser.getModuleRoots();
 		
+		
 		for(ModuleNode node : roots){
+			
+			for(AstVisitor visitor : visitors){
+				node.visit(visitor);
+			}
+			
 			ModuleVisitor visitor = new ModuleVisitor();
 			node.visit(visitor);
 			modules.add(visitor.getModule());

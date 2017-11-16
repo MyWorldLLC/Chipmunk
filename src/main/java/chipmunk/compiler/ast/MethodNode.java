@@ -3,22 +3,22 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 
-public class MethodNode extends BlockNode {
+public class MethodNode extends BlockNode implements SymbolNode {
 
 	protected String name;
-	protected boolean isFinal;
 	protected int defaultParamCount;
 	protected int paramCount;
+	protected Symbol symbol;
 	
 	public MethodNode(){
 		super(SymbolTable.Scope.LOCAL);
 		name = "";
-		isFinal = false;
 		symTab.setSymbol(new Symbol("self", 0));
+		symbol = new Symbol();
 	}
 	
 	public MethodNode(String name){
-		super();
+		this();
 		this.name = name;
 	}
 	
@@ -50,14 +50,6 @@ public class MethodNode extends BlockNode {
 		addChild(node);
 	}
 	
-	public void setFinal(boolean isFinal){
-		this.isFinal = isFinal;
-	}
-	
-	public boolean isFinal(){
-		return isFinal;
-	}
-	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
@@ -72,4 +64,10 @@ public class MethodNode extends BlockNode {
 		builder.append(")");
 		return builder.toString();
 	}
+
+	@Override
+	public Symbol getSymbol() {
+		return symbol;
+	}
+	
 }

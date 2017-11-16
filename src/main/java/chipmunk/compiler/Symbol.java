@@ -1,5 +1,6 @@
 package chipmunk.compiler;
 
+import chipmunk.compiler.ast.SymbolNode;
 
 public class Symbol {
 	
@@ -7,6 +8,7 @@ public class Symbol {
 	protected boolean isFinal;
 	protected String name;
 	protected int localIndex;
+	protected SymbolNode node;
 	protected SymbolTable table;
 	
 	public Symbol(){
@@ -54,6 +56,14 @@ public class Symbol {
 
 	public void setLocalIndex(int localIndex){
 		this.localIndex = localIndex;
+	}
+	
+	public void setNode(SymbolNode node){
+		this.node = node;
+	}
+	
+	public SymbolNode getNode(){
+		return node;
 	}
 
 	public SymbolTable getTable(){
