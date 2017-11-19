@@ -4,30 +4,27 @@ import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 
 public class MethodNode extends BlockNode implements SymbolNode {
-
-	protected String name;
+	
 	protected int defaultParamCount;
 	protected int paramCount;
 	protected Symbol symbol;
 	
 	public MethodNode(){
 		super(SymbolTable.Scope.LOCAL);
-		name = "";
-		symTab.setSymbol(new Symbol("self", 0));
 		symbol = new Symbol();
 	}
 	
 	public MethodNode(String name){
 		this();
-		this.name = name;
+		symbol.setName(name);
 	}
 	
 	public String getName(){
-		return name;
+		return symbol.getName();
 	}
 	
 	public void setName(String name){
-		this.name = name;
+		symbol.setName(name);
 	}
 	
 	public int getParamCount(){
@@ -54,7 +51,7 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append("(method ");
-		builder.append(name);
+		builder.append(symbol.getName());
 		
 		for(AstNode child : children){
 			builder.append(' ');

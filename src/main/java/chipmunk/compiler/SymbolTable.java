@@ -1,7 +1,7 @@
 package chipmunk.compiler;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import chipmunk.compiler.ast.BlockNode;
 
@@ -11,55 +11,61 @@ public class SymbolTable {
 		MODULE, CLASS, LOCAL
 	}
 	
-	protected Map<String, Symbol> symbols;
+	protected List<Symbol> symbols;
 	protected SymbolTable parent;
 	protected Scope scope;
-	protected int localMin;
-	protected int localMax;
+	protected int localStartIndex;
+	protected int maxChildLocalCount;
 	protected BlockNode node;
 	
-	public SymbolTable(SymbolTable parent){
-		this();
-		this.parent = parent;
-	}
 	public SymbolTable(){
-		symbols = new HashMap<String, Symbol>();
-		localMin = -1;
-		localMax = -1;
+		this(Scope.LOCAL);
 	}
 	
 	public SymbolTable(SymbolTable.Scope scope){
-		this();
+		symbols = new ArrayList<Symbol>();
 		setScope(scope);
 	}
 	
 	public void setSymbol(Symbol symbol){
-		if(!symbols.containsKey(symbol.getName()) && scope == SymbolTable.Scope.LOCAL){
-			localMax++;
+		if(!symbols.contains(symbol)){
+			symbols.add(symbol);
 		}
-		symbols.put(symbol.getName(), symbol);	
 	}
 	
 	public Symbol getSymbol(String name){
-		if(!symbols.containsKey(name) && parent != null){
+		Symbol symbolName = new Symbol(name);
+		
+		if(!symbols.contains(symbolName) && parent != null){
 			return parent.getSymbol(name);
 		}
-		return symbols.get(name);
+		return symbols.get(symbols.indexOf(symbolName));
 	}
 	
-	public void clearSymbol(String name){
-		if(symbols.remove(name) != null && scope == SymbolTable.Scope.LOCAL){
-			localMax--;
+	public void clearSymbol(Symbol symbol){
+		int symbolIndex = symbols.indexOf(symbol);
+		
+		if(symbolIndex != -1){
+			symbols.remove(symbolIndex);
 		}
 	}
 	
 	public boolean isSymbolSet(String name, boolean searchParents){
-		if(searchParents && parent != null){
+		int symbolIndex = symbols.indexOf(new Symbol(name));
+		
+		if(symbolIndex == -1 && searchParents && parent != null){
 			if(parent.isSymbolSet(name, true)){
 				return true;
 			}
 		}
-		return symbols.containsKey(name);
+		return symbolIndex != -1 ? true : false;
+	}
+	
+	public int getLocalIndex(Symbol symbol){
+		if(scope == Scope.LOCAL && symbols.contains(symbol)){
+			return symbols.indexOf(symbol) + localStartIndex;
+		}
+		return -1;
 	}
 	
 	public Scope getScope(){
@@ -69,11 +75,14 @@ public class SymbolTable {
 	public void setScope(Scope scope){
 		this.scope = scope;
 		if(scope == SymbolTable.Scope.LOCAL){
-			localMin = 0;
-			localMax = 0;
+			// If scope changes to local, reset local min/max counts
+			// either their current values or 0 (preserves local min/max
+			// if scope is local and is set to local)
+			localStartIndex = Math.max(0, localStartIndex);
+			maxChildLocalCount = Math.max(0, maxChildLocalCount);
 		}else{
-			localMin = -1;
-			localMax = -1;
+			localStartIndex = -1;
+			maxChildLocalCount = -1;
 		}
 	}
 	
@@ -91,6 +100,51 @@ public class SymbolTable {
 	
 	public void setParent(SymbolTable parent){
 		this.parent = parent;
+		calculateLocalStartIndex();
+		if(isInnerLocal()){
+			parent.reportChildLocalCount(this.getLocalMax());
+		}
 	}
 	
+	public void reportChildLocalCount(int childLocalCount){
+		if(scope == Scope.LOCAL){
+			maxChildLocalCount = Math.max(maxChildLocalCount, childLocalCount);
+			if(isInnerLocal()){
+				parent.reportChildLocalCount(maxChildLocalCount);
+			}
+		}
+	}
+	
+	public int getLocalMax(){
+		return maxChildLocalCount + symbols.size();
+	}
+	
+	public void calculateLocalStartIndex(){
+		if(scope == Scope.LOCAL){
+			localStartIndex = 0;
+			
+			if(isInnerLocal()){
+				localStartIndex = parent.getLocalStartIndex() + parent.symbols.size();
+			}
+		}
+	}
+	
+	public int getLocalStartIndex(){
+		return localStartIndex;
+	}
+	
+	public boolean isInnerLocal(){
+		if(parent != null && parent.scope == Scope.LOCAL){
+			return true;
+		}
+		return false;
+	}
+	
+	public List<Symbol> getAllSymbols(){
+		return symbols;
+	}
+	
+	public int getSymbolCount(){
+		return symbols.size();
+	}
 }

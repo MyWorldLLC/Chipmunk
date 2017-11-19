@@ -36,7 +36,7 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 			
 			// TODO - support instance, shared, and module level variables
-			assembler.getLocal(symbol.getLocalIndex());
+			assembler.getLocal(symbols.getLocalIndex(symbol));
 			return false;
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();

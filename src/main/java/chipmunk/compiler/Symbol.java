@@ -1,29 +1,27 @@
 package chipmunk.compiler;
 
-import chipmunk.compiler.ast.SymbolNode;
-
 public class Symbol {
 	
 	protected boolean isShared;
 	protected boolean isFinal;
 	protected String name;
-	protected int localIndex;
-	protected SymbolNode node;
-	protected SymbolTable table;
 	
 	public Symbol(){
-		this("", -1);
+		this("", false, false);
 	}
 	
 	public Symbol(String name){
-		this(name, -1);
+		this(name, false, false);
 	}
 	
-	public Symbol(String name, int localIndex){
-		isShared = false;
-		isFinal = false;
+	public Symbol(String name, boolean isFinal){
+		this(name, isFinal, false);
+	}
+	
+	public Symbol(String name, boolean isFinal, boolean isShared){
 		this.name = name;
-		this.localIndex = localIndex;
+		this.isFinal = isFinal;
+		this.isShared = isShared;
 	}
 
 	public boolean isShared(){
@@ -49,30 +47,14 @@ public class Symbol {
 	public void setName(String name){
 		this.name = name;
 	}
-
-	public int getLocalIndex(){
-		return localIndex;
-	}
-
-	public void setLocalIndex(int localIndex){
-		this.localIndex = localIndex;
-	}
 	
-	public void setNode(SymbolNode node){
-		this.node = node;
-	}
-	
-	public SymbolNode getNode(){
-		return node;
-	}
-
-	public SymbolTable getTable(){
-		return table;
-	}
-
-	public void setTable(SymbolTable table){
-		this.table = table;
-		
+	@Override
+	public boolean equals(Object other){
+		if(other instanceof Symbol){
+			Symbol otherSymbol = (Symbol) other;
+			return otherSymbol.getName().equals(name);
+		}
+		return false;
 	}
 	
 }

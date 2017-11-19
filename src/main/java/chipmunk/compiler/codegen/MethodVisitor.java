@@ -51,7 +51,7 @@ public class MethodVisitor implements AstVisitor {
 			return false;
 		}else if(node instanceof VarDecNode){
 			VarDecNode dec = (VarDecNode) node;
-			symbols.setSymbol(new Symbol(dec.getVarName(), localIndex)); // TODO - local var indices
+			symbols.setSymbol(new Symbol(dec.getVarName())); // TODO - local var indices
 			localIndex++;
 			
 			if(dec.getAssignExpr() != null){
@@ -93,7 +93,7 @@ public class MethodVisitor implements AstVisitor {
 		method.setConstantPool(assembler.getConstantPool());
 		method.setCode(new CCode(assembler.getCodeSegment()));
 		// TODO - set proper local count
-		method.setLocalCount(2);
+		method.setLocalCount(symbols.getLocalMax());
 	}
 	
 	public CMethod getMethod(){

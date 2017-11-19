@@ -9,6 +9,7 @@ public class BlockNode extends AstNode {
 	public BlockNode(){
 		super();
 		symTab = new SymbolTable();
+		symTab.setNode(this);
 	}
 	
 	public BlockNode(SymbolTable.Scope scope){

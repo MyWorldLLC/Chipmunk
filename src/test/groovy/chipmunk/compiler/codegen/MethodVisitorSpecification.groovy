@@ -63,6 +63,7 @@ class MethodVisitorSpecification extends Specification {
 		parser = new ChipmunkParser(lexer.lex(expression))
 		
 		AstNode root = parser.parseMethodDef()
+		root.visit(new SymbolTableBuilderVisitor())
 		root.visit(visitor)
 
 		CMethod method = visitor.getMethod()

@@ -1,9 +1,11 @@
 package chipmunk.compiler.codegen;
 
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
+import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.SymbolNode;
 
 public class SymbolTableBuilderVisitor implements AstVisitor {
@@ -14,13 +16,22 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 	public boolean preVisit(AstNode node) {
 		
 		if(node instanceof SymbolNode){
-			currentScope.setSymbol(((SymbolNode) node).getSymbol());
+			if(currentScope != null){
+				currentScope.setSymbol(((SymbolNode) node).getSymbol());
+			}
 		}
 		
 		if(node instanceof BlockNode){
 			BlockNode block = (BlockNode) node;
-			block.getSymbolTable().setParent(currentScope);
-			currentScope = block.getSymbolTable();
+			SymbolTable blockTable = block.getSymbolTable();
+			blockTable.setParent(currentScope);
+			
+			if(node instanceof MethodNode){
+				blockTable.setSymbol(new Symbol("self", true));
+			}
+
+			currentScope = blockTable;
+			
 		}
 		return true;
 	}
