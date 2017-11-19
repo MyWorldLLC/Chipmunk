@@ -110,7 +110,7 @@ public class SymbolTable {
 		if(scope == Scope.LOCAL){
 			maxChildLocalCount = Math.max(maxChildLocalCount, childLocalCount);
 			if(isInnerLocal()){
-				parent.reportChildLocalCount(maxChildLocalCount);
+				parent.reportChildLocalCount(getLocalMax());
 			}
 		}
 	}
