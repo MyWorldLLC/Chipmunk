@@ -61,6 +61,10 @@ public class SymbolTable {
 		return symbolIndex != -1 ? true : false;
 	}
 	
+	public int getLocalIndex(String symbolName){
+		return getLocalIndex(new Symbol(symbolName));
+	}
+	
 	public int getLocalIndex(Symbol symbol){
 		if(scope == Scope.LOCAL && symbols.contains(symbol)){
 			return symbols.indexOf(symbol) + localStartIndex;

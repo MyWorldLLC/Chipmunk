@@ -34,7 +34,6 @@ public class ExpressionVisitor implements AstVisitor {
 			if(symbol == null){
 				throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d", id.getID().getText(), id.getID().getFile(), id.getBeginTokenIndex()), id.getID());
 			}
-			
 			// TODO - support instance, shared, and module level variables
 			assembler.getLocal(symbols.getLocalIndex(symbol));
 			return false;

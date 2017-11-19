@@ -59,6 +59,20 @@ class MethodVisitorSpecification extends Specification {
 		result instanceof CNull
 	}
 	
+	def "Parse, generate, and run method def with multiple var decs and return"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 1 + 1
+				var v2 = 2
+				return v1 + v2
+		}""")
+		
+		then:
+		result instanceof CInt
+		result.getValue() == 4
+	}
+	
 	def parseAndCall(String expression){
 		parser = new ChipmunkParser(lexer.lex(expression))
 		

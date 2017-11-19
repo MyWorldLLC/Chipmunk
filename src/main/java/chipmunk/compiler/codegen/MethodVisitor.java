@@ -45,15 +45,17 @@ public class MethodVisitor implements AstVisitor {
 			return false;
 		}else if(node instanceof VarDecNode){
 			VarDecNode dec = (VarDecNode) node;
-			symbols.setSymbol(new Symbol(dec.getVarName()));
+			
+			Symbol symbol = new Symbol(dec.getVarName());
+			symbols.setSymbol(symbol);
 			
 			if(dec.getAssignExpr() != null){
 				dec.getAssignExpr().visit(new ExpressionVisitor(assembler, symbols));
-				assembler.setLocal(1);
 			}else{
 				assembler.pushNull();
-				assembler.setLocal(1);
+				
 			}
+			assembler.setLocal(symbols.getLocalIndex(symbol));
 			return false;
 		}else if(node instanceof FlowControlNode){
 			FlowControlNode flowNode = (FlowControlNode) node;
