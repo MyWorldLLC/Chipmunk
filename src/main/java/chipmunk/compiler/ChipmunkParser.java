@@ -360,7 +360,6 @@ public class ChipmunkParser {
 		// Statements are:
 		// (a) variable declarations and assignments
 		// (b) method definitions
-		// (c) class definitions
 		// (d) block beginnings
 		// (e) expressions (including assignments of existing variables)
 		
@@ -370,8 +369,6 @@ public class ChipmunkParser {
 			return parseVarDec();
 		}else if(checkMethodDef()){
 			return parseMethodDef();
-		}else if(checkClassDef()){
-			return parseClassDef();
 		}else if(peek().getType().isKeyword()){
 			// parse block or keyword statement
 			Token token = peek();
