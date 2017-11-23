@@ -65,14 +65,15 @@ public class ExpressionVisitor implements AstVisitor {
 					return;
 			}
 		}else if(node instanceof OperatorNode){
-			node.visitChildren(this);
 			
 			OperatorNode op = (OperatorNode) node;
 			Token operator = op.getOperator();
+			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
 
 			switch (operator.getType()) {
 			case PLUS:
+				op.visitChildren(this);
 				if (rhs == null) {
 					assembler.pos();
 				} else {
@@ -80,9 +81,11 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 				return;
 			case DOUBLEPLUS:
+				op.visitChildren(this);
 				assembler.inc();
 				return;
 			case MINUS:
+				op.visitChildren(this);
 				if (rhs == null) {
 					assembler.neg();
 				} else {
@@ -90,20 +93,26 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 				return;
 			case DOUBLEMINUS:
+				op.visitChildren(this);
 				assembler.dec();
 			case STAR:
+				op.visitChildren(this);
 				assembler.mul();
 				return;
 			case FSLASH:
+				op.visitChildren(this);
 				assembler.div();
 				return;
 			case DOUBLEFSLASH:
+				op.visitChildren(this);
 				assembler.fdiv();
 				return;
 			case PERCENT:
+				op.visitChildren(this);
 				assembler.mod();
 				return;
 			case DOUBLESTAR:
+				op.visitChildren(this);
 				assembler.pow();
 				return;
 			case DOUBLEDOTLESS:
@@ -111,45 +120,59 @@ public class ExpressionVisitor implements AstVisitor {
 			case DOUBLEDOT:
 				return;
 			case DOUBLEBAR:
+				op.visitChildren(this);
 				assembler.or();
 				return;
 			case BAR:
+				op.visitChildren(this);
 				assembler.bor();
 				return;
 			case EXCLAMATION:
+				op.visitChildren(this);
 				assembler.not();
 				return;
 			case TILDE:
+				op.visitChildren(this);
 				assembler.bneg();
 				return;
 			case CARET:
+				op.visitChildren(this);
 				assembler.bxor();
 				return;
 			case DOUBLELESSTHAN:
+				op.visitChildren(this);
 				assembler.lshift();
 				return;
 			case LESSTHAN:
+				op.visitChildren(this);
 				assembler.lt();
 				return;
 			case TRIPLEMORETHAN:
+				op.visitChildren(this);
 				assembler.urshift();
 				return;
 			case DOUBLEMORETHAN:
+				op.visitChildren(this);
 				assembler.rshift();
 				return;
 			case MORETHAN:
+				op.visitChildren(this);
 				assembler.gt();
 				return;
 			case DOUBLEAMPERSAND:
+				op.visitChildren(this);
 				assembler.and();
 				return;
 			case AMPERSAND:
+				op.visitChildren(this);
 				assembler.band();
 				return;
 			case LBRACKET:
+				op.visitChildren(this);
 				assembler.getat();
 				return;
 			case LPAREN:
+				op.visitChildren(this);
 				int argCount = 0;
 				if (rhs != null) {
 					argCount = rhs.getChildren().size() - 1;
@@ -157,12 +180,32 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.call((byte) argCount);
 				return;
 			case DOT:
+				op.visitChildren(this);
 				assembler.getattr();
 				return;
 			case EQUALS:
-
+				if(lhs instanceof OperatorNode){
+					OperatorNode lOp = (OperatorNode) lhs;
+					if(lOp.getOperator().getType() == Token.Type.DOT){
+						rhs.visit(this);
+						lOp.getRight().visit(this);
+						lOp.getLeft().visit(this);
+						assembler.setattr();
+					}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
+						rhs.visit(this);
+						lOp.getRight().visit(this);
+						lOp.getLeft().visit(this);
+						assembler.setat();
+					}else{
+						// syntax error!
+					}
+				}else if(lhs instanceof IdNode){
+					rhs.visit(this);
+					// TODO - handle non-local scopes
+					assembler.setLocal(symbols.getLocalIndex(((IdNode) lhs).getID().getText()));
+				}
+				return;
 			default:
-				// TODO - assignment
 				return;
 			}
 		}

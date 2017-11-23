@@ -27,7 +27,7 @@ public class ModuleVisitor implements AstVisitor {
 			module.setAttribute(classType.getName(), classType);
 		}else if(node instanceof MethodNode){
 			// TODO - constant pool
-			MethodVisitor visitor = new MethodVisitor(null);
+			MethodVisitor visitor = new MethodVisitor(module.getConstantPool());
 			node.visit(visitor);
 			CMethod method = visitor.getMethod();
 			

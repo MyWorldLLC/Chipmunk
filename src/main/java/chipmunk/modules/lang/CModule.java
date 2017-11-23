@@ -1,5 +1,7 @@
 package chipmunk.modules.lang;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import chipmunk.Namespace;
@@ -13,11 +15,13 @@ public class CModule extends CObject {
 	protected String name;
 	protected Namespace namespace;
 	protected CCode code;
+	protected List<CObject> constantPool;
 	
 	
 	public CModule(){
 		type = new CModuleType();
 		namespace = new Namespace();
+		constantPool = new ArrayList<CObject>();
 	}
 	
 	public CModule(String name){
@@ -43,6 +47,10 @@ public class CModule extends CObject {
 	
 	public Namespace getNamespace(){
 		return namespace;
+	}
+	
+	public List<CObject> getConstantPool(){
+		return constantPool;
 	}
 	
 	public CObject __getAttr__(CObject name){
