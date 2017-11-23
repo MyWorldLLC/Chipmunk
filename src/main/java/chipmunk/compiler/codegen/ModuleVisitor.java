@@ -14,18 +14,17 @@ public class ModuleVisitor implements AstVisitor {
 	protected CModule module;
 
 	@Override
-	public boolean preVisit(AstNode node) {
+	public void visit(AstNode node) {
 		if(node instanceof ModuleNode){
 			module = new CModule();
 			module.setName(((ModuleNode) node).getName());
-			return true;
+			node.visitChildren(this);
 		}else if(node instanceof ClassNode){
 			ClassVisitor visitor = new ClassVisitor();
 			node.visit(visitor);
 			CClassType classType = visitor.getCClassType();
 			
 			module.setAttribute(classType.getName(), classType);
-			return false;
 		}else if(node instanceof MethodNode){
 			// TODO - constant pool
 			MethodVisitor visitor = new MethodVisitor(null);
@@ -33,14 +32,7 @@ public class ModuleVisitor implements AstVisitor {
 			CMethod method = visitor.getMethod();
 			
 			module.setAttribute(visitor.getMethodSymbol().getName(), method);
-			return false;
 		}
-		return false;
-	}
-
-	@Override
-	public void postVisit(AstNode node) {
-		
 	}
 	
 	public CModule getModule(){

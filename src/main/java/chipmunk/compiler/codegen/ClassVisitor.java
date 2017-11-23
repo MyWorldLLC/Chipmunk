@@ -9,15 +9,9 @@ public class ClassVisitor implements AstVisitor {
 	protected CClassType classType;
 	
 	@Override
-	public boolean preVisit(AstNode node) {
+	public void visit(AstNode node) {
 		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void postVisit(AstNode node) {
-		// TODO Auto-generated method stub
-
+		return;
 	}
 	
 	public CClassType getCClassType(){

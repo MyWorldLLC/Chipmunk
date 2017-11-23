@@ -26,7 +26,7 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 
 	@Override
-	public boolean preVisit(AstNode node) {
+	public void visit(AstNode node) {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
 			Symbol symbol = symbols.getSymbol(id.getID().getText());
@@ -36,51 +36,46 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 			// TODO - support instance, shared, and module level variables
 			assembler.getLocal(symbols.getLocalIndex(symbol));
-			return false;
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
 			case BOOLLITERAL:
 				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
-				return false;
+				return;
 			case INTLITERAL:
 				assembler.push(new CInt(Integer.parseInt(literal.getText(), 10)));
-				return false;
+				return;
 			case HEXLITERAL:
 				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 16)));
-				return false;
+				return;
 			case OCTLITERAL:
 				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 8)));
-				return false;
+				return;
 			case BINARYLITERAL:
 				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 2)));
-				return false;
+				return;
 			case FLOATLITERAL:
 				assembler.push(new CFloat(Float.parseFloat(literal.getText())));
-				return false;
+				return;
 			case STRINGLITERAL:
 				assembler.push(new CString(literal.getText()));
-				return false;
+				return;
+				
 				default:
-					return false;
+					return;
 			}
-		}else{
-			return true;
-		}
-	}
-
-	@Override
-	public void postVisit(AstNode node) {
-		if(node instanceof OperatorNode){
+		}else if(node instanceof OperatorNode){
+			node.visitChildren(this);
+			
 			OperatorNode op = (OperatorNode) node;
 			Token operator = op.getOperator();
 			AstNode rhs = op.getRight();
-			
-			switch(operator.getType()){
+
+			switch (operator.getType()) {
 			case PLUS:
-				if(rhs == null){
+				if (rhs == null) {
 					assembler.pos();
-				}else{
+				} else {
 					assembler.add();
 				}
 				return;
@@ -88,9 +83,9 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.inc();
 				return;
 			case MINUS:
-				if(rhs == null){
+				if (rhs == null) {
 					assembler.neg();
-				}else{
+				} else {
 					assembler.sub();
 				}
 				return;
@@ -156,19 +151,21 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case LPAREN:
 				int argCount = 0;
-				if(rhs != null){
+				if (rhs != null) {
 					argCount = rhs.getChildren().size() - 1;
 				}
-				assembler.call((byte)argCount);
+				assembler.call((byte) argCount);
 				return;
 			case DOT:
 				assembler.getattr();
 				return;
+			case EQUALS:
+
 			default:
 				// TODO - assignment
 				return;
 			}
 		}
-	}
 
+	}
 }

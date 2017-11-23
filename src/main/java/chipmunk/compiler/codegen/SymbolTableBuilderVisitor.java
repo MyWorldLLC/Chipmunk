@@ -13,7 +13,7 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 	protected SymbolTable currentScope;
 
 	@Override
-	public boolean preVisit(AstNode node) {
+	public void visit(AstNode node) {
 		
 		if(node instanceof SymbolNode){
 			if(currentScope != null){
@@ -33,12 +33,9 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 			currentScope = blockTable;
 			
 		}
-		return true;
-	}
-
-	@Override
-	public void postVisit(AstNode node) {
-		if(node instanceof BlockNode){
+		node.visitChildren(this);
+		
+		if(currentScope != null){
 			currentScope = currentScope.getParent();
 		}
 	}

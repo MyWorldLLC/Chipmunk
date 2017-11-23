@@ -29,7 +29,7 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public boolean preVisit(AstNode node) {
+	public void visit(AstNode node) {
 		if(node instanceof MethodNode){
 			methodNode = (MethodNode) node;
 			symbols = methodNode.getSymbolTable();
@@ -38,11 +38,9 @@ public class MethodVisitor implements AstVisitor {
 				assembler.pushNull();
 				assembler._return();
 			}
-			return true;
+			node.visitChildren(this);
 		}else if(node instanceof OperatorNode){
-			OperatorNode op = (OperatorNode) node;
-			op.visit(new ExpressionVisitor(assembler, symbols));
-			return false;
+			node.visit(new ExpressionVisitor(assembler, symbols));
 		}else if(node instanceof VarDecNode){
 			VarDecNode dec = (VarDecNode) node;
 			
@@ -56,34 +54,26 @@ public class MethodVisitor implements AstVisitor {
 				
 			}
 			assembler.setLocal(symbols.getLocalIndex(symbol));
-			return false;
 		}else if(node instanceof FlowControlNode){
 			FlowControlNode flowNode = (FlowControlNode) node;
 			
 			if(flowNode.getControlToken().getType() == Token.Type.RETURN){
 				if(node.hasChildren()){
-					node.visit(new ExpressionVisitor(assembler, symbols));
+					node.visitChildren(new ExpressionVisitor(assembler, symbols));
 				}else{
 					assembler.pushNull();
 				}
 				assembler._return();
 			}else if(flowNode.getControlToken().getType() == Token.Type.THROW){
-				node.visit(new ExpressionVisitor(assembler, symbols));
+				node.visitChildren(new ExpressionVisitor(assembler, symbols));
 				assembler._throw();
 			}else if(flowNode.getControlToken().getType() == Token.Type.BREAK){
 				// TODO
 			}else if(flowNode.getControlToken().getType() == Token.Type.CONTINUE){
 				// TODO
 			}
-			
-			return false;
-		}else{
-			return false;
 		}
-	}
-
-	@Override
-	public void postVisit(AstNode node) {
+		
 		method = new CMethod();
 		method.setConstantPool(assembler.getConstantPool());
 		method.setCode(new CCode(assembler.getCodeSegment()));
