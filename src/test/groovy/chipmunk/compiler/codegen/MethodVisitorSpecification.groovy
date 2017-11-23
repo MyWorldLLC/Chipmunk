@@ -88,6 +88,24 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 5
 	}
 	
+	def "Parse, generate, and run method def with multiple local variable assignments"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1
+				var v2
+				var v3 = 2 + 3
+				v1 = 1
+				v2 = v1 + 3
+				v3 = 1
+				return v1 + v2 + v3
+		}""")
+		
+		then:
+		result instanceof CInt
+		result.getValue() == 6
+	}
+	
 	def parseAndCall(String expression){
 		parser = new ChipmunkParser(lexer.lex(expression))
 		
