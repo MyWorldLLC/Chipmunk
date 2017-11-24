@@ -1,6 +1,8 @@
 package chipmunk.modules.reflectiveruntime;
 
-public class CBoolean {
+import chipmunk.reflectors.ContextOperator;
+
+public class CBoolean implements ContextOperator {
 	
 	private final boolean value;
 	

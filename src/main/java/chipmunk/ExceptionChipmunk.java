@@ -1,24 +1,22 @@
 package chipmunk;
 
-import chipmunk.modules.lang.CObject;
-
 public class ExceptionChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = 1L;
 	
-	protected CObject exceptionObj;
+	protected Object exceptionObj;
 	
-	public ExceptionChipmunk(CObject exception){
+	public ExceptionChipmunk(Object exception){
 		super();
 		exceptionObj = exception;
 	}
 	
-	public ExceptionChipmunk(CObject exception, String msg){
+	public ExceptionChipmunk(Object exception, String msg){
 		super(msg);
 		exceptionObj = exception;
 	}
 	
-	public CObject getExceptionObject(){
+	public Object getExceptionObject(){
 		return exceptionObj;
 	}
 
