@@ -6,8 +6,8 @@ import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.modules.lang.CClassType;
-import chipmunk.modules.lang.CMethod;
 import chipmunk.modules.lang.CModule;
+import chipmunk.modules.reflectiveruntime.CMethod;
 
 public class ModuleVisitor implements AstVisitor {
 	
@@ -31,7 +31,7 @@ public class ModuleVisitor implements AstVisitor {
 			node.visit(visitor);
 			CMethod method = visitor.getMethod();
 			
-			module.setAttribute(visitor.getMethodSymbol().getName(), method);
+			// TODO - module.setAttribute(visitor.getMethodSymbol().getName(), method);
 		}
 	}
 	

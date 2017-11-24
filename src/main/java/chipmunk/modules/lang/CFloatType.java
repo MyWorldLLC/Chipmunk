@@ -21,7 +21,7 @@ public class CFloatType extends CType {
 		return new CFloat();
 	}
 	
-	@Override
+	/*@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){
 			return new CFloat();
@@ -30,5 +30,5 @@ public class CFloatType extends CType {
 		}else{
 			throw new UnimplementedOperationChipmunk("CFloatType.__call__() is not defined for parameter count: " + params);
 		}
-	}
+	}*/
 }

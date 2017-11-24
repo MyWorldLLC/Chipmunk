@@ -6,12 +6,10 @@ import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.SymbolTable
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.lang.CBoolean
-import chipmunk.modules.lang.CCode
-import chipmunk.modules.lang.CFloat
-import chipmunk.modules.lang.CInt
-import chipmunk.modules.lang.CMethod
-import chipmunk.modules.lang.CString
+import chipmunk.modules.reflectiveruntime.CBoolean
+import chipmunk.modules.reflectiveruntime.CFloat
+import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CString
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {
@@ -19,6 +17,7 @@ class ExpressionVisitorSpecification extends Specification {
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
+	ChipmunkContext context = new ChipmunkContext()
 	ExpressionVisitor visitor = new ExpressionVisitor(assembler, new SymbolTable())
 	
 	def "Evaluate boolean literal true"(){
@@ -44,7 +43,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 0
 	}
 	
@@ -53,7 +52,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == -1
 	}
 	
@@ -80,7 +79,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0xA6")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 0xA6
 	}
 	
@@ -89,7 +88,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0o12")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 012
 	}
 	
@@ -98,7 +97,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0b101")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 0b101
 	}
 	
@@ -116,7 +115,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 + 2")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 3
 	}
 	
@@ -125,7 +124,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+1")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 1
 	}
 	
@@ -134,7 +133,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == -1
 	}
 
@@ -143,7 +142,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+-1")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 1
 	}
 	
@@ -152,7 +151,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 * 2")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 2
 	}
 
@@ -170,7 +169,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 // 2")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 0
 	}
 
@@ -179,7 +178,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("3 % 2")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 1
 	}
 	
@@ -188,7 +187,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2**1**2")
 
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 2
 	}
 
@@ -198,10 +197,6 @@ class ExpressionVisitorSpecification extends Specification {
 		root.visit(visitor)
 		assembler._return()
 
-		CMethod method = new CMethod()
-		method.setCode(new CCode(assembler.getCodeSegment()))
-		method.setConstantPool(assembler.getConstantPool())
-
-		return method.__call__(new ChipmunkContext(), 0, false)
+		return context.dispatch(assembler.getCodeSegment(), 0, 0, assembler.getConstantPool()).getObject()
 	}
 }

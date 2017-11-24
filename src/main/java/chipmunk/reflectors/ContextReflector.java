@@ -9,13 +9,13 @@ public class ContextReflector extends Reflector {
 	}
 	
 	@Override
-	public Object doOp(String op, ChipmunkContext context, Object... params){
+	public Reflector doOp(ChipmunkContext context, String op, Object... params){
 		Object[] fullParams = new Object[params.length + 1];
 		fullParams[0] = context;
-		for(int i = 1; i < params.length; i++){
-			fullParams[i] = params[i];
+		for(int i = 1, j = 0; j < params.length; i++, j++){
+			fullParams[i] = params[j];
 		}
-		return super.doOp(op, context, fullParams);
+		return super.doOp(context, op, fullParams);
 	}
 
 }

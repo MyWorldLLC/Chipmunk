@@ -4,9 +4,9 @@ import chipmunk.ChipmunkContext
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.lang.CInt
-import chipmunk.modules.lang.CMethod
-import chipmunk.modules.lang.CNull
+import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CMethod
+import chipmunk.modules.reflectiveruntime.CNull
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -14,6 +14,7 @@ class MethodVisitorSpecification extends Specification {
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
 	List constantPool = []
+	ChipmunkContext context = new ChipmunkContext()
 	MethodVisitor visitor = new MethodVisitor(constantPool)
 	
 	def "Parse, generate, and run empty method def"(){
@@ -30,7 +31,7 @@ class MethodVisitorSpecification extends Specification {
 		""")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 3
 	}
 	
@@ -43,7 +44,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 3
 	}
 	
@@ -69,7 +70,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 4
 	}
 	
@@ -84,7 +85,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 5
 	}
 	
@@ -102,7 +103,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 6
 	}
 	
@@ -115,7 +116,7 @@ class MethodVisitorSpecification extends Specification {
 
 		CMethod method = visitor.getMethod()
 
-		return method.__call__(new ChipmunkContext(), 0, false)
+		return context.dispatch(method.getCode(), method.getArgCount(), method.getLocalCount(), method.getConstantPool()).getObject()
 	}
 
 }

@@ -21,7 +21,7 @@ public class CBooleanType extends CType {
 		return new CBoolean();
 	}
 	
-	@Override
+	/*@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){
 			return new CBoolean();
@@ -30,6 +30,6 @@ public class CBooleanType extends CType {
 		}else{
 			throw new UnimplementedOperationChipmunk("CBooleanType.__call__() is not defined for parameter count: " + params);
 		}
-	}
+	}*/
 
 }

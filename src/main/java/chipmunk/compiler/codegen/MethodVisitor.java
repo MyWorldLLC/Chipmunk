@@ -12,9 +12,7 @@ import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
-import chipmunk.modules.lang.CCode;
-import chipmunk.modules.lang.CMethod;
-import chipmunk.modules.lang.CObject;
+import chipmunk.modules.reflectiveruntime.CMethod;
 
 public class MethodVisitor implements AstVisitor {
 
@@ -24,7 +22,7 @@ public class MethodVisitor implements AstVisitor {
 	protected MethodNode methodNode;
 	
 	
-	public MethodVisitor(List<CObject> constantPool){
+	public MethodVisitor(List<Object> constantPool){
 		assembler = new ChipmunkAssembler(constantPool);
 	}
 	
@@ -76,7 +74,7 @@ public class MethodVisitor implements AstVisitor {
 		
 		method = new CMethod();
 		method.setConstantPool(assembler.getConstantPool());
-		method.setCode(new CCode(assembler.getCodeSegment()));
+		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
 	}
 	

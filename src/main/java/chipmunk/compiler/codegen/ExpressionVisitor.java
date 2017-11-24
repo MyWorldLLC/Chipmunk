@@ -10,10 +10,10 @@ import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.lang.CBoolean;
-import chipmunk.modules.lang.CFloat;
-import chipmunk.modules.lang.CInt;
-import chipmunk.modules.lang.CString;
+import chipmunk.modules.reflectiveruntime.CBoolean;
+import chipmunk.modules.reflectiveruntime.CFloat;
+import chipmunk.modules.reflectiveruntime.CInteger;
+import chipmunk.modules.reflectiveruntime.CString;
 
 public class ExpressionVisitor implements AstVisitor {
 	
@@ -43,16 +43,16 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
 				return;
 			case INTLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText(), 10)));
+				assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
 				return;
 			case HEXLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 16)));
+				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
 				return;
 			case OCTLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 8)));
+				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
 				return;
 			case BINARYLITERAL:
-				assembler.push(new CInt(Integer.parseInt(literal.getText().substring(2), 2)));
+				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
 				return;
 			case FLOATLITERAL:
 				assembler.push(new CFloat(Float.parseFloat(literal.getText())));

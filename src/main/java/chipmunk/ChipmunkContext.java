@@ -1,5 +1,51 @@
 package chipmunk;
 
+import static chipmunk.Opcodes.ADD;
+import static chipmunk.Opcodes.AND;
+import static chipmunk.Opcodes.AS;
+import static chipmunk.Opcodes.BAND;
+import static chipmunk.Opcodes.BNEG;
+import static chipmunk.Opcodes.BOR;
+import static chipmunk.Opcodes.BXOR;
+import static chipmunk.Opcodes.CALL;
+import static chipmunk.Opcodes.DEC;
+import static chipmunk.Opcodes.DIV;
+import static chipmunk.Opcodes.DUP;
+import static chipmunk.Opcodes.EQ;
+import static chipmunk.Opcodes.FDIV;
+import static chipmunk.Opcodes.GE;
+import static chipmunk.Opcodes.GETAT;
+import static chipmunk.Opcodes.GETATTR;
+import static chipmunk.Opcodes.GETLOCAL;
+import static chipmunk.Opcodes.GOTO;
+import static chipmunk.Opcodes.GT;
+import static chipmunk.Opcodes.IF;
+import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.IS;
+import static chipmunk.Opcodes.LE;
+import static chipmunk.Opcodes.LSHIFT;
+import static chipmunk.Opcodes.LT;
+import static chipmunk.Opcodes.MOD;
+import static chipmunk.Opcodes.MUL;
+import static chipmunk.Opcodes.NEG;
+import static chipmunk.Opcodes.NEW;
+import static chipmunk.Opcodes.NOT;
+import static chipmunk.Opcodes.OR;
+import static chipmunk.Opcodes.POP;
+import static chipmunk.Opcodes.POS;
+import static chipmunk.Opcodes.POW;
+import static chipmunk.Opcodes.PUSH;
+import static chipmunk.Opcodes.RETURN;
+import static chipmunk.Opcodes.RSHIFT;
+import static chipmunk.Opcodes.SETAT;
+import static chipmunk.Opcodes.SETATTR;
+import static chipmunk.Opcodes.SETLOCAL;
+import static chipmunk.Opcodes.SUB;
+import static chipmunk.Opcodes.SWAP;
+import static chipmunk.Opcodes.THROW;
+import static chipmunk.Opcodes.TRUTH;
+import static chipmunk.Opcodes.URSHIFT;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -7,37 +53,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.modules.lang.CMethod;
+import chipmunk.modules.lang.CBoolean;
 import chipmunk.modules.lang.CModule;
 import chipmunk.modules.lang.CObject;
+import chipmunk.reflectors.ContextOperator;
+import chipmunk.reflectors.ContextReflector;
+import chipmunk.reflectors.Reflector;
 
 public class ChipmunkContext {
 	
 	public class CallFrame {
-		public final CMethod method;
-		public final CObject next;
+		public final Reflector method;
 		public final int ip;
-		public final CObject[] locals;
+		public final Reflector[] locals;
 		
-		public CallFrame(CMethod method, CObject next, int ip, CObject[] locals){
+		public CallFrame(Reflector method, int ip, Reflector[] locals){
 			this.method = method;
-			this.next = next;
 			this.ip = ip;
 			this.locals = locals;
 		}
 	}
 
 	protected Map<String, CModule> modules;
-	protected List<CObject> stack;
+	protected List<Reflector> stack;
 	protected Deque<CallFrame> frozenCallStack;
 	public volatile boolean interrupted;
+	private volatile boolean resuming;
+	private int memHigh;
 	
 	public ChipmunkContext(){
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
-		stack = new ArrayList<CObject>(128);
+		stack = new ArrayList<Reflector>(128);
 		
 		frozenCallStack = new ArrayDeque<CallFrame>(128);
+		memHigh = 0;
 	}
 	
 	public CModule getModule(String name){
@@ -65,16 +115,19 @@ public class ChipmunkContext {
 		
 	}
 	
-	public void push(CObject obj){
+	public void push(Reflector obj){
+		if(obj == null){
+			throw new NullPointerException();
+		}
 		stack.add(obj);
 	}
 	
-	public CObject pop(){
+	public Reflector pop(){
 		return stack.remove(stack.size() - 1);
 	}
 	
 	public void dup(int index){
-		CObject obj = stack.get(stack.size() - (index + 1));
+		Reflector obj = stack.get(stack.size() - (index + 1));
 		stack.add(obj);
 	}
 	
@@ -82,15 +135,15 @@ public class ChipmunkContext {
 		int stackIndex1 = stack.size() - (index1 + 1);
 		int stackIndex2 = stack.size() - (index2 + 1);
 		
-		CObject obj1 = stack.get(stackIndex1);
-		CObject obj2 = stack.get(stackIndex2);
+		Reflector obj1 = stack.get(stackIndex1);
+		Reflector obj2 = stack.get(stackIndex2);
 		
 		stack.set(index1, obj2);
 		stack.set(index2, obj1);
 	}
 	
-	public void freeze(CMethod method, CObject next, int ip, CObject[] locals ){
-		frozenCallStack.push(new CallFrame(method, next, ip, locals));
+	public void freeze(Reflector method, int ip, Reflector[] locals){
+		frozenCallStack.push(new CallFrame(method, ip, locals));
 	}
 	
 	public CallFrame unfreezeNext(){
@@ -100,6 +153,368 @@ public class ChipmunkContext {
 	public void resume(){
 		// TODO - if frozen call stack isn't empty,
 		// get method at top and call it.
+	}
+	
+	public void traceMem(int newlyAllocated){
+		memHigh += newlyAllocated;
+	}
+	
+	public Reflector dispatch(byte[] instructions, int paramCount, int localCount, List<Object> constantPool){
+		int ip = 0;
+		Reflector[] locals;
+		
+		if(resuming){
+			ChipmunkContext.CallFrame frame = this.unfreezeNext();
+			ip = frame.ip;
+			locals = frame.locals;
+			
+			// call into the next method to resume call stack
+			try {
+				 this.push(frame.method.doOp(this, "call", 0));
+			} catch (SuspendedChipmunk e) {
+				 this.freeze(frame.method, ip, locals);
+			} catch (AngryChipmunk e) {
+				// TODO - fill in stack trace or jump to exception handler
+			}
+		}else{
+			locals = new Reflector[localCount];
+			// pop arguments right->left
+			// TODO - handle references to this (binding vs passing)
+			for(int i = paramCount - 1; i >= 0; i++){
+				locals[i] = this.pop();
+			}
+		}
+		
+		while(true){
+			
+			byte op = instructions[ip];
+			
+			Reflector rh;
+			Reflector lh;
+			Reflector ins;
+			
+			switch(op){
+			
+			case ADD:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "plus", rh));
+				ip++;
+				break;
+			case SUB:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "minus", rh));
+				ip++;
+				break;
+			case MUL:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "mul", rh));
+				ip++;
+				break;
+			case DIV:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "div", rh));
+				ip++;
+				break;
+			case FDIV:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "fdiv", rh));
+				ip++;
+				break;
+			case MOD:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "mod", rh));
+				ip++;
+				break;
+			case POW:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "pow", rh));
+				ip++;
+				break;
+			case INC:
+				lh = this.pop();
+				this.push(lh.doOp(this, "inc"));
+				ip++;
+				break;
+			case DEC:
+				lh = this.pop();
+				this.push(lh.doOp(this, "dec"));
+				ip++;
+				break;
+			case POS:
+				lh = this.pop();
+				this.push(lh.doOp(this, "pos"));
+				ip++;
+				break;
+			case NEG:
+				lh = this.pop();
+				this.push(lh.doOp(this, "neg"));
+				ip++;
+				break;
+			case AND:
+				rh = this.pop();
+				lh = this.pop();
+				// TODO
+				if(lh.doOp(this, "truth") != null){
+					if(rh.doOp(this, "truth") != null){
+						this.push(new Reflector(new CBoolean(true)));
+					}else{
+						this.push(new Reflector(new CBoolean(false)));
+					}
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case OR:
+				rh = this.pop();
+				lh = this.pop();
+				if(lh.doOp(this, "truth") != null || rh.doOp(this, "truth") != null){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case BXOR:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "bxor", rh));
+				ip++;
+				break;
+			case BAND:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "band", rh));
+				ip++;
+				break;
+			case BOR:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "bor", rh));
+				ip++;
+				break;
+			case BNEG:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "bneg"));
+				ip++;
+				break;
+			case LSHIFT:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "lshift", rh));
+				ip++;
+				break;
+			case RSHIFT:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "rshift", rh));
+				ip++;
+				break;
+			case URSHIFT:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "urshift", rh));
+				ip++;
+				break;
+			case SETATTR:
+				rh = this.pop();
+				lh = this.pop();
+				ins = this.pop();
+				ins.doOp(this, "setAttr", lh, rh);
+				this.push(ins);
+				ip++;
+				break;
+			case GETATTR:
+				lh = this.pop();
+				ins = this.pop();
+				this.push(ins.doOp(this, "getAttr", lh));
+				ip++;
+				break;
+			case GETAT:
+				lh = this.pop();
+				ins = this.pop();
+				this.push(ins.doOp(this, "getAt", lh));
+				ip++;
+				break;
+			case SETAT:
+				rh = this.pop();
+				lh = this.pop();
+				ins = this.pop();
+				this.push(ins.doOp(this, "setAt", lh, rh));
+				ip++;
+				break;
+			case GETLOCAL:
+				this.push(locals[fetchByte(instructions, ip + 1)]);
+				ip += 2;
+				break;
+			case SETLOCAL:
+				locals[fetchByte(instructions, ip + 1)] = this.pop();
+				ip += 2;
+				break;
+			case TRUTH:
+				rh = this.pop();
+				this.push(rh.doOp(this, "truth"));
+				ip++;
+				break;
+			case NOT:
+				rh = this.pop();
+				this.push(rh.doOp(this, "not"));
+				ip++;
+				break;
+			case AS:
+				lh = this.pop();
+				ins = this.pop();
+				this.push(ins.doOp(this, "as", lh));
+				ip++;
+				break;
+			case NEW:
+				// TODO
+				break;
+			case IF:
+				ins = this.pop();
+				// TODO - catch cast exception
+				if(((Boolean)ins.doOp(this, "not").getObject())){
+					ip = fetchInt(instructions, ip + 1);
+				}
+				ip += 5;
+				break;
+			case CALL:
+				int args = fetchInt(instructions, ip + 1);
+				ins = this.pop();
+				// Need to bump ip BEFORE calling next method. Otherwise,
+				// if suspended the ip will be stored in its old state
+				// and when this method resumes after being suspended,
+				// it will try to re-run this call.
+				ip += 5;
+				try{
+					// TODO
+					this.push(ins.doOp(this, "call", args));
+				}catch(SuspendedChipmunk e){
+					this.freeze(ins, ip, locals);
+				}catch(AngryChipmunk e){
+					// TODO - fill in stack trace or jump to exception handler
+				}
+				
+				break;
+			case GOTO:
+				int gotoIndex = fetchInt(instructions, ip + 1);
+				ip += gotoIndex;
+				break;
+			case THROW:
+				ins = this.pop();
+				throw new ExceptionChipmunk((CObject)ins.getObject());
+			case RETURN:
+				ins = this.pop();
+				return ins;
+			case POP:
+				ins = this.pop();
+				ip++;
+				break;
+			case DUP:
+				int dupIndex = fetchInt(instructions, ip + 1);
+				this.dup(dupIndex);
+				ip += 5;
+				break;
+			case SWAP:
+				int swapIndex1 = fetchInt(instructions, ip + 1);
+				int swapIndex2 = fetchInt(instructions, ip + 5);
+				this.swap(swapIndex1, swapIndex2);
+				ip += 9;
+				break;
+			case PUSH:
+				int constIndex = fetchInt(instructions, ip + 1);
+				Object constant = constantPool.get(constIndex);
+				if(constant instanceof ContextOperator){
+					this.push(new ContextReflector((ContextOperator)constant));
+				}else{
+					this.push(new Reflector(constant));
+				}
+				ip += 5;
+				break;
+			case EQ:
+				lh = this.pop();
+				rh = this.pop();
+				if((Integer)lh.doOp(this, "compare", rh).getObject() == 0){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case GT:
+				lh = this.pop();
+				rh = this.pop();
+				if((Integer)lh.doOp(this, "compare", rh).getObject() > 0){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case LT:
+				lh = this.pop();
+				rh = this.pop();
+				if((Integer)lh.doOp(this, "compare", rh).getObject() < 0){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case GE:
+				lh = this.pop();
+				rh = this.pop();
+				if((Integer)lh.doOp(this, "compare", rh).getObject() >= 0){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case LE:
+				lh = this.pop();
+				rh = this.pop();
+				if((Integer)lh.doOp(this, "compare", rh).getObject() <= 0){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			case IS:
+				lh = this.pop();
+				rh = this.pop();
+				if(lh.getObject() == rh.getObject()){
+					this.push(new Reflector(new CBoolean(true)));
+				}else{
+					this.push(new Reflector(new CBoolean(false)));
+				}
+				ip++;
+				break;
+			default:
+				throw new InvalidOpcodeChipmunk(op);
+			}
+		}
+	}
+	
+	private int fetchInt(byte[] instructions, int ip){
+		int b1 = instructions[ip] & 0xFF;
+		int b2 = instructions[ip + 1] & 0xFF;
+		int b3 = instructions[ip + 2] & 0xFF;
+		int b4 = instructions[ip + 3] & 0xFF;
+		return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+	}
+	
+	private byte fetchByte(byte[] instructions, int ip){
+		return instructions[ip];
 	}
 	
 }

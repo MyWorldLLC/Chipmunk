@@ -2,27 +2,27 @@ package chipmunk.compiler
 
 import chipmunk.ChipmunkContext
 import chipmunk.modules.lang.CCode
-import chipmunk.modules.lang.CFloat
 import chipmunk.modules.lang.CInt
 import chipmunk.modules.lang.CMethod
-import chipmunk.modules.lang.CObject
+import chipmunk.modules.reflectiveruntime.CInteger
 import spock.lang.Specification
 
 class AssemblerSpecification extends Specification {
 	
+	ChipmunkContext context = new ChipmunkContext()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 
 	def "Assemble and run 1 + 2"(){
 		when:
-		assembler.push(new CInt(1))
-		assembler.push(new CInt(2))
+		assembler.push(new CInteger(1))
+		assembler.push(new CInteger(2))
 		assembler.add()
 		assembler._return()
 		
 		def result = callMethod()
 		
 		then:
-		result instanceof CInt
+		result instanceof CInteger
 		result.getValue() == 3
 	}
 	
@@ -32,6 +32,6 @@ class AssemblerSpecification extends Specification {
 		method.setCode(new CCode(assembler.getCodeSegment()))
 		method.setConstantPool(assembler.getConstantPool())
 		
-		return method.__call__(new ChipmunkContext(), 0, false)
+		return context.dispatch(assembler.getCodeSegment(), 0, 0, assembler.getConstantPool()).getObject()
 	}
 }

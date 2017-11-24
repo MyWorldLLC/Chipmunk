@@ -21,7 +21,7 @@ public class CIntType extends CType {
 		return new CInt();
 	}
 	
-	@Override
+	/*@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){
 			return new CInt();
@@ -30,5 +30,5 @@ public class CIntType extends CType {
 		}else{
 			throw new UnimplementedOperationChipmunk("CIntType.__call__() is not defined for parameter count: " + params);
 		}
-	}
+	}*/
 }

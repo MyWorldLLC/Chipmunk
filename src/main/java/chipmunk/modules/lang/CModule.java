@@ -15,13 +15,13 @@ public class CModule extends CObject {
 	protected String name;
 	protected Namespace namespace;
 	protected CCode code;
-	protected List<CObject> constantPool;
+	protected List<Object> constantPool;
 	
 	
 	public CModule(){
 		type = new CModuleType();
 		namespace = new Namespace();
-		constantPool = new ArrayList<CObject>();
+		constantPool = new ArrayList<Object>();
 	}
 	
 	public CModule(String name){
@@ -49,7 +49,7 @@ public class CModule extends CObject {
 		return namespace;
 	}
 	
-	public List<CObject> getConstantPool(){
+	public List<Object> getConstantPool(){
 		return constantPool;
 	}
 	

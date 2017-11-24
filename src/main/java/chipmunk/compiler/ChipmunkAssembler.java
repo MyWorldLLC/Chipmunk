@@ -1,20 +1,12 @@
 package chipmunk.compiler;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import chipmunk.Opcodes;
-import chipmunk.modules.lang.CBoolean;
-import chipmunk.modules.lang.CCode;
-import chipmunk.modules.lang.CFloat;
-import chipmunk.modules.lang.CInt;
-import chipmunk.modules.lang.CObject;
-import chipmunk.modules.lang.CString;
-import chipmunk.modules.lang.CNull;
-import chipmunk.modules.lang.CNullType;
+import chipmunk.modules.reflectiveruntime.CNull;
 
 public class ChipmunkAssembler {
 	
@@ -22,16 +14,16 @@ public class ChipmunkAssembler {
 	private int index;
 	private int labelNumber;
 	
-	private List<CObject> constantPool;
+	private List<Object> constantPool;
 	
 	private List<Label> labels;
 	private List<LabelTarget> labelTargets;
 	
 	public ChipmunkAssembler(){
-		this(new ArrayList<CObject>());
+		this(new ArrayList<Object>());
 	}
 	
-	public ChipmunkAssembler(List<CObject> constants){
+	public ChipmunkAssembler(List<Object> constants){
 		code = new ByteArrayOutputStream();
 		index = 0;
 		labelNumber = 0;
@@ -47,7 +39,7 @@ public class ChipmunkAssembler {
 		return assembler;
 	}
 	
-	public List<CObject> getConstantPool(){
+	public List<Object> getConstantPool(){
 		return Collections.unmodifiableList(constantPool);
 	}
 	
@@ -81,7 +73,7 @@ public class ChipmunkAssembler {
 		}
 		return codeBytes;
 	}
-	
+	/*
 	public byte[] makeModuleBinary(){
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		
@@ -180,7 +172,7 @@ public class ChipmunkAssembler {
 		os.write(BinaryModuleFormat.CODE_SECTION);
 		
 		return os.toByteArray();
-	}
+	}*/
 	
 	public void add(){
 		code.write(Opcodes.ADD);
@@ -426,7 +418,7 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	private int getConstantPoolEntry(CObject value){
+	private int getConstantPoolEntry(Object value){
 		int index = constantPool.indexOf(value);
 		
 		if(index == -1){
@@ -437,7 +429,7 @@ public class ChipmunkAssembler {
 		return index;
 	}
 	
-	private void push(CObject value){
+	public void push(Object value){
 		
 		int entryIndex = getConstantPoolEntry(value);
 		
@@ -449,24 +441,8 @@ public class ChipmunkAssembler {
 		index += 5;
 	}
 	
-	public void push(CBoolean value){
-		push((CObject)value);
-	}
-	
-	public void push(CInt value){
-		push((CObject)value);
-	}
-	
-	public void push(CFloat value){
-		push((CObject)value);
-	}
-	
-	public void push(CString value){
-		push((CObject)value);
-	}
-	
 	public void pushNull(){
-		push(CNullType.nullObject);
+		push(new CNull());
 	}
 	
 	public void eq(){

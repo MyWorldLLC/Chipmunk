@@ -21,6 +21,7 @@ public class CStringType extends CType {
 		return new CString();
 	}
 	
+	/*
 	@Override
 	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
 		if(params == 0){
@@ -30,6 +31,6 @@ public class CStringType extends CType {
 		}else{
 			throw new UnimplementedOperationChipmunk("CStringType.__call__() is not defined for parameter count: " + params);
 		}
-	}
+	}*/
 
 }
