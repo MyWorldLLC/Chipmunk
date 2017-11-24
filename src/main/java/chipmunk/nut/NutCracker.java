@@ -123,7 +123,7 @@ public class NutCracker {
 			
 			int typeIndex = capsule.readInt();
 			CType type = types.get(typeIndex);
-			CObject instance = type.instance();
+			CObject instance = null;//type.instance();
 			instances.add(instance);
 		}
 		
