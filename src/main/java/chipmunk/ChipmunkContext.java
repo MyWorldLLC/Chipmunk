@@ -367,7 +367,7 @@ public class ChipmunkContext {
 				break;
 			case NOT:
 				rh = this.pop();
-				this.push(rh.doOp(this, "not"));
+				this.push(new ContextReflector(new CBoolean(!((CBoolean)rh.doOp(this, "truth").getObject()).booleanValue())));
 				ip++;
 				break;
 			case AS:

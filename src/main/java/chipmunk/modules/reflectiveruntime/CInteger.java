@@ -157,9 +157,9 @@ public class CInteger implements ContextOperator {
 		return new CInteger(value >>> other.value);
 	}
 	
-	public boolean truth(ChipmunkContext context){
+	public CBoolean truth(ChipmunkContext context){
 		context.traceMem(4);
-		return value != 0 ? true : false;
+		return value != 0 ? new CBoolean(true) : new CBoolean(false);
 	}
 	
 	public Object as(ChipmunkContext context, Class<?> otherType){
