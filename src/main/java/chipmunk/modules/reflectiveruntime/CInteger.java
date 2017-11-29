@@ -1,7 +1,7 @@
 package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.ChipmunkContext;
-import chipmunk.modules.lang.UnimplementedOperationChipmunk;
+import chipmunk.modules.reflectiveruntime.UnimplementedOperationChipmunk;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;

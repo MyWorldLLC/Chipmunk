@@ -2,7 +2,6 @@ package chipmunk.reflectors;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkContext;

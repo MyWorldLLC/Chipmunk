@@ -2,7 +2,10 @@ package chipmunk.modules.reflectiveruntime;
 
 import java.util.List;
 
-public class CMethod {
+import chipmunk.ChipmunkContext;
+import chipmunk.reflectors.ContextOperator;
+
+public class CMethod implements ContextOperator {
 	protected int argCount;
 	protected int localCount;
 	
@@ -43,5 +46,9 @@ public class CMethod {
 	
 	public byte[] getCode(){
 		return instructions;
+	}
+	
+	public Object call(ChipmunkContext context, CInteger paramCount){
+		return new CNull();
 	}
 }
