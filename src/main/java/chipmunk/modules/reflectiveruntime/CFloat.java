@@ -133,8 +133,8 @@ public class CFloat implements ContextOperator {
 		}else if(otherType == CBoolean.class){
 			return truth(context);
 		}else{
-			throw new UnimplementedOperationChipmunk(String.format("Undefined operation: cannot perform int as %s", otherType.getClass().getSimpleName()));
-		}
+			throw new BadConversionChipmunk(String.format("Cannot convert float to %s", otherType.getClass().getSimpleName()), this, otherType);
+			}
 	}
 	
 	public CInteger compare(ChipmunkContext context, CInteger other){

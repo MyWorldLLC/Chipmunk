@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 
 import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkContext;
+import chipmunk.modules.reflectiveruntime.MissingMethodChipmunk;
 
 public class Reflector {
 	
@@ -37,7 +38,7 @@ public class Reflector {
 		try {
 			method = obj.getClass().getMethod(op, paramTypes);
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			throw new MissingMethodChipmunk(e);
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}

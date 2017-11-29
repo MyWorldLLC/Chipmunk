@@ -38,8 +38,8 @@ public class CBoolean implements ContextOperator {
 		}else if(otherType == CBoolean.class){
 			return this;
 		}else{
-			throw new UnimplementedOperationChipmunk(String.format("Undefined operation: cannot perform int as %s", otherType.getClass().getSimpleName()));
-		}
+			throw new BadConversionChipmunk(String.format("Cannot convert boolean to %s", otherType.getClass().getSimpleName()), this, otherType);
+			}
 	}
 	
 	public CInteger compare(ChipmunkContext context, CBoolean other){
