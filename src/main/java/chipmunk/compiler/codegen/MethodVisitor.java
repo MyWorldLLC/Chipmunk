@@ -9,6 +9,7 @@ import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
+import chipmunk.compiler.ast.IfElseNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
@@ -19,6 +20,7 @@ public class MethodVisitor implements AstVisitor {
 	protected CMethod method;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
+	protected Codegen codegen;
 	protected MethodNode methodNode;
 	
 	
@@ -31,27 +33,20 @@ public class MethodVisitor implements AstVisitor {
 		if(node instanceof MethodNode){
 			methodNode = (MethodNode) node;
 			symbols = methodNode.getSymbolTable();
+			
+			codegen = new Codegen(assembler, symbols);
+			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
+			codegen.setVisitorForNode(OperatorNode.class, new ExpressionStatementVisitor(codegen));
+			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
+			// TODO - clean this up
+			codegen.setVisitorForNode(FlowControlNode.class, this);
+			
 			// TODO - parameter declarations
 			if(methodNode.getChildren().size() == 0){
 				assembler.pushNull();
 				assembler._return();
 			}
-			node.visitChildren(this);
-		}else if(node instanceof OperatorNode){
-			node.visit(new ExpressionVisitor(assembler, symbols));
-		}else if(node instanceof VarDecNode){
-			VarDecNode dec = (VarDecNode) node;
-			
-			Symbol symbol = new Symbol(dec.getVarName());
-			symbols.setSymbol(symbol);
-			
-			if(dec.getAssignExpr() != null){
-				dec.getAssignExpr().visit(new ExpressionVisitor(assembler, symbols));
-			}else{
-				assembler.pushNull();
-				
-			}
-			assembler.setLocal(symbols.getLocalIndex(symbol));
+			node.visitChildren(codegen);
 		}else if(node instanceof FlowControlNode){
 			FlowControlNode flowNode = (FlowControlNode) node;
 			
@@ -70,6 +65,10 @@ public class MethodVisitor implements AstVisitor {
 			}else if(flowNode.getControlToken().getType() == Token.Type.CONTINUE){
 				// TODO
 			}
+			return;
+		}else{
+			node.visit(codegen);
+			return;
 		}
 		
 		method = new CMethod();

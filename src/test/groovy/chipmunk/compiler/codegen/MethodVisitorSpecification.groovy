@@ -4,6 +4,7 @@ import chipmunk.ChipmunkContext
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
+import chipmunk.modules.reflectiveruntime.CBoolean
 import chipmunk.modules.reflectiveruntime.CInteger
 import chipmunk.modules.reflectiveruntime.CMethod
 import chipmunk.modules.reflectiveruntime.CNull
@@ -107,14 +108,32 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 6
 	}
 	
+	def "Basic if"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 123
+				if (v1 == 123){
+					return true
+				}else {
+					return false
+				}
+			}
+			""")
+			
+		then:
+		result instanceof CBoolean
+		result.getValue() == true
+	}
+	
 	def parseAndCall(String expression){
 		parser = new ChipmunkParser(lexer.lex(expression))
-		
 		AstNode root = parser.parseMethodDef()
 		root.visit(new SymbolTableBuilderVisitor())
 		root.visit(visitor)
 
 		CMethod method = visitor.getMethod()
+		println(method.getCode())
 
 		return context.dispatch(method.getCode(), method.getArgCount(), method.getLocalCount(), method.getConstantPool()).getObject()
 	}

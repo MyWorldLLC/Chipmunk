@@ -353,10 +353,6 @@ public class ChipmunkParser {
 	}
 	
 	public AstNode parseStatement(){
-		return parseStatement(false);
-	}
-	
-	public AstNode parseStatement(boolean insideLoop){
 		// Statements are:
 		// (a) variable declarations and assignments
 		// (b) method definitions
@@ -406,24 +402,16 @@ public class ChipmunkParser {
 			case BREAK:
 			case CONTINUE:
 				dropNext();
-				if(insideLoop){
-					FlowControlNode node = new FlowControlNode();
-					startNode(node);
-					dropNext();
-					node.setControlToken(token);
-					endNode(node);
-					return node;
-				}else{
-					syntaxError("Break and continue can only be used inside a loop", token);
-				}
+				
+				FlowControlNode node = new FlowControlNode();
+				startNode(node);
+				dropNext();
+				node.setControlToken(token);
+				endNode(node);
+				return node;
 			default:
-				if(insideLoop){
-					syntaxError("Unexpected token", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY,
-							Token.Type.RETURN, Token.Type.THROW, Token.Type.BREAK, Token.Type.CONTINUE);
-				}else{
-					syntaxError("Unexpected token", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY,
-							Token.Type.RETURN, Token.Type.THROW);
-				}
+				syntaxError("Unexpected token", token, Token.Type.IF, Token.Type.WHILE, Token.Type.FOR, Token.Type.TRY,
+					Token.Type.RETURN, Token.Type.THROW, Token.Type.BREAK, Token.Type.CONTINUE);
 			}
 		}else if(!peek(Token.Type.EOF)){
 			// it's an expression
@@ -440,6 +428,7 @@ public class ChipmunkParser {
 		while(true){
 			// Parse if branch
 			GuardedNode ifBranch = new GuardedNode();
+			
 			forceNext(Token.Type.IF);
 			forceNext(Token.Type.LPAREN);
 			skipNewlines();
@@ -453,8 +442,9 @@ public class ChipmunkParser {
 			
 			node.addGuardedBranch(ifBranch);
 			
+			skipNewlinesAndComments();
+			
 			if(dropNext(Token.Type.ELSE)){
-				
 				skipNewlines();
 				// it's the else block
 				if(peek(Token.Type.LBRACE)){
@@ -546,7 +536,7 @@ public class ChipmunkParser {
 		
 		while(!peek(Token.Type.RBRACE)){
 			skipNewlinesAndComments();
-			node.addToBody(parseStatement(true));
+			node.addToBody(parseStatement());
 			skipNewlinesAndComments();
 			
 			if(peek(Token.Type.EOF)){

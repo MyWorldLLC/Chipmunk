@@ -82,4 +82,16 @@ public class TokenStream {
 		}
 		
 	}
+	
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		for(int i = cursor; i < tokens.size(); i++){
+			builder.append(tokens.get(i).getText());
+			if(i < tokens.size() - 1){
+				builder.append(' ');
+			}
+		}
+		
+		return builder.toString();
+	}
 }

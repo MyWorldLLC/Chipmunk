@@ -126,6 +126,10 @@ public class ChipmunkContext {
 		return stack.remove(stack.size() - 1);
 	}
 	
+	public Reflector peek(){
+		return stack.get(stack.size() - 1);
+	}
+	
 	public void dup(int index){
 		Reflector obj = stack.get(stack.size() - (index + 1));
 		stack.add(obj);
@@ -357,7 +361,7 @@ public class ChipmunkContext {
 				ip += 2;
 				break;
 			case SETLOCAL:
-				locals[fetchByte(instructions, ip + 1)] = this.pop();
+				locals[fetchByte(instructions, ip + 1)] = this.peek();
 				ip += 2;
 				break;
 			case TRUTH:
@@ -382,11 +386,12 @@ public class ChipmunkContext {
 				break;
 			case IF:
 				ins = this.pop();
-				// TODO - catch cast exception
-				if((((CBoolean)ins.doOp(this, "truth").getObject()).getValue())){
-					ip = fetchInt(instructions, ip + 1);
-				}
+				int target = fetchInt(instructions, ip + 1);
 				ip += 5;
+				// TODO - catch cast exception
+				if(!(((CBoolean)ins.doOp(this, "truth").getObject()).getValue())){
+					ip = target;
+				}
 				break;
 			case CALL:
 				ins = this.pop();

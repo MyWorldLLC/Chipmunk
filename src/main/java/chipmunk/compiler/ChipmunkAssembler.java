@@ -69,6 +69,7 @@ public class ChipmunkAssembler {
 			
 			if(!resolved){
 				// TODO - throw error. Label was not resolved.
+				throw new RuntimeException("Unresolved label: " + label.getName());
 			}
 		}
 		return codeBytes;
@@ -321,12 +322,13 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void _if(Label elseLabel){
+	/*public void _if(Label elseLabel){
 		_if(elseLabel.getName());
-	}
+	}*/
 	
 	public void _if(String elseLabel){
 		code.write(Opcodes.IF);
+		index++;
 		
 		label(elseLabel);
 		
@@ -335,7 +337,7 @@ public class ChipmunkAssembler {
 		code.write(0);
 		code.write(0);
 		
-		index += 5;
+		index += 4;
 	}
 	
 	public void call(byte paramCount){
@@ -382,7 +384,7 @@ public class ChipmunkAssembler {
 	
 	public void _goto(String label){
 		code.write(Opcodes.GOTO);
-		
+		index++;
 		label(label);
 		
 		code.write(0);
@@ -390,7 +392,7 @@ public class ChipmunkAssembler {
 		code.write(0);
 		code.write(0);
 		
-		index += 5;
+		index += 4;
 	}
 	
 	public void _throw(){

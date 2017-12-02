@@ -134,7 +134,7 @@ public class CFloat implements ContextOperator {
 			return truth(context);
 		}else{
 			throw new BadConversionChipmunk(String.format("Cannot convert float to %s", otherType.getClass().getSimpleName()), this, otherType);
-			}
+		}
 	}
 	
 	public CInteger compare(ChipmunkContext context, CInteger other){

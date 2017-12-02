@@ -39,7 +39,7 @@ public class CBoolean implements ContextOperator {
 			return this;
 		}else{
 			throw new BadConversionChipmunk(String.format("Cannot convert boolean to %s", otherType.getClass().getSimpleName()), this, otherType);
-			}
+		}
 	}
 	
 	public CInteger compare(ChipmunkContext context, CBoolean other){

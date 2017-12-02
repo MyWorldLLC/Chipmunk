@@ -30,4 +30,8 @@ public class LabelTarget {
 		
 		return false;
 	}
+	
+	public String toString(){
+		return name + ":" + codeIndex;
+	}
 }

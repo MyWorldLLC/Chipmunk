@@ -67,6 +67,12 @@ public class AstNode {
 		}
 	}
 	
+	public void visitChildren(AstVisitor visitor, int startAt){
+		for(int i = startAt; i < children.size(); i++){
+			visitor.visit(children.get(i));
+		}
+	}
+	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
