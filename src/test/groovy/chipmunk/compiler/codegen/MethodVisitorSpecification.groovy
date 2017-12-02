@@ -113,9 +113,9 @@ class MethodVisitorSpecification extends Specification {
 		def result = parseAndCall("""
 			def method(){
 				var v1 = 123
-				if (v1 == 123){
+				if(v1 == 123){
 					return true
-				}else {
+				}else{
 					return false
 				}
 			}
@@ -133,7 +133,6 @@ class MethodVisitorSpecification extends Specification {
 		root.visit(visitor)
 
 		CMethod method = visitor.getMethod()
-		println(method.getCode())
 
 		return context.dispatch(method.getCode(), method.getArgCount(), method.getLocalCount(), method.getConstantPool()).getObject()
 	}
