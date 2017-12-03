@@ -1,15 +1,15 @@
 package chipmunk.reflectors;
 
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 
-public class ContextReflector extends Reflector {
+public class VMReflector extends Reflector {
 
-	public ContextReflector(ContextOperator instance) {
+	public VMReflector(VMOperator instance) {
 		super(instance);
 	}
 	
 	@Override
-	public Reflector doOp(ChipmunkContext context, String op, Object... params){
+	public Reflector doOp(ChipmunkVM context, String op, Object... params){
 		Object[] fullParams = new Object[params.length + 1];
 		fullParams[0] = context;
 		for(int i = 1, j = 0; j < params.length; i++, j++){

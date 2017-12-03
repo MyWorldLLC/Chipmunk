@@ -1,7 +1,7 @@
 package chipmunk.modules.lang;
 
 import chipmunk.AngryChipmunk;
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
@@ -117,7 +117,7 @@ public abstract class CObject {
 		throw new UnimplementedOperationChipmunk("Operation __setAt__ not defined for type " + type.getName());
 	}
 	
-	public CObject __call__(ChipmunkContext context, int paramCount, boolean resuming) throws AngryChipmunk {
+	public CObject __call__(ChipmunkVM context, int paramCount, boolean resuming) throws AngryChipmunk {
 		throw new UnimplementedOperationChipmunk("Operation __call__ not defined for type " + type.getName());
 	}
 	

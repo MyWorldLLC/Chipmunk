@@ -1,6 +1,6 @@
 package chipmunk.modules.lang;
 
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 
 public class CBooleanType extends CType {
 	

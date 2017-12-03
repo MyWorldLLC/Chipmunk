@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import chipmunk.AngryChipmunk;
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 import chipmunk.modules.reflectiveruntime.MissingMethodChipmunk;
 
 public class Reflector {
@@ -19,7 +19,7 @@ public class Reflector {
 		return obj;
 	}
 	
-	public Reflector doOp(ChipmunkContext context, String op, Object... params) throws AngryChipmunk {
+	public Reflector doOp(ChipmunkVM context, String op, Object... params) throws AngryChipmunk {
 		// convert reflectors to their actual types
 		for(int i = 0; i < params.length; i++){
 			if(params[i] instanceof Reflector){
@@ -45,8 +45,8 @@ public class Reflector {
 		
 		try {
 			Object result = method.invoke(obj, params);
-			if(result instanceof ContextOperator){
-				return new ContextReflector((ContextOperator) result);
+			if(result instanceof VMOperator){
+				return new VMReflector((VMOperator) result);
 			}else{
 				return new Reflector(result);
 			}

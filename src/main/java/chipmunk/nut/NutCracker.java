@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CType;
 import chipmunk.modules.lang.CModule;
@@ -32,7 +32,7 @@ public class NutCracker {
 		return instances.get(index);
 	}
 	
-	public Nut unpack(ChipmunkContext context, InputStream in){
+	public Nut unpack(ChipmunkVM context, InputStream in){
 		
 		InputCapsule capsule = new InputCapsule(in);
 		

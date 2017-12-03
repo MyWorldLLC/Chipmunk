@@ -1,6 +1,6 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkContext
+import chipmunk.ChipmunkVM
 import chipmunk.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
@@ -16,7 +16,7 @@ class MethodVisitorSpecification extends Specification {
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
 	List constantPool = []
-	ChipmunkContext context = new ChipmunkContext()
+	ChipmunkVM context = new ChipmunkVM()
 	MethodVisitor visitor = new MethodVisitor(constantPool)
 	
 	def "Parse, generate, and run empty method def"(){

@@ -1,15 +1,15 @@
 package chipmunk
 
 import chipmunk.modules.reflectiveruntime.CInteger
-import chipmunk.reflectors.ContextReflector
+import chipmunk.reflectors.VMReflector
 import spock.lang.Specification
 
 class ContextSpecification extends Specification {
 
 	def "push and pop 1 item"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
 		
 		then:
 		context.pop().getObject().getValue() == 1
@@ -17,9 +17,9 @@ class ContextSpecification extends Specification {
 	
 	def "push and pop 2 items"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
-		context.push(new ContextReflector(new CInteger(2)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
+		context.push(new VMReflector(new CInteger(2)))
 		
 		then:
 		context.pop().getObject().getValue() == 2
@@ -28,8 +28,8 @@ class ContextSpecification extends Specification {
 	
 	def "push and dup 1 item"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
 		context.dup(0)
 		
 		then:
@@ -39,9 +39,9 @@ class ContextSpecification extends Specification {
 	
 	def "push 2 items and dup 1 item"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
-		context.push(new ContextReflector(new CInteger(2)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
+		context.push(new VMReflector(new CInteger(2)))
 		context.dup(1)
 		
 		then:
@@ -52,9 +52,9 @@ class ContextSpecification extends Specification {
 	
 	def "push 2 items and swap them"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
-		context.push(new ContextReflector(new CInteger(2)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
+		context.push(new VMReflector(new CInteger(2)))
 		context.swap(0, 1)
 		
 		then:
@@ -64,10 +64,10 @@ class ContextSpecification extends Specification {
 	
 	def "push 3 items and swap 2 items"(){
 		when:
-		ChipmunkContext context = new ChipmunkContext()
-		context.push(new ContextReflector(new CInteger(1)))
-		context.push(new ContextReflector(new CInteger(2)))
-		context.push(new ContextReflector(new CInteger(3)))
+		ChipmunkVM context = new ChipmunkVM()
+		context.push(new VMReflector(new CInteger(1)))
+		context.push(new VMReflector(new CInteger(2)))
+		context.push(new VMReflector(new CInteger(3)))
 		context.swap(0, 2)
 		
 		then:

@@ -1,13 +1,13 @@
 package chipmunk.modules.reflectiveruntime;
 
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
-import chipmunk.reflectors.ContextOperator;
+import chipmunk.reflectors.VMOperator;
 
-public class CBoolean implements ContextOperator {
+public class CBoolean implements VMOperator {
 	
 	private boolean value;
 	
@@ -23,11 +23,11 @@ public class CBoolean implements ContextOperator {
 		return value;
 	}
 	
-	public CBoolean truth(ChipmunkContext context){
+	public CBoolean truth(ChipmunkVM context){
 		return this;
 	}
 	
-	public Object as(ChipmunkContext context, Class<?> otherType){
+	public Object as(ChipmunkVM context, Class<?> otherType){
 		if(otherType == CInteger.class){
 			context.traceMem(4);
 			return new CInteger(value ? 1 : 0);
@@ -41,20 +41,20 @@ public class CBoolean implements ContextOperator {
 		}
 	}
 	
-	public CInteger compare(ChipmunkContext context, CBoolean other){
+	public CInteger compare(ChipmunkVM context, CBoolean other){
 		return new CInteger(Boolean.compare(value, other.value));
 	}
 	
-	public void pack(ChipmunkContext context, NutPacker packer, OutputCapsule out){
+	public void pack(ChipmunkVM context, NutPacker packer, OutputCapsule out){
 		out.write(value);
 	}
 	
-	public void unpack(ChipmunkContext context, NutCracker cracker, InputCapsule in){
+	public void unpack(ChipmunkVM context, NutCracker cracker, InputCapsule in){
 		context.traceMem(4);
 		value = in.readBoolean();
 	}
 	
-	public CInteger hash(ChipmunkContext context){
+	public CInteger hash(ChipmunkVM context){
 		context.traceMem(4);
 		return new CInteger(hashCode());
 	}
@@ -63,7 +63,7 @@ public class CBoolean implements ContextOperator {
 		return Boolean.hashCode(value);
 	}
 	
-	public String string(ChipmunkContext context){
+	public String string(ChipmunkVM context){
 		String stringValue = toString();
 		context.traceMem(stringValue.length() * 2);
 		return stringValue;
@@ -73,7 +73,7 @@ public class CBoolean implements ContextOperator {
 		return Boolean.toString(value);
 	}
 	
-	public CBoolean equals(ChipmunkContext context, CBoolean other){
+	public CBoolean equals(ChipmunkVM context, CBoolean other){
 		return new CBoolean (value == other.value);
 	}
 	

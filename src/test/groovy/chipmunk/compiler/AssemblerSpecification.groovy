@@ -1,6 +1,6 @@
 package chipmunk.compiler
 
-import chipmunk.ChipmunkContext
+import chipmunk.ChipmunkVM
 import chipmunk.modules.lang.CCode
 import chipmunk.modules.lang.CInt
 import chipmunk.modules.lang.CMethod
@@ -9,7 +9,7 @@ import spock.lang.Specification
 
 class AssemblerSpecification extends Specification {
 	
-	ChipmunkContext context = new ChipmunkContext()
+	ChipmunkVM context = new ChipmunkVM()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 
 	def "Assemble and run 1 + 2"(){

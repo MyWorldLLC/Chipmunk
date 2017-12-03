@@ -1,6 +1,6 @@
 package chipmunk.modules.lang;
 
-import chipmunk.ChipmunkContext;
+import chipmunk.ChipmunkVM;
 
 public class CCodeType extends CType {
 
@@ -13,7 +13,7 @@ public class CCodeType extends CType {
 	}
 	
 	@Override
-	public CObject __call__(ChipmunkContext context, int params, boolean resuming){
+	public CObject __call__(ChipmunkVM context, int params, boolean resuming){
 		if(params == 0){
 			return new CCode();
 		}else{

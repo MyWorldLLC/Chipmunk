@@ -1,13 +1,13 @@
 package chipmunk.modules.reflectiveruntime
 
-import chipmunk.ChipmunkContext
+import chipmunk.ChipmunkVM
 import chipmunk.modules.lang.CString
 import chipmunk.modules.lang.UnimplementedOperationChipmunk
 import spock.lang.Specification
 
 class CIntegerSpecification extends Specification {
 	
-	ChipmunkContext context = new ChipmunkContext();
+	ChipmunkVM context = new ChipmunkVM();
 	CInteger one = new CInteger(1)
 	CInteger two = new CInteger(2)
 	CInteger three = new CInteger(3)
