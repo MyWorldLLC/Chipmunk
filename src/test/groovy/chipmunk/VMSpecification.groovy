@@ -4,7 +4,7 @@ import chipmunk.modules.reflectiveruntime.CInteger
 import chipmunk.reflectors.VMReflector
 import spock.lang.Specification
 
-class ContextSpecification extends Specification {
+class VMSpecification extends Specification {
 
 	def "push and pop 1 item"(){
 		when:
