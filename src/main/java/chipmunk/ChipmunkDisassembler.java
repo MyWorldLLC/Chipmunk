@@ -46,10 +46,28 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
-public class ChipmunkDisassembler {
+import java.util.List;
 
+public class ChipmunkDisassembler {
+	
 	public static String disassemble(byte[] codeSegment){
+		return disassemble(codeSegment, null);
+	}
+
+	public static String disassemble(byte[] codeSegment, List<Object> constantPool){
 		StringBuilder builder = new StringBuilder();
+		
+		if(constantPool != null){
+			builder.append("Constants:\n");
+			for(int i = 0; i < constantPool.size(); i++){
+				builder.append(i);
+				builder.append(": ");
+				builder.append(constantPool.get(i).toString());
+				builder.append('\n');
+			}
+			
+			builder.append("\nCode:\n");
+		}
 		
 		int ip = 0;
 		while(ip < codeSegment.length){

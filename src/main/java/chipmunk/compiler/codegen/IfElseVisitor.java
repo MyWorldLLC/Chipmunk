@@ -50,6 +50,7 @@ public class IfElseVisitor implements AstVisitor {
 			
 		}else if(node instanceof BlockNode){
 			BlockNode elseBranch = (BlockNode) node;
+			System.out.println("Visiting else");
 			elseBranch.visitChildren(codegen);
 		}
 	}

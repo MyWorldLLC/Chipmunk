@@ -10,4 +10,7 @@ public class CNull implements ContextOperator {
 		return new CBoolean(false);
 	}
 	
+	public String toString(){
+		return "CNull";
+	}
 }

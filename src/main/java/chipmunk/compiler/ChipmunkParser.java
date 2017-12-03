@@ -440,6 +440,7 @@ public class ChipmunkParser {
 					BlockNode elseBlock = new BlockNode();
 					
 					parseBlockBody(elseBlock);
+					node.setElseBranch(elseBlock);
 					
 					break;
 				}

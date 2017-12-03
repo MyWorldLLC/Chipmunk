@@ -118,7 +118,7 @@ class MethodVisitorSpecification extends Specification {
 					return true
 				}
 			}
-			""", "return in")
+			""")
 			
 		then:
 		result instanceof CBoolean
@@ -156,14 +156,78 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "multibranch if")
+			""")
 			
 		then:
 		result instanceof CInteger
 		result.getValue() == 1
 	}
 	
-	def parseAndCall(String expression, String test = ""){
+	def "Multibranch if - return in second branch"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 124
+				if(v1 == 123){
+					return 1
+				}else if(v1 == 124){
+					return 2
+				}else{
+					return 3
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 2
+	}
+	
+	def "Multibranch if - return in else"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 125
+				if(v1 == 123){
+					return 1
+				}else if(v1 == 124){
+					return 2
+				}else{
+					return 3
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 3
+	}
+	
+	def "Multibranch if - return after else"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 125
+				if(v1 == 123){
+					return 1
+				}else if(v1 == 124){
+					return 2
+				}else{
+					return 3
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 3
+	}
+	
+	def parseAndCall(String expression){
+		
 		parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseMethodDef()
 		root.visit(new SymbolTableBuilderVisitor())
