@@ -117,6 +117,7 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case DOUBLEDOTLESS:
 				// TODO - ranges
+				return;
 			case DOUBLEDOT:
 				return;
 			case DOUBLEBAR:
