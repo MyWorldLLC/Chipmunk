@@ -214,7 +214,7 @@ class MethodVisitorSpecification extends Specification {
 					return 1
 				}else if(v1 == 124){
 					return 2
-				}else{
+				}else if(v1 == 126){
 					return 3
 				}
 				return v1
@@ -223,18 +223,58 @@ class MethodVisitorSpecification extends Specification {
 			
 		then:
 		result instanceof CInteger
-		result.getValue() == 3
+		result.getValue() == 125
 	}
 	
-	def parseAndCall(String expression){
+	def "While loop - no iterations"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 0
+				while(v1 == 5){
+					v1 = v1 + 1
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 0
+	}
+	
+	def "While loop - 5 iterations"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 0
+				while(v1 < 5){
+					v1 = v1 + 1
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 5
+	}
+	
+	def parseAndCall(String expression, String test = ""){
 		
 		parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseMethodDef()
 		root.visit(new SymbolTableBuilderVisitor())
 		root.visit(visitor)
-
+		
 		CMethod method = visitor.getMethod()
-
+		
+		if(test != ""){
+			println()
+			println("============= ${test} =============")
+			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
+		}
+		
 		return context.dispatch(method.getCode(), method.getArgCount(), method.getLocalCount(), method.getConstantPool()).getObject()
 	}
 

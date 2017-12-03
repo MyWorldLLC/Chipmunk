@@ -81,6 +81,9 @@ public class ChipmunkContext {
 	private volatile boolean resuming;
 	private int memHigh;
 	
+	private final ContextReflector trueValue;
+	private final ContextReflector falseValue;
+	
 	public ChipmunkContext(){
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
@@ -88,6 +91,9 @@ public class ChipmunkContext {
 		
 		frozenCallStack = new ArrayDeque<CallFrame>(128);
 		memHigh = 0;
+		
+		trueValue = new ContextReflector(new CBoolean(true));
+		falseValue = new ContextReflector(new CBoolean(false));
 	}
 	
 	public CModule getModule(String name){
@@ -267,12 +273,12 @@ public class ChipmunkContext {
 				// TODO - catch cast exception
 				if(((CBoolean)lh.doOp(this, "truth").getObject()).getValue()){
 					if(((CBoolean)rh.doOp(this, "truth").getObject()).getValue()){
-						this.push(new ContextReflector(new CBoolean(true)));
+						this.push(trueValue);
 					}else{
-						this.push(new ContextReflector(new CBoolean(false)));
+						this.push(falseValue);
 					}
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
@@ -281,9 +287,9 @@ public class ChipmunkContext {
 				lh = this.pop();
 				if(((CBoolean)lh.doOp(this, "truth").getObject()).getValue() 
 						|| ((CBoolean)rh.doOp(this, "truth").getObject()).getValue()){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
@@ -446,58 +452,58 @@ public class ChipmunkContext {
 				ip += 5;
 				break;
 			case EQ:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				this.push(lh.doOp(this, "equals", rh));
 				ip++;
 				break;
 			case GT:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() > 0){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
 			case LT:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() < 0){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
 			case GE:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() >= 0){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
 			case LE:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() <= 0){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;
 			case IS:
-				lh = this.pop();
 				rh = this.pop();
+				lh = this.pop();
 				if(lh.getObject() == rh.getObject()){
-					this.push(new ContextReflector(new CBoolean(true)));
+					this.push(trueValue);
 				}else{
-					this.push(new ContextReflector(new CBoolean(false)));
+					this.push(falseValue);
 				}
 				ip++;
 				break;

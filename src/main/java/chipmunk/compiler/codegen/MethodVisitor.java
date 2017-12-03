@@ -13,6 +13,7 @@ import chipmunk.compiler.ast.IfElseNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.reflectiveruntime.CMethod;
 
 public class MethodVisitor implements AstVisitor {
@@ -35,9 +36,11 @@ public class MethodVisitor implements AstVisitor {
 			symbols = methodNode.getSymbolTable();
 			
 			codegen = new Codegen(assembler, symbols);
-			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(OperatorNode.class, new ExpressionStatementVisitor(codegen));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
+			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
+			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
+			
 			// TODO - clean this up
 			codegen.setVisitorForNode(FlowControlNode.class, this);
 			

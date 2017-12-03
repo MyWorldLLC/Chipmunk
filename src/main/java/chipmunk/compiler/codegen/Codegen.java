@@ -1,6 +1,8 @@
 package chipmunk.compiler.codegen;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chipmunk.compiler.ChipmunkAssembler;
@@ -14,8 +16,11 @@ public class Codegen implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
+	protected List<LoopLabels> loopStack;
+	
 	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
+		loopStack = new ArrayList<LoopLabels>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 	}
@@ -41,4 +46,31 @@ public class Codegen implements AstVisitor {
 	public SymbolTable getSymbols(){
 		return symbols;
 	}
+	
+	public LoopLabels pushLoop(){
+		LoopLabels labels = new LoopLabels(assembler.nextLabelName(), assembler.nextLabelName(), assembler.nextLabelName());
+		loopStack.add(labels);
+		return labels;
+	}
+	
+	public LoopLabels peekClosestLoop(){
+		if(loopStack.size() < 0){
+			return loopStack.get(loopStack.size() - 1);
+		}
+		return null;
+	}
+	
+	public LoopLabels exitLoop(){
+		if(loopStack.size() > 0){
+			LoopLabels labels = loopStack.get(loopStack.size() - 1);
+			loopStack.remove(loopStack.size() - 1);
+			return labels;
+		}
+		return null;
+	}
+	
+	public boolean inLoop(){
+		return loopStack.size() > 0;
+	}
+	
 }
