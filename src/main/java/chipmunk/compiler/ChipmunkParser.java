@@ -427,18 +427,7 @@ public class ChipmunkParser {
 		// keep parsing if & else-if branches until something causes this to break
 		while(true){
 			// Parse if branch
-			GuardedNode ifBranch = new GuardedNode();
-			
-			forceNext(Token.Type.IF);
-			forceNext(Token.Type.LPAREN);
-			skipNewlines();
-			
-			ifBranch.setGuard(parseExpression());
-			
-			skipNewlines();
-			forceNext(Token.Type.RPAREN);
-			
-			parseBlockBody(ifBranch);
+			GuardedNode ifBranch = parseIfBranch();
 			
 			node.addGuardedBranch(ifBranch);
 			
