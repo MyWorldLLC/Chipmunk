@@ -1,6 +1,7 @@
 package chipmunk.compiler.codegen
 
 import chipmunk.ChipmunkContext
+import chipmunk.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
@@ -108,16 +109,31 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 6
 	}
 	
-	def "Basic if"(){
+	def "Basic if - return in if"(){
 		when:
 		def result = parseAndCall("""
 			def method(){
 				var v1 = 123
 				if(v1 == 123){
 					return true
-				}else{
+				}
+			}
+			""", "return in")
+			
+		then:
+		result instanceof CBoolean
+		result.getValue() == true
+	}
+	
+	def "Basic if - return after if"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 123
+				if(v1 != 123){
 					return false
 				}
+				return true
 			}
 			""")
 			
@@ -126,7 +142,28 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == true
 	}
 	
-	def parseAndCall(String expression){
+	def "Multibranch if"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 123
+				if(v1 == 123){
+					return 1
+				}else if(v1 == 124){
+					return 2
+				}else{
+					return 3
+				}
+				return v1
+			}
+			""", "multibranch if")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 1
+	}
+	
+	def parseAndCall(String expression, String test = ""){
 		parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseMethodDef()
 		root.visit(new SymbolTableBuilderVisitor())

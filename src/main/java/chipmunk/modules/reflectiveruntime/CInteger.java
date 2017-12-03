@@ -212,6 +212,16 @@ public class CInteger implements ContextOperator {
 		return Integer.toString(value);
 	}
 	
+	public CBoolean equals(ChipmunkContext context, CInteger other){
+		context.traceMem(1);
+		return new CBoolean(value == other.value);
+	}
+	
+	public CBoolean equals(ChipmunkContext context, CFloat other){
+		context.traceMem(1);
+		return new CBoolean(((float)value) == other.floatValue());
+	}
+	
 	public boolean equals(Object other){
 		if(other instanceof CInteger){
 			if(((CInteger) other).value == value){

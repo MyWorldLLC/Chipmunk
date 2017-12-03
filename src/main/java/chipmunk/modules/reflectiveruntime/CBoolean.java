@@ -1,7 +1,6 @@
 package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.ChipmunkContext;
-import chipmunk.modules.lang.UnimplementedOperationChipmunk;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
@@ -72,6 +71,10 @@ public class CBoolean implements ContextOperator {
 	
 	public String toString(){
 		return Boolean.toString(value);
+	}
+	
+	public CBoolean equals(ChipmunkContext context, CBoolean other){
+		return new CBoolean (value == other.value);
 	}
 	
 	public boolean equals(Object other){

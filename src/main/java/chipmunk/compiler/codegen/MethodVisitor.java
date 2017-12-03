@@ -47,6 +47,10 @@ public class MethodVisitor implements AstVisitor {
 				assembler._return();
 			}
 			node.visitChildren(codegen);
+			
+			// return null if a return has not yet been hit
+			assembler.pushNull();
+			assembler._return();
 		}else if(node instanceof FlowControlNode){
 			FlowControlNode flowNode = (FlowControlNode) node;
 			

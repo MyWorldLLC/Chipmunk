@@ -389,7 +389,7 @@ public class ChipmunkContext {
 				int target = fetchInt(instructions, ip + 1);
 				ip += 5;
 				// TODO - catch cast exception
-				if(!(((CBoolean)ins.doOp(this, "truth").getObject()).getValue())){
+				if(!((CBoolean)ins.doOp(this, "truth").getObject()).booleanValue()){
 					ip = target;
 				}
 				break;
@@ -412,7 +412,7 @@ public class ChipmunkContext {
 				break;
 			case GOTO:
 				int gotoIndex = fetchInt(instructions, ip + 1);
-				ip += gotoIndex;
+				ip = gotoIndex;
 				break;
 			case THROW:
 				ins = this.pop();
@@ -448,21 +448,16 @@ public class ChipmunkContext {
 			case EQ:
 				lh = this.pop();
 				rh = this.pop();
-				// TODO - catch cast exception
-				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() == 0){
-					this.push(new Reflector(new CBoolean(true)));
-				}else{
-					this.push(new Reflector(new CBoolean(false)));
-				}
+				this.push(lh.doOp(this, "equals", rh));
 				ip++;
 				break;
 			case GT:
 				lh = this.pop();
 				rh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() > 0){
-					this.push(new Reflector(new CBoolean(true)));
+					this.push(new ContextReflector(new CBoolean(true)));
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(new ContextReflector(new CBoolean(false)));
 				}
 				ip++;
 				break;
@@ -470,9 +465,9 @@ public class ChipmunkContext {
 				lh = this.pop();
 				rh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() < 0){
-					this.push(new Reflector(new CBoolean(true)));
+					this.push(new ContextReflector(new CBoolean(true)));
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(new ContextReflector(new CBoolean(false)));
 				}
 				ip++;
 				break;
@@ -480,9 +475,9 @@ public class ChipmunkContext {
 				lh = this.pop();
 				rh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() >= 0){
-					this.push(new Reflector(new CBoolean(true)));
+					this.push(new ContextReflector(new CBoolean(true)));
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(new ContextReflector(new CBoolean(false)));
 				}
 				ip++;
 				break;
@@ -490,9 +485,9 @@ public class ChipmunkContext {
 				lh = this.pop();
 				rh = this.pop();
 				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() <= 0){
-					this.push(new Reflector(new CBoolean(true)));
+					this.push(new ContextReflector(new CBoolean(true)));
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(new ContextReflector(new CBoolean(false)));
 				}
 				ip++;
 				break;
@@ -500,9 +495,9 @@ public class ChipmunkContext {
 				lh = this.pop();
 				rh = this.pop();
 				if(lh.getObject() == rh.getObject()){
-					this.push(new Reflector(new CBoolean(true)));
+					this.push(new ContextReflector(new CBoolean(true)));
 				}else{
-					this.push(new Reflector(new CBoolean(false)));
+					this.push(new ContextReflector(new CBoolean(false)));
 				}
 				ip++;
 				break;

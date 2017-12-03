@@ -205,6 +205,15 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.setLocal(symbols.getLocalIndex(((IdNode) lhs).getID().getText()));
 				}
 				return;
+			case DOUBLEEQUAlS:
+				op.visitChildren(this);
+				assembler.eq();
+				break;
+			case EXCLAMATIONEQUALS:
+				op.visitChildren(this);
+				assembler.eq();
+				assembler.not();
+				break;
 			default:
 				return;
 			}
