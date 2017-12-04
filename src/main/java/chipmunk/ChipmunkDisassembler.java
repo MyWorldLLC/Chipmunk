@@ -286,8 +286,9 @@ public class ChipmunkDisassembler {
 				ip++;
 				break;
 			case NEXT:
-				builder.append("next");
-				ip++;
+				builder.append("next ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
 				break;
 			case RANGE:
 				builder.append("range ");

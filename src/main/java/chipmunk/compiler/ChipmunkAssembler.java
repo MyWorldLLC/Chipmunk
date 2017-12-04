@@ -493,9 +493,21 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void next(){
+	public void next(Label label){
+		next(label.getName());
+	}
+	
+	public void next(String label){
 		code.write(Opcodes.NEXT);
 		index++;
+		label(label);
+		
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		code.write(0);
+		
+		index += 4;
 	}
 	
 	public void range(boolean inclusive){

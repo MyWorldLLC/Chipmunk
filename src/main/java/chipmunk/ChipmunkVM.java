@@ -61,6 +61,7 @@ import java.util.Map;
 import chipmunk.modules.lang.CModule;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CInteger;
+import chipmunk.modules.reflectiveruntime.CIterator;
 import chipmunk.reflectors.VMOperator;
 import chipmunk.reflectors.VMReflector;
 import chipmunk.reflectors.Reflector;
@@ -527,8 +528,12 @@ public class ChipmunkVM {
 				break;
 			case NEXT:
 				ins = this.pop();
+				// TODO - catch cast exception
+				if(!((CIterator)ins.getObject()).hasNext(this)){
+					ip = fetchInt(instructions, ip + 1);
+				}
 				this.push(ins.doOp(this, "next"));
-				ip++;
+				ip += 5;
 				break;
 			case RANGE:
 				rh = this.pop();
