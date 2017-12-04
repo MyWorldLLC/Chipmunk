@@ -61,7 +61,7 @@ public class Opcodes {
 	public static final byte AS = 0x2F;
 	public static final byte NEW = 0x30;
 	public static final byte ITER = 0x31;
-	public static final byte IRANGE = 0x32;
-	public static final byte FRANGE = 0x33;
+	public static final byte NEXT = 0x32;
+	public static final byte RANGE = 0x33;
 	
 }

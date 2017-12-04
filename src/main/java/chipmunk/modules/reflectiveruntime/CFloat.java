@@ -145,6 +145,14 @@ public class CFloat implements VMOperator {
 		return new CInteger(Float.compare(value, other.floatValue()));
 	}
 	
+	public CFloatRange range(ChipmunkVM vm, CFloat other, boolean inclusive){
+		return new CFloatRange(value, other.value, 1.0f, inclusive);
+	}
+	
+	public CFloatRange range(ChipmunkVM vm, CInteger other, boolean inclusive){
+		return new CFloatRange(value, other.getValue(), 1.0f, inclusive);
+	}
+	
 	public void pack(ChipmunkVM context, NutPacker packer, OutputCapsule out){
 		out.write(value);
 	}

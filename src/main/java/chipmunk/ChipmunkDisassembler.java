@@ -8,6 +8,7 @@ import static chipmunk.Opcodes.BNEG;
 import static chipmunk.Opcodes.BOR;
 import static chipmunk.Opcodes.BXOR;
 import static chipmunk.Opcodes.CALL;
+import static chipmunk.Opcodes.CALLAT;
 import static chipmunk.Opcodes.DEC;
 import static chipmunk.Opcodes.DIV;
 import static chipmunk.Opcodes.DUP;
@@ -45,6 +46,10 @@ import static chipmunk.Opcodes.SWAP;
 import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
+import static chipmunk.Opcodes.INSTANCEOF;
+import static chipmunk.Opcodes.ITER;
+import static chipmunk.Opcodes.NEXT;
+import static chipmunk.Opcodes.RANGE;
 
 import java.util.List;
 
@@ -209,6 +214,11 @@ public class ChipmunkDisassembler {
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
+			case CALLAT:
+				builder.append("callat ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
+				break;
 			case GOTO:
 				builder.append("goto ");
 				builder.append(fetchInt(codeSegment, ip + 1));
@@ -266,6 +276,23 @@ public class ChipmunkDisassembler {
 			case IS:
 				builder.append("is");
 				ip++;
+				break;
+			case INSTANCEOF:
+				builder.append("instanceof");
+				ip++;
+				break;
+			case ITER:
+				builder.append("iter");
+				ip++;
+				break;
+			case NEXT:
+				builder.append("next");
+				ip++;
+				break;
+			case RANGE:
+				builder.append("range ");
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
 				break;
 			default:
 				throw new InvalidOpcodeChipmunk(op);

@@ -8,6 +8,7 @@ import static chipmunk.Opcodes.BNEG;
 import static chipmunk.Opcodes.BOR;
 import static chipmunk.Opcodes.BXOR;
 import static chipmunk.Opcodes.CALL;
+import static chipmunk.Opcodes.CALLAT;
 import static chipmunk.Opcodes.DEC;
 import static chipmunk.Opcodes.DIV;
 import static chipmunk.Opcodes.DUP;
@@ -21,7 +22,10 @@ import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
 import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
+import static chipmunk.Opcodes.ITER;
+import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.LE;
 import static chipmunk.Opcodes.LSHIFT;
 import static chipmunk.Opcodes.LT;
@@ -35,6 +39,7 @@ import static chipmunk.Opcodes.POP;
 import static chipmunk.Opcodes.POS;
 import static chipmunk.Opcodes.POW;
 import static chipmunk.Opcodes.PUSH;
+import static chipmunk.Opcodes.RANGE;
 import static chipmunk.Opcodes.RETURN;
 import static chipmunk.Opcodes.RSHIFT;
 import static chipmunk.Opcodes.SETAT;
@@ -416,6 +421,8 @@ public class ChipmunkVM {
 				}
 				
 				break;
+			case CALLAT:
+				break;
 			case GOTO:
 				int gotoIndex = fetchInt(instructions, ip + 1);
 				ip = gotoIndex;
@@ -506,6 +513,28 @@ public class ChipmunkVM {
 					this.push(falseValue);
 				}
 				ip++;
+				break;
+			case INSTANCEOF:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "instanceOf", rh));
+				ip++;
+				break;
+			case ITER:
+				ins = this.pop();
+				this.push(ins.doOp(this, "iter"));
+				ip++;
+				break;
+			case NEXT:
+				ins = this.pop();
+				this.push(ins.doOp(this, "next"));
+				ip++;
+				break;
+			case RANGE:
+				rh = this.pop();
+				lh = this.pop();
+				this.push(lh.doOp(this, "range", rh, fetchByte(instructions, ip + 1) == 0 ? false : true));
+				ip += 2;
 				break;
 			default:
 				throw new InvalidOpcodeChipmunk(op);

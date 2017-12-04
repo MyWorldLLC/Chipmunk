@@ -117,6 +117,8 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case DOUBLEDOTLESS:
 				// TODO - ranges
+				op.visitChildren(this);
+				
 				return;
 			case DOUBLEDOT:
 				return;

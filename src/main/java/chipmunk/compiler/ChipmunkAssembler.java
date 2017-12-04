@@ -280,6 +280,11 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
+	public void _instanceof(){
+		code.write(Opcodes.INSTANCEOF);
+		index++;
+	}
+	
 	public void setattr(){
 		code.write(Opcodes.SETATTR);
 		index++;
@@ -342,6 +347,12 @@ public class ChipmunkAssembler {
 	
 	public void call(byte paramCount){
 		code.write(Opcodes.CALL);
+		code.write(paramCount);
+		index += 2;
+	}
+	
+	public void callAt(byte paramCount){
+		code.write(Opcodes.CALLAT);
 		code.write(paramCount);
 		index += 2;
 	}
@@ -475,6 +486,22 @@ public class ChipmunkAssembler {
 	public void is(){
 		code.write(Opcodes.IS);
 		index++;
+	}
+	
+	public void iter(){
+		code.write(Opcodes.ITER);
+		index++;
+	}
+	
+	public void next(){
+		code.write(Opcodes.NEXT);
+		index++;
+	}
+	
+	public void range(boolean inclusive){
+		code.write(Opcodes.RANGE);
+		code.write(inclusive ? 1 : 0);
+		index += 2;
 	}
 
 }
