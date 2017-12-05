@@ -530,6 +530,7 @@ public class ChipmunkVM {
 				ins = this.peek();
 				// TODO - catch cast exception
 				if(!((CIterator)ins.getObject()).hasNext(this)){
+					// pop the iterator
 					this.pop();
 					ip = fetchInt(instructions, ip + 1);
 				}else{

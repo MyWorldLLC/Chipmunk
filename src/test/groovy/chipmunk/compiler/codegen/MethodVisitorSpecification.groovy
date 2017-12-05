@@ -253,7 +253,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "while loop")
+			""")
 			
 		then:
 		result instanceof CInteger
@@ -266,7 +266,7 @@ class MethodVisitorSpecification extends Specification {
 			def forMethod(){
 				var v1 = 0
 				for(i in 0..<5){
-					v1 = i + 1
+					v1 = v1 + 1
 				}
 				return v1
 			}

@@ -62,9 +62,9 @@ public class CIntegerRange implements VMOperator{
 		@Override
 		public boolean hasNext(ChipmunkVM vm) {
 			if(inclusive){
-				return current + step <= end ? true : false;
+				return current <= end ? true : false;
 			}else{
-				return current + step < end ? true : false;
+				return current < end ? true : false;
 			}
 		}
 	}

@@ -45,7 +45,6 @@ public class ForVisitor implements AstVisitor {
 
 			// generate body
 			codegen.enterScope(symbols);
-			System.out.println(codegen.getActiveSymbols());
 			loop.visitChildren(codegen, 2);
 			codegen.exitScope();
 			
@@ -54,8 +53,6 @@ public class ForVisitor implements AstVisitor {
 			
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());
-			// pop the iterator after we exit the loop
-			//assembler.pop();
 			
 			codegen.exitLoop();
 		}

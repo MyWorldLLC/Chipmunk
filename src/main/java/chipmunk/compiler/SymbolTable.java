@@ -39,9 +39,6 @@ public class SymbolTable {
 	public Symbol getSymbol(String name){
 		Symbol symbolName = new Symbol(name);
 		
-		System.out.println("Getting symbol: " + symbolName.getName());
-		System.out.println("My symbols: " + symbols.toString());
-		
 		if(!symbols.contains(symbolName)){
 			if(parent != null){
 				return parent.getSymbol(name);
