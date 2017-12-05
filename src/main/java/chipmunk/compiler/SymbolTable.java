@@ -39,6 +39,9 @@ public class SymbolTable {
 	public Symbol getSymbol(String name){
 		Symbol symbolName = new Symbol(name);
 		
+		System.out.println("Getting symbol: " + symbolName.getName());
+		System.out.println("My symbols: " + symbols.toString());
+		
 		if(!symbols.contains(symbolName)){
 			if(parent != null){
 				return parent.getSymbol(name);
@@ -73,8 +76,13 @@ public class SymbolTable {
 	}
 	
 	public int getLocalIndex(Symbol symbol){
-		if(scope == Scope.LOCAL && symbols.contains(symbol)){
-			return symbols.indexOf(symbol) + localStartIndex;
+		if(scope == Scope.LOCAL){
+			if(symbols.contains(symbol)){
+				return symbols.indexOf(symbol) + localStartIndex;
+			}
+			if(parent != null){
+				return parent.getLocalIndex(symbol);
+			}
 		}
 		return -1;
 	}

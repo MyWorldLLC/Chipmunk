@@ -8,16 +8,16 @@ import chipmunk.compiler.ast.AstVisitor;
 public class ExpressionStatementVisitor implements AstVisitor {
 
 	protected ChipmunkAssembler assembler;
-	protected SymbolTable symbols;
+	protected Codegen codegen;
 	
 	public ExpressionStatementVisitor(Codegen codegen){
+		this.codegen = codegen;
 		assembler = codegen.getAssembler();
-		symbols = codegen.getActiveSymbols();
 	}
 	
 	@Override
 	public void visit(AstNode node) {
-		node.visit(new ExpressionVisitor(assembler, symbols));
+		node.visit(new ExpressionVisitor(assembler, codegen.getActiveSymbols()));
 		// evaluate expression and ignore result
 		assembler.pop();
 	}
