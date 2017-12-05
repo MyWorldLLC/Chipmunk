@@ -12,7 +12,7 @@ public class ExpressionStatementVisitor implements AstVisitor {
 	
 	public ExpressionStatementVisitor(Codegen codegen){
 		assembler = codegen.getAssembler();
-		symbols = codegen.getSymbols();
+		symbols = codegen.getActiveSymbols();
 	}
 	
 	@Override

@@ -523,17 +523,19 @@ public class ChipmunkVM {
 				break;
 			case ITER:
 				ins = this.pop();
-				this.push(ins.doOp(this, "iter"));
+				this.push(ins.doOp(this, "iterator"));
 				ip++;
 				break;
 			case NEXT:
-				ins = this.pop();
+				ins = this.peek();
 				// TODO - catch cast exception
 				if(!((CIterator)ins.getObject()).hasNext(this)){
+					this.pop();
 					ip = fetchInt(instructions, ip + 1);
+				}else{
+					this.push(ins.doOp(this, "next"));
+					ip += 5;
 				}
-				this.push(ins.doOp(this, "next"));
-				ip += 5;
 				break;
 			case RANGE:
 				rh = this.pop();

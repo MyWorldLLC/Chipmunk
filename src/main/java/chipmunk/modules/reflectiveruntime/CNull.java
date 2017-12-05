@@ -13,4 +13,11 @@ public class CNull implements VMOperator {
 	public String toString(){
 		return "CNull";
 	}
+	
+	public boolean equals(Object other){
+		if(other instanceof CNull){
+			return true;
+		}
+		return false;
+	}
 }

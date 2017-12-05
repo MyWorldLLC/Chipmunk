@@ -42,8 +42,11 @@ public class ForNode extends BlockNode {
 	}
 	
 	public AstNode getIter(){
-		if(hasIter){
+		if(hasIter && !hasID){
 			return children.get(0);
+		}else if(hasIter){
+			return children.get(1);
+			
 		}else{
 			return null;
 		}

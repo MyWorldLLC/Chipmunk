@@ -9,6 +9,7 @@ import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
+import chipmunk.compiler.ast.ForNode;
 import chipmunk.compiler.ast.IfElseNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
@@ -40,6 +41,7 @@ public class MethodVisitor implements AstVisitor {
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
+			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
 			
 			// TODO - clean this up
 			codegen.setVisitorForNode(FlowControlNode.class, this);
@@ -49,7 +51,9 @@ public class MethodVisitor implements AstVisitor {
 				assembler.pushNull();
 				assembler._return();
 			}
+			codegen.enterScope(symbols);
 			node.visitChildren(codegen);
+			codegen.exitScope();
 			
 			// return null if a return has not yet been hit
 			assembler.pushNull();

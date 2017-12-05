@@ -33,9 +33,10 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 			currentScope = blockTable;
 			
 		}
+		
 		node.visitChildren(this);
 		
-		if(currentScope != null){
+		if(currentScope != null && node instanceof BlockNode){
 			currentScope = currentScope.getParent();
 		}
 	}

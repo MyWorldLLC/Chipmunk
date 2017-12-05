@@ -32,7 +32,7 @@ public class ExpressionVisitor implements AstVisitor {
 			Symbol symbol = symbols.getSymbol(id.getID().getText());
 			
 			if(symbol == null){
-				throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d", id.getID().getText(), id.getID().getFile(), id.getBeginTokenIndex()), id.getID());
+				throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d", id.getID().getText(), id.getID().getFile(), id.getID().getLine()), id.getID());
 			}
 			// TODO - support instance, shared, and module level variables
 			assembler.getLocal(symbols.getLocalIndex(symbol));
@@ -116,11 +116,12 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.pow();
 				return;
 			case DOUBLEDOTLESS:
-				// TODO - ranges
 				op.visitChildren(this);
-				
+				assembler.range(false);
 				return;
 			case DOUBLEDOT:
+				op.visitChildren(this);
+				assembler.range(true);
 				return;
 			case DOUBLEBAR:
 				op.visitChildren(this);
@@ -175,6 +176,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.getat();
 				return;
 			case LPAREN:
+				// TODO - call vs callAt
 				op.visitChildren(this);
 				int argCount = 0;
 				if (rhs != null) {
@@ -204,7 +206,7 @@ public class ExpressionVisitor implements AstVisitor {
 					}
 				}else if(lhs instanceof IdNode){
 					rhs.visit(this);
-					// TODO - handle non-local scopes
+					// TODO - handle non-local scopes (instance, shared, & module)
 					assembler.setLocal(symbols.getLocalIndex(((IdNode) lhs).getID().getText()));
 				}
 				return;

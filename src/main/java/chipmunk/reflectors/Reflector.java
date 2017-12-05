@@ -44,6 +44,8 @@ public class Reflector {
 		}
 		
 		try {
+			// TODO - need this to call anonymous classes (like iterators), but we probably don't want this all the time
+			method.setAccessible(true);
 			Object result = method.invoke(obj, params);
 			if(result instanceof VMOperator){
 				return new VMReflector((VMOperator) result);

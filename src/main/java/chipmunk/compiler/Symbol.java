@@ -57,4 +57,21 @@ public class Symbol {
 		return false;
 	}
 	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		if(isShared){
+			builder.append("shared ");
+		}
+		
+		if(isFinal){
+			builder.append("final ");
+		}
+		
+		builder.append(name);
+		
+		return builder.toString();
+	}
+	
 }

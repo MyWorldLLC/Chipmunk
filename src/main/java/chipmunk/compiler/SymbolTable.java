@@ -31,13 +31,20 @@ public class SymbolTable {
 		if(!symbols.contains(symbol)){
 			symbols.add(symbol);
 		}
+		if(parent != null){
+			parent.reportChildLocalCount(symbols.size());
+		}
 	}
 	
 	public Symbol getSymbol(String name){
 		Symbol symbolName = new Symbol(name);
 		
-		if(!symbols.contains(symbolName) && parent != null){
-			return parent.getSymbol(name);
+		if(!symbols.contains(symbolName)){
+			if(parent != null){
+				return parent.getSymbol(name);
+			}else{
+				return null;
+			}
 		}
 		return symbols.get(symbols.indexOf(symbolName));
 	}
@@ -150,5 +157,16 @@ public class SymbolTable {
 	
 	public int getSymbolCount(){
 		return symbols.size();
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		if(parent != null){
+			builder.append(parent.toString());
+			builder.append("\n^");
+		}
+		builder.append(symbols.toString());
+		return builder.toString();
 	}
 }

@@ -19,7 +19,7 @@ public class IfElseVisitor implements AstVisitor {
 	public IfElseVisitor(Codegen codegen){
 		this.codegen = codegen;
 		assembler = codegen.getAssembler();
-		symbols = codegen.getSymbols();
+		symbols = codegen.getActiveSymbols();
 	}
 
 	@Override

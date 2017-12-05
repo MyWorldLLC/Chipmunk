@@ -25,13 +25,15 @@ public class WhileVisitor implements AstVisitor {
 			assembler.setLabelTarget(labels.getStartLabel());
 			assembler.setLabelTarget(labels.getGuardLabel());
 			
-			loop.getGuard().visit(new ExpressionVisitor(assembler, codegen.getSymbols()));
+			loop.getGuard().visit(new ExpressionVisitor(assembler, codegen.getActiveSymbols()));
 			
 			// if guard does not evaluate true, jump to end
 			assembler._if(labels.getEndLabel());
 			
+			codegen.enterScope(loop.getSymbolTable());
 			// generate body
 			loop.visitChildren(codegen, 1);
+			codegen.exitLoop();
 			
 			// jump to guard
 			assembler._goto(labels.getGuardLabel());

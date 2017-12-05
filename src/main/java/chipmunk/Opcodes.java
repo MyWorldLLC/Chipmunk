@@ -57,11 +57,11 @@ public class Opcodes {
 	public static final byte GETATTR = 0x2A;
 	public static final byte GETAT = 0x2B;
 	public static final byte SETAT = 0x2C;
-	public static final byte TRUTH = 0x2E;
-	public static final byte AS = 0x2F;
-	public static final byte NEW = 0x30;
-	public static final byte ITER = 0x31;
-	public static final byte NEXT = 0x32;
-	public static final byte RANGE = 0x33;
+	public static final byte TRUTH = 0x2D;
+	public static final byte AS = 0x2E;
+	public static final byte NEW = 0x2F;
+	public static final byte ITER = 0x30;
+	public static final byte NEXT = 0x31;
+	public static final byte RANGE = 0x32;
 	
 }

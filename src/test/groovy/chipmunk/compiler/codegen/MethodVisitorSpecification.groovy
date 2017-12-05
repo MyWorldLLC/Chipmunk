@@ -260,6 +260,23 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 5
 	}
 	
+	def "For loop over range - 5 iterations"(){
+		when:
+		def result = parseAndCall("""
+			def forMethod(){
+				var v1 = 0
+				for(i in 0..<5){
+					v1 = i + 1
+				}
+				return v1
+			}
+			""", "for loop")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 5
+	}
+	
 	def parseAndCall(String expression, String test = ""){
 		
 		parser = new ChipmunkParser(lexer.lex(expression))

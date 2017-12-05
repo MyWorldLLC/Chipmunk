@@ -20,6 +20,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 		this();
 		hasVar = true;
 		super.addChild(id);
+		symbol.setName(id.getID().getText());
 	}
 	
 	public void setVar(IdNode id){

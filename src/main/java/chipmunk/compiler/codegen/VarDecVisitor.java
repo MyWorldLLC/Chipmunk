@@ -20,7 +20,7 @@ public class VarDecVisitor implements AstVisitor {
 		VarDecNode dec = (VarDecNode) node;
 		
 		ChipmunkAssembler assembler = codegen.getAssembler();
-		SymbolTable symbols = codegen.getSymbols();
+		SymbolTable symbols = codegen.getActiveSymbols();
 		
 		Symbol symbol = new Symbol(dec.getVarName());
 		symbols.setSymbol(symbol);

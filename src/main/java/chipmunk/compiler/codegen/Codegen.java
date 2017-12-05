@@ -43,7 +43,17 @@ public class Codegen implements AstVisitor {
 		return assembler;
 	}
 	
-	public SymbolTable getSymbols(){
+	public void enterScope(SymbolTable symbols){
+		this.symbols = symbols;
+	}
+	
+	public void exitScope(){
+		if(symbols != null){
+			symbols = symbols.getParent();
+		}
+	}
+	
+	public SymbolTable getActiveSymbols(){
 		return symbols;
 	}
 	
