@@ -318,7 +318,6 @@ public class ChipmunkVM {
 				ip++;
 				break;
 			case BNEG:
-				rh = this.pop();
 				lh = this.pop();
 				this.push(lh.doOp(this, "bneg"));
 				ip++;
@@ -413,10 +412,10 @@ public class ChipmunkVM {
 				// it will try to re-run this call.
 				ip += 5;
 				try{
-					// TODO
 					this.push(ins.doOp(this, "call", fetchInt(instructions, ip + 1)));
 				}catch(SuspendedChipmunk e){
 					this.freeze(ins, ip, locals);
+					throw e;
 				}catch(AngryChipmunk e){
 					// TODO - fill in stack trace or jump to exception handler
 				}

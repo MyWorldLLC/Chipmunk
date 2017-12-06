@@ -270,7 +270,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "for loop")
+			""")
 			
 		then:
 		result instanceof CInteger

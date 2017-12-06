@@ -2,7 +2,9 @@ package chipmunk.modules.reflectiveruntime;
 
 import java.util.List;
 
+import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkVM;
+import chipmunk.NativeChipmunk;
 import chipmunk.reflectors.VMOperator;
 
 public class CMethod implements VMOperator {
@@ -48,7 +50,7 @@ public class CMethod implements VMOperator {
 		return instructions;
 	}
 	
-	public Object call(ChipmunkVM context, CInteger paramCount){
-		return new CNull();
+	public Object call(ChipmunkVM vm, CInteger paramCount) {
+		return vm.dispatch(instructions, paramCount.intValue(), localCount, constantPool);
 	}
 }

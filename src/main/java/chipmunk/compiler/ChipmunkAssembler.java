@@ -421,14 +421,26 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void dup(){
+	public void dup(int index){
 		code.write(Opcodes.DUP);
-		index++;
+		code.write(index >> 24);
+		code.write(index >> 16);
+		code.write(index >> 8);
+		code.write(index);
+		index += 5;
 	}
 	
-	public void swap(){
+	public void swap(int index1, int index2){
 		code.write(Opcodes.SWAP);
-		index++;
+		code.write(index1 >> 24);
+		code.write(index1 >> 16);
+		code.write(index1 >> 8);
+		code.write(index1);
+		code.write(index2 >> 24);
+		code.write(index2 >> 16);
+		code.write(index2 >> 8);
+		code.write(index2);
+		index += 9;
 	}
 	
 	private int getConstantPoolEntry(Object value){
