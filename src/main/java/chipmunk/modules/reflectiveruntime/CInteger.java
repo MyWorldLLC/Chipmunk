@@ -184,11 +184,19 @@ public class CInteger implements VMOperator {
 	}
 	
 	public CIntegerRange range(ChipmunkVM vm, CInteger other, Boolean inclusive){
-		return new CIntegerRange(value, other.value, 1, inclusive.booleanValue());
+		if(value <= other.value){
+			return new CIntegerRange(value, other.value, 1, inclusive.booleanValue());
+		}else{
+			return new CIntegerRange(value, other.value, -1, inclusive.booleanValue());
+		}
 	}
 	
 	public CFloatRange range(ChipmunkVM vm, CFloat other, Boolean inclusive){
-		return new CFloatRange(value, other.getValue(), 1, inclusive.booleanValue());
+		if(value <= other.floatValue()){
+			return new CFloatRange(value, other.getValue(), 1, inclusive.booleanValue());
+		}else{
+			return new CFloatRange(value, other.getValue(), -1, inclusive.booleanValue());
+		}
 	}
 	
 	public void pack(ChipmunkVM context, NutPacker packer, OutputCapsule out){
@@ -209,10 +217,10 @@ public class CInteger implements VMOperator {
 		return Integer.hashCode(value);
 	}
 	
-	public String string(ChipmunkVM context){
+	public CString string(ChipmunkVM context){
 		String stringValue = toString();
 		context.traceMem(stringValue.length() * 2);
-		return stringValue;
+		return new CString(stringValue);
 	}
 	
 	public String toString(){

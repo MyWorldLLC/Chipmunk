@@ -185,4 +185,197 @@ class CIntegerSpecification extends Specification {
 	     one  | negOne | CInteger.class
 	   negOne |  one   | CInteger.class
 	}
+	
+	def "binary xor"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.bxor(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  three |  CInteger.class
+		 two  | two  |  zero  |  CInteger.class
+		three | one  |   two  |  CInteger.class
+	}
+	
+	def "binary and"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.band(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  zero  |  CInteger.class
+		 two  | two  |  two   |  CInteger.class
+		three | one  |  one   |  CInteger.class
+	}
+	
+	def "binary or"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.bor(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  three |  CInteger.class
+		 two  | two  |  two   |  CInteger.class
+		three | one  |  three |  CInteger.class
+	}
+	
+	def "binary negation"(Object lh, Object sum, Class<?> type){
+		when:
+		def result = lh.bneg(vm)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  sum    |    type
+		 one  | negTwo  | CInteger.class
+	     zero | negOne  | CInteger.class
+	}
+	
+	def "left shift"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.lshift(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 one  | one  |  two   |  CInteger.class
+		 zero | two  |  zero  |  CInteger.class
+	}
+	
+	def "right shift"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.rshift(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  one   |  CInteger.class
+		 zero | two  |  zero  |  CInteger.class
+	}
+	
+	def "unsigned right shift"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.urshift(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  one   |  CInteger.class
+		 zero | two  |  zero  |  CInteger.class
+	}
+	
+	def "truth"(Object lh, boolean value, Class<?> type){
+		when:
+		def result = lh.truth(vm)
+		
+		then:
+		result.getClass().equals(type)
+		result.getValue() == value
+		
+		where:
+		  lh  |  value   |     type
+		 two  |  true    |  CBoolean.class
+		 one  |  true    |  CBoolean.class
+		 zero |  false   |  CBoolean.class
+	}
+	
+	def "conversion"(Object lh, Class<?> to, Object value, Class<?> type){
+		when:
+		def result = lh.as(vm, to)
+		
+		then:
+		result.getClass().equals(type)
+		result == value
+		
+		where:
+		  lh  |  to             |  value  |     type
+		 two  | CInteger.class  |   two   |  CInteger.class
+		 one  | CFloat.class    |   fOne  |  CFloat.class
+	}
+	
+	def "comparison"(Object lh, Object rh, Object sum, Class<?> type){
+		when:
+		def result = lh.compare(vm, rh)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  rh  |  sum   |     type
+		 two  | one  |  one   |  CInteger.class
+		 zero | two  | negOne |  CInteger.class
+		 two  | fOne |  one   |  CInteger.class
+	}
+	
+	def "range"(Object lh, Object other, Object step, Boolean inclusive, Class<?> type){
+		when:
+		def result = lh.range(vm, other, inclusive)
+		
+		then:
+		result.getClass().equals(type)
+		result.getStart() == lh.getValue()
+		result.getEnd() == other.getValue()
+		result.isInclusive() == inclusive
+		result.getStep() == step.getValue()
+		
+		where:
+		  lh  |  other  |  step    | inclusive |     type
+		 two  |   one   |  negOne  |   true    | CIntegerRange.class
+		 one  |   two   |    one   |   false   | CIntegerRange.class
+		 one  |   fTwo  |    one   |   false   | CFloatRange.class
+		 two  |   fOne  |  negOne  |   false   | CFloatRange.class
+	}
+	
+	def "hash"(Object lh,  Object sum, Class<?> type){
+		when:
+		def result = lh.hash(vm)
+		
+		then:
+		result.getClass().equals(type)
+		result == sum
+		
+		where:
+		  lh  |  sum   |     type
+		 two  |  two   |  CInteger.class
+		 zero |  zero  |  CInteger.class
+	}
+	
+	def "to string"(Object lh, Object str, Class<?> type){
+		when:
+		def result = lh.string(vm)
+		
+		then:
+		result.getClass().equals(type)
+		result.getValue() == str
+		
+		where:
+		  lh  |  str   |     type
+		 two  |  "2"   |  CString.class
+		 one  |  "1"   |  CString.class
+		 zero |  "0"   |  CString.class
+	}
 }
