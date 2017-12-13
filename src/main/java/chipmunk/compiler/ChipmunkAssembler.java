@@ -40,7 +40,8 @@ public class ChipmunkAssembler {
 	}
 	
 	public List<Object> getConstantPool(){
-		return Collections.unmodifiableList(constantPool);
+		//return Collections.unmodifiableList(constantPool);
+		return constantPool;
 	}
 	
 	public byte[] getCodeSegment(){

@@ -406,20 +406,22 @@ public class ChipmunkVM {
 				break;
 			case CALL:
 				ins = this.pop();
-				// Need to bump ip BEFORE calling next method. Otherwise,
-				// if suspended the ip will be stored in its old state
-				// and when this method resumes after being suspended,
-				// it will try to re-run this call.
-				ip += 5;
+				
 				try{
-					this.push(ins.doOp(this, "call", fetchInt(instructions, ip + 1)));
+					this.push(ins.doOp(this, "call", fetchByte(instructions, ip + 1)));
 				}catch(SuspendedChipmunk e){
+					// Need to bump ip BEFORE calling next method. Otherwise,
+					// the ip will be stored in its old state and when this 
+					// method resumes after being suspended, it will try to 
+					// re-run this call.
+					ip += 2;
 					this.freeze(ins, ip, locals);
 					throw e;
 				}catch(AngryChipmunk e){
 					// TODO - fill in stack trace or jump to exception handler
+					throw e;
 				}
-				
+				ip += 2;
 				break;
 			case CALLAT:
 				break;

@@ -8,7 +8,7 @@ public class MethodDefParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ChipmunkParser parser, Token token) {
-		return parser.parseMethodDef();
+		return parser.parseAnonMethodDef();
 	}
 
 }

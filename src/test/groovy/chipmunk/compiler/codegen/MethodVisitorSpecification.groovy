@@ -277,6 +277,20 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 5
 	}
 	
+	def "Lambda call"(){
+		when:
+		def result = parseAndCall("""
+			def forMethod(){
+				var v1 = def(){return 1}
+				return v1()
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 1
+	}
+	
 	def parseAndCall(String expression, String test = ""){
 		
 		parser = new ChipmunkParser(lexer.lex(expression))

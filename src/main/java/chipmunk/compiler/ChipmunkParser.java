@@ -308,7 +308,27 @@ public class ChipmunkParser {
 		
 		forceNext(Token.Type.LPAREN);
 		while(peek(Token.Type.IDENTIFIER)){
-			// TODO - local indices, default parameters
+			// TODO - default parameters
+			node.getSymbolTable().setSymbol(new Symbol(getNext(Token.Type.IDENTIFIER).getText()));
+			dropNext(Token.Type.COMMA);
+		}
+		forceNext(Token.Type.RPAREN);
+		skipNewlines();
+		parseBlockBody(node);
+		
+		endNode(node);
+		return node;
+	}
+	
+	public MethodNode parseAnonMethodDef(){
+		skipNewlinesAndComments();
+		
+		MethodNode node = new MethodNode();
+		startNode(node);
+		
+		forceNext(Token.Type.LPAREN);
+		while(peek(Token.Type.IDENTIFIER)){
+			// TODO - default parameters
 			node.getSymbolTable().setSymbol(new Symbol(getNext(Token.Type.IDENTIFIER).getText()));
 			dropNext(Token.Type.COMMA);
 		}

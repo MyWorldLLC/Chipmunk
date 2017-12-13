@@ -1,5 +1,6 @@
 package chipmunk.compiler.codegen;
 
+import chipmunk.ChipmunkDisassembler;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -9,6 +10,7 @@ import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.LiteralNode;
+import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CFloat;
@@ -64,6 +66,11 @@ public class ExpressionVisitor implements AstVisitor {
 				default:
 					return;
 			}
+		}else if(node instanceof MethodNode){
+			// TODO - anonymous (lambda) methods
+			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
+			visitor.visit(node);
+			assembler.push(visitor.getMethod());
 		}else if(node instanceof OperatorNode){
 			
 			OperatorNode op = (OperatorNode) node;

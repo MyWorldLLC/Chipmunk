@@ -37,7 +37,11 @@ public class MethodVisitor implements AstVisitor {
 			symbols = methodNode.getSymbolTable();
 			
 			codegen = new Codegen(assembler, symbols);
-			codegen.setVisitorForNode(OperatorNode.class, new ExpressionStatementVisitor(codegen));
+			
+			ExpressionStatementVisitor expVisitor = new ExpressionStatementVisitor(codegen);
+			
+			codegen.setVisitorForNode(OperatorNode.class, expVisitor);
+			codegen.setVisitorForNode(MethodNode.class, expVisitor);
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));

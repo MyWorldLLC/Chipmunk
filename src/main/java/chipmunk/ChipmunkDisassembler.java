@@ -211,13 +211,13 @@ public class ChipmunkDisassembler {
 				break;
 			case CALL:
 				builder.append("call ");
-				builder.append(fetchInt(codeSegment, ip + 1));
-				ip += 5;
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
 				break;
 			case CALLAT:
 				builder.append("callat ");
-				builder.append(fetchInt(codeSegment, ip + 1));
-				ip += 5;
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
 				break;
 			case GOTO:
 				builder.append("goto ");

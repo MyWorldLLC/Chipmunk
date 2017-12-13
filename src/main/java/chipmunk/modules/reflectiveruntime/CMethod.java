@@ -50,7 +50,7 @@ public class CMethod implements VMOperator {
 		return instructions;
 	}
 	
-	public Object call(ChipmunkVM vm, CInteger paramCount) {
-		return vm.dispatch(instructions, paramCount.intValue(), localCount, constantPool);
+	public Object call(ChipmunkVM vm, Byte paramCount) {
+		return vm.dispatch(instructions, paramCount.intValue(), localCount, constantPool).getObject();
 	}
 }
