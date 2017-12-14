@@ -80,7 +80,7 @@ public class Codegen implements AstVisitor {
 			for(Symbol symbol : symTab.getAllSymbols()){
 				if(symbol.getName().equals(name)){
 					// found symbol - emit access
-					if(symTab.getScope() == SymbolTable.Scope.LOCAL){
+					if(symTab.getScope() == SymbolTable.Scope.LOCAL || symTab.getScope() == SymbolTable.Scope.METHOD){
 						if(assign){
 							assembler.setLocal(symTab.getLocalIndex(name));
 						}else{

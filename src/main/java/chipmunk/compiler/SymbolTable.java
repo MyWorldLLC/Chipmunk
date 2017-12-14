@@ -8,7 +8,7 @@ import chipmunk.compiler.ast.BlockNode;
 public class SymbolTable {
 	
 	public enum Scope {
-		MODULE, CLASS, LOCAL
+		MODULE, CLASS, METHOD, LOCAL
 	}
 	
 	protected List<Symbol> symbols;
@@ -73,7 +73,7 @@ public class SymbolTable {
 	}
 	
 	public int getLocalIndex(Symbol symbol){
-		if(scope == Scope.LOCAL){
+		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			if(symbols.contains(symbol)){
 				return symbols.indexOf(symbol) + localStartIndex;
 			}
@@ -90,7 +90,7 @@ public class SymbolTable {
 	
 	public void setScope(Scope scope){
 		this.scope = scope;
-		if(scope == SymbolTable.Scope.LOCAL){
+		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			// If scope changes to local, reset local min/max counts
 			// either their current values or 0 (preserves local min/max
 			// if scope is local and is set to local)
@@ -123,7 +123,7 @@ public class SymbolTable {
 	}
 	
 	public void reportChildLocalCount(int childLocalCount){
-		if(scope == Scope.LOCAL){
+		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			maxChildLocalCount = Math.max(maxChildLocalCount, childLocalCount);
 			if(isInnerLocal()){
 				parent.reportChildLocalCount(getLocalMax());
@@ -136,7 +136,7 @@ public class SymbolTable {
 	}
 	
 	public void calculateLocalStartIndex(){
-		if(scope == Scope.LOCAL){
+		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			localStartIndex = 0;
 			
 			if(isInnerLocal()){
@@ -150,7 +150,7 @@ public class SymbolTable {
 	}
 	
 	public boolean isInnerLocal(){
-		if(parent != null && parent.scope == Scope.LOCAL){
+		if(parent != null && (parent.scope == Scope.LOCAL || parent.scope == Scope.METHOD)){
 			return true;
 		}
 		return false;

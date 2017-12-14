@@ -10,7 +10,7 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	protected Symbol symbol;
 	
 	public MethodNode(){
-		super(SymbolTable.Scope.LOCAL);
+		super(SymbolTable.Scope.METHOD);
 		symbol = new Symbol();
 	}
 	

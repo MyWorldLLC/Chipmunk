@@ -373,6 +373,7 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 1
 	}
 	
+	/*
 	def "Lambda call - one parameter"(){
 		when:
 		def result = parseAndCall("""
@@ -399,7 +400,7 @@ class MethodVisitorSpecification extends Specification {
 		then:
 		result instanceof CInteger
 		result.getValue() == 3
-	}
+	}*/
 	
 	def parseAndCall(String expression, String test = ""){
 		
