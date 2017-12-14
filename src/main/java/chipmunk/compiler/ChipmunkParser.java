@@ -545,6 +545,9 @@ public class ChipmunkParser {
 		
 		while(!peek(Token.Type.RBRACE)){
 			skipNewlinesAndComments();
+			if(peek(Token.Type.RBRACE)){
+				break;
+			}
 			node.addToBody(parseStatement());
 			skipNewlinesAndComments();
 			

@@ -119,7 +119,7 @@ public class Codegen implements AstVisitor {
 	}
 	
 	public LoopLabels peekClosestLoop(){
-		if(loopStack.size() < 0){
+		if(loopStack.size() > 0){
 			return loopStack.get(loopStack.size() - 1);
 		}
 		return null;

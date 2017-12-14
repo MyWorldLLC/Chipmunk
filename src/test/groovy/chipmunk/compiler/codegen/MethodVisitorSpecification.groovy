@@ -277,6 +277,88 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 5
 	}
 	
+	def "For loop - break"(){
+		when:
+		def result = parseAndCall("""
+			def forMethod(){
+				var v1 = 0
+				for(i in 0..<5){
+					if(i == 3){
+						break
+					}
+					v1 = v1 + 1
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 3
+	}
+	
+	def "For loop - continue"(){
+		when:
+		def result = parseAndCall("""
+			def forMethod(){
+				var v1 = 0
+				for(i in 0..<5){
+					if(i == 3){
+						continue
+					}else{
+						v1 = v1 + 1
+					}
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 4
+	}
+	
+	def "While loop - break"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 0
+				while(v1 < 5){
+					v1 = v1 + 1
+					if(v1 == 3){
+						break
+					}
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 3
+	}
+	
+	def "While loop - continue"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = 0
+				while(v1 < 5){
+					if(v1 == 3){
+						v1 = v1 + 2
+						continue
+					}
+					v1 = v1 + 1
+				}
+				return v1
+			}
+			""")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 5
+	}
+	
 	def "Lambda call"(){
 		when:
 		def result = parseAndCall("""
@@ -289,6 +371,34 @@ class MethodVisitorSpecification extends Specification {
 		then:
 		result instanceof CInteger
 		result.getValue() == 1
+	}
+	
+	def "Lambda call - one parameter"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = def(a){return a}
+				return v1(1)
+			}
+			""", "Call - 1 param")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 1
+	}
+	
+	def "Lambda call - two parameters"(){
+		when:
+		def result = parseAndCall("""
+			def method(){
+				var v1 = def(a, b){return a + b}
+				return v1(1, 2)
+			}
+			""", "Call - 2 params")
+			
+		then:
+		result instanceof CInteger
+		result.getValue() == 3
 	}
 	
 	def parseAndCall(String expression, String test = ""){

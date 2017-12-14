@@ -41,7 +41,7 @@ public class FlowControlVisitor implements AstVisitor {
 				assembler._goto(codegen.peekClosestLoop().getEndLabel());
 			}else if(token.getType() == Token.Type.CONTINUE){
 				if(!codegen.inLoop()){
-					throw new CompileChipmunk(String.format("Invalid break at %s: %d: Can only continue when inside a loop", token.getFile(), token.getLine()));
+					throw new CompileChipmunk(String.format("Invalid continue at %s: %d: Can only continue when inside a loop", token.getFile(), token.getLine()));
 				}
 				assembler._goto(codegen.peekClosestLoop().getGuardLabel());
 			}

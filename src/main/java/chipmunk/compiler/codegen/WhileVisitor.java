@@ -33,7 +33,7 @@ public class WhileVisitor implements AstVisitor {
 			codegen.enterScope(loop.getSymbolTable());
 			// generate body
 			loop.visitChildren(codegen, 1);
-			codegen.exitLoop();
+			codegen.exitScope();
 			
 			// jump to guard
 			assembler._goto(labels.getGuardLabel());

@@ -53,13 +53,12 @@ public class Reflector {
 				return new Reflector(result);
 			}
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			throw new AngryChipmunk(e);
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			throw new AngryChipmunk(e);
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+			throw new AngryChipmunk(e);
 		}
-		return null;
 	}
 
 }

@@ -231,11 +231,11 @@ public class ExpressionVisitor implements AstVisitor {
 			// TODO - this is a dot access, so issue a callAt opcode
 			
 		}else{
-			op.visitChildren(this);
-			int argCount = 0;
-			if (rhs != null) {
-				argCount = rhs.getChildren().size() - 1;
-			}
+			int argCount = op.getChildren().size() - 1;
+			// visit parameters first
+			op.visitChildren(this, 1);
+			// visit call target, then emit call
+			op.getLeft().visit(this);
 			assembler.call((byte) argCount);
 		}
 	}
