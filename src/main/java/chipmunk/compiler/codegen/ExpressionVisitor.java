@@ -1,6 +1,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
@@ -176,44 +177,15 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.getat();
 				return;
 			case LPAREN:
-				if(op.getLeft() instanceof OperatorNode 
-						&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
-					// TODO - this is a dot access, so issue a callAt opcode
-					
-				}else{
-					op.visitChildren(this);
-					int argCount = 0;
-					if (rhs != null) {
-						argCount = rhs.getChildren().size() - 1;
-					}
-					assembler.call((byte) argCount);
-				}
+				emitCall(op, rhs);
 				return;
 			case DOT:
 				op.visitChildren(this);
 				assembler.getattr();
 				return;
 			case EQUALS:
-				if(lhs instanceof OperatorNode){
-					OperatorNode lOp = (OperatorNode) lhs;
-					if(lOp.getOperator().getType() == Token.Type.DOT){
-						rhs.visit(this);
-						lOp.getRight().visit(this);
-						lOp.getLeft().visit(this);
-						assembler.setattr();
-					}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
-						rhs.visit(this);
-						lOp.getRight().visit(this);
-						lOp.getLeft().visit(this);
-						assembler.setat();
-					}else{
-						// syntax error!
-					}
-				}else if(lhs instanceof IdNode){
-					rhs.visit(this);
-					// TODO - handle non-local scopes (instance, shared, & module)
-					assembler.setLocal(symbols.getLocalIndex(((IdNode) lhs).getID().getText()));
-				}
+				rhs.visit(this);
+				emitAssignment(lhs);
 				return;
 			case DOUBLEEQUAlS:
 				op.visitChildren(this);
@@ -229,5 +201,42 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 		}
 
+	}
+	
+	private void emitAssignment(AstNode lhs){
+		if(lhs instanceof OperatorNode){
+			OperatorNode lOp = (OperatorNode) lhs;
+			if(lOp.getOperator().getType() == Token.Type.DOT){
+				lOp.getRight().visit(this);
+				lOp.getLeft().visit(this);
+				assembler.setattr();
+			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
+				lOp.getRight().visit(this);
+				lOp.getLeft().visit(this);
+				assembler.setat();
+			}else{
+				// error!
+				throw new CompileChipmunk(String.format("Invalid assignment at %s: %d. The left hand side of an assignment"
+						+ "must be either an attribute, index, or a local variable.", 
+						lOp.getOperator().getFile(), lOp.getOperator().getLine()));
+			}
+		}else if(lhs instanceof IdNode){
+			codegen.emitSymbolAssignment(((IdNode) lhs).getID());
+		}
+	}
+	
+	private void emitCall(OperatorNode op, AstNode rhs){
+		if(op.getLeft() instanceof OperatorNode 
+				&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
+			// TODO - this is a dot access, so issue a callAt opcode
+			
+		}else{
+			op.visitChildren(this);
+			int argCount = 0;
+			if (rhs != null) {
+				argCount = rhs.getChildren().size() - 1;
+			}
+			assembler.call((byte) argCount);
+		}
 	}
 }

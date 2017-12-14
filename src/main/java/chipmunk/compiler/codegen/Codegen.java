@@ -64,15 +64,28 @@ public class Codegen implements AstVisitor {
 	}
 	
 	public void emitSymbolAccess(Token symbolToken){
+		emitSymbolReference(symbolToken, false);
+	}
+	
+	public void emitSymbolAssignment(Token symbolToken){
+		emitSymbolReference(symbolToken, true);
+	}
+	
+	private void emitSymbolReference(Token symbolToken, boolean assign){
 		String name = symbolToken.getText();
 		SymbolTable symTab = symbols;
+		
 		boolean found = false;
 		while(!found){
 			for(Symbol symbol : symTab.getAllSymbols()){
 				if(symbol.getName().equals(name)){
 					// found symbol - emit access
 					if(symTab.getScope() == SymbolTable.Scope.LOCAL){
-						assembler.getLocal(symTab.getLocalIndex(name));
+						if(assign){
+							assembler.setLocal(symTab.getLocalIndex(name));
+						}else{
+							assembler.getLocal(symTab.getLocalIndex(name));
+						}
 					}else if(symTab.getScope() == SymbolTable.Scope.CLASS){
 						// TODO - class instance & shared
 					}else{
