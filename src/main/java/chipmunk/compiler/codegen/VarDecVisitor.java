@@ -26,7 +26,7 @@ public class VarDecVisitor implements AstVisitor {
 		symbols.setSymbol(symbol);
 		
 		if(dec.getAssignExpr() != null){
-			dec.getAssignExpr().visit(new ExpressionVisitor(codegen, symbols));
+			dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
 		}else{
 			assembler.pushNull();
 		}

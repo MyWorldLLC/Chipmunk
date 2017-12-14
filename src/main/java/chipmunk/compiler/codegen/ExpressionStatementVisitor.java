@@ -16,7 +16,7 @@ public class ExpressionStatementVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		node.visit(new ExpressionVisitor(codegen, codegen.getActiveSymbols()));
+		node.visit(new ExpressionVisitor(codegen));
 		// evaluate expression and ignore result
 		assembler.pop();
 	}

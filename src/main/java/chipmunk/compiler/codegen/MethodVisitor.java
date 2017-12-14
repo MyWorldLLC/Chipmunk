@@ -38,17 +38,15 @@ public class MethodVisitor implements AstVisitor {
 			
 			codegen = new Codegen(assembler, symbols);
 			
-			ExpressionStatementVisitor expVisitor = new ExpressionStatementVisitor(codegen);
+			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
-			codegen.setVisitorForNode(OperatorNode.class, expVisitor);
-			codegen.setVisitorForNode(MethodNode.class, expVisitor);
+			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
+			codegen.setVisitorForNode(MethodNode.class, expStatVisitor);
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
 			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
-			
-			// TODO - clean this up
-			codegen.setVisitorForNode(FlowControlNode.class, this);
+			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
 			
 			// TODO - parameter declarations
 			if(methodNode.getChildren().size() == 0){
@@ -62,25 +60,6 @@ public class MethodVisitor implements AstVisitor {
 			// return null if a return has not yet been hit
 			assembler.pushNull();
 			assembler._return();
-		}else if(node instanceof FlowControlNode){
-			FlowControlNode flowNode = (FlowControlNode) node;
-			
-			if(flowNode.getControlToken().getType() == Token.Type.RETURN){
-				if(node.hasChildren()){
-					node.visitChildren(new ExpressionVisitor(codegen, symbols));
-				}else{
-					assembler.pushNull();
-				}
-				assembler._return();
-			}else if(flowNode.getControlToken().getType() == Token.Type.THROW){
-				node.visitChildren(new ExpressionVisitor(codegen, symbols));
-				assembler._throw();
-			}else if(flowNode.getControlToken().getType() == Token.Type.BREAK){
-				// TODO
-			}else if(flowNode.getControlToken().getType() == Token.Type.CONTINUE){
-				// TODO
-			}
-			return;
 		}else{
 			node.visit(codegen);
 			return;

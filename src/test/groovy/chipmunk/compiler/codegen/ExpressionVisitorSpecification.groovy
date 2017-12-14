@@ -20,7 +20,7 @@ class ExpressionVisitorSpecification extends Specification {
 	Codegen codegen = new Codegen()
 	ChipmunkAssembler assembler = codegen.getAssembler()
 	ChipmunkVM context = new ChipmunkVM()
-	ExpressionVisitor visitor = new ExpressionVisitor(codegen, codegen.getActiveSymbols())
+	ExpressionVisitor visitor = new ExpressionVisitor(codegen)
 	
 	def "Evaluate boolean literal true"(){
 		when:

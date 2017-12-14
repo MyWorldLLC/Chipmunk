@@ -20,10 +20,10 @@ public class ExpressionVisitor implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	public ExpressionVisitor(Codegen codegen, SymbolTable symbols){
+	public ExpressionVisitor(Codegen codegen){
 		this.codegen = codegen;
 		assembler = codegen.getAssembler();
-		this.symbols = symbols;
+		this.symbols = codegen.getActiveSymbols();
 	}
 
 	@Override

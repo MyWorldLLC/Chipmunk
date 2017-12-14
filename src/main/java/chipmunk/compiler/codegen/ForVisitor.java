@@ -31,7 +31,7 @@ public class ForVisitor implements AstVisitor {
 			id.getSymbol().setFinal(true);
 			
 			// visit iterator expression and push the iterator
-			loop.getIter().visit(new ExpressionVisitor(codegen, codegen.getActiveSymbols()));
+			loop.getIter().visit(new ExpressionVisitor(codegen));
 			assembler.iter();
 			
 			// the "next" bytecode operates as the guard in the for loop
