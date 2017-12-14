@@ -1,11 +1,8 @@
 package chipmunk.compiler.codegen;
 
-import chipmunk.ChipmunkDisassembler;
 import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
-import chipmunk.compiler.UnresolvedSymbolChipmunk;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;
@@ -19,11 +16,13 @@ import chipmunk.modules.reflectiveruntime.CString;
 
 public class ExpressionVisitor implements AstVisitor {
 	
+	protected Codegen codegen;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	public ExpressionVisitor(ChipmunkAssembler assembler, SymbolTable symbols){
-		this.assembler = assembler;
+	public ExpressionVisitor(Codegen codegen, SymbolTable symbols){
+		this.codegen = codegen;
+		assembler = codegen.getAssembler();
 		this.symbols = symbols;
 	}
 
@@ -31,13 +30,7 @@ public class ExpressionVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
-			Symbol symbol = symbols.getSymbol(id.getID().getText());
-			
-			if(symbol == null){
-				throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d", id.getID().getText(), id.getID().getFile(), id.getID().getLine()), id.getID());
-			}
-			// TODO - support instance, shared, and module level variables
-			assembler.getLocal(symbols.getLocalIndex(symbol));
+			codegen.emitSymbolAccess(id.getID());
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
@@ -183,13 +176,18 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.getat();
 				return;
 			case LPAREN:
-				// TODO - call vs callAt
-				op.visitChildren(this);
-				int argCount = 0;
-				if (rhs != null) {
-					argCount = rhs.getChildren().size() - 1;
+				if(op.getLeft() instanceof OperatorNode 
+						&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
+					// TODO - this is a dot access, so issue a callAt opcode
+					
+				}else{
+					op.visitChildren(this);
+					int argCount = 0;
+					if (rhs != null) {
+						argCount = rhs.getChildren().size() - 1;
+					}
+					assembler.call((byte) argCount);
 				}
-				assembler.call((byte) argCount);
 				return;
 			case DOT:
 				op.visitChildren(this);

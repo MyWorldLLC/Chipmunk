@@ -280,7 +280,7 @@ class MethodVisitorSpecification extends Specification {
 	def "Lambda call"(){
 		when:
 		def result = parseAndCall("""
-			def forMethod(){
+			def method(){
 				var v1 = def(){return 1}
 				return v1()
 			}

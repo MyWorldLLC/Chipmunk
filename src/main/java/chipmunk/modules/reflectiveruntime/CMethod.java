@@ -2,9 +2,7 @@ package chipmunk.modules.reflectiveruntime;
 
 import java.util.List;
 
-import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkVM;
-import chipmunk.NativeChipmunk;
 import chipmunk.reflectors.VMOperator;
 
 public class CMethod implements VMOperator {

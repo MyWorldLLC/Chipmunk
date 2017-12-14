@@ -67,13 +67,13 @@ public class MethodVisitor implements AstVisitor {
 			
 			if(flowNode.getControlToken().getType() == Token.Type.RETURN){
 				if(node.hasChildren()){
-					node.visitChildren(new ExpressionVisitor(assembler, symbols));
+					node.visitChildren(new ExpressionVisitor(codegen, symbols));
 				}else{
 					assembler.pushNull();
 				}
 				assembler._return();
 			}else if(flowNode.getControlToken().getType() == Token.Type.THROW){
-				node.visitChildren(new ExpressionVisitor(assembler, symbols));
+				node.visitChildren(new ExpressionVisitor(codegen, symbols));
 				assembler._throw();
 			}else if(flowNode.getControlToken().getType() == Token.Type.BREAK){
 				// TODO

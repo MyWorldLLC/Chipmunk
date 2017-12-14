@@ -25,7 +25,7 @@ public class WhileVisitor implements AstVisitor {
 			assembler.setLabelTarget(labels.getStartLabel());
 			assembler.setLabelTarget(labels.getGuardLabel());
 			
-			loop.getGuard().visit(new ExpressionVisitor(assembler, codegen.getActiveSymbols()));
+			loop.getGuard().visit(new ExpressionVisitor(codegen, codegen.getActiveSymbols()));
 			
 			// if guard does not evaluate true, jump to end
 			assembler._if(labels.getEndLabel());

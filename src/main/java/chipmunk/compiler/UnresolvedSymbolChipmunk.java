@@ -8,9 +8,9 @@ public class UnresolvedSymbolChipmunk extends AngryChipmunk {
 	
 	protected Token symbolName;
 	
-	public UnresolvedSymbolChipmunk(String msg, Token symbolName){
+	public UnresolvedSymbolChipmunk(String msg, Token symbolToken){
 		super(msg);
-		this.symbolName = symbolName;
+		this.symbolName = symbolToken;
 	}
 	
 	

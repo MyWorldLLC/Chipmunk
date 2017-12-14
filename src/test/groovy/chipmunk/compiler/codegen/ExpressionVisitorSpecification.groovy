@@ -1,5 +1,6 @@
 package chipmunk.compiler.codegen
 
+import chipmunk.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.compiler.ChipmunkLexer
@@ -16,9 +17,10 @@ class ExpressionVisitorSpecification extends Specification {
 
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
-	ChipmunkAssembler assembler = new ChipmunkAssembler()
+	Codegen codegen = new Codegen()
+	ChipmunkAssembler assembler = codegen.getAssembler()
 	ChipmunkVM context = new ChipmunkVM()
-	ExpressionVisitor visitor = new ExpressionVisitor(assembler, new SymbolTable())
+	ExpressionVisitor visitor = new ExpressionVisitor(codegen, codegen.getActiveSymbols())
 	
 	def "Evaluate boolean literal true"(){
 		when:

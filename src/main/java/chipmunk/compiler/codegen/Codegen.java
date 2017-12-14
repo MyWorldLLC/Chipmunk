@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.Token;
+import chipmunk.compiler.UnresolvedSymbolChipmunk;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 
@@ -17,6 +20,13 @@ public class Codegen implements AstVisitor {
 	protected SymbolTable symbols;
 	
 	protected List<LoopLabels> loopStack;
+	
+	public Codegen(){
+		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
+		loopStack = new ArrayList<LoopLabels>();
+		assembler = new ChipmunkAssembler();
+		symbols = new SymbolTable();
+	}
 	
 	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
@@ -50,6 +60,38 @@ public class Codegen implements AstVisitor {
 	public void exitScope(){
 		if(symbols != null){
 			symbols = symbols.getParent();
+		}
+	}
+	
+	public void emitSymbolAccess(Token symbolToken){
+		String name = symbolToken.getText();
+		SymbolTable symTab = symbols;
+		boolean found = false;
+		while(!found){
+			for(Symbol symbol : symTab.getAllSymbols()){
+				if(symbol.getName().equals(name)){
+					// found symbol - emit access
+					if(symTab.getScope() == SymbolTable.Scope.LOCAL){
+						assembler.getLocal(symTab.getLocalIndex(name));
+					}else if(symTab.getScope() == SymbolTable.Scope.CLASS){
+						// TODO - class instance & shared
+					}else{
+						// TODO - module
+					}
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				// TODO - support "tracing" through multiple nested method & class scopes
+				symTab = symTab.getParent();
+				if(symTab == null){
+					throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d",
+							symbolToken.getText(), symbolToken.getFile(), symbolToken.getLine()), symbolToken);
+				}
+			}
+			
 		}
 	}
 	
