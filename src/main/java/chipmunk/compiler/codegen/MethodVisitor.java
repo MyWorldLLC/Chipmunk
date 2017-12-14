@@ -5,7 +5,6 @@ import java.util.List;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
-import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
@@ -60,9 +59,6 @@ public class MethodVisitor implements AstVisitor {
 			// return null if a return has not yet been hit
 			assembler.pushNull();
 			assembler._return();
-		}else{
-			node.visit(codegen);
-			return;
 		}
 		
 		method = new CMethod();
