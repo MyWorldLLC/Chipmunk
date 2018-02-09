@@ -47,16 +47,11 @@ public class MethodVisitor implements AstVisitor {
 			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
 			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
 			
-			// TODO - default parameters
-			if(methodNode.getChildren().size() == 0){
-				assembler.pushNull();
-				assembler._return();
-			}
 			codegen.enterScope(symbols);
-			node.visitChildren(codegen);
+			methodNode.visitChildren(codegen);
 			codegen.exitScope();
 			
-			// return null if a return has not yet been hit
+			// return null in case a return has not yet been hit
 			assembler.pushNull();
 			assembler._return();
 		}

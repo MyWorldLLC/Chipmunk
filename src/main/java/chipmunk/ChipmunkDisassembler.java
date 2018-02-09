@@ -71,8 +71,9 @@ public class ChipmunkDisassembler {
 				builder.append('\n');
 			}
 			
-			builder.append("\nCode:\n");
 		}
+		
+		builder.append("\nCode:\n");
 		
 		int ip = 0;
 		while(ip < codeSegment.length){

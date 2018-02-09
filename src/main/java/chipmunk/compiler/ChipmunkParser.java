@@ -308,9 +308,14 @@ public class ChipmunkParser {
 		
 		forceNext(Token.Type.LPAREN);
 		while(peek(Token.Type.IDENTIFIER)){
-			// TODO - default parameters
-			node.getSymbolTable().setSymbol(new Symbol(getNext(Token.Type.IDENTIFIER).getText()));
+			VarDecNode param = new VarDecNode();
+			param.setVar(new IdNode(getNext(Token.Type.IDENTIFIER)));
+			if(peek(Token.Type.EQUALS)){
+				dropNext();
+				param.setAssignExpr(parseExpression());
+			}
 			dropNext(Token.Type.COMMA);
+			node.addParam(param);
 		}
 		forceNext(Token.Type.RPAREN);
 		skipNewlines();
@@ -328,8 +333,14 @@ public class ChipmunkParser {
 		
 		forceNext(Token.Type.LPAREN);
 		while(peek(Token.Type.IDENTIFIER)){
-			// TODO - default parameters
-			node.getSymbolTable().setSymbol(new Symbol(getNext(Token.Type.IDENTIFIER).getText()));
+			VarDecNode param = new VarDecNode();
+			param.setVar(new IdNode(getNext(Token.Type.IDENTIFIER)));
+			if(peek(Token.Type.EQUALS)){
+				dropNext();
+				param.setAssignExpr(parseExpression());
+			}
+			dropNext(Token.Type.COMMA);
+			node.addParam(param);
 			dropNext(Token.Type.COMMA);
 		}
 		forceNext(Token.Type.RPAREN);

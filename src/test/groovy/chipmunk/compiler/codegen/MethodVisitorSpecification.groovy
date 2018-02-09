@@ -373,7 +373,7 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 1
 	}
 	
-	/*
+	
 	def "Lambda call - one parameter"(){
 		when:
 		def result = parseAndCall("""
@@ -392,7 +392,7 @@ class MethodVisitorSpecification extends Specification {
 		when:
 		def result = parseAndCall("""
 			def method(){
-				var v1 = def(a, b){return a + b}
+				var v1 = def(a, b = 0){return a + b}
 				return v1(1, 2)
 			}
 			""", "Call - 2 params")
@@ -400,7 +400,7 @@ class MethodVisitorSpecification extends Specification {
 		then:
 		result instanceof CInteger
 		result.getValue() == 3
-	}*/
+	}
 	
 	def parseAndCall(String expression, String test = ""){
 		
@@ -412,8 +412,10 @@ class MethodVisitorSpecification extends Specification {
 		CMethod method = visitor.getMethod()
 		
 		if(test != ""){
+			println(root.toString())
 			println()
 			println("============= ${test} =============")
+			println("Local Count: ${method.getLocalCount()}")
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
 		}
 		

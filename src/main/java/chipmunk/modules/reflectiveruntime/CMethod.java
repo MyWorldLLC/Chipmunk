@@ -51,4 +51,17 @@ public class CMethod implements VMOperator {
 	public Object call(ChipmunkVM vm, Byte paramCount) {
 		return vm.dispatch(instructions, paramCount.intValue(), localCount, constantPool).getObject();
 	}
+	
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append(super.toString());
+		builder.append("[Locals: ");
+		builder.append(localCount);
+		builder.append(", Args: ");
+		builder.append(argCount);
+		builder.append("]");
+		
+		return builder.toString();
+	}
 }

@@ -12,6 +12,8 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	public MethodNode(){
 		super(SymbolTable.Scope.METHOD);
 		symbol = new Symbol();
+		defaultParamCount = 0;
+		paramCount = 0;
 	}
 	
 	public MethodNode(String name){
@@ -30,17 +32,18 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	public int getParamCount(){
 		return paramCount;
 	}
-
-	public void setParamCount(int paramCount){
-		this.paramCount = paramCount;
-	}
-
-	public void setDefaultParamCount(int count){
-		defaultParamCount = count;
-	}
 	
 	public int getDefaultParamCount(){
 		return defaultParamCount;
+	}
+	
+	public void addParam(VarDecNode param){
+		children.add(paramCount, param);
+		paramCount++;
+		
+		if(param.getAssignExpr() != null){
+			defaultParamCount++;
+		}
 	}
 	
 	public void addToBody(AstNode node){
