@@ -31,8 +31,14 @@ public class MethodVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
+		
+		method = new CMethod();
+		
 		if(node instanceof MethodNode){
 			methodNode = (MethodNode) node;
+			
+			method.setArgCount(methodNode.getParamCount());
+			
 			symbols = methodNode.getSymbolTable();
 			
 			codegen = new Codegen(assembler, symbols);
@@ -40,7 +46,7 @@ public class MethodVisitor implements AstVisitor {
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(MethodNode.class, expStatVisitor);
+			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool()));//expStatVisitor);
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
@@ -56,7 +62,6 @@ public class MethodVisitor implements AstVisitor {
 			assembler._return();
 		}
 		
-		method = new CMethod();
 		method.setConstantPool(assembler.getConstantPool());
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());

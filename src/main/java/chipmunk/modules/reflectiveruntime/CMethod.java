@@ -55,7 +55,7 @@ public class CMethod implements VMOperator {
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append(super.toString());
+		builder.append(this.getClass().getSimpleName());
 		builder.append("[Locals: ");
 		builder.append(localCount);
 		builder.append(", Args: ");

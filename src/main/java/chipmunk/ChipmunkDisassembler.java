@@ -22,7 +22,9 @@ import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
 import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
+import static chipmunk.Opcodes.ITER;
 import static chipmunk.Opcodes.LE;
 import static chipmunk.Opcodes.LSHIFT;
 import static chipmunk.Opcodes.LT;
@@ -30,12 +32,14 @@ import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
 import static chipmunk.Opcodes.NEW;
+import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.NOT;
 import static chipmunk.Opcodes.OR;
 import static chipmunk.Opcodes.POP;
 import static chipmunk.Opcodes.POS;
 import static chipmunk.Opcodes.POW;
 import static chipmunk.Opcodes.PUSH;
+import static chipmunk.Opcodes.RANGE;
 import static chipmunk.Opcodes.RETURN;
 import static chipmunk.Opcodes.RSHIFT;
 import static chipmunk.Opcodes.SETAT;
@@ -46,12 +50,10 @@ import static chipmunk.Opcodes.SWAP;
 import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
-import static chipmunk.Opcodes.INSTANCEOF;
-import static chipmunk.Opcodes.ITER;
-import static chipmunk.Opcodes.NEXT;
-import static chipmunk.Opcodes.RANGE;
 
 import java.util.List;
+
+import chipmunk.modules.reflectiveruntime.CMethod;
 
 public class ChipmunkDisassembler {
 	
@@ -60,25 +62,47 @@ public class ChipmunkDisassembler {
 	}
 
 	public static String disassemble(byte[] codeSegment, List<Object> constantPool){
+		return disassemble(codeSegment, constantPool, 0, "");
+	}
+	
+	private static String disassemble(byte[] codeSegment, List<Object> constantPool, int constantIndex, String padding){
 		StringBuilder builder = new StringBuilder();
 		
 		if(constantPool != null){
+			builder.append(padding);
 			builder.append("Constants:\n");
-			for(int i = 0; i < constantPool.size(); i++){
+			if(constantIndex != 0){
+				constantIndex++;
+			}
+			for(int i = constantIndex; i < constantPool.size(); i++){
+				builder.append(padding);
 				builder.append(i);
 				builder.append(": ");
 				builder.append(constantPool.get(i).toString());
+				if(constantPool.get(i) instanceof CMethod){
+					builder.append('\n');
+					CMethod method = (CMethod) constantPool.get(i);
+					if(method.getConstantPool() == constantPool){
+						builder.append(disassemble(method.getCode(), method.getConstantPool(), i, padding + "     "));
+					}else{
+						builder.append(disassemble(method.getCode(), method.getConstantPool(), 0, padding + "     "));
+					}
+					
+				}
 				builder.append('\n');
 			}
 			
 		}
 		
-		builder.append("\nCode:\n");
+		builder.append('\n');
+		builder.append(padding);
+		builder.append("Code:\n");
 		
 		int ip = 0;
 		while(ip < codeSegment.length){
 			byte op = codeSegment[ip];
 
+			builder.append(padding);
 			builder.append(ip);
 			builder.append(": ");
 			
