@@ -381,7 +381,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a){return a}
 				return v1(1)
 			}
-			""", "Call - 1 param")
+			""", "")
 			
 		then:
 		result instanceof CInteger
@@ -395,7 +395,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b){return a + b}
 				return v1(1, 2)
 			}
-			""", "Call - 2 params")
+			""", "")
 			
 		then:
 		result instanceof CInteger
@@ -412,7 +412,6 @@ class MethodVisitorSpecification extends Specification {
 		CMethod method = visitor.getMethod()
 		
 		if(test != ""){
-			println(root.toString())
 			println()
 			println("============= ${test} =============")
 			println("Local Count: ${method.getLocalCount()}")
