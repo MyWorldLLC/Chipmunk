@@ -196,7 +196,7 @@ public class ChipmunkVM {
 			locals = new Reflector[localCount];
 			// pop arguments right->left
 			// TODO - handle references to this (binding vs passing)
-			for(int i = paramCount - 1; i >= 0; i--){
+			for(int i = paramCount; i >= 1; i--){
 				locals[i] = this.pop();
 			}
 		}

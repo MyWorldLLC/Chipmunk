@@ -38,6 +38,7 @@ public class MethodVisitor implements AstVisitor {
 			methodNode = (MethodNode) node;
 			
 			method.setArgCount(methodNode.getParamCount());
+			method.setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
 			
@@ -46,15 +47,26 @@ public class MethodVisitor implements AstVisitor {
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool()));//expStatVisitor);
+			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool()));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
 			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
 			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
 			
+			// The VM sets the locals for arguments for us - we only need to handle default arguments
+			// that aren't supplied in the call.
+			// TODO - this will overwrite all default arguments that were supplied. To support these
+			// properly, generate code to determine number of arguments in call and jump to the right
+			// point to initialize non-supplied arguments.
+			int startAt = methodNode.getParamCount();
+			if(methodNode.hasDefaultParams()){
+				startAt -= methodNode.getDefaultParamCount();
+				// TODO
+			}
+			
 			codegen.enterScope(symbols);
-			methodNode.visitChildren(codegen);
+			methodNode.visitChildren(codegen, startAt);
 			codegen.exitScope();
 			
 			// return null in case a return has not yet been hit

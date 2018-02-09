@@ -7,6 +7,7 @@ import chipmunk.reflectors.VMOperator;
 
 public class CMethod implements VMOperator {
 	protected int argCount;
+	protected int defaultArgCount;
 	protected int localCount;
 	
 	protected byte[] instructions;
@@ -22,6 +23,14 @@ public class CMethod implements VMOperator {
 	
 	public void setArgCount(int count){
 		argCount = count;
+	}
+	
+	public int getDefaultArgCount(){
+		return defaultArgCount;
+	}
+	
+	public void setDefaultArgCount(int count){
+		defaultArgCount = count;
 	}
 	
 	public int getLocalCount(){
@@ -60,6 +69,8 @@ public class CMethod implements VMOperator {
 		builder.append(localCount);
 		builder.append(", Args: ");
 		builder.append(argCount);
+		builder.append(", Def. Args: ");
+		builder.append(defaultArgCount);
 		builder.append("]");
 		
 		return builder.toString();

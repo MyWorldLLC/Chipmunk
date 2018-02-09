@@ -33,8 +33,16 @@ public class MethodNode extends BlockNode implements SymbolNode {
 		return paramCount;
 	}
 	
+	public boolean hasParams(){
+		return paramCount != 0;
+	}
+	
 	public int getDefaultParamCount(){
 		return defaultParamCount;
+	}
+	
+	public boolean hasDefaultParams(){
+		return defaultParamCount != 0;
 	}
 	
 	public void addParam(VarDecNode param){

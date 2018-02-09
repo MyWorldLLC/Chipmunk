@@ -392,7 +392,7 @@ class MethodVisitorSpecification extends Specification {
 		when:
 		def result = parseAndCall("""
 			def method(){
-				var v1 = def(a, b = 0){return a + b}
+				var v1 = def(a, b){return a + b}
 				return v1(1, 2)
 			}
 			""", "Call - 2 params")

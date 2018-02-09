@@ -28,7 +28,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		MethodNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo)"
+		node.toString() == "(method foo (vardec arg1))"
 	}
 	
 	def "parse def foo(arg1, arg2){}"(){
@@ -41,7 +41,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		MethodNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo)"
+		node.toString() == "(method foo (vardec arg1) (vardec arg2))"
 	}
 	
 	def "parse method def with single var body"(){
