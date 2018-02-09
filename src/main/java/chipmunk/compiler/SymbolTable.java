@@ -73,6 +73,7 @@ public class SymbolTable {
 	}
 	
 	public int getLocalIndex(Symbol symbol){
+		// TODO - support closures
 		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			if(symbols.contains(symbol)){
 				return symbols.indexOf(symbol) + localStartIndex;
@@ -136,12 +137,9 @@ public class SymbolTable {
 	}
 	
 	public void calculateLocalStartIndex(){
-		if(scope == Scope.LOCAL || scope == Scope.METHOD){
-			localStartIndex = 0;
-			
-			if(isInnerLocal()){
-				localStartIndex = parent.getLocalStartIndex() + parent.symbols.size();
-			}
+		localStartIndex = 0;
+		if(scope == Scope.LOCAL && isInnerLocal()){
+			localStartIndex = parent.getLocalStartIndex() + parent.symbols.size();
 		}
 	}
 	
@@ -150,7 +148,7 @@ public class SymbolTable {
 	}
 	
 	public boolean isInnerLocal(){
-		if(parent != null && (parent.scope == Scope.LOCAL || parent.scope == Scope.METHOD)){
+		if(parent != null && parent.scope == Scope.LOCAL){
 			return true;
 		}
 		return false;
