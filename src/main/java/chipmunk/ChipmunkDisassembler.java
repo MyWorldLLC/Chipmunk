@@ -76,7 +76,7 @@ public class ChipmunkDisassembler {
 			}
 			for(int i = constantIndex; i < constantPool.size(); i++){
 				builder.append(padding);
-				builder.append(i);
+				builder.append(i - constantIndex);
 				builder.append(": ");
 				builder.append(constantPool.get(i).toString());
 				if(constantPool.get(i) instanceof CMethod){
