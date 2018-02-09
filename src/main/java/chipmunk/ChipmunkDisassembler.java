@@ -74,8 +74,9 @@ public class ChipmunkDisassembler {
 			if(constantIndex != 0){
 				constantIndex++;
 			}
+			String entryPadding = padding + "  ";
 			for(int i = constantIndex; i < constantPool.size(); i++){
-				builder.append(padding);
+				builder.append(entryPadding);
 				builder.append(i - constantIndex);
 				builder.append(": ");
 				builder.append(constantPool.get(i).toString());
@@ -98,11 +99,13 @@ public class ChipmunkDisassembler {
 		builder.append(padding);
 		builder.append("Code:\n");
 		
+		String codePadding = padding + "  ";
+		
 		int ip = 0;
 		while(ip < codeSegment.length){
 			byte op = codeSegment[ip];
 
-			builder.append(padding);
+			builder.append(codePadding);
 			builder.append(ip);
 			builder.append(": ");
 			
