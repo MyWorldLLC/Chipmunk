@@ -440,6 +440,24 @@ public class ChipmunkVM {
 				ip += 2;
 				break;
 			case CALLAT:
+				ins = this.pop();
+				
+				try{
+					String methodName = (String) constantPool.get(fetchInt(instructions, ip + 2));
+					this.push(ins.doOp(this, methodName, fetchByte(instructions, ip + 1)));
+				}catch(SuspendedChipmunk e){
+					// Need to bump ip BEFORE calling next method. Otherwise,
+					// the ip will be stored in its old state and when this 
+					// method resumes after being suspended, it will try to 
+					// re-run this call.
+					ip += 6;
+					this.freeze(ins, ip, locals);
+					throw e;
+				}catch(AngryChipmunk e){
+					// TODO - fill in stack trace or jump to exception handler
+					throw e;
+				}
+				ip += 6;
 				break;
 			case GOTO:
 				int gotoIndex = fetchInt(instructions, ip + 1);
