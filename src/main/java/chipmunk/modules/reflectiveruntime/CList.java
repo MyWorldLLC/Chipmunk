@@ -23,8 +23,8 @@ public class CList implements VMOperator {
 		list.add(obj);
 	}
 	
-	public void add(ChipmunkVM vm, Integer index, Object obj){
-		list.add(index, obj);
+	public void add(ChipmunkVM vm, CInteger index, Object obj){
+		list.add(index.intValue(), obj);
 	}
 	
 	public CBoolean addAll(ChipmunkVM vm, Collection<? extends Object> collection){
@@ -51,7 +51,15 @@ public class CList implements VMOperator {
 		return new CBoolean(list.equals(obj));
 	}
 	
-	public Object get(ChipmunkVM vm, Integer index){
+	public Object get(ChipmunkVM vm, CInteger index){
+		return list.get(index.intValue());
+	}
+	
+	public Object get(CInteger index){
+		return list.get(index.intValue());
+	}
+	
+	public Object get(Integer index){
 		return list.get(index);
 	}
 	
@@ -80,9 +88,13 @@ public class CList implements VMOperator {
 		return new CInteger(list.lastIndexOf(obj));
 	}
 	
-	public CBoolean remove(ChipmunkVM vm, Integer index){
+	public Object remove(CInteger index){
+		return list.remove(index.intValue());
+	}
+	
+	public CBoolean remove(ChipmunkVM vm, Object o){
 		vm.traceBoolean();
-		return new CBoolean(list.remove(index));
+		return new CBoolean(list.remove(o));
 	}
 	
 	public CBoolean removeAll(ChipmunkVM vm, Collection<? extends Object> collection){
@@ -102,6 +114,10 @@ public class CList implements VMOperator {
 	public CInteger size(ChipmunkVM vm){
 		vm.traceInteger();
 		return new CInteger(list.size());
+	}
+	
+	public int size(){
+		return list.size();
 	}
 	
 	public void sort(ChipmunkVM vm, CComparator comparator){

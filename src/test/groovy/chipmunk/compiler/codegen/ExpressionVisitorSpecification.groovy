@@ -8,6 +8,8 @@ import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.reflectiveruntime.CBoolean
 import chipmunk.modules.reflectiveruntime.CFloat
 import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CList
+import chipmunk.modules.reflectiveruntime.CMap
 import chipmunk.modules.reflectiveruntime.CMethod
 import chipmunk.modules.reflectiveruntime.CString
 import spock.lang.Specification
@@ -190,6 +192,35 @@ class ExpressionVisitorSpecification extends Specification {
 		then:
 		result instanceof CInteger
 		result.getValue() == 2
+	}
+	
+	def "Evaluate []"(){
+		when:
+		def result = parseAndCall("[]")
+		
+		then:
+		result instanceof CList
+		result.size() == 0
+	}
+	
+	def "Evaluate {}"(){
+		when:
+		def result = parseAndCall("{}")
+		
+		then:
+		result instanceof CMap
+		result.size() == 0
+	}
+	
+	def "Evaluate [1, 2, 3]"(){
+		when:
+		def result = parseAndCall("[1, 2, 3]")
+		
+		then:
+		result instanceof CList
+		result.get(0).intValue() == 1
+		result.get(1).intValue() == 2
+		result.get(2).intValue() == 3
 	}
 
 	def parseAndCall(String expression){

@@ -454,7 +454,13 @@ public class ChipmunkVM {
 				
 				try{
 					String methodName = (String) constantPool.get(fetchInt(instructions, ip + 2));
-					this.push(ins.doOp(this, methodName, fetchByte(instructions, ip + 1)));
+					byte targetParams = fetchByte(instructions, ip + 1);
+					Object[] params = new Object[targetParams];
+					
+					for(int i = targetParams - 1; i >= 0; i--){
+						params[i] = this.pop();
+					}
+					this.push(ins.doOp(this, methodName, params));
 				}catch(SuspendedChipmunk e){
 					// Need to bump ip BEFORE calling next method. Otherwise,
 					// the ip will be stored in its old state and when this 

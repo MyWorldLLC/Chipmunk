@@ -81,5 +81,9 @@ public class CMap implements VMOperator {
 		vm.traceInteger();
 		return new CInteger(map.size());
 	}
+	
+	public int size(){
+		return map.size();
+	}
 
 }

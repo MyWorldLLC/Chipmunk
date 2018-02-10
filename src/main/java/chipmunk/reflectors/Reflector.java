@@ -36,11 +36,50 @@ public class Reflector {
 		Method method = null;
 		
 		try {
-			method = obj.getClass().getMethod(op, paramTypes);
-		} catch (NoSuchMethodException e) {
-			throw new MissingMethodChipmunk(e);
+			Class<?> objClass = obj.getClass();
+			Method[] methods = objClass.getDeclaredMethods();
+			for(Method m : methods){
+				if(m.getName().equals(op)){
+					Class<?>[] mParamTypes = m.getParameterTypes();
+					
+					if(mParamTypes.length != paramTypes.length){
+						continue;
+					}
+					
+					boolean misMatched = false;
+					for(int i = 0; i < mParamTypes.length; i++){
+						if(!paramTypeMatches(paramTypes[i], mParamTypes[i])){
+							misMatched = true;
+							break;
+						}
+					}
+					
+					if(!misMatched){
+						method = m;
+						break;
+					}
+				}
+			}
 		} catch (SecurityException e) {
 			e.printStackTrace();
+		}
+		
+		if(method == null){
+			// method not found
+			StringBuilder sb = new StringBuilder();
+			sb.append(obj.getClass().getName());
+			sb.append('.');
+			sb.append(op);
+			sb.append('(');
+			
+			for(int i = 0; i < paramTypes.length; i++){
+				sb.append(paramTypes[i].getName());
+				if(i < paramTypes.length - 1){
+					sb.append(',');
+				}
+			}
+			sb.append(')');
+			throw new MissingMethodChipmunk(sb.toString());
 		}
 		
 		try {
@@ -59,6 +98,17 @@ public class Reflector {
 		} catch (InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
+	}
+	
+	private boolean paramTypeMatches(Class<?> paramType, Class<?> methodType){
+		if(paramType.equals(methodType)){
+			return true;
+		}else if(!paramType.equals(Object.class)){
+			// determine if methodType is a superclass of paramType
+			// TODO - interfaces
+			return paramTypeMatches(paramType.getSuperclass(), methodType);
+		}
+		return false;
 	}
 
 }

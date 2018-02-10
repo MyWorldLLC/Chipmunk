@@ -9,9 +9,9 @@ import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.ListNode;
 import chipmunk.compiler.ast.LiteralNode;
+import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.lang.CList;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CFloat;
 import chipmunk.modules.reflectiveruntime.CInteger;
@@ -64,15 +64,33 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 		}else if(node instanceof ListNode){
 			ListNode listNode = (ListNode) node;
-			listNode.visitChildren(this);
 			
-			// TODO - create new list instance
+			assembler.list();
 			for(int i = 0; i < listNode.getChildren().size(); i++){
+				// visit expression
 				this.visit(listNode.getChildren().get(i));
+				// dup list and add result of expression
+				assembler.dup(1);
 				assembler.callAt((byte)1, "add");
+				assembler.pop();
 			}
+		}else if(node instanceof MapNode){
+			MapNode mapNode = (MapNode) node;
+			mapNode.visitChildren(this);
 			
-			//assembler.push(list);
+			assembler.map();
+			for(int i = 0; i < mapNode.getChildren().size(); i++){
+				// visit key & value expressions
+				AstNode keyValue = mapNode.getChildren().get(i);
+				// key
+				this.visit(keyValue.getChildren().get(0));
+				// value
+				this.visit(keyValue.getChildren().get(1));
+				// dup map and put key/value
+				assembler.dup(2);
+				assembler.callAt((byte)2, "put");
+				assembler.pop();
+			}
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
 			visitor.visit(node);
