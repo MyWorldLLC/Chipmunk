@@ -370,7 +370,7 @@ class CIntegerSpecification extends Specification {
 		
 		then:
 		result.getClass().equals(type)
-		result.getValue() == str
+		result.stringValue() == str
 		
 		where:
 		  lh  |  str   |     type

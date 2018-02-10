@@ -23,9 +23,7 @@ public class MapParselet implements PrefixParselet {
 			
 			parser.skipNewlines();
 			
-			if(tokens.peek().getType() == Token.Type.COMMA){
-				tokens.get();
-			}else if(tokens.peek().getType() != Token.Type.RBRACE){
+			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACE))){
 				parser.syntaxError("Error parsing map", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACE);
 			}
 		}

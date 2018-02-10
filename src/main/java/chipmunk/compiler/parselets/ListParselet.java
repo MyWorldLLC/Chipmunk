@@ -13,14 +13,12 @@ public class ListParselet implements PrefixParselet {
 		ListNode list = new ListNode();
 		
 		TokenStream tokens = parser.getTokens();
-		while(tokens.peek().getType() != Token.Type.RBRACKET){
+		while(!parser.peek(Token.Type.RBRACKET)){
 			
 			list.addChild(parser.parseExpression());
 			parser.skipNewlines();
 			
-			if(tokens.peek().getType() == Token.Type.COMMA){
-				tokens.get();
-			}else if(tokens.peek().getType() != Token.Type.RBRACKET){
+			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACKET))){
 				parser.syntaxError("Error parsing list", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACKET);
 			}
 		}

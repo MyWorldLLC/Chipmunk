@@ -32,7 +32,7 @@ public class Token {
 		FLOATLITERAL("-?[0-9]*\\.[0-9]+((e|E)-?[0-9]+)?", false, true),
 		INTLITERAL("-?[0-9_]+", false, true),
 		BOOLLITERAL("true|false", true, true),
-		STRINGLITERAL("\"([^\"]|\\\")*\"|'([^']|\\')*'", false, true),
+		STRINGLITERAL("\"[^\"[\\\"]]*\"|'[^'[\\\']]*'", false, true),
 		
 		// blocks, indexing, grouping, and calling
 		LBRACE("\\{"), RBRACE("\\}"), LBRACKET("\\["), RBRACKET("\\]"), LPAREN("\\("), RPAREN("\\)"), COMMA(","),

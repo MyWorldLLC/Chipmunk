@@ -51,6 +51,10 @@ public class CMap implements VMOperator {
 		return new CBoolean(map.isEmpty());
 	}
 	
+	public Object put(ChipmunkVM vm, Object key, Object value){
+		return map.put(key, value);
+	}
+	
 	public Object put(Object key, Object value){
 		return map.put(key, value);
 	}
@@ -84,6 +88,21 @@ public class CMap implements VMOperator {
 	
 	public int size(){
 		return map.size();
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+		
+		for(Map.Entry<Object, Object> entry : map.entrySet()){
+			sb.append(entry.getKey().toString());
+			sb.append(':');
+			sb.append(entry.getValue().toString());
+		}
+		
+		sb.append('}');
+		return map.toString();
 	}
 
 }

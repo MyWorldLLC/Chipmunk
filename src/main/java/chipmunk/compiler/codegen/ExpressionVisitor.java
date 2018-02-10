@@ -56,7 +56,8 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.push(new CFloat(Float.parseFloat(literal.getText())));
 				return;
 			case STRINGLITERAL:
-				assembler.push(new CString(literal.getText()));
+				// strip quotes
+				assembler.push(new CString(literal.getText().substring(1, literal.getText().length() - 1)));
 				return;
 				
 				default:

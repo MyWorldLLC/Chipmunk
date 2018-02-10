@@ -110,7 +110,7 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		then:
 		result instanceof CString
-		result.getValue() == "\"Hello, World!\""
+		result.stringValue() == "Hello, World!"
 	}
 
 	def "Generate and run code for 1 + 2"(){
@@ -218,9 +218,23 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		then:
 		result instanceof CList
+		result.size().intValue() == 3
 		result.get(0).intValue() == 1
 		result.get(1).intValue() == 2
 		result.get(2).intValue() == 3
+	}
+	
+	def "Evaluate {1:2, 3:4, \"foo\":'bar'}"(){
+		when:
+		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""")
+		
+		then:
+		result instanceof CMap
+		println(result.toString())
+		result.size().intValue() == 3
+		result.get(new CInteger(1)).intValue() == 2
+		result.get(new CInteger(3)).intValue() == 4
+		result.get(new CString("foo")).stringValue() == "bar"
 	}
 
 	def parseAndCall(String expression){
