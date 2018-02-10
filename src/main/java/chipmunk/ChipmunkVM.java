@@ -175,6 +175,22 @@ public class ChipmunkVM {
 		memHigh += newlyAllocated;
 	}
 	
+	public void traceBoolean(){
+		memHigh += 1;
+	}
+	
+	public void traceInteger(){
+		memHigh += 4;
+	}
+	
+	public void traceFloat(){
+		memHigh += 4;
+	}
+	
+	public void traceString(String str){
+		memHigh += str.length() * 2;
+	}
+	
 	public Reflector dispatch(byte[] instructions, int paramCount, int localCount, List<Object> constantPool){
 		int ip = 0;
 		Reflector[] locals;
