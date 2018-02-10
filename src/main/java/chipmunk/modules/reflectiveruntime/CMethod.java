@@ -13,8 +13,12 @@ public class CMethod implements VMOperator {
 	protected byte[] instructions;
 	protected List<Object> constantPool;
 	
+	protected Object self;
+	
 	public CMethod(){
 		super();
+		self = new CNull();
+		localCount = 1;
 	}
 	
 	public int getArgCount(){
@@ -38,7 +42,7 @@ public class CMethod implements VMOperator {
 	}
 	
 	public void setLocalCount(int count){
-		localCount = count;
+		localCount = count + 1; // + 1 for self reference
 	}
 	
 	public void setConstantPool(List<Object> constantPool){
@@ -48,7 +52,7 @@ public class CMethod implements VMOperator {
 	public List<Object> getConstantPool(){
 		return constantPool;
 	}
-
+	
 	public void setCode(byte[] codeSegment) {
 		instructions = codeSegment;
 	}
@@ -59,6 +63,28 @@ public class CMethod implements VMOperator {
 	
 	public Object call(ChipmunkVM vm, Byte paramCount) {
 		return vm.dispatch(this, paramCount.intValue()).getObject();
+	}
+	
+	public Object getSelf(){
+		return self;
+	}
+	
+	public void bind(Object self){
+		this.self = self;
+	}
+	
+	public CMethod duplicate(ChipmunkVM vm){
+		vm.traceMem(12); // integer sizes
+		
+		CMethod method = new CMethod();
+		method.setCode(instructions);
+		method.setConstantPool(constantPool);
+		method.setArgCount(argCount);
+		method.setDefaultArgCount(defaultArgCount);
+		method.setLocalCount(localCount);
+		method.bind(self);
+		
+		return method;
 	}
 	
 	public String toString(){

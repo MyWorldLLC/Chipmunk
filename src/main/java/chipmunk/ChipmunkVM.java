@@ -220,6 +220,7 @@ public class ChipmunkVM {
 			for(int i = paramCount; i >= 1; i--){
 				locals[i] = this.pop();
 			}
+			locals[0] = makeReflector(method.getSelf());
 		}
 		
 		while(true){
@@ -492,11 +493,7 @@ public class ChipmunkVM {
 			case PUSH:
 				int constIndex = fetchInt(instructions, ip + 1);
 				Object constant = constantPool.get(constIndex);
-				if(constant instanceof VMOperator){
-					this.push(new VMReflector((VMOperator)constant));
-				}else{
-					this.push(new Reflector(constant));
-				}
+				this.push(makeReflector(constant));
 				ip += 5;
 				break;
 			case EQ:
@@ -600,6 +597,14 @@ public class ChipmunkVM {
 	
 	private byte fetchByte(byte[] instructions, int ip){
 		return instructions[ip];
+	}
+	
+	private Reflector makeReflector(Object obj){
+		if(obj instanceof VMOperator){
+			return new VMReflector((VMOperator)obj);
+		}else{
+			return new Reflector(obj);
+		}
 	}
 	
 }
