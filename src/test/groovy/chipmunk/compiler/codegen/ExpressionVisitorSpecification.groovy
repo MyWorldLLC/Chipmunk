@@ -1,15 +1,14 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
-import chipmunk.compiler.SymbolTable
 import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.reflectiveruntime.CBoolean
 import chipmunk.modules.reflectiveruntime.CFloat
 import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CMethod
 import chipmunk.modules.reflectiveruntime.CString
 import spock.lang.Specification
 
@@ -198,7 +197,12 @@ class ExpressionVisitorSpecification extends Specification {
 		AstNode root = parser.parseExpression()
 		root.visit(visitor)
 		assembler._return()
+		
+		CMethod method = assembler.makeMethod()
+		method.setCode(assembler.getCodeSegment())
+		method.setConstantPool(assembler.getConstantPool())
+		method.setLocalCount(0)
 
-		return context.dispatch(assembler.getCodeSegment(), 0, 0, assembler.getConstantPool()).getObject()
+		return context.dispatch(method, 0).getObject()
 	}
 }

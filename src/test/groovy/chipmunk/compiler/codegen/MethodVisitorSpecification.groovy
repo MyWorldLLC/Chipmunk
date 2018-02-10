@@ -418,7 +418,7 @@ class MethodVisitorSpecification extends Specification {
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
 		}
 		
-		return context.dispatch(method.getCode(), method.getArgCount(), method.getLocalCount(), method.getConstantPool()).getObject()
+		return context.dispatch(method, method.getArgCount()).getObject()
 	}
 
 }

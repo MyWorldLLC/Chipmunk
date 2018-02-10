@@ -25,7 +25,6 @@ import static chipmunk.Opcodes.INC;
 import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
 import static chipmunk.Opcodes.ITER;
-import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.LE;
 import static chipmunk.Opcodes.LSHIFT;
 import static chipmunk.Opcodes.LT;
@@ -33,6 +32,7 @@ import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
 import static chipmunk.Opcodes.NEW;
+import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.NOT;
 import static chipmunk.Opcodes.OR;
 import static chipmunk.Opcodes.POP;
@@ -62,9 +62,10 @@ import chipmunk.modules.lang.CModule;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CInteger;
 import chipmunk.modules.reflectiveruntime.CIterator;
+import chipmunk.modules.reflectiveruntime.CMethod;
+import chipmunk.reflectors.Reflector;
 import chipmunk.reflectors.VMOperator;
 import chipmunk.reflectors.VMReflector;
-import chipmunk.reflectors.Reflector;
 
 public class ChipmunkVM {
 	
@@ -191,9 +192,13 @@ public class ChipmunkVM {
 		memHigh += str.length() * 2;
 	}
 	
-	public Reflector dispatch(byte[] instructions, int paramCount, int localCount, List<Object> constantPool){
+	public Reflector dispatch(CMethod method, int paramCount){
 		int ip = 0;
 		Reflector[] locals;
+		
+		final byte[] instructions = method.getCode();
+		final int localCount = method.getLocalCount();
+		final List<Object> constantPool = method.getConstantPool();
 		
 		if(resuming){
 			ChipmunkVM.CallFrame frame = this.unfreezeNext();

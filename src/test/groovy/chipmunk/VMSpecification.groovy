@@ -2,6 +2,7 @@ package chipmunk
 
 import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CMethod
 import chipmunk.reflectors.VMReflector
 import spock.lang.Specification
 
@@ -354,6 +355,8 @@ class VMSpecification extends Specification {
 	}
 	
 	def vmRun(int localCount = 0){
-		return vm.dispatch(assembler.getCodeSegment(), 0, localCount, assembler.getConstantPool()).getObject()
+		CMethod method = assembler.makeMethod()
+		method.setLocalCount(localCount)
+		return vm.dispatch(method, 0).getObject()
 	}
 }

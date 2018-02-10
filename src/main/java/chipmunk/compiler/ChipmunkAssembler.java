@@ -2,10 +2,10 @@ package chipmunk.compiler;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import chipmunk.Opcodes;
+import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CNull;
 
 public class ChipmunkAssembler {
@@ -34,13 +34,7 @@ public class ChipmunkAssembler {
 		labelTargets = new ArrayList<LabelTarget>();
 	}
 	
-	public ChipmunkAssembler createMethodAssembler(){
-		ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-		return assembler;
-	}
-	
 	public List<Object> getConstantPool(){
-		//return Collections.unmodifiableList(constantPool);
 		return constantPool;
 	}
 	
@@ -74,6 +68,15 @@ public class ChipmunkAssembler {
 			}
 		}
 		return codeBytes;
+	}
+	
+	public CMethod makeMethod(){
+		CMethod method = new CMethod();
+		
+		method.setCode(getCodeSegment());
+		method.setConstantPool(getConstantPool());
+		
+		return method;
 	}
 	/*
 	public byte[] makeModuleBinary(){

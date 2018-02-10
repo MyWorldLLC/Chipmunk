@@ -1,10 +1,8 @@
 package chipmunk.compiler
 
 import chipmunk.ChipmunkVM
-import chipmunk.modules.lang.CCode
-import chipmunk.modules.lang.CInt
-import chipmunk.modules.lang.CMethod
 import chipmunk.modules.reflectiveruntime.CInteger
+import chipmunk.modules.reflectiveruntime.CMethod
 import spock.lang.Specification
 
 class AssemblerSpecification extends Specification {
@@ -29,9 +27,10 @@ class AssemblerSpecification extends Specification {
 	def callMethod(){
 		
 		CMethod method = new CMethod()
-		method.setCode(new CCode(assembler.getCodeSegment()))
+		method.setCode(assembler.getCodeSegment())
 		method.setConstantPool(assembler.getConstantPool())
+		method.setLocalCount(0)
 		
-		return context.dispatch(assembler.getCodeSegment(), 0, 0, assembler.getConstantPool()).getObject()
+		return context.dispatch(method, 0).getObject()
 	}
 }
