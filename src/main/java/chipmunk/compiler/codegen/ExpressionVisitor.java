@@ -61,7 +61,6 @@ public class ExpressionVisitor implements AstVisitor {
 					return;
 			}
 		}else if(node instanceof MethodNode){
-			// TODO - anonymous (lambda) methods
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
 			visitor.visit(node);
 			assembler.push(visitor.getMethod());

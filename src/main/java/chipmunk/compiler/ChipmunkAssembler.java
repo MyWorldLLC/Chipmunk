@@ -352,10 +352,18 @@ public class ChipmunkAssembler {
 		index += 2;
 	}
 	
-	public void callAt(byte paramCount){
+	public void callAt(byte paramCount, String methodName){
 		code.write(Opcodes.CALLAT);
 		code.write(paramCount);
-		index += 2;
+		
+		int entryIndex = getConstantPoolEntry(methodName);
+		
+		code.write(entryIndex >> 24);
+		code.write(entryIndex >> 16);
+		code.write(entryIndex >> 8);
+		code.write(entryIndex);
+		
+		index += 6;
 	}
 	
 	public Label label(String labelName){
