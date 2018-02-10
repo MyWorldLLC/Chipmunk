@@ -439,5 +439,15 @@ public class ChipmunkAssembler {
 		code.write(inclusive ? 1 : 0);
 		index += 2;
 	}
+	
+	public void list(){
+		code.write(Opcodes.LIST);
+		index++;
+	}
+	
+	public void map(){
+		code.write(Opcodes.MAP);
+		index++;
+	}
 
 }

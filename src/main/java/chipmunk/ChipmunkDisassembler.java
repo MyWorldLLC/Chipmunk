@@ -26,8 +26,10 @@ import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
 import static chipmunk.Opcodes.ITER;
 import static chipmunk.Opcodes.LE;
+import static chipmunk.Opcodes.LIST;
 import static chipmunk.Opcodes.LSHIFT;
 import static chipmunk.Opcodes.LT;
+import static chipmunk.Opcodes.MAP;
 import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
@@ -322,6 +324,14 @@ public class ChipmunkDisassembler {
 				builder.append("range ");
 				builder.append(fetchByte(codeSegment, ip + 1));
 				ip += 2;
+				break;
+			case LIST:
+				builder.append("list");
+				ip++;
+				break;
+			case MAP:
+				builder.append("map");
+				ip++;
 				break;
 			default:
 				throw new InvalidOpcodeChipmunk(op);

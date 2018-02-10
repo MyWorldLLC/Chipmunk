@@ -63,5 +63,7 @@ public class Opcodes {
 	public static final byte ITER = 0x30;
 	public static final byte NEXT = 0x31;
 	public static final byte RANGE = 0x32;
+	public static final byte LIST = 0x33;
+	public static final byte MAP = 0x34;
 	
 }

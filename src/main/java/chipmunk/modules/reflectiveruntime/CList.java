@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.reflectors.VMOperator;
 
 public class CList implements VMOperator {
 	

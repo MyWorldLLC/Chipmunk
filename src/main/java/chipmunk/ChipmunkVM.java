@@ -26,8 +26,10 @@ import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
 import static chipmunk.Opcodes.ITER;
 import static chipmunk.Opcodes.LE;
+import static chipmunk.Opcodes.LIST;
 import static chipmunk.Opcodes.LSHIFT;
 import static chipmunk.Opcodes.LT;
+import static chipmunk.Opcodes.MAP;
 import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
@@ -62,6 +64,8 @@ import chipmunk.modules.lang.CModule;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CInteger;
 import chipmunk.modules.reflectiveruntime.CIterator;
+import chipmunk.modules.reflectiveruntime.CList;
+import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.reflectors.Reflector;
 import chipmunk.reflectors.VMOperator;
@@ -580,6 +584,16 @@ public class ChipmunkVM {
 				lh = this.pop();
 				this.push(lh.doOp(this, "range", rh, fetchByte(instructions, ip + 1) == 0 ? false : true));
 				ip += 2;
+				break;
+			case LIST:
+				traceMem(8);
+				this.push(new VMReflector(new CList()));
+				ip++;
+				break;
+			case MAP:
+				traceMem(8);
+				this.push(new VMReflector(new CMap()));
+				ip++;
 				break;
 			default:
 				throw new InvalidOpcodeChipmunk(op);
