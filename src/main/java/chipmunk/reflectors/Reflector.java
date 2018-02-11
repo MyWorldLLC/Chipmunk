@@ -2,6 +2,8 @@ package chipmunk.reflectors;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import chipmunk.AngryChipmunk;
 import chipmunk.ChipmunkVM;
@@ -10,9 +12,11 @@ import chipmunk.modules.reflectiveruntime.MissingMethodChipmunk;
 public class Reflector {
 	
 	private final Object obj;
+	private Map<String, Method> methodCache;
 	
 	public Reflector(Object instance){
 		obj = instance;
+		methodCache = new HashMap<String, Method>();
 	}
 	
 	public Object getObject(){
@@ -35,33 +39,25 @@ public class Reflector {
 		
 		Method method = null;
 		
-		try {
-			Class<?> objClass = obj.getClass();
-			Method[] methods = objClass.getDeclaredMethods();
-			for(Method m : methods){
-				if(m.getName().equals(op)){
-					Class<?>[] mParamTypes = m.getParameterTypes();
-					
-					if(mParamTypes.length != paramTypes.length){
-						continue;
+		if(!methodCache.containsKey(op)){
+			try {
+				method = reflectMethod(op, paramTypes);
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			}
+		}else{
+			Method m = methodCache.get(op);
+			if(!paramListMatches(paramTypes, m.getParameterTypes())){
+				try{
+					method = reflectMethod(op, paramTypes);
+					if(method != null){
+						methodCache.put(op, method);
 					}
-					
-					boolean misMatched = false;
-					for(int i = 0; i < mParamTypes.length; i++){
-						if(!paramTypeMatches(paramTypes[i], mParamTypes[i])){
-							misMatched = true;
-							break;
-						}
-					}
-					
-					if(!misMatched){
-						method = m;
-						break;
-					}
+				}catch(SecurityException e){
+					e.printStackTrace();
 				}
 			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
+			
 		}
 		
 		if(method == null){
@@ -83,8 +79,7 @@ public class Reflector {
 		}
 		
 		try {
-			// TODO - need this to call anonymous classes (like iterators), but we probably don't want this all the time
-			method.setAccessible(true);
+			
 			Object result = method.invoke(obj, params);
 			if(result instanceof VMOperator){
 				return new VMReflector((VMOperator) result);
@@ -98,6 +93,51 @@ public class Reflector {
 		} catch (InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
+	}
+	
+	private Method reflectMethod(String name, Class<?>[] paramTypes) throws SecurityException {
+		
+		Class<?> objClass = obj.getClass();
+		Method[] methods = objClass.getDeclaredMethods();
+
+		for (Method m : methods) {
+			if (m.getName().equals(name)) {
+				Class<?>[] mParamTypes = m.getParameterTypes();
+
+				if (mParamTypes.length != paramTypes.length) {
+					continue;
+				}
+
+				boolean misMatched = false;
+				for (int i = 0; i < mParamTypes.length; i++) {
+					if (!paramTypeMatches(paramTypes[i], mParamTypes[i])) {
+						misMatched = true;
+						break;
+					}
+				}
+
+				if (!misMatched) {
+					// TODO - need this to call anonymous classes (like iterators), but we probably don't want this all the time
+					m.setAccessible(true);
+					return m;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private boolean paramListMatches(Class<?>[] passed, Class<?>[] declared){
+		if(passed.length != declared.length){
+			return false;
+		}
+		
+		for(int i = 0; i < declared.length; i++){
+			if(!paramTypeMatches(passed[i], declared[i])){
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	private boolean paramTypeMatches(Class<?> paramType, Class<?> methodType){

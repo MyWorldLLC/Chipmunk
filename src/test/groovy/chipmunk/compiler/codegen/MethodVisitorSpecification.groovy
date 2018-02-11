@@ -402,6 +402,23 @@ class MethodVisitorSpecification extends Specification {
 		result.getValue() == 3
 	}
 	
+	def "Count to a million"(){
+		when:
+		def result = parseAndCall("""
+			def countToAMillion(){
+				var x = 0
+				while(x < 1000000){
+					x = x + 1
+				}
+				return x 
+			}
+		""", "Count to a million")
+		
+		then:
+		result instanceof CInteger
+		result.getValue() == 1000000
+	}
+	
 	def parseAndCall(String expression, String test = ""){
 		
 		parser = new ChipmunkParser(lexer.lex(expression))
@@ -417,8 +434,16 @@ class MethodVisitorSpecification extends Specification {
 			println("Local Count: ${method.getLocalCount()}")
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
 		}
+		if(test == ""){
+			return context.dispatch(method, method.getArgCount()).getObject()
+		}else{
+			long start = System.nanoTime()
+			def result = context.dispatch(method, method.getArgCount()).getObject()
+			long end = System.nanoTime()
+			println("Test ${test} took ${(end - start)/1000000000} seconds to execute")
+			return result
+		}
 		
-		return context.dispatch(method, method.getArgCount()).getObject()
 	}
 
 }
