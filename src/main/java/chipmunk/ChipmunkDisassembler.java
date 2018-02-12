@@ -64,37 +64,35 @@ public class ChipmunkDisassembler {
 	}
 
 	public static String disassemble(byte[] codeSegment, List<Object> constantPool){
-		return disassemble(codeSegment, constantPool, 0, "");
+		return disassemble(codeSegment, constantPool, false, "");
 	}
 	
-	private static String disassemble(byte[] codeSegment, List<Object> constantPool, int constantIndex, String padding){
+	private static String disassemble(byte[] codeSegment, List<Object> constantPool, boolean isInnerMethod, String padding){
 		StringBuilder builder = new StringBuilder();
 		
 		if(constantPool != null){
 			builder.append(padding);
 			builder.append("Constants:\n");
-			if(constantIndex != 0){
-				constantIndex++;
-			}
-			String entryPadding = padding + "  ";
-			for(int i = constantIndex; i < constantPool.size(); i++){
-				builder.append(entryPadding);
-				builder.append(i - constantIndex);
-				builder.append(": ");
-				builder.append(constantPool.get(i).toString());
-				if(constantPool.get(i) instanceof CMethod){
-					builder.append('\n');
-					CMethod method = (CMethod) constantPool.get(i);
-					if(method.getConstantPool() == constantPool){
-						builder.append(disassemble(method.getCode(), method.getConstantPool(), i, padding + "     "));
-					}else{
-						builder.append(disassemble(method.getCode(), method.getConstantPool(), 0, padding + "     "));
-					}
+			if(isInnerMethod){
+				builder.append(padding);
+				builder.append("  ");
+				builder.append("Shared\n");
+			}else{
+				String entryPadding = padding + "  ";
+				for(int i = 0; i < constantPool.size(); i++){
+					builder.append(entryPadding);
+					builder.append(i);
+					builder.append(": ");
+					builder.append(constantPool.get(i).toString());
 					
+					if(constantPool.get(i) instanceof CMethod){
+						builder.append('\n');
+						CMethod method = (CMethod) constantPool.get(i);
+						builder.append(disassemble(method.getCode(), method.getConstantPool(), true, padding + "     "));
+					}
+					builder.append('\n');
 				}
-				builder.append('\n');
 			}
-			
 		}
 		
 		builder.append('\n');
