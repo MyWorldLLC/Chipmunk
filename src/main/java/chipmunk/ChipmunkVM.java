@@ -53,8 +53,11 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +87,89 @@ public class ChipmunkVM {
 			this.locals = locals;
 		}
 	}
+	
+	/*
+	private class CallKey {
+		private final Class<?> instanceType;
+		private final String methodName;
+		private final Class<?>[] paramList;
+		
+		public CallKey(Class<?> instanceType, String methodName, Class<?>[] paramList){
+			this.instanceType = instanceType;
+			this.methodName = methodName;
+			this.paramList = paramList;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((instanceType == null) ? 0 : instanceType.hashCode());
+			result = prime * result + ((methodName == null) ? 0 : methodName.hashCode());
+			result = prime * result + Arrays.hashCode(paramList);
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			CallKey other = (CallKey) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (instanceType == null) {
+				if (other.instanceType != null)
+					return false;
+			} else if (!instanceType.equals(other.instanceType))
+				return false;
+			if (methodName == null) {
+				if (other.methodName != null)
+					return false;
+			} else if (!methodName.equals(other.methodName))
+				return false;
+			if (!Arrays.equals(paramList, other.paramList))
+				return false;
+			return true;
+		}
+
+		private ChipmunkVM getOuterType() {
+			return ChipmunkVM.this;
+		}
+		
+		
+	}
+	
+	private class CallRecord {
+		private final Class<?> instanceType;
+		private final String methodName;
+		
+		
+		public CallRecord(Class<?> instanceType, String methodName){
+			this.instanceType = instanceType;
+			this.methodName = methodName;
+		}
+		
+		@Override
+		public int hashCode(){
+			return instanceType.hashCode() ^ methodName.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object other){
+			if(other != null && other instanceof CallRecord){
+				CallRecord record = (CallRecord) other;
+				if(instanceType.equals(record.instanceType) && methodName.equals(record.methodName)){
+					return true;
+				}
+			}
+			return false;
+		}
+	}*/
 
 	protected Map<String, CModule> modules;
 	protected List<Reflector> stack;
@@ -95,6 +181,8 @@ public class ChipmunkVM {
 	private final VMReflector trueValue;
 	private final VMReflector falseValue;
 	
+	private Method addMethod;
+	
 	public ChipmunkVM(){
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
@@ -105,6 +193,14 @@ public class ChipmunkVM {
 		
 		trueValue = new VMReflector(new CBoolean(true));
 		falseValue = new VMReflector(new CBoolean(false));
+		
+		try {
+			addMethod = CInteger.class.getMethod("plus", ChipmunkVM.class, CInteger.class);
+			addMethod.setAccessible(true);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public CModule getModule(String name){
@@ -240,7 +336,13 @@ public class ChipmunkVM {
 			case ADD:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "plus", rh));
+				//this.push(lh.doOp(this, "plus", rh));
+				try {
+					this.push(new VMReflector((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				ip++;
 				break;
 			case SUB:

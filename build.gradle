@@ -1,5 +1,10 @@
+plugins {
+	id 'me.champeau.gradle.jmh' version '0.4.5'
+}
+
 apply plugin: 'java'
 apply plugin: 'groovy'
+apply plugin: 'eclipse'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -28,5 +33,8 @@ sourceSets {
 		srcDir 'src/main/java'
 	  }
 	}
-	
+}
+
+jmh {
+	fork = 1
 }
