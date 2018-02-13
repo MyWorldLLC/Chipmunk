@@ -13,6 +13,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -82,6 +83,7 @@ public class MathBenchmark {
 		Options opt = new OptionsBuilder()
 				.include(MathBenchmark.class.getSimpleName())
 				.forks(1)
+				.addProfiler(StackProfiler.class)
 				.build();
 
 		new Runner(opt).run();
