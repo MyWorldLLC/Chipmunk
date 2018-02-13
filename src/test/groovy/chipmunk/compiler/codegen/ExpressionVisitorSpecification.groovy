@@ -214,7 +214,6 @@ class ExpressionVisitorSpecification extends Specification {
 		result.size() == 0
 	}
 	
-	@Ignore
 	def "Evaluate [1, 2, 3]"(){
 		when:
 		def result = parseAndCall("[1, 2, 3]", "List")
@@ -227,7 +226,6 @@ class ExpressionVisitorSpecification extends Specification {
 		result.get(2).intValue() == 3
 	}
 	
-	@Ignore
 	def "Evaluate {1:2, 3:4, \"foo\":'bar'}"(){
 		when:
 		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""", "Map")

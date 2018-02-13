@@ -71,6 +71,7 @@ import chipmunk.modules.reflectiveruntime.CList;
 import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.reflectors.VMOperator;
 
 public class ChipmunkVM {
 	
@@ -249,7 +250,6 @@ public class ChipmunkVM {
 		}else{
 			locals = new Object[localCount];
 			// pop arguments right->left
-			// TODO - handle references to this (binding vs passing)
 			for(int i = paramCount; i >= 1; i--){
 				locals[i] = this.pop();
 			}
@@ -269,8 +269,6 @@ public class ChipmunkVM {
 			case ADD:
 				rh = this.pop();
 				lh = this.pop();
-				//this.push(lh.doOp(this, "plus", rh));\
-				//this.push(new VMObject((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
 				this.push(doInternal(InternalOp.ADD, lh, this, rh));
 				ip++;
 				break;
@@ -487,16 +485,11 @@ public class ChipmunkVM {
 				
 				try{
 					String methodName = (String) constantPool.get(fetchInt(instructions, ip + 2));
-					byte targetParams = fetchByte(instructions, ip + 1);
-					Object[] params = new Object[targetParams];
 					
-					for(int i = targetParams - 1; i >= 0; i--){
-						params[i] = this.pop();
-					}
 					// TODO - this is not an internal operation, so we need a different caching mechanism
 					// here
-					//this.push(doInternal(ins, this, methodName, params));
-					this.push(new CNull()); // TODO
+					Object result = callExternal(ins, methodName, fetchByte(instructions, ip + 1));
+					this.push(result != null ? result : new CNull());
 				}catch(SuspendedChipmunk e){
 					// Need to bump ip BEFORE calling next method. Otherwise,
 					// the ip will be stored in its old state and when this 
@@ -655,13 +648,13 @@ public class ChipmunkVM {
 		return instructions[ip];
 	}
 	
-	private Method lookupForOp(Object target, InternalOp op, Class<?>[] callTypes) throws NoSuchMethodException {
+	private Method lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
 		
 		Method[] methods = target.getClass().getMethods();
 		
 		for(int i = 0; i < methods.length; i++){
 			Method method = methods[i];
-			if(method.getName().equals(op.getOpName())){
+			if(method.getName().equals(opName)){
 				// only call public methods
 				if(paramTypesMatch(method.getParameterTypes(), callTypes) && ((method.getModifiers() & Modifier.PUBLIC) != 0)){
 					// suppress access checks
@@ -714,7 +707,7 @@ public class ChipmunkVM {
 		if(record == null || !paramTypesMatch(record.callTypes, paramTypes)){
 			// lookup & make call record
 			try {
-				Method method = lookupForOp(target, op, paramTypes);
+				Method method = lookupMethod(target, op.getOpName(), paramTypes);
 				
 				record = new CallRecord();
 				record.method = method;
@@ -734,6 +727,44 @@ public class ChipmunkVM {
 			return method.invoke(target, params);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			// TODO
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	private Object callExternal(Object target, String methodName, byte paramCount){
+		
+		Object[] params = null;
+		
+		if(target instanceof VMOperator){
+			params = new Object[paramCount + 1];
+			
+			// pop arguments right->left
+			for(int i = paramCount; i >= 1; i--){
+				params[i] = this.pop();
+			}
+			params[0] = this;
+		}else{
+			params = new Object[paramCount];
+			
+			// pop arguments right->left
+			for(int i = paramCount - 1; i >= 0; i--){
+				params[i] = this.pop();
+			}
+		}
+		
+		Class<?>[] paramTypes = new Class<?>[params.length];
+		
+		for(int i = 0; i < params.length; i++){
+			paramTypes[i] = params[i].getClass();
+		}
+		
+		try {
+			Method method = lookupMethod(target, methodName, paramTypes);
+			return method.invoke(target, params);
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
