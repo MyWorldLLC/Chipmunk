@@ -31,6 +31,6 @@ class AssemblerSpecification extends Specification {
 		method.setConstantPool(assembler.getConstantPool())
 		method.setLocalCount(0)
 		
-		return context.dispatch(method, 0).getObject()
+		return context.dispatch(method, 0)
 	}
 }

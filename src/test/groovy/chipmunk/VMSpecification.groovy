@@ -357,6 +357,6 @@ class VMSpecification extends Specification {
 	def vmRun(int localCount = 0){
 		CMethod method = assembler.makeMethod()
 		method.setLocalCount(localCount)
-		return vm.dispatch(method, 0).getObject()
+		return vm.dispatch(method, 0)
 	}
 }

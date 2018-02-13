@@ -74,7 +74,7 @@ public class MathBenchmark {
 	public Object countToOneMillion(ChipmunkScripts scripts) {
 		ChipmunkVM vm = scripts.vm;
 		CMethod method = scripts.countToAMillion;
-		return vm.dispatch(method, method.getArgCount()).getObject();
+		return vm.dispatch(method, method.getArgCount());
 	}
 
 	public static void main(String[] args) throws RunnerException {

@@ -154,4 +154,9 @@ public class CList implements VMOperator {
 		}
 		
 	}
+	
+	@Override
+	public String toString(){
+		return list.toString();
+	}
 }

@@ -70,18 +70,16 @@ import chipmunk.modules.reflectiveruntime.CIterator;
 import chipmunk.modules.reflectiveruntime.CList;
 import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.reflectors.Reflector;
-import chipmunk.reflectors.VMOperator;
-import chipmunk.reflectors.VMReflector;
+import chipmunk.modules.reflectiveruntime.CNull;
 
 public class ChipmunkVM {
 	
 	public class CallFrame {
-		public final Reflector method;
+		public final Object method;
 		public final int ip;
-		public final Reflector[] locals;
+		public final Object[] locals;
 		
-		public CallFrame(Reflector method, int ip, Reflector[] locals){
+		public CallFrame(Object method, int ip, Object[] locals){
 			this.method = method;
 			this.ip = ip;
 			this.locals = locals;
@@ -95,7 +93,7 @@ public class ChipmunkVM {
 	}
 	
 	private enum InternalOp {
-		ADD("plus"), SUB("minus"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC(""), DEC(""),
+		ADD("plus"), SUB("minus"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC("inc"), DEC("dec"),
 		POS("pos"), NEG("neg"), TRUTH("truth"), BXOR("bxor"), BAND("band"), BOR("bor"), BNEG("bneg"), LSHIFT("lshift"),
 		RSHIFT("rshift"), URSHIFT("urshift"), SETATTR("setAttr"), GETATTR("getAttr"), SETAT("setAt"), GETAT("getAt"),
 		AS("as"), NEWINSTANCE("newInstance"), CALL("call"), EQUALS("equals"), COMPARE("compare"), INSTANCEOF("instanceOf"),
@@ -114,37 +112,28 @@ public class ChipmunkVM {
 	protected Map<Class<?>, CallRecord[]> internalCallCache;
 
 	protected Map<String, CModule> modules;
-	protected List<Reflector> stack;
+	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
 	public volatile boolean interrupted;
 	private volatile boolean resuming;
 	private int memHigh;
 	
-	private final VMReflector trueValue;
-	private final VMReflector falseValue;
+	private final CBoolean trueValue;
+	private final CBoolean falseValue;
 	
-	private Method addMethod;
 	
 	public ChipmunkVM(){
 		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
 		
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
-		stack = new ArrayList<Reflector>(128);
+		stack = new ArrayList<Object>(128);
 		
 		frozenCallStack = new ArrayDeque<CallFrame>(128);
 		memHigh = 0;
 		
-		trueValue = new VMReflector(new CBoolean(true));
-		falseValue = new VMReflector(new CBoolean(false));
-		
-		try {
-			addMethod = CInteger.class.getMethod("plus", ChipmunkVM.class, CInteger.class);
-			addMethod.setAccessible(true);
-		} catch (NoSuchMethodException | SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		trueValue = new CBoolean(true);
+		falseValue = new CBoolean(false);
 	}
 	
 	public CModule getModule(String name){
@@ -172,23 +161,23 @@ public class ChipmunkVM {
 		
 	}
 	
-	public void push(Reflector obj){
+	public void push(Object obj){
 		if(obj == null){
 			throw new NullPointerException();
 		}
 		stack.add(obj);
 	}
 	
-	public Reflector pop(){
+	public Object pop(){
 		return stack.remove(stack.size() - 1);
 	}
 	
-	public Reflector peek(){
+	public Object peek(){
 		return stack.get(stack.size() - 1);
 	}
 	
 	public void dup(int index){
-		Reflector obj = stack.get(stack.size() - (index + 1));
+		Object obj = stack.get(stack.size() - (index + 1));
 		stack.add(obj);
 	}
 	
@@ -196,14 +185,14 @@ public class ChipmunkVM {
 		int stackIndex1 = stack.size() - (index1 + 1);
 		int stackIndex2 = stack.size() - (index2 + 1);
 		
-		Reflector obj1 = stack.get(stackIndex1);
-		Reflector obj2 = stack.get(stackIndex2);
+		Object obj1 = stack.get(stackIndex1);
+		Object obj2 = stack.get(stackIndex2);
 		
 		stack.set(index1, obj2);
 		stack.set(index2, obj1);
 	}
 	
-	public void freeze(Reflector method, int ip, Reflector[] locals){
+	public void freeze(Object method, int ip, Object[] locals){
 		frozenCallStack.push(new CallFrame(method, ip, locals));
 	}
 	
@@ -236,9 +225,9 @@ public class ChipmunkVM {
 		memHigh += str.length() * 2;
 	}
 	
-	public Reflector dispatch(CMethod method, int paramCount){
+	public Object dispatch(CMethod method, int paramCount){
 		int ip = 0;
-		Reflector[] locals;
+		Object[] locals;
 		
 		final byte[] instructions = method.getCode();
 		final int localCount = method.getLocalCount();
@@ -251,29 +240,29 @@ public class ChipmunkVM {
 			
 			// call into the next method to resume call stack
 			try {
-				 this.push(frame.method.doOp(this, "call", 0));
+				 this.push(doInternal(InternalOp.CALL, frame.method));
 			} catch (SuspendedChipmunk e) {
 				 this.freeze(frame.method, ip, locals);
 			} catch (AngryChipmunk e) {
 				// TODO - fill in stack trace or jump to exception handler
 			}
 		}else{
-			locals = new Reflector[localCount];
+			locals = new Object[localCount];
 			// pop arguments right->left
 			// TODO - handle references to this (binding vs passing)
 			for(int i = paramCount; i >= 1; i--){
 				locals[i] = this.pop();
 			}
-			locals[0] = makeReflector(method.getSelf());
+			locals[0] = method.getSelf();
 		}
 		
 		while(true){
 			
 			byte op = instructions[ip];
 			
-			Reflector rh;
-			Reflector lh;
-			Reflector ins;
+			Object rh;
+			Object lh;
+			Object ins;
 			
 			switch(op){
 			
@@ -281,72 +270,72 @@ public class ChipmunkVM {
 				rh = this.pop();
 				lh = this.pop();
 				//this.push(lh.doOp(this, "plus", rh));\
-				//this.push(new VMReflector((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
-				this.push(new VMReflector((CInteger)doInternal(InternalOp.ADD, lh.getObject(), this, rh.getObject())));
+				//this.push(new VMObject((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
+				this.push(doInternal(InternalOp.ADD, lh, this, rh));
 				ip++;
 				break;
 			case SUB:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "minus", rh));
+				this.push(doInternal(InternalOp.SUB, lh, this, rh));
 				ip++;
 				break;
 			case MUL:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "mul", rh));
+				this.push(doInternal(InternalOp.MUL, lh, this, rh));
 				ip++;
 				break;
 			case DIV:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "div", rh));
+				this.push(doInternal(InternalOp.DIV, lh, this, rh));
 				ip++;
 				break;
 			case FDIV:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "fdiv", rh));
+				this.push(doInternal(InternalOp.FDIV, lh, this, rh));
 				ip++;
 				break;
 			case MOD:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "mod", rh));
+				this.push(doInternal(InternalOp.MOD, lh, this, rh));
 				ip++;
 				break;
 			case POW:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "pow", rh));
+				this.push(doInternal(InternalOp.POW, lh, this, rh));
 				ip++;
 				break;
 			case INC:
 				lh = this.pop();
-				this.push(lh.doOp(this, "inc"));
+				this.push(doInternal(InternalOp.INC, lh, this));
 				ip++;
 				break;
 			case DEC:
 				lh = this.pop();
-				this.push(lh.doOp(this, "dec"));
+				this.push(doInternal(InternalOp.DEC, lh, this));
 				ip++;
 				break;
 			case POS:
 				lh = this.pop();
-				this.push(lh.doOp(this, "pos"));
+				this.push(doInternal(InternalOp.POS, lh, this));
 				ip++;
 				break;
 			case NEG:
 				lh = this.pop();
-				this.push(lh.doOp(this, "neg"));
+				this.push(doInternal(InternalOp.NEG, lh, this));
 				ip++;
 				break;
 			case AND:
 				rh = this.pop();
 				lh = this.pop();
 				// TODO - catch cast exception
-				if(((CBoolean)lh.doOp(this, "truth").getObject()).getValue()){
-					if(((CBoolean)rh.doOp(this, "truth").getObject()).getValue()){
+				if(((CBoolean)doInternal(InternalOp.TRUTH, lh, this)).getValue()){
+					if(((CBoolean)doInternal(InternalOp.TRUTH, rh, this)).getValue()){
 						this.push(trueValue);
 					}else{
 						this.push(falseValue);
@@ -359,8 +348,8 @@ public class ChipmunkVM {
 			case OR:
 				rh = this.pop();
 				lh = this.pop();
-				if(((CBoolean)lh.doOp(this, "truth").getObject()).getValue() 
-						|| ((CBoolean)rh.doOp(this, "truth").getObject()).getValue()){
+				if(((CBoolean)doInternal(InternalOp.TRUTH, lh, this)).getValue() 
+						|| ((CBoolean)doInternal(InternalOp.TRUTH, rh, this)).getValue()){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -370,69 +359,69 @@ public class ChipmunkVM {
 			case BXOR:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "bxor", rh));
+				this.push(doInternal(InternalOp.BXOR, lh, this, rh));
 				ip++;
 				break;
 			case BAND:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "band", rh));
+				this.push(doInternal(InternalOp.BAND, lh, this, rh));
 				ip++;
 				break;
 			case BOR:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "bor", rh));
+				this.push(doInternal(InternalOp.BOR, lh, this, rh));
 				ip++;
 				break;
 			case BNEG:
 				lh = this.pop();
-				this.push(lh.doOp(this, "bneg"));
+				this.push(doInternal(InternalOp.BNEG, lh, this));
 				ip++;
 				break;
 			case LSHIFT:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "lshift", rh));
+				this.push(doInternal(InternalOp.LSHIFT, lh, this, rh));
 				ip++;
 				break;
 			case RSHIFT:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "rshift", rh));
+				this.push(doInternal(InternalOp.RSHIFT, lh, this, rh));
 				ip++;
 				break;
 			case URSHIFT:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "urshift", rh));
+				this.push(doInternal(InternalOp.URSHIFT, lh, this, rh));
 				ip++;
 				break;
 			case SETATTR:
 				rh = this.pop();
 				lh = this.pop();
 				ins = this.pop();
-				ins.doOp(this, "setAttr", lh, rh);
+				doInternal(InternalOp.SETATTR, ins, this, lh, rh);
 				this.push(ins);
 				ip++;
 				break;
 			case GETATTR:
 				lh = this.pop();
 				ins = this.pop();
-				this.push(ins.doOp(this, "getAttr", lh));
+				this.push(doInternal(InternalOp.GETATTR, ins, this, lh));
 				ip++;
 				break;
 			case GETAT:
 				lh = this.pop();
 				ins = this.pop();
-				this.push(ins.doOp(this, "getAt", lh));
+				this.push(doInternal(InternalOp.GETAT, ins, this, lh));
 				ip++;
 				break;
 			case SETAT:
 				rh = this.pop();
 				lh = this.pop();
 				ins = this.pop();
-				this.push(ins.doOp(this, "setAt", lh, rh));
+				this.push(doInternal(InternalOp.SETAT, ins, this, lh, rh));
 				ip++;
 				break;
 			case GETLOCAL:
@@ -445,30 +434,30 @@ public class ChipmunkVM {
 				break;
 			case TRUTH:
 				rh = this.pop();
-				this.push(rh.doOp(this, "truth"));
+				this.push(doInternal(InternalOp.TRUTH, rh, this));
 				ip++;
 				break;
 			case NOT:
 				rh = this.pop();
-				this.push(new VMReflector(new CBoolean(!((CBoolean)rh.doOp(this, "truth").getObject()).booleanValue())));
+				this.push(new CBoolean(!((CBoolean)doInternal(InternalOp.TRUTH, rh, this)).booleanValue()));
 				ip++;
 				break;
 			case AS:
 				lh = this.pop();
 				ins = this.pop();
-				this.push(ins.doOp(this, "as", lh));
+				this.push(doInternal(InternalOp.AS, ins, this, lh));
 				ip++;
 				break;
 			case NEW:
 				ins = this.pop();
-				this.push(ins.doOp(this, "newInstance", fetchInt(instructions, ip + 1)));
+				this.push(doInternal(InternalOp.NEWINSTANCE, ins, this, fetchInt(instructions, ip + 1)));
 				break;
 			case IF:
 				ins = this.pop();
 				int target = fetchInt(instructions, ip + 1);
 				ip += 5;
 				// TODO - catch cast exception
-				if(!((CBoolean)ins.doOp(this, "truth").getObject()).booleanValue()){
+				if(!((CBoolean)doInternal(InternalOp.TRUTH, ins, this)).booleanValue()){
 					ip = target;
 				}
 				break;
@@ -476,7 +465,9 @@ public class ChipmunkVM {
 				ins = this.pop();
 				
 				try{
-					this.push(ins.doOp(this, "call", fetchByte(instructions, ip + 1)));
+					// TODO - probably should use the same mechanism used by CALLAT here, since this
+					// isn't really quite an internal operation
+					this.push(doInternal(InternalOp.CALL, ins, this, fetchByte(instructions, ip + 1)));
 				}catch(SuspendedChipmunk e){
 					// Need to bump ip BEFORE calling next method. Otherwise,
 					// the ip will be stored in its old state and when this 
@@ -502,7 +493,10 @@ public class ChipmunkVM {
 					for(int i = targetParams - 1; i >= 0; i--){
 						params[i] = this.pop();
 					}
-					this.push(ins.doOp(this, methodName, params));
+					// TODO - this is not an internal operation, so we need a different caching mechanism
+					// here
+					//this.push(doInternal(ins, this, methodName, params));
+					this.push(new CNull()); // TODO
 				}catch(SuspendedChipmunk e){
 					// Need to bump ip BEFORE calling next method. Otherwise,
 					// the ip will be stored in its old state and when this 
@@ -523,7 +517,7 @@ public class ChipmunkVM {
 				break;
 			case THROW:
 				ins = this.pop();
-				throw new ExceptionChipmunk(ins.getObject());
+				throw new ExceptionChipmunk(ins);
 			case RETURN:
 				ins = this.pop();
 				return ins;
@@ -545,19 +539,19 @@ public class ChipmunkVM {
 			case PUSH:
 				int constIndex = fetchInt(instructions, ip + 1);
 				Object constant = constantPool.get(constIndex);
-				this.push(makeReflector(constant));
+				this.push(constant);
 				ip += 5;
 				break;
 			case EQ:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "equals", rh));
+				this.push(doInternal(InternalOp.EQUALS, lh, this, rh));
 				ip++;
 				break;
 			case GT:
 				rh = this.pop();
 				lh = this.pop();
-				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() > 0){
+				if(((CInteger)doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() > 0){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -567,7 +561,7 @@ public class ChipmunkVM {
 			case LT:
 				rh = this.pop();
 				lh = this.pop();
-				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() < 0){
+				if(((CInteger)doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() < 0){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -577,7 +571,7 @@ public class ChipmunkVM {
 			case GE:
 				rh = this.pop();
 				lh = this.pop();
-				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() >= 0){
+				if(((CInteger)doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() >= 0){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -587,7 +581,7 @@ public class ChipmunkVM {
 			case LE:
 				rh = this.pop();
 				lh = this.pop();
-				if(((CInteger)lh.doOp(this, "compare", rh).getObject()).getValue() <= 0){
+				if(((CInteger)doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() <= 0){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -597,7 +591,7 @@ public class ChipmunkVM {
 			case IS:
 				rh = this.pop();
 				lh = this.pop();
-				if(lh.getObject() == rh.getObject()){
+				if(lh == rh){
 					this.push(trueValue);
 				}else{
 					this.push(falseValue);
@@ -607,40 +601,40 @@ public class ChipmunkVM {
 			case INSTANCEOF:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "instanceOf", rh));
+				this.push(doInternal(InternalOp.INSTANCEOF, lh, this, rh));
 				ip++;
 				break;
 			case ITER:
 				ins = this.pop();
-				this.push(ins.doOp(this, "iterator"));
+				this.push(doInternal(InternalOp.ITERATOR, ins, this));
 				ip++;
 				break;
 			case NEXT:
 				ins = this.peek();
 				// TODO - catch cast exception
-				if(!((CIterator)ins.getObject()).hasNext(this)){
+				if(!((CIterator)ins).hasNext(this)){
 					// pop the iterator
 					this.pop();
 					ip = fetchInt(instructions, ip + 1);
 				}else{
-					this.push(ins.doOp(this, "next"));
+					this.push(doInternal(InternalOp.NEXT, ins, this));
 					ip += 5;
 				}
 				break;
 			case RANGE:
 				rh = this.pop();
 				lh = this.pop();
-				this.push(lh.doOp(this, "range", rh, fetchByte(instructions, ip + 1) == 0 ? false : true));
+				this.push(doInternal(InternalOp.RANGE, lh, this, rh, fetchByte(instructions, ip + 1) == 0 ? false : true));
 				ip += 2;
 				break;
 			case LIST:
 				traceMem(8);
-				this.push(new VMReflector(new CList()));
+				this.push(new CList());
 				ip++;
 				break;
 			case MAP:
 				traceMem(8);
-				this.push(new VMReflector(new CMap()));
+				this.push(new CMap());
 				ip++;
 				break;
 			default:
@@ -659,14 +653,6 @@ public class ChipmunkVM {
 	
 	private byte fetchByte(byte[] instructions, int ip){
 		return instructions[ip];
-	}
-	
-	private Reflector makeReflector(Object obj){
-		if(obj instanceof VMOperator){
-			return new VMReflector((VMOperator)obj);
-		}else{
-			return new Reflector(obj);
-		}
 	}
 	
 	private Method lookupForOp(Object target, InternalOp op, Class<?>[] callTypes) throws NoSuchMethodException {

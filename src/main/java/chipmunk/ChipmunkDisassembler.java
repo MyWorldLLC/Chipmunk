@@ -245,7 +245,9 @@ public class ChipmunkDisassembler {
 			case CALLAT:
 				builder.append("callat ");
 				builder.append(fetchByte(codeSegment, ip + 1));
-				ip += 2;
+				builder.append(' ');
+				builder.append(fetchInt(codeSegment, ip + 2));
+				ip += 6;
 				break;
 			case GOTO:
 				builder.append("goto ");
