@@ -4,9 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.reflectors.VMOperator;
 
-public class CMap implements VMOperator {
+public class CMap implements RuntimeObject {
 	
 	protected Map<Object, Object> map;
 	

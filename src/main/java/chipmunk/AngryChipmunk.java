@@ -20,7 +20,7 @@ public class AngryChipmunk extends RuntimeException {
 	}
 
 	public AngryChipmunk(Throwable cause){
-		this(null, cause);
+		this(cause.getMessage(), cause);
 	}
 	
 	public AngryChipmunk(String message, Throwable cause){

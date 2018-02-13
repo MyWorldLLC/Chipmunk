@@ -1,9 +1,8 @@
 package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.reflectors.VMOperator;
 
-public class CNull implements VMOperator {
+public class CNull implements RuntimeObject {
 
 	public CBoolean truth(ChipmunkVM context){
 		context.traceMem(1);

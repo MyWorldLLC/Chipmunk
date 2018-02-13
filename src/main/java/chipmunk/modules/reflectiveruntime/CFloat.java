@@ -6,9 +6,8 @@ import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
-import chipmunk.reflectors.VMOperator;
 
-public class CFloat implements VMOperator {
+public class CFloat implements RuntimeObject {
 	
 	private float value;
 

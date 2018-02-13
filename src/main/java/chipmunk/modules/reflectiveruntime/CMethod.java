@@ -3,9 +3,8 @@ package chipmunk.modules.reflectiveruntime;
 import java.util.List;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.reflectors.VMOperator;
 
-public class CMethod implements VMOperator {
+public class CMethod implements RuntimeObject {
 	protected int argCount;
 	protected int defaultArgCount;
 	protected int localCount;

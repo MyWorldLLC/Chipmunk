@@ -216,7 +216,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Evaluate [1, 2, 3]"(){
 		when:
-		def result = parseAndCall("[1, 2, 3]", "List")
+		def result = parseAndCall("[1, 2, 3]")
 		
 		then:
 		result instanceof CList
@@ -228,7 +228,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Evaluate {1:2, 3:4, \"foo\":'bar'}"(){
 		when:
-		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""", "Map")
+		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""")
 		
 		then:
 		result instanceof CMap

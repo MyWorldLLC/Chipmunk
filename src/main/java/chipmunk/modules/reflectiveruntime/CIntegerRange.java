@@ -1,9 +1,8 @@
 package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.reflectors.VMOperator;
 
-public class CIntegerRange implements VMOperator{
+public class CIntegerRange implements RuntimeObject{
 
 	private final int start;
 	private final int end;

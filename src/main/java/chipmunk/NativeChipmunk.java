@@ -7,7 +7,7 @@ public class NativeChipmunk extends AngryChipmunk {
 	protected Exception nativeException;
 	
 	public NativeChipmunk(Exception ex){
-		this("", ex);
+		this(ex.getMessage(), ex);
 	}
 	
 	public NativeChipmunk(String msg, Exception ex){

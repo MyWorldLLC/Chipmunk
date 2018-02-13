@@ -5,9 +5,8 @@ import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
-import chipmunk.reflectors.VMOperator;
 
-public class CInteger implements VMOperator {
+public class CInteger implements RuntimeObject {
 
 	private int value;
 	

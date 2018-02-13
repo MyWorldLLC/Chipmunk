@@ -3,7 +3,6 @@ package chipmunk
 import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.modules.reflectiveruntime.CInteger
 import chipmunk.modules.reflectiveruntime.CMethod
-import chipmunk.reflectors.VMReflector
 import spock.lang.Specification
 
 class VMSpecification extends Specification {
@@ -18,66 +17,66 @@ class VMSpecification extends Specification {
 
 	def "push and pop 1 item"(){
 		when:
-		vm.push(reflect(one))
+		vm.push(one)
 		
 		then:
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 1
 	}
 	
 	def "push and pop 2 items"(){
 		when:
-		vm.push(reflect(one))
-		vm.push(reflect(two))
+		vm.push(one)
+		vm.push(two)
 		
 		then:
-		vm.pop().getObject().getValue() == 2
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 2
+		vm.pop().getValue() == 1
 	}
 	
 	def "push and dup 1 item"(){
 		when:
-		vm.push(reflect(one))
+		vm.push(one)
 		vm.dup(0)
 		
 		then:
-		vm.pop().getObject().getValue() == 1
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 1
+		vm.pop().getValue() == 1
 	}
 	
 	def "push 2 items and dup 1 item"(){
 		when:
-		vm.push(reflect(one))
-		vm.push(reflect(two))
+		vm.push(one)
+		vm.push(two)
 		vm.dup(1)
 		
 		then:
-		vm.pop().getObject().getValue() == 1
-		vm.pop().getObject().getValue() == 2
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 1
+		vm.pop().getValue() == 2
+		vm.pop().getValue() == 1
 	}
 	
 	def "push 2 items and swap them"(){
 		when:
-		vm.push(reflect(one))
-		vm.push(reflect(two))
+		vm.push(one)
+		vm.push(two)
 		vm.swap(0, 1)
 		
 		then:
-		vm.pop().getObject().getValue() == 2
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 2
+		vm.pop().getValue() == 1
 	}
 	
 	def "push 3 items and swap 2 items"(){
 		when:
-		vm.push(reflect(one))
-		vm.push(reflect(two))
-		vm.push(reflect(three))
+		vm.push(one)
+		vm.push(two)
+		vm.push(three)
 		vm.swap(0, 2)
 		
 		then:
-		vm.pop().getObject().getValue() == 3
-		vm.pop().getObject().getValue() == 2
-		vm.pop().getObject().getValue() == 1
+		vm.pop().getValue() == 3
+		vm.pop().getValue() == 2
+		vm.pop().getValue() == 1
 	}
 	
 	def "add"(){
@@ -348,10 +347,6 @@ class VMSpecification extends Specification {
 		
 		then:
 		result.getValue() == 2
-	}
-	
-	def reflect(Object value){
-		return new VMReflector(value)
 	}
 	
 	def vmRun(int localCount = 0){

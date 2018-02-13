@@ -1,9 +1,8 @@
 package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.reflectors.VMOperator;
 
-public class CFloatRange implements VMOperator {
+public class CFloatRange implements RuntimeObject {
 
 	private final float start;
 	private final float end;
