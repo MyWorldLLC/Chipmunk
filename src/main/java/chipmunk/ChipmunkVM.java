@@ -55,9 +55,9 @@ import static chipmunk.Opcodes.URSHIFT;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -88,88 +88,30 @@ public class ChipmunkVM {
 		}
 	}
 	
-	/*
-	private class CallKey {
-		private final Class<?> instanceType;
-		private final String methodName;
-		private final Class<?>[] paramList;
-		
-		public CallKey(Class<?> instanceType, String methodName, Class<?>[] paramList){
-			this.instanceType = instanceType;
-			this.methodName = methodName;
-			this.paramList = paramList;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + getOuterType().hashCode();
-			result = prime * result + ((instanceType == null) ? 0 : instanceType.hashCode());
-			result = prime * result + ((methodName == null) ? 0 : methodName.hashCode());
-			result = prime * result + Arrays.hashCode(paramList);
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			CallKey other = (CallKey) obj;
-			if (!getOuterType().equals(other.getOuterType()))
-				return false;
-			if (instanceType == null) {
-				if (other.instanceType != null)
-					return false;
-			} else if (!instanceType.equals(other.instanceType))
-				return false;
-			if (methodName == null) {
-				if (other.methodName != null)
-					return false;
-			} else if (!methodName.equals(other.methodName))
-				return false;
-			if (!Arrays.equals(paramList, other.paramList))
-				return false;
-			return true;
-		}
-
-		private ChipmunkVM getOuterType() {
-			return ChipmunkVM.this;
-		}
-		
-		
+	private class CallRecord {
+		public Class<?> targetType;
+		public Class<?>[] callTypes;
+		public Method method;
 	}
 	
-	private class CallRecord {
-		private final Class<?> instanceType;
-		private final String methodName;
+	private enum InternalOp {
+		ADD("plus"), SUB("minus"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC(""), DEC(""),
+		POS("pos"), NEG("neg"), TRUTH("truth"), BXOR("bxor"), BAND("band"), BOR("bor"), BNEG("bneg"), LSHIFT("lshift"),
+		RSHIFT("rshift"), URSHIFT("urshift"), SETATTR("setAttr"), GETATTR("getAttr"), SETAT("setAt"), GETAT("getAt"),
+		AS("as"), NEWINSTANCE("newInstance"), CALL("call"), EQUALS("equals"), COMPARE("compare"), INSTANCEOF("instanceOf"),
+		ITERATOR("iterator"), RANGE("range"), NEXT("next");
 		
-		
-		public CallRecord(Class<?> instanceType, String methodName){
-			this.instanceType = instanceType;
-			this.methodName = methodName;
+		private final String opName;
+		private InternalOp(String op){
+			opName = op;
 		}
 		
-		@Override
-		public int hashCode(){
-			return instanceType.hashCode() ^ methodName.hashCode();
+		public String getOpName(){
+			return opName;
 		}
-		
-		@Override
-		public boolean equals(Object other){
-			if(other != null && other instanceof CallRecord){
-				CallRecord record = (CallRecord) other;
-				if(instanceType.equals(record.instanceType) && methodName.equals(record.methodName)){
-					return true;
-				}
-			}
-			return false;
-		}
-	}*/
+	}
+	
+	protected Map<Class<?>, CallRecord[]> internalCallCache;
 
 	protected Map<String, CModule> modules;
 	protected List<Reflector> stack;
@@ -184,6 +126,8 @@ public class ChipmunkVM {
 	private Method addMethod;
 	
 	public ChipmunkVM(){
+		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
+		
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
 		stack = new ArrayList<Reflector>(128);
@@ -336,13 +280,9 @@ public class ChipmunkVM {
 			case ADD:
 				rh = this.pop();
 				lh = this.pop();
-				//this.push(lh.doOp(this, "plus", rh));
-				try {
-					this.push(new VMReflector((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				//this.push(lh.doOp(this, "plus", rh));\
+				//this.push(new VMReflector((CInteger)addMethod.invoke(lh.getObject(), this, rh.getObject())));
+				this.push(new VMReflector((CInteger)doInternal(InternalOp.ADD, lh.getObject(), this, rh.getObject())));
 				ip++;
 				break;
 			case SUB:
@@ -729,4 +669,88 @@ public class ChipmunkVM {
 		}
 	}
 	
+	private Method lookupForOp(Object target, InternalOp op, Class<?>[] callTypes) throws NoSuchMethodException {
+		
+		Method[] methods = target.getClass().getMethods();
+		
+		for(int i = 0; i < methods.length; i++){
+			Method method = methods[i];
+			if(method.getName().equals(op.getOpName())){
+				// only call public methods
+				if(paramTypesMatch(method.getParameterTypes(), callTypes) && ((method.getModifiers() & Modifier.PUBLIC) != 0)){
+					// suppress access checks
+					method.setAccessible(true);
+					return method;
+				}
+			}
+		}
+		
+		throw new NoSuchMethodException();
+	}
+	
+	private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes){
+		
+		if(targetTypes.length != callTypes.length){
+			return false;
+		}
+		
+		for(int i = 0; i < targetTypes.length; i++){
+			if(targetTypes[i] != callTypes[i]){
+				if(!targetTypes[i].isAssignableFrom(callTypes[i])){
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private Object doInternal(InternalOp op, Object target, Object...params){
+		Class<?> targetType = target.getClass();
+		
+		CallRecord[] records = internalCallCache.get(targetType);
+		
+		Class<?>[] paramTypes = new Class<?>[params.length];
+		
+		for(int i = 0; i < params.length; i++){
+			paramTypes[i] = params[i].getClass();
+		}
+		
+		if(records == null){
+			records = new CallRecord[InternalOp.values().length];
+			internalCallCache.put(target.getClass(), records);
+		}
+		
+		final int opIndex = op.ordinal();
+		
+		CallRecord record = records[opIndex];
+		
+		if(record == null || !paramTypesMatch(record.callTypes, paramTypes)){
+			// lookup & make call record
+			try {
+				Method method = lookupForOp(target, op, paramTypes);
+				
+				record = new CallRecord();
+				record.method = method;
+				record.targetType = target.getClass();
+				record.callTypes = paramTypes;
+				
+				records[opIndex] = record;
+			}catch(NoSuchMethodException e){
+				// TODO
+				e.printStackTrace();
+			}
+		}
+		
+		Method method = record.method;
+		
+		try {
+			return method.invoke(target, params);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 }
