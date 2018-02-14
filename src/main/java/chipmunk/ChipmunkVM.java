@@ -58,6 +58,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +93,43 @@ public class ChipmunkVM {
 		public Class<?>[] callTypes;
 		public Method method;
 	}
+	
+	private class CallArrays {
+		private int paramIndex;
+		private Object[] params;
+		private Class<?>[] paramTypes;
+		
+		public CallArrays(){
+			params = new Object[0];
+			paramTypes = new Class<?>[0];
+		}
+		
+		public Object[] getParams(){
+			return params;
+		}
+		
+		public Class<?>[] getParamTypes(){
+			return paramTypes;
+		}
+		
+		public void startParamFill(Object param, int length){
+			
+			if(params == null || params.length != length){
+				params = new Object[length];
+				paramTypes = new Class<?>[length];
+			}
+			
+			params[0] = param;
+			paramTypes[0] = param.getClass();
+			paramIndex = 1;
+		}
+		
+		public void addParam(Object param){
+			params[paramIndex] = param;
+			paramTypes[paramIndex] = param.getClass();
+			paramIndex++;
+		}
+	}
 
 	private enum InternalOp {
 		ADD("plus"), SUB("minus"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC("inc"), DEC(
@@ -113,6 +151,7 @@ public class ChipmunkVM {
 	}
 
 	protected Map<Class<?>, CallRecord[]> internalCallCache;
+	protected CallArrays internalCallArrays;
 
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
@@ -126,6 +165,7 @@ public class ChipmunkVM {
 
 	public ChipmunkVM() {
 		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
+		internalCallArrays = new CallArrays();
 
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
@@ -272,70 +312,89 @@ public class ChipmunkVM {
 				case ADD:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.ADD, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.ADD, lh));
 					ip++;
 					break;
 				case SUB:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.SUB, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.SUB, lh));
 					ip++;
 					break;
 				case MUL:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.MUL, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.MUL, lh));
 					ip++;
 					break;
 				case DIV:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.DIV, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.DIV, lh));
 					ip++;
 					break;
 				case FDIV:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.FDIV, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.FDIV, lh));
 					ip++;
 					break;
 				case MOD:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.MOD, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.MOD, lh));
 					ip++;
 					break;
 				case POW:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.POW, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.POW, lh));
 					ip++;
 					break;
 				case INC:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.INC, lh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.INC, lh));
 					ip++;
 					break;
 				case DEC:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.DEC, lh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.DEC, lh));
 					ip++;
 					break;
 				case POS:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.POS, lh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.POS, lh));
 					ip++;
 					break;
 				case NEG:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.NEG, lh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.NEG, lh));
 					ip++;
 					break;
 				case AND:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CBoolean) doInternal(InternalOp.TRUTH, lh, this)).getValue()) {
-						if (((CBoolean) doInternal(InternalOp.TRUTH, rh, this)).getValue()) {
+					internalCallArrays.startParamFill(this, 1);
+					if (((CBoolean) doInternal(InternalOp.TRUTH, lh)).getValue()) {
+						if (((CBoolean) doInternal(InternalOp.TRUTH, rh)).getValue()) {
 							this.push(trueValue);
 						} else {
 							this.push(falseValue);
@@ -348,8 +407,9 @@ public class ChipmunkVM {
 				case OR:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CBoolean) doInternal(InternalOp.TRUTH, lh, this)).getValue()
-							|| ((CBoolean) doInternal(InternalOp.TRUTH, rh, this)).getValue()) {
+					internalCallArrays.startParamFill(this, 1);
+					if (((CBoolean) doInternal(InternalOp.TRUTH, lh)).getValue()
+							|| ((CBoolean) doInternal(InternalOp.TRUTH, rh)).getValue()) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -359,69 +419,91 @@ public class ChipmunkVM {
 				case BXOR:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.BXOR, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.BXOR, lh));
 					ip++;
 					break;
 				case BAND:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.BAND, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.BAND, lh));
 					ip++;
 					break;
 				case BOR:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.BOR, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.BOR, lh));
 					ip++;
 					break;
 				case BNEG:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.BNEG, lh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.BNEG, lh));
 					ip++;
 					break;
 				case LSHIFT:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.LSHIFT, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.LSHIFT, lh));
 					ip++;
 					break;
 				case RSHIFT:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.RSHIFT, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.RSHIFT, lh));
 					ip++;
 					break;
 				case URSHIFT:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.URSHIFT, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.URSHIFT, lh));
 					ip++;
 					break;
 				case SETATTR:
 					rh = this.pop();
 					lh = this.pop();
 					ins = this.pop();
-					doInternal(InternalOp.SETATTR, ins, this, lh, rh);
+					internalCallArrays.startParamFill(this, 3);
+					internalCallArrays.addParam(lh);
+					internalCallArrays.addParam(rh);
+					doInternal(InternalOp.SETATTR, ins);
 					this.push(ins);
 					ip++;
 					break;
 				case GETATTR:
 					lh = this.pop();
-					ins = this.pop();
-					this.push(doInternal(InternalOp.GETATTR, ins, this, lh));
+					ins = this.pop();internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(lh);
+					this.push(doInternal(InternalOp.GETATTR, ins));
 					ip++;
 					break;
 				case GETAT:
 					lh = this.pop();
 					ins = this.pop();
-					this.push(doInternal(InternalOp.GETAT, ins, this, lh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(lh);
+					this.push(doInternal(InternalOp.GETAT, ins));
 					ip++;
 					break;
 				case SETAT:
 					rh = this.pop();
 					lh = this.pop();
 					ins = this.pop();
-					this.push(doInternal(InternalOp.SETAT, ins, this, lh, rh));
+					internalCallArrays.startParamFill(this, 3);
+					internalCallArrays.addParam(lh);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.SETAT, ins));
 					ip++;
 					break;
 				case GETLOCAL:
@@ -434,29 +516,36 @@ public class ChipmunkVM {
 					break;
 				case TRUTH:
 					rh = this.pop();
-					this.push(doInternal(InternalOp.TRUTH, rh, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.TRUTH, rh));
 					ip++;
 					break;
 				case NOT:
 					rh = this.pop();
-					this.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, this)).booleanValue()));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh)).booleanValue()));
 					ip++;
 					break;
 				case AS:
 					lh = this.pop();
 					ins = this.pop();
-					this.push(doInternal(InternalOp.AS, ins, this, lh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(lh);
+					this.push(doInternal(InternalOp.AS, ins));
 					ip++;
 					break;
 				case NEW:
 					ins = this.pop();
-					this.push(doInternal(InternalOp.NEWINSTANCE, ins, this, fetchInt(instructions, ip + 1)));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(fetchInt(instructions, ip + 1));
+					this.push(doInternal(InternalOp.NEWINSTANCE, ins));
 					break;
 				case IF:
 					ins = this.pop();
 					int target = fetchInt(instructions, ip + 1);
 					ip += 5;
-					if (!((CBoolean) doInternal(InternalOp.TRUTH, ins, this)).booleanValue()) {
+					internalCallArrays.startParamFill(this, 1);
+					if (!((CBoolean) doInternal(InternalOp.TRUTH, ins)).booleanValue()) {
 						ip = target;
 					}
 					break;
@@ -467,7 +556,9 @@ public class ChipmunkVM {
 						// TODO - probably should use the same mechanism used by
 						// CALLAT here, since this
 						// isn't really quite an internal operation
-						this.push(doInternal(InternalOp.CALL, ins, this, fetchByte(instructions, ip + 1)));
+						internalCallArrays.startParamFill(this, 2);
+						internalCallArrays.addParam(fetchByte(instructions, ip + 1));
+						this.push(doInternal(InternalOp.CALL, ins));
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
 						// Otherwise,
@@ -537,13 +628,17 @@ public class ChipmunkVM {
 				case EQ:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.EQUALS, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.EQUALS, lh));
 					ip++;
 					break;
 				case GT:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() > 0) {
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh)).getValue() > 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -553,7 +648,9 @@ public class ChipmunkVM {
 				case LT:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() < 0) {
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh)).getValue() < 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -563,7 +660,9 @@ public class ChipmunkVM {
 				case GE:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() >= 0) {
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh)).getValue() >= 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -573,7 +672,9 @@ public class ChipmunkVM {
 				case LE:
 					rh = this.pop();
 					lh = this.pop();
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, this, rh)).getValue() <= 0) {
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh)).getValue() <= 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -593,12 +694,15 @@ public class ChipmunkVM {
 				case INSTANCEOF:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.INSTANCEOF, lh, this, rh));
+					internalCallArrays.startParamFill(this, 2);
+					internalCallArrays.addParam(rh);
+					this.push(doInternal(InternalOp.INSTANCEOF, lh));
 					ip++;
 					break;
 				case ITER:
 					ins = this.pop();
-					this.push(doInternal(InternalOp.ITERATOR, ins, this));
+					internalCallArrays.startParamFill(this, 1);
+					this.push(doInternal(InternalOp.ITERATOR, ins));
 					ip++;
 					break;
 				case NEXT:
@@ -608,15 +712,18 @@ public class ChipmunkVM {
 						this.pop();
 						ip = fetchInt(instructions, ip + 1);
 					} else {
-						this.push(doInternal(InternalOp.NEXT, ins, this));
+						internalCallArrays.startParamFill(this, 1);
+						this.push(doInternal(InternalOp.NEXT, ins));
 						ip += 5;
 					}
 					break;
 				case RANGE:
 					rh = this.pop();
 					lh = this.pop();
-					this.push(doInternal(InternalOp.RANGE, lh, this, rh,
-							fetchByte(instructions, ip + 1) == 0 ? false : true));
+					internalCallArrays.startParamFill(this, 3);
+					internalCallArrays.addParam(rh);
+					internalCallArrays.addParam(fetchByte(instructions, ip + 1) == 0 ? false : true);
+					this.push(doInternal(InternalOp.RANGE, lh));
 					ip += 2;
 					break;
 				case LIST:
@@ -701,16 +808,19 @@ public class ChipmunkVM {
 		return true;
 	}
 
-	private Object doInternal(InternalOp op, Object target, Object... params) {
+	private Object doInternal(InternalOp op, Object target) {
 		Class<?> targetType = target.getClass();
 
 		CallRecord[] records = internalCallCache.get(targetType);
 
+		Class<?>[] paramTypes = internalCallArrays.getParamTypes();
+		/*
 		Class<?>[] paramTypes = new Class<?>[params.length];
 
 		for (int i = 0; i < params.length; i++) {
 			paramTypes[i] = params[i].getClass();
 		}
+		*/
 
 		if (records == null) {
 			records = new CallRecord[InternalOp.values().length];
@@ -729,7 +839,7 @@ public class ChipmunkVM {
 				record = new CallRecord();
 				record.method = method;
 				record.targetType = target.getClass();
-				record.callTypes = paramTypes;
+				record.callTypes = Arrays.copyOf(paramTypes, paramTypes.length);
 
 				records[opIndex] = record;
 			} catch (NoSuchMethodException e) {
@@ -740,7 +850,7 @@ public class ChipmunkVM {
 		Method method = record.method;
 
 		try {
-			return method.invoke(target, params);
+			return method.invoke(target, internalCallArrays.getParams());
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
