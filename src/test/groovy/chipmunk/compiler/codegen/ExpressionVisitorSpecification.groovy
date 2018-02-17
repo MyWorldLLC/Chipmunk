@@ -240,7 +240,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Evaluate {1:2, 3:4}[3]"(){
 		when:
-		def result = parseAndCall("""{1:2, 3:4}[3]""", "Map fetch")
+		def result = parseAndCall("""{1:2, 3:4}[3]""")
 		
 		then:
 		result instanceof CInteger
@@ -250,6 +250,24 @@ class ExpressionVisitorSpecification extends Specification {
 	def "Evaluate [1, 2, 3][1]"(){
 		when:
 		def result = parseAndCall("""[1, 2, 3][1]""")
+		
+		then:
+		result instanceof CInteger
+		result.intValue() == 2
+	}
+	
+	def "Evaluate [1, 2, 3][1] = 0"(){
+		when:
+		def result = parseAndCall("""[1, 2, 3][1] = 0""")
+		
+		then:
+		result instanceof CInteger
+		result.intValue() == 2
+	}
+	
+	def "Evaluate {1:2, 3:4}[1] = 0"(){
+		when:
+		def result = parseAndCall("""{1:2, 3:4}[1] = 0""")
 		
 		then:
 		result instanceof CInteger

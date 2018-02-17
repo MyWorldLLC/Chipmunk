@@ -269,6 +269,7 @@ public class ExpressionVisitor implements AstVisitor {
 				&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
 			// TODO - this is a dot access, so issue a callAt opcode
 			
+			
 		}else{
 			int argCount = op.getChildren().size() - 1;
 			// visit parameters first

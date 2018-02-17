@@ -494,9 +494,9 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case SETAT:
-					rh = this.pop();
-					lh = this.pop();
 					ins = this.pop();
+					lh = this.pop();
+					rh = this.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
 					this.push(doInternal(InternalOp.SETAT, ins, 3));

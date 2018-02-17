@@ -44,6 +44,17 @@ public class CMap implements RuntimeObject {
 		return map.get(key);
 	}
 	
+	public Object setAt(ChipmunkVM vm, Object key, Object value){
+		boolean had = map.containsKey(key);
+		Object former = map.put(key, value);
+		
+		if(had){
+			return former;
+		}
+		vm.traceMem(8);
+		return new CNull();
+	}
+	
 	public CInteger hashCode(ChipmunkVM vm){
 		vm.traceBoolean();
 		return new CInteger(map.hashCode());
