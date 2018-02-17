@@ -440,14 +440,22 @@ public class ChipmunkAssembler {
 		index += 2;
 	}
 	
-	public void list(){
+	public void list(int elementCount){
 		code.write(Opcodes.LIST);
-		index++;
+		code.write(elementCount >> 24);
+		code.write(elementCount >> 16);
+		code.write(elementCount >> 8);
+		code.write(elementCount);
+		index += 5;
 	}
 	
-	public void map(){
+	public void map(int elementCount){
 		code.write(Opcodes.MAP);
-		index++;
+		code.write(elementCount >> 24);
+		code.write(elementCount >> 16);
+		code.write(elementCount >> 8);
+		code.write(elementCount);
+		index += 5;
 	}
 
 }

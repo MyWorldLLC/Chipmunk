@@ -326,12 +326,14 @@ public class ChipmunkDisassembler {
 				ip += 2;
 				break;
 			case LIST:
-				builder.append("list");
-				ip++;
+				builder.append("list ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
 				break;
 			case MAP:
-				builder.append("map");
-				ip++;
+				builder.append("map ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
 				break;
 			default:
 				throw new InvalidOpcodeChipmunk(op);

@@ -2,6 +2,7 @@ package chipmunk.modules.reflectiveruntime;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import chipmunk.ChipmunkVM;
@@ -129,6 +130,14 @@ public class CList implements RuntimeObject {
 	
 	public void sort(ChipmunkVM vm, CComparator comparator){
 		list.sort(comparator);
+	}
+	
+	public void reverse(){
+		Collections.reverse(list);
+	}
+	
+	public void reverse(ChipmunkVM vm){
+		Collections.reverse(list);
 	}
 	
 	public CList subList(ChipmunkVM vm, Integer from, Integer to){

@@ -59,6 +59,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -711,14 +712,28 @@ public class ChipmunkVM {
 					ip += 2;
 					break;
 				case LIST:
+					int elementCount = fetchInt(instructions, ip + 1);
+					CList list = new CList();
+					for(int i = 0; i < elementCount; i++){
+						list.add(this, this.pop());
+					}
+					// elements are popped in reverse order
+					list.reverse();
 					traceMem(8);
-					this.push(new CList());
-					ip++;
+					this.push(list);
+					ip += 5;
 					break;
 				case MAP:
+					elementCount = fetchInt(instructions, ip + 1);
+					CMap map = new CMap();
+					for(int i = 0; i < elementCount; i++){
+						Object value = this.pop();
+						Object key = this.pop();
+						map.put(this, key, value);
+					}
 					traceMem(8);
-					this.push(new CMap());
-					ip++;
+					this.push(map);
+					ip += 5;
 					break;
 				default:
 					throw new InvalidOpcodeChipmunk(op);

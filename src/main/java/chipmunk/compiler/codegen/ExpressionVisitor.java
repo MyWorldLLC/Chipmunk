@@ -66,20 +66,15 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(node instanceof ListNode){
 			ListNode listNode = (ListNode) node;
 			
-			assembler.list();
 			for(int i = 0; i < listNode.getChildren().size(); i++){
 				// visit expression
 				this.visit(listNode.getChildren().get(i));
-				// dup list and add result of expression
-				assembler.dup(1);
-				assembler.callAt((byte)1, "add");
-				assembler.pop();
 			}
+			assembler.list(listNode.getChildren().size());
 		}else if(node instanceof MapNode){
 			MapNode mapNode = (MapNode) node;
 			mapNode.visitChildren(this);
 			
-			assembler.map();
 			for(int i = 0; i < mapNode.getChildren().size(); i++){
 				// visit key & value expressions
 				AstNode keyValue = mapNode.getChildren().get(i);
@@ -87,11 +82,8 @@ public class ExpressionVisitor implements AstVisitor {
 				this.visit(keyValue.getChildren().get(0));
 				// value
 				this.visit(keyValue.getChildren().get(1));
-				// dup map and put key/value
-				assembler.dup(2);
-				assembler.callAt((byte)2, "put");
-				assembler.pop();
 			}
+			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
 			visitor.visit(node);
