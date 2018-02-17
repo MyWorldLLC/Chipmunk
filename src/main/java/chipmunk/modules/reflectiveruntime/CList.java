@@ -62,6 +62,10 @@ public class CList implements RuntimeObject {
 		return list.get(index);
 	}
 	
+	public Object getAt(ChipmunkVM vm, CInteger index){
+		return list.get(index.getValue());
+	}
+	
 	public CInteger hashCode(ChipmunkVM vm){
 		vm.traceInteger();
 		return new CInteger(list.hashCode());

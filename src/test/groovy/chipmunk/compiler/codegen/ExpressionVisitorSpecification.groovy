@@ -232,11 +232,28 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		then:
 		result instanceof CMap
-		println(result.toString())
 		result.size().intValue() == 3
 		result.get(new CInteger(1)).intValue() == 2
 		result.get(new CInteger(3)).intValue() == 4
 		result.get(new CString("foo")).stringValue() == "bar"
+	}
+	
+	def "Evaluate {1:2, 3:4}[3]"(){
+		when:
+		def result = parseAndCall("""{1:2, 3:4}[3]""", "Map fetch")
+		
+		then:
+		result instanceof CInteger
+		result.intValue() == 4
+	}
+	
+	def "Evaluate [1, 2, 3][1]"(){
+		when:
+		def result = parseAndCall("""[1, 2, 3][1]""")
+		
+		then:
+		result instanceof CInteger
+		result.intValue() == 2
 	}
 
 	def parseAndCall(String expression, String test = ""){
@@ -252,6 +269,7 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		if(test != ""){
 			println()
+			println(root.toString())
 			println("============= ${test} =============")
 			println("Local Count: ${method.getLocalCount()}")
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))

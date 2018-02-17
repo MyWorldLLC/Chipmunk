@@ -22,6 +22,7 @@ public class ListParselet implements PrefixParselet {
 				parser.syntaxError("Error parsing list", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACKET);
 			}
 		}
+		parser.dropNext(Token.Type.RBRACKET);
 		return list;
 	}
 

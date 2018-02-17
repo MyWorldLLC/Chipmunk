@@ -27,6 +27,7 @@ public class MapParselet implements PrefixParselet {
 				parser.syntaxError("Error parsing map", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACE);
 			}
 		}
+		parser.dropNext(Token.Type.RBRACE);
 		return map;
 	}
 
