@@ -16,7 +16,7 @@ public class CClassType extends CType {
 	}
 	
 	public void setField(String name, CObject value){
-		typeFields.setAttribute(name, value);
+		typeFields.set(name, value);
 	}
 	
 	public Object getField(String name){

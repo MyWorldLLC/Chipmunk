@@ -42,7 +42,7 @@ public class CModule extends CObject {
 	}
 	
 	public void setAttribute(String name, CObject obj){
-		namespace.setAttribute(name, obj);
+		namespace.set(name, obj);
 	}
 	
 	public Namespace getNamespace(){
@@ -86,7 +86,7 @@ public class CModule extends CObject {
 		
 		if(packer.isPackingCode()){
 			
-			for(String attrName : namespace.attributeNames()){
+			for(String attrName : namespace.names()){
 				
 				//CObject obj = namespace.getObject(attrName);
 				//packer.registerSecondary(obj);
@@ -100,7 +100,7 @@ public class CModule extends CObject {
 		
 		out.write(name);
 		
-		Set<String> varNames = namespace.attributeNames();
+		Set<String> varNames = namespace.names();
 		out.write(varNames.size());
 		
 		for(String attrName : varNames){
@@ -127,7 +127,7 @@ public class CModule extends CObject {
 			int attrIndex = in.readInt();
 			CObject attrInstance = cracker.getInstance(attrIndex);
 			
-			namespace.setAttribute(attrName, attrInstance);
+			namespace.set(attrName, attrInstance);
 			
 		}
 		

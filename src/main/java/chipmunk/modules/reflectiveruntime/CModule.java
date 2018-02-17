@@ -1,23 +1,25 @@
 package chipmunk.modules.reflectiveruntime;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import chipmunk.Namespace;
 
 public class CModule {
 	
 	private final List<Object> constants;
-	private final Map<String, Object> attributes;
+	private final Namespace namespace;
 	
 	public CModule(List<Object> constantPool){
 		constants = constantPool;
-		attributes = new HashMap<String, Object>();
+		namespace = new Namespace();
 	}
 	
 	public List<Object> getConstantsUnmodifiable(){
 		return Collections.unmodifiableList(constants);
 	}
 	
-	
+	public Namespace getNamespace(){
+		return namespace;
+	}
 }

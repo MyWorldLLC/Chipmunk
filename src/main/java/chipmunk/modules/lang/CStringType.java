@@ -10,7 +10,7 @@ public class CStringType extends CType {
 		super("String");
 		tempString = new CString();
 		tempString.type = this;
-		tempString.namespace.setAttribute("type", this);
+		tempString.namespace.set("type", this);
 	}
 	
 	public CString getTemp(){

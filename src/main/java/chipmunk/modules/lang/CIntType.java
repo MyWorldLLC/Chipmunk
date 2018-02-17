@@ -10,7 +10,7 @@ public class CIntType extends CType {
 		super("Int");
 		tempValue = new CInt();
 		tempValue.type = this;
-		tempValue.namespace.setAttribute("type", this);
+		tempValue.namespace.set("type", this);
 	}
 	
 	public CInt getTemp(){

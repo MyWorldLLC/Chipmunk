@@ -6,7 +6,7 @@ public class CNull extends CObject {
 	public CNull(){
 		CNullType nullType = new CNullType();
 		type = nullType;
-		namespace.setAttribute("type", nullType);
+		namespace.set("type", nullType);
 	}
 	
 	@Override

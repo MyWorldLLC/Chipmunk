@@ -10,7 +10,7 @@ public class CBooleanType extends CType {
 		super("Boolean");
 		tempValue = new CBoolean();
 		tempValue.type = this;
-		tempValue.namespace.setAttribute("type", this);
+		tempValue.namespace.set("type", this);
 	}
 	
 	public CBoolean getTemp(){

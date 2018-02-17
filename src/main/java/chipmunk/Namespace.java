@@ -20,9 +20,9 @@ public class Namespace {
 		return attributes.get(name);
 	}
 	
-	public void setAttribute(String name, Object attribute) throws IllegalArgumentException {
+	public void set(String name, Object value) throws IllegalArgumentException {
 		
-		if(attribute == null){
+		if(value == null){
 			throw new NullPointerException("Cannot set null attributes: use CNull instead");
 		}
 		
@@ -30,12 +30,12 @@ public class Namespace {
 			throw new IllegalArgumentException("Cannot set final attribute: " + name);
 		}
 		
-		attributes.put(name, attribute);
+		attributes.put(name, value);
 	}
 	
-	public void setFinalAttribute(String name, Object attribute){
+	public void setFinal(String name, Object value){
 		
-		if(attribute == null){
+		if(value == null){
 			throw new NullPointerException("Cannot set null attributes: use CNull instead");
 		}
 		
@@ -44,17 +44,26 @@ public class Namespace {
 		}
 		
 		finalAttributes.add(name);
-		attributes.put(name, attribute);
+		attributes.put(name, value);
 	}
 	
-	public Set<String> attributeNames(){
+	public Set<String> names(){
 		return attributes.keySet();
 	}
 	
-	public Set<String> finalAttributeNames(){
+	public Set<String> finalNames(){
 		if(finalAttributes == null){
 			return null;
 		}
 		return Collections.unmodifiableSet(finalAttributes);
+	}
+	
+	public Namespace duplicate(){
+		Namespace dup = new Namespace();
+		
+		dup.attributes.putAll(attributes);
+		dup.finalAttributes.addAll(finalAttributes);
+		
+		return dup;
 	}
 }
