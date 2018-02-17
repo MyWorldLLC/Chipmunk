@@ -20,7 +20,7 @@ public class CClassType extends CType {
 	}
 	
 	public Object getField(String name){
-		return typeFields.getAttribute(name);
+		return typeFields.get(name);
 	}
 	
 	public CObject instance(){

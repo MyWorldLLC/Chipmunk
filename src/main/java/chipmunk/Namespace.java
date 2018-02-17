@@ -16,7 +16,11 @@ public class Namespace {
 		finalAttributes = new HashSet<String>();
 	}
 	
-	public Object getAttribute(String name){
+	public boolean has(String name){
+		return attributes.containsKey(name);
+	}
+	
+	public Object get(String name){
 		return attributes.get(name);
 	}
 	

@@ -38,7 +38,7 @@ public class CModule extends CObject {
 	}
 	
 	public Object getAttribute(String name){
-		return namespace.getAttribute(name);
+		return namespace.get(name);
 	}
 	
 	public void setAttribute(String name, CObject obj){
