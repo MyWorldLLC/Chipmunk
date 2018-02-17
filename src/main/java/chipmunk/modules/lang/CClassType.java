@@ -16,11 +16,11 @@ public class CClassType extends CType {
 	}
 	
 	public void setField(String name, CObject value){
-		typeFields.setVariable(name, value);
+		typeFields.setAttribute(name, value);
 	}
 	
-	public CObject getField(String name){
-		return typeFields.getObject(name);
+	public Object getField(String name){
+		return typeFields.getAttribute(name);
 	}
 	
 	public CObject instance(){

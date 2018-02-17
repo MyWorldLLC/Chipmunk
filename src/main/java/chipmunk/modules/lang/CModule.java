@@ -37,12 +37,12 @@ public class CModule extends CObject {
 		this.name = name;
 	}
 	
-	public CObject getAttribute(String name){
-		return namespace.getObject(name);
+	public Object getAttribute(String name){
+		return namespace.getAttribute(name);
 	}
 	
 	public void setAttribute(String name, CObject obj){
-		namespace.setVariable(name, obj);
+		namespace.setAttribute(name, obj);
 	}
 	
 	public Namespace getNamespace(){
@@ -58,14 +58,14 @@ public class CModule extends CObject {
 		if(name instanceof CString){
 			
 			String attrName = ((CString)name).getValue();
-			CObject attr = getAttribute(attrName);
+			//CObject attr = getAttribute(attrName);
 			
-			if(attr == null){
-				throw new UndefinedAttributeChipmunk("Attribute " + attrName + " undefined for module " + this.name);
-			}
+			//if(attr == null){
+			//	throw new UndefinedAttributeChipmunk("Attribute " + attrName + " undefined for module " + this.name);
+			//}
 			
-			return attr;
-			
+			//return attr;
+			return null;
 		}else{
 			throw new UnimplementedOperationChipmunk("Operation __getAttr__(" + name.getType().getName() + ") undefined for type CModule");
 		}
@@ -86,10 +86,10 @@ public class CModule extends CObject {
 		
 		if(packer.isPackingCode()){
 			
-			for(String attrName : namespace.variableNames()){
+			for(String attrName : namespace.attributeNames()){
 				
-				CObject obj = namespace.getObject(attrName);
-				packer.registerSecondary(obj);
+				//CObject obj = namespace.getObject(attrName);
+				//packer.registerSecondary(obj);
 				
 			}
 		}
@@ -100,16 +100,16 @@ public class CModule extends CObject {
 		
 		out.write(name);
 		
-		Set<String> varNames = namespace.variableNames();
+		Set<String> varNames = namespace.attributeNames();
 		out.write(varNames.size());
 		
 		for(String attrName : varNames){
 			
-			CObject obj = namespace.getObject(attrName);
-			int objIndex = packer.getPackIndex(obj);
+			//CObject obj = namespace.getObject(attrName);
+			//int objIndex = packer.getPackIndex(obj);
 			
-			out.write(attrName);
-			out.write(objIndex);
+			//out.write(attrName);
+			//out.write(objIndex);
 			
 		}
 		
@@ -127,7 +127,7 @@ public class CModule extends CObject {
 			int attrIndex = in.readInt();
 			CObject attrInstance = cracker.getInstance(attrIndex);
 			
-			namespace.setVariable(attrName, attrInstance);
+			namespace.setAttribute(attrName, attrInstance);
 			
 		}
 		

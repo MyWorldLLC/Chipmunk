@@ -7,27 +7,27 @@ public class LangModule extends CModule {
 		
 		CNull nullObject = new CNull();
 		nullObject.getType().setModule(this);
-		namespace.setVariable("null", CNullType.nullObject);
+		namespace.setAttribute("null", CNullType.nullObject);
 		
 		CStringType stringType = new CStringType();
 		stringType.setModule(this);
-		namespace.setVariable("String", stringType);
+		namespace.setAttribute("String", stringType);
 		
 		CFloatType floatType = new CFloatType();
 		floatType.setModule(this);
-		namespace.setVariable("float", floatType);
+		namespace.setAttribute("float", floatType);
 		
 		CIntType intType = new CIntType();
 		intType.setModule(this);
-		namespace.setVariable("int", intType);
+		namespace.setAttribute("int", intType);
 		
 		CBooleanType boolType = new CBooleanType();
 		boolType.setModule(this);
-		namespace.setVariable("boolean", boolType);
+		namespace.setAttribute("boolean", boolType);
 		
 		CMethodType methodType = new CMethodType();
 		methodType.setModule(this);
-		namespace.setVariable("Method", methodType);
+		namespace.setAttribute("Method", methodType);
 	}
 	
 }

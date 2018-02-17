@@ -10,7 +10,7 @@ public class CFloatType extends CType {
 		super("Float");
 		tempValue = new CFloat();
 		tempValue.type = this;
-		tempValue.namespace.setVariable("type", this);
+		tempValue.namespace.setAttribute("type", this);
 	}
 	
 	public CFloat getTemp(){

@@ -87,7 +87,7 @@ public class NutCracker {
 			String moduleName = capsule.readString();
 			
 			CModule module = context.resolveModule(moduleName);
-			CObject symbolAttr = module.getAttribute(typeName);
+			Object symbolAttr = module.getAttribute(typeName);
 			
 			if(symbolAttr == null){
 				throw new MissingTypeChipmunk("Could not load type " + typeName + " from module " + moduleName + ": module does not contain symbol " + typeName);

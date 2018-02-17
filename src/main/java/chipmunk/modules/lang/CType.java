@@ -33,7 +33,7 @@ public abstract class CType extends CObject {
 	
 	public void setModule(CModule typeModule){
 		module = typeModule;
-		module.getNamespace().setVariable(name, this);
+		module.getNamespace().setAttribute(name, this);
 	}
 	
 }
