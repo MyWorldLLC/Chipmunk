@@ -1,5 +1,6 @@
 package chipmunk.modules.reflectiveruntime;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -7,14 +8,48 @@ import chipmunk.Namespace;
 
 public class CModule {
 	
+	public class Import {
+		private final String name;
+		private final boolean importAll;
+		private final List<String> symbols;
+		private final List<String> aliases;
+		
+		public Import(String name, boolean importAll){
+			this.name = name;
+			this.importAll = importAll;
+			symbols = new ArrayList<String>();
+			aliases = new ArrayList<String>();
+		}
+		
+		public String getName(){
+			return name;
+		}
+		
+		public List<String> getSymbols(){
+			return symbols;
+		}
+		
+		public List<String> getAliases(){
+			return aliases;
+		}
+		
+		public boolean isImportAll(){
+			return importAll;
+		}
+	}
+	
 	private final List<Object> constants;
 	private final Namespace namespace;
 	private final String name;
+	private final List<Import> imports;
+	
+	private CMethod initializer;
 	
 	public CModule(String name, List<Object> constantPool){
 		this.name = name;
 		constants = constantPool;
 		namespace = new Namespace();
+		imports = new ArrayList<Import>();
 	}
 	
 	public List<Object> getConstantsUnmodifiable(){
@@ -27,5 +62,21 @@ public class CModule {
 	
 	public String getName(){
 		return name;
+	}
+	
+	public List<Import> getImports(){
+		return imports;
+	}
+	
+	public void setInitializer(CMethod initializer){
+		this.initializer = initializer;
+	}
+	
+	public CMethod getInitializer(){
+		return initializer;
+	}
+	
+	public boolean hasInitializer(){
+		return initializer != null;
 	}
 }

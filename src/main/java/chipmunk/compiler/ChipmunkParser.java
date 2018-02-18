@@ -161,6 +161,7 @@ public class ChipmunkParser {
 		ModuleNode module = new ModuleNode();
 		startNode(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
+		skipNewlinesAndComments();
 		
 		if(peek(Token.Type.MODULE)){
 			forceNext(Token.Type.MODULE);
@@ -668,7 +669,8 @@ public class ChipmunkParser {
 				if(peek(Token.Type.IDENTIFIER)){
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else if(peek(Token.Type.STAR)){
-					identifiers.add(getNext(Token.Type.STAR));
+					dropNext();
+					node.setImportAll(true);
 					break;
 				}else{
 					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());

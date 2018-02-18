@@ -6,11 +6,13 @@ import java.util.List;
 public class ImportNode extends AstNode {
 
 	protected String module;
+	protected boolean importAll;
 	protected List<String> symbols;
 	protected List<String> aliases;
 	
 	public ImportNode(){
 		super();
+		importAll = false;
 		symbols = new ArrayList<String>();
 		aliases = new ArrayList<String>();
 	}
@@ -53,6 +55,14 @@ public class ImportNode extends AstNode {
 	
 	public boolean hasAliases(){
 		return aliases.size() != 0;
+	}
+	
+	public void setImportAll(boolean importAll){
+		this.importAll = importAll;
+	}
+	
+	public boolean isImportAll(){
+		return importAll;
 	}
 	
 	@Override
