@@ -10,10 +10,9 @@ import java.util.List;
 
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
-import chipmunk.compiler.codegen.Codegen;
 import chipmunk.compiler.codegen.ModuleVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
-import chipmunk.modules.lang.CModule;
+import chipmunk.modules.reflectiveruntime.CModule;
 
 public class ChipmunkCompiler {
 	

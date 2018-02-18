@@ -9,8 +9,10 @@ public class CModule {
 	
 	private final List<Object> constants;
 	private final Namespace namespace;
+	private final String name;
 	
-	public CModule(List<Object> constantPool){
+	public CModule(String name, List<Object> constantPool){
+		this.name = name;
 		constants = constantPool;
 		namespace = new Namespace();
 	}
@@ -21,5 +23,9 @@ public class CModule {
 	
 	public Namespace getNamespace(){
 		return namespace;
+	}
+	
+	public String getName(){
+		return name;
 	}
 }

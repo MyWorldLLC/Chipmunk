@@ -164,7 +164,32 @@ public class ChipmunkParser {
 		
 		if(peek(Token.Type.MODULE)){
 			forceNext(Token.Type.MODULE);
-			module.setName(getNext(Token.Type.IDENTIFIER).getText());
+			
+			List<Token> identifiers = new ArrayList<Token>();
+			identifiers.add(getNext(Token.Type.IDENTIFIER));
+			
+			while(peek(Token.Type.DOT)){
+				dropNext();
+				if(peek(Token.Type.IDENTIFIER)){
+					identifiers.add(getNext(Token.Type.IDENTIFIER));
+				}else{
+					throw new SyntaxErrorChipmunk("Expected identifier or ., got " + tokens.peek().getText());
+				}
+			}
+			
+			// piece module name back together
+			StringBuilder moduleName = new StringBuilder();
+			if(identifiers.size() == 1){
+				moduleName.append(identifiers.get(0).getText());
+			}else{
+				for(int i = 0; i < identifiers.size(); i++){
+					moduleName.append(identifiers.get(i).getText());
+					if (i < identifiers.size() - 1) {
+						moduleName.append('.');
+					}
+				}
+			}
+			module.setName(moduleName.toString());
 		}else{
 			module.setName("");
 		}

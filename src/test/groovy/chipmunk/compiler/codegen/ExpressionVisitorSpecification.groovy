@@ -274,7 +274,7 @@ class ExpressionVisitorSpecification extends Specification {
 		result.intValue() == 2
 	}
 	
-	@Ignore
+	@Ignore()
 	def "Evaluate new List()"(){
 		when:
 		def result = parseAndCall("""new List()""", "New list")
