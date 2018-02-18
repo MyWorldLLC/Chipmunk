@@ -18,6 +18,7 @@ import static chipmunk.Opcodes.GE;
 import static chipmunk.Opcodes.GETAT;
 import static chipmunk.Opcodes.GETATTR;
 import static chipmunk.Opcodes.GETLOCAL;
+import static chipmunk.Opcodes.GETMODULE;
 import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
@@ -47,6 +48,7 @@ import static chipmunk.Opcodes.RSHIFT;
 import static chipmunk.Opcodes.SETAT;
 import static chipmunk.Opcodes.SETATTR;
 import static chipmunk.Opcodes.SETLOCAL;
+import static chipmunk.Opcodes.SETMODULE;
 import static chipmunk.Opcodes.SUB;
 import static chipmunk.Opcodes.SWAP;
 import static chipmunk.Opcodes.THROW;
@@ -333,6 +335,16 @@ public class ChipmunkDisassembler {
 				break;
 			case MAP:
 				builder.append("map ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
+				break;
+			case GETMODULE:
+				builder.append("getmodule ");
+				builder.append(fetchInt(codeSegment, ip + 1));
+				ip += 5;
+				break;
+			case SETMODULE:
+				builder.append("setmodule ");
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;

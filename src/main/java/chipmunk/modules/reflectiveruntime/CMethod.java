@@ -13,6 +13,7 @@ public class CMethod implements RuntimeObject {
 	protected List<Object> constantPool;
 	
 	protected Object self;
+	protected CModule module;
 	
 	public CMethod(){
 		super();
@@ -70,6 +71,14 @@ public class CMethod implements RuntimeObject {
 	
 	public void bind(Object self){
 		this.self = self;
+	}
+	
+	public CModule getModule(){
+		return module;
+	}
+	
+	public void setModule(CModule module){
+		this.module = module;
 	}
 	
 	public CMethod duplicate(ChipmunkVM vm){

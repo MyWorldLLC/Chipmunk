@@ -66,4 +66,8 @@ public class Opcodes {
 	public static final byte LIST = 0x33;
 	public static final byte MAP = 0x34;
 	
+	// module level variables
+	public static final byte GETMODULE = 0x35;
+	public static final byte SETMODULE = 0x36;
+	
 }

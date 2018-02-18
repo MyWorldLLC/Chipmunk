@@ -18,6 +18,7 @@ import static chipmunk.Opcodes.GE;
 import static chipmunk.Opcodes.GETAT;
 import static chipmunk.Opcodes.GETATTR;
 import static chipmunk.Opcodes.GETLOCAL;
+import static chipmunk.Opcodes.GETMODULE;
 import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
@@ -47,6 +48,7 @@ import static chipmunk.Opcodes.RSHIFT;
 import static chipmunk.Opcodes.SETAT;
 import static chipmunk.Opcodes.SETATTR;
 import static chipmunk.Opcodes.SETLOCAL;
+import static chipmunk.Opcodes.SETMODULE;
 import static chipmunk.Opcodes.SUB;
 import static chipmunk.Opcodes.SWAP;
 import static chipmunk.Opcodes.THROW;
@@ -733,6 +735,18 @@ public class ChipmunkVM {
 					}
 					traceMem(8);
 					this.push(map);
+					ip += 5;
+					break;
+				case GETMODULE:
+					this.push(method.getModule().getNamespace()
+							.get(constantPool.get(fetchInt(instructions, ip + 1)).toString()));
+					
+					ip += 5;
+					break;
+				case SETMODULE:
+					ins = this.pop();
+					method.getModule().getNamespace().set(constantPool.get(fetchInt(instructions, ip + 1)).toString(),
+							ins);
 					ip += 5;
 					break;
 				default:

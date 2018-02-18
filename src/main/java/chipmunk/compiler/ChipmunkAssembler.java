@@ -463,5 +463,25 @@ public class ChipmunkAssembler {
 		code.write(elementCount);
 		index += 5;
 	}
+	
+	public void getModule(String name){
+		code.write(Opcodes.GETMODULE);
+		int index = getConstantPoolEntry(name);
+		code.write(index >> 24);
+		code.write(index >> 16);
+		code.write(index >> 8);
+		code.write(index);
+		index += 5;
+	}
+	
+	public void setModule(String name){
+		code.write(Opcodes.SETMODULE);
+		int index = getConstantPoolEntry(name);
+		code.write(index >> 24);
+		code.write(index >> 16);
+		code.write(index >> 8);
+		code.write(index);
+		index += 5;
+	}
 
 }

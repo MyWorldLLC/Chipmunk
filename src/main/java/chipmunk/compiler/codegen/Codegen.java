@@ -81,6 +81,7 @@ public class Codegen implements AstVisitor {
 				if(symbol.getName().equals(name)){
 					// found symbol - emit access
 					if(symTab.getScope() == SymbolTable.Scope.LOCAL || symTab.getScope() == SymbolTable.Scope.METHOD){
+						// local scope
 						if(assign){
 							assembler.setLocal(symTab.getLocalIndex(name));
 						}else{
@@ -89,7 +90,12 @@ public class Codegen implements AstVisitor {
 					}else if(symTab.getScope() == SymbolTable.Scope.CLASS){
 						// TODO - class instance & shared
 					}else{
-						// TODO - module
+						// Module
+						if(assign){
+							assembler.setModule(name);
+						}else{
+							assembler.getModule(name);
+						}
 					}
 					found = true;
 					break;
