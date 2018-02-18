@@ -189,7 +189,6 @@ class ModuleVisitorSpecification extends Specification {
 		
 		then:
 		module.getName() == "chipmunk.testing"
-		
 		module.getNamespace().names().size() == 2
 		vm.dispatch(module.getInitializer(), 0)
 		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
