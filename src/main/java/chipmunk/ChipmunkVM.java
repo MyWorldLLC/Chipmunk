@@ -740,12 +740,14 @@ public class ChipmunkVM {
 				case GETMODULE:
 					this.push(method.getModule().getNamespace()
 							.get(constantPool.get(fetchInt(instructions, ip + 1)).toString()));
-					
 					ip += 5;
 					break;
 				case SETMODULE:
-					ins = this.pop();
-					method.getModule().getNamespace().set(constantPool.get(fetchInt(instructions, ip + 1)).toString(),
+					ins = this.peek();
+					method.getModule()
+					.getNamespace()
+					.set(constantPool.get(
+							fetchInt(instructions, ip + 1)).toString(),
 							ins);
 					ip += 5;
 					break;

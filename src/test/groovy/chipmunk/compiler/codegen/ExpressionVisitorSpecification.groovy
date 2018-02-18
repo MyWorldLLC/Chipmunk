@@ -274,15 +274,6 @@ class ExpressionVisitorSpecification extends Specification {
 		result.intValue() == 2
 	}
 	
-	@Ignore()
-	def "Evaluate new List()"(){
-		when:
-		def result = parseAndCall("""new List()""", "New list")
-		then:
-		result instanceof CList
-		result.size() == 0
-	}
-
 	def parseAndCall(String expression, String test = ""){
 		parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseExpression()

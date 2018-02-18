@@ -63,16 +63,15 @@ public class Codegen implements AstVisitor {
 		}
 	}
 	
-	public void emitSymbolAccess(Token symbolToken){
-		emitSymbolReference(symbolToken, false);
+	public void emitSymbolAccess(String name){
+		emitSymbolReference(name, false);
 	}
 	
-	public void emitSymbolAssignment(Token symbolToken){
-		emitSymbolReference(symbolToken, true);
+	public void emitSymbolAssignment(String name){
+		emitSymbolReference(name, true);
 	}
 	
-	private void emitSymbolReference(Token symbolToken, boolean assign){
-		String name = symbolToken.getText();
+	private void emitSymbolReference(String name, boolean assign){
 		SymbolTable symTab = symbols;
 		
 		boolean found = false;
@@ -106,8 +105,9 @@ public class Codegen implements AstVisitor {
 				// TODO - support "tracing" through multiple nested method & class scopes
 				symTab = symTab.getParent();
 				if(symTab == null){
-					throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d",
-							symbolToken.getText(), symbolToken.getFile(), symbolToken.getLine()), symbolToken);
+					// TODO - throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d",
+					//		symbolToken.getText(), symbolToken.getFile(), symbolToken.getLine()), symbolToken);
+					throw new IllegalArgumentException("Undeclared variable " + name);
 				}
 			}
 			

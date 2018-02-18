@@ -33,7 +33,7 @@ public class ExpressionVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
-			codegen.emitSymbolAccess(id.getID());
+			codegen.emitSymbolAccess(id.getID().getText());
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
@@ -252,7 +252,7 @@ public class ExpressionVisitor implements AstVisitor {
 						lOp.getOperator().getFile(), lOp.getOperator().getLine()));
 			}
 		}else if(lhs instanceof IdNode){
-			codegen.emitSymbolAssignment(((IdNode) lhs).getID());
+			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
 		}
 	}
 	

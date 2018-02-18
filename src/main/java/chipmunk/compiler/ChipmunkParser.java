@@ -669,7 +669,7 @@ public class ChipmunkParser {
 				if(peek(Token.Type.IDENTIFIER)){
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else if(peek(Token.Type.STAR)){
-					dropNext();
+					identifiers.add(getNext(Token.Type.STAR));
 					node.setImportAll(true);
 					break;
 				}else{
@@ -708,6 +708,7 @@ public class ChipmunkParser {
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else if(peek(Token.Type.STAR)){
 					identifiers.add(getNext(Token.Type.STAR));
+					node.setImportAll(true);
 				}else{
 					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
 				}
@@ -733,6 +734,7 @@ public class ChipmunkParser {
 				}
 			}else{
 				forceNext(Token.Type.STAR);
+				node.setImportAll(true);
 				node.addSymbol("*");
 			}
 			

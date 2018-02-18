@@ -34,6 +34,168 @@ class ModuleVisitorSpecification extends Specification {
 		module.getNamespace().names().size() == 0
 	}
 	
+	def "Parse module with module name and imports"(){
+		when:
+		CModule module = parseModule(
+		"""module chipmunk.testing
+			import foobar.*
+			import foobar.asdf
+			from foobar2 import *
+			from foobar2 import asdf2
+		""")
+		
+		then:
+		module.getName() == "chipmunk.testing"
+		module.getImports().size() == 4
+		module.getImports()[0].isImportAll() == true
+		module.getImports()[0].getSymbols().size() == 0
+		module.getImports()[1].isImportAll() == false
+		module.getImports()[1].getSymbols()[0] == "asdf"
+		module.getImports()[2].isImportAll() == true
+		module.getImports()[2].getSymbols().size()== 0
+		module.getImports()[3].isImportAll() == false
+		module.getImports()[3].getSymbols()[0] == "asdf2"
+		
+		module.getNamespace().names().size() == 0
+	}
+	
+	def "Parse module with no module name and imports"(){
+		when:
+		CModule module = parseModule(
+		"""import foobar.*
+		   import foobar.asdf
+		   from foobar2 import *
+		   from foobar2 import asdf2
+		""")
+		
+		then:
+		module.getName() == ""
+		module.getImports().size() == 4
+		module.getImports()[0].isImportAll() == true
+		module.getImports()[0].getSymbols().size() == 0
+		module.getImports()[1].isImportAll() == false
+		module.getImports()[1].getSymbols()[0] == "asdf"
+		module.getImports()[2].isImportAll() == true
+		module.getImports()[2].getSymbols().size()== 0
+		module.getImports()[3].isImportAll() == false
+		module.getImports()[3].getSymbols()[0] == "asdf2"
+		
+		module.getNamespace().names().size() == 0
+	}
+	
+	def "Parse module with no module name and method def"(){
+		when:
+		CModule module = parseModule(
+		"""def main(){
+				return 2
+			}
+		""")
+		
+		then:
+		module.getName() == ""
+		module.getImports().size() == 0
+		
+		module.getNamespace().names().size() == 1
+		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
+	}
+	
+	def "Parse module with no module name, imports and method def"(){
+		when:
+		CModule module = parseModule(
+		""" import foobar.*
+			from foobar2 import asdf
+			
+			def main(){
+				return 2
+			}
+		""")
+		
+		then:
+		module.getName() == ""
+		module.getImports().size() == 2
+		module.getImports()[0].isImportAll() == true
+		module.getImports()[1].isImportAll() == false
+		module.getImports()[1].getName() == "foobar2"
+		module.getImports()[1].getSymbols().size() == 1
+		module.getImports()[1].getSymbols()[0] == "asdf"
+		
+		module.getNamespace().names().size() == 1
+		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
+	}
+	
+	def "Parse module with module name, imports and method def"(){
+		when:
+		CModule module = parseModule(
+		""" module chipmunk.testing
+			import foobar.*
+			from foobar2 import asdf
+			
+			def main(){
+				return 2
+			}
+		""")
+		
+		then:
+		module.getName() == "chipmunk.testing"
+		module.getImports().size() == 2
+		module.getImports()[0].isImportAll() == true
+		module.getImports()[1].isImportAll() == false
+		module.getImports()[1].getName() == "foobar2"
+		module.getImports()[1].getSymbols().size() == 1
+		module.getImports()[1].getSymbols()[0] == "asdf"
+		
+		module.getNamespace().names().size() == 1
+		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
+	}
+	
+	def "Parse module with module name, imports, method def and var dec"(){
+		when:
+		CModule module = parseModule(
+		""" module chipmunk.testing
+			import foobar.*
+			from foobar2 import asdf
+			
+			var foo
+
+			def main(){
+				return 2
+			}
+		""")
+		
+		then:
+		module.getName() == "chipmunk.testing"
+		module.getImports().size() == 2
+		module.getImports()[0].isImportAll() == true
+		module.getImports()[1].isImportAll() == false
+		module.getImports()[1].getName() == "foobar2"
+		module.getImports()[1].getSymbols().size() == 1
+		module.getImports()[1].getSymbols()[0] == "asdf"
+		
+		module.getNamespace().names().size() == 2
+		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
+	}
+	
+	def "Parse module and run finalizer"(){
+		when:
+		CModule module = parseModule(
+		""" module chipmunk.testing
+			
+			var foo = 2
+
+			def main(){
+				return foo
+			}
+		""")
+		
+		then:
+		module.getName() == "chipmunk.testing"
+		
+		module.getNamespace().names().size() == 2
+		vm.dispatch(module.getInitializer(), 0)
+		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
+		module.getNamespace().get("foo").intValue() == 2
+	}
+	
 	def parseModule(String expression, String test = ""){
 		
 		parser = new ChipmunkParser(lexer.lex(expression))
@@ -48,6 +210,8 @@ class ModuleVisitorSpecification extends Specification {
 			println()
 			println("============= ${test} =============")
 			println(module.toString())
+			println("====Initializer====")
+			println(ChipmunkDisassembler.disassemble(module.getInitializer().getCode(), module.getInitializer().getConstantPool()))
 		}
 		
 		return module

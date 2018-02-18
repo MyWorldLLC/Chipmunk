@@ -14,6 +14,7 @@ import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.modules.lang.CClassType;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.reflectiveruntime.CNull;
 
 public class ModuleVisitor implements AstVisitor {
 	
@@ -33,8 +34,8 @@ public class ModuleVisitor implements AstVisitor {
 			
 			ModuleNode moduleNode = (ModuleNode) node;
 			module = new CModule(moduleNode.getName(), constantPool);
-			moduleNode.visitChildren(this);
 			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable());
+			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
 			// TODO
@@ -51,6 +52,7 @@ public class ModuleVisitor implements AstVisitor {
 			CMethod method = visitor.getMethod();
 			
 			method.bind(module);
+			method.setModule(module);
 			
 			module.getNamespace().set(visitor.getMethodSymbol().getName(), method);
 			
@@ -73,6 +75,8 @@ public class ModuleVisitor implements AstVisitor {
 			
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
 			visitor.visit(varDec);
+			
+			module.getNamespace().set(varDec.getVarName(), new CNull());
 		}else{
 			throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
 		}
@@ -82,10 +86,15 @@ public class ModuleVisitor implements AstVisitor {
 		
 		CMethod initializer = new CMethod();
 		
+		assembler.pushNull();
+		assembler._return();
+		
 		initializer.setConstantPool(assembler.getConstantPool());
 		initializer.setCode(assembler.getCodeSegment());
 		initializer.setLocalCount(0);
 		
+		initializer.bind(module);
+		initializer.setModule(module);
 		module.setInitializer(initializer);
 		
 		return module;

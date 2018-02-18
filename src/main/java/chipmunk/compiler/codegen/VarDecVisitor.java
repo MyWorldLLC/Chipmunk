@@ -30,7 +30,7 @@ public class VarDecVisitor implements AstVisitor {
 		}else{
 			assembler.pushNull();
 		}
-		assembler.setLocal(symbols.getLocalIndex(symbol));
+		codegen.emitSymbolAssignment(symbol.getName());
 		assembler.pop();
 	}
 
