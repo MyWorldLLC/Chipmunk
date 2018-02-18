@@ -229,8 +229,9 @@ public class ChipmunkDisassembler {
 				ip++;
 				break;
 			case NEW:
-				builder.append("new");
-				ip++;
+				builder.append("new ");
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
 				break;
 			case IF:
 				builder.append("if ");

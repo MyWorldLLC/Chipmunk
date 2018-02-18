@@ -200,7 +200,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.getat();
 				return;
 			case LPAREN:
-				emitCall(op, rhs);
+				emitCall(op);
 				return;
 			case DOTAMPERSAND:
 				op.visitChildren(this);
@@ -225,7 +225,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.not();
 				break;
 			case NEW:
-				// TODO
+				emitNew((OperatorNode) op.getLeft());
 				break;
 			default:
 				return;
@@ -256,7 +256,7 @@ public class ExpressionVisitor implements AstVisitor {
 		}
 	}
 	
-	private void emitCall(OperatorNode op, AstNode rhs){
+	private void emitCall(OperatorNode op){
 		if(op.getLeft() instanceof OperatorNode 
 				&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
 			// TODO - this is a dot access, so issue a callAt opcode
@@ -270,5 +270,14 @@ public class ExpressionVisitor implements AstVisitor {
 			op.getLeft().visit(this);
 			assembler.call((byte) argCount);
 		}
+	}
+	
+	private void emitNew(OperatorNode op){
+		int argCount = op.getChildren().size() - 1;
+		// visit parameters first
+		op.visitChildren(this, 1);
+		// visit call target, then emit call
+		op.getLeft().visit(this);
+		assembler._new((byte) argCount);
 	}
 }

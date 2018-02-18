@@ -231,6 +231,12 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
+	public void _new(byte paramCount){
+		code.write(Opcodes.NEW);
+		code.write(paramCount);
+		index += 2;
+	}
+	
 	/*public void _if(Label elseLabel){
 		_if(elseLabel.getName());
 	}*/

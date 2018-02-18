@@ -530,7 +530,7 @@ public class ChipmunkVM {
 					break;
 				case NEW:
 					ins = this.pop();
-					internalParams[2][1] = fetchInt(instructions, ip + 1);
+					internalParams[2][1] = fetchByte(instructions, ip + 1);
 					this.push(doInternal(InternalOp.NEWINSTANCE, ins, 2));
 					break;
 				case IF:
