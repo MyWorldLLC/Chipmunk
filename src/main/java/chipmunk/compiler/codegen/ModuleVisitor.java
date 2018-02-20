@@ -11,7 +11,7 @@ import chipmunk.compiler.ast.ImportNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.ast.VarDecNode;
-import chipmunk.modules.lang.CClassType;
+import chipmunk.modules.reflectiveruntime.CClass;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 import chipmunk.modules.reflectiveruntime.CNull;
@@ -38,12 +38,13 @@ public class ModuleVisitor implements AstVisitor {
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
-			// TODO
-			ClassVisitor visitor = new ClassVisitor();
-			node.visit(visitor);
-			CClassType classType = visitor.getCClassType();
 			
-			module.getNamespace().set(classType.getName(), classType);
+			ClassVisitor visitor = new ClassVisitor(constantPool, module);
+			node.visit(visitor);
+			
+			CClass cClass = visitor.getCClass();
+			
+			module.getNamespace().set(cClass.getName(), cClass);
 			
 		}else if(node instanceof MethodNode){
 			
@@ -71,6 +72,7 @@ public class ModuleVisitor implements AstVisitor {
 			module.getImports().add(im);
 		}else if(node instanceof VarDecNode){
 			
+			// TODO - final variables
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
