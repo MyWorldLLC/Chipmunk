@@ -57,6 +57,13 @@ public class CClass implements RuntimeObject{
 		// TODO - memory tracing
 		CObject obj = new CObject(this, instanceAttributes.duplicate(), instanceMethods.duplicate());
 		
+		// TODO - interruptible initialization/construction
+		if(instanceInitializer != null){
+			CMethod initializer = instanceInitializer.duplicate(vm);
+			initializer.bind(obj);
+			vm.dispatch(initializer, 0);
+		}
+		
 		if(instanceMethods.has(name)){
 			vm.dispatch((CMethod)obj.getMethods().get(name), paramCount);
 		}

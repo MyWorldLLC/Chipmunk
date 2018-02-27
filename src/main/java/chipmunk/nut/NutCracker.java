@@ -9,7 +9,7 @@ import java.util.List;
 import chipmunk.ChipmunkVM;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CType;
-import chipmunk.modules.lang.CModule;
+import chipmunk.modules.reflectiveruntime.CModule;
 
 public class NutCracker {
 
@@ -87,7 +87,7 @@ public class NutCracker {
 			String moduleName = capsule.readString();
 			
 			CModule module = context.resolveModule(moduleName);
-			Object symbolAttr = module.getAttribute(typeName);
+			Object symbolAttr = module.getNamespace().get(typeName);
 			
 			if(symbolAttr == null){
 				throw new MissingTypeChipmunk("Could not load type " + typeName + " from module " + moduleName + ": module does not contain symbol " + typeName);

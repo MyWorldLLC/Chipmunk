@@ -61,19 +61,19 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import chipmunk.modules.lang.CModule;
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CInteger;
 import chipmunk.modules.reflectiveruntime.CIterator;
 import chipmunk.modules.reflectiveruntime.CList;
 import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
+import chipmunk.modules.reflectiveruntime.CModule;
 import chipmunk.modules.reflectiveruntime.CNull;
 import chipmunk.modules.reflectiveruntime.RuntimeObject;
 
@@ -152,20 +152,24 @@ public class ChipmunkVM {
 			return opName;
 		}
 	}
-
-	protected Map<Class<?>, CallRecord[]> internalCallCache;
-	protected Object[][] internalParams;
-	protected Class<?>[][] internalTypes;
-
+	
+	protected List<ModuleLoader> loaders;
+	
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
+	
 	public volatile boolean interrupted;
 	private volatile boolean resuming;
+	
 	private int memHigh;
 
 	private final CBoolean trueValue;
 	private final CBoolean falseValue;
+	
+	protected Map<Class<?>, CallRecord[]> internalCallCache;
+	protected Object[][] internalParams;
+	protected Class<?>[][] internalTypes;
 
 	public ChipmunkVM() {
 		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
@@ -186,15 +190,58 @@ public class ChipmunkVM {
 		internalTypes[2] = new Class<?>[2];
 		internalTypes[3] = new Class<?>[3];
 
+		loaders = new ArrayList<ModuleLoader>();
+		
 		modules = new HashMap<String, CModule>();
 		// initialize operand stack to be 128 elements deep
 		stack = new ArrayList<Object>(128);
 
 		frozenCallStack = new ArrayDeque<CallFrame>(128);
+		
 		memHigh = 0;
 
 		trueValue = new CBoolean(true);
 		falseValue = new CBoolean(false);
+	}
+	
+	public void setLoaders(List<ModuleLoader> loaders){
+		
+		if(loaders == null){
+			throw new NullPointerException("Loaders cannot be null");
+		}
+		
+		this.loaders = loaders;
+	}
+	
+	public List<ModuleLoader> getLoaders(){
+		return loaders;
+	}
+	
+	public void loadModule(String moduleName){
+		for(ModuleLoader loader : loaders){
+			CModule module = null;
+			try {
+				module = loader.loadModule(moduleName);
+				
+				if(module != null){
+					// TODO - set up this module as the active module
+				}
+			}catch(Exception e){
+				// TODO
+			}
+		}
+		
+		// TODO - module not found
+	}
+	
+	private void loadModule(String moduleName, Set<String> partiallyLoaded){
+		
+		if(partiallyLoaded.contains(moduleName)){
+			// this module is already being loaded - skip
+			return;
+		}
+		
+		// TODO
 	}
 
 	public CModule getModule(String name) {
