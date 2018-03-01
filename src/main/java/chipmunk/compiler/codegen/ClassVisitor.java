@@ -141,7 +141,8 @@ public class ClassVisitor implements AstVisitor {
 		
 		CMethod instanceInitializer = new CMethod();
 		
-		instanceInitAssembler.pushNull();
+		// return newly created instance
+		instanceInitAssembler.getLocal(0);
 		instanceInitAssembler._return();
 		
 		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool());
