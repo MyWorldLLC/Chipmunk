@@ -73,12 +73,12 @@ class Chippy {
 }
 
 def throwNut(){
-	var nut = new Nut()
+	var nut = Nut()
 	nut.dropOnGround()
 }
 
 def main(){
 	# create a new instance.
-	var chippy = new Chippy()
+	var chippy = Chippy()
 	chippy.doChipmunkThings()
 }
