@@ -46,6 +46,14 @@ public class CModule {
 	private CMethod initializer;
 	
 	public CModule(String name, List<Object> constantPool){
+		if(name == null){
+			throw new NullPointerException("Module name cannot be null");
+		}
+		
+		if(constantPool == null){
+			throw new NullPointerException("Constant pool cannot be null");
+		}
+		
 		this.name = name;
 		constants = constantPool;
 		namespace = new Namespace();
@@ -78,5 +86,20 @@ public class CModule {
 	
 	public boolean hasInitializer(){
 		return initializer != null;
+	}
+	
+	@Override
+	public int hashCode(){
+		return name.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		if(other instanceof CModule){
+			if((name.equals(((CModule) other).name))){
+				return true;
+			}
+		}
+		return false;
 	}
 }

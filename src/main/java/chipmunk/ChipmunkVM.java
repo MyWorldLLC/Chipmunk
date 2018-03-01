@@ -90,9 +90,19 @@ public class ChipmunkVM {
 			this.locals = locals;
 		}
 	}
-
+	
+	public class QueuedInvocation {
+		
+		public QueuedInvocation(CMethod method, Object[] params){
+			this.method = method;
+			this.params = params;
+		}
+		
+		public CMethod method;
+		public Object[] params;
+	}
+	
 	private class CallRecord {
-		public Class<?> targetType;
 		public Class<?>[] callTypes;
 		public Method method;
 	}
@@ -159,6 +169,8 @@ public class ChipmunkVM {
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
 	
+	protected Deque<QueuedInvocation> callQueue;
+	
 	public volatile boolean interrupted;
 	private volatile boolean resuming;
 	
@@ -198,6 +210,8 @@ public class ChipmunkVM {
 
 		frozenCallStack = new ArrayDeque<CallFrame>(128);
 		
+		callQueue = new ArrayDeque<QueuedInvocation>(1);
+		
 		memHigh = 0;
 
 		trueValue = new CBoolean(true);
@@ -224,6 +238,9 @@ public class ChipmunkVM {
 				module = loader.loadModule(moduleName);
 				
 				if(module != null){
+					if(module.hasInitializer()){
+						callQueue.push(new QueuedInvocation(module.getInitializer(), null));
+					}
 					// TODO - set up this module as the active module
 				}
 			}catch(Exception e){
@@ -252,26 +269,14 @@ public class ChipmunkVM {
 		// TODO - resolve module name, loading it if needed
 		return null;
 	}
-
-	public void addModule(CModule module) {
-		modules.put(module.getName(), module);
-	}
-
-	public boolean removeModule(CModule module) {
-
-		CModule removed = modules.remove(module.getName());
-
-		if (removed == null) {
-			return false;
-		} else {
-			return true;
-		}
-
+	
+	public void queueMethod(CMethod method, Object[] params){
+		callQueue.push(new QueuedInvocation(method, params));
 	}
 
 	public void push(Object obj) {
 		if (obj == null) {
-			throw new NullPointerException();
+			throw new NullPointerException("Cannot push a null value onto the VM operand stack");
 		}
 		stack.add(obj);
 	}
@@ -307,6 +312,10 @@ public class ChipmunkVM {
 	public CallFrame unfreezeNext() {
 		return frozenCallStack.pop();
 	}
+	
+	public boolean hasNextFrame(){
+		return !frozenCallStack.isEmpty();
+	}
 
 	public void resume() {
 		// TODO - if frozen call stack isn't empty,
@@ -332,6 +341,22 @@ public class ChipmunkVM {
 	public void traceString(String str) {
 		memHigh += str.length() * 2;
 	}
+	
+	public Object runQueuedMethods() {
+		Object lastReturned = null;
+		
+		while(!callQueue.isEmpty()){
+			QueuedInvocation invocation = callQueue.poll();
+			
+			for(int i = invocation.params.length - 1; i >= 0; i--){
+				this.push(invocation.params[i]);
+			}
+			
+			lastReturned = doInternal(InternalOp.CALL, invocation.method, invocation.params.length);
+		}
+		
+		return lastReturned;
+	}
 
 	public Object dispatch(CMethod method, int paramCount) {
 		int ip = 0;
@@ -342,7 +367,7 @@ public class ChipmunkVM {
 		final List<Object> constantPool = method.getConstantPool();
 
 		if (resuming) {
-			ChipmunkVM.CallFrame frame = this.unfreezeNext();
+			CallFrame frame = unfreezeNext();
 			ip = frame.ip;
 			locals = frame.locals;
 
@@ -898,7 +923,6 @@ public class ChipmunkVM {
 
 				record = new CallRecord();
 				record.method = method;
-				record.targetType = target.getClass();
 				record.callTypes = Arrays.copyOf(paramTypes, paramTypes.length);
 
 				records[opIndex] = record;
