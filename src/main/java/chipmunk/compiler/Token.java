@@ -54,12 +54,11 @@ public class Token {
 		MODULE("module(?![a-zA-Z0-9_])", true, false),
 		FROM("from(?![a-zA-Z0-9_])", true, false), IMPORT("import(?![a-zA-Z0-9_])", true, false), AS("as(?![a-zA-Z0-9_])", true, false),
 		IN("in(?![a-zA-Z0-9_])", true, false), CLASS("class(?![a-zA-Z0-9_])", true, false), SHARED("shared(?![a-zA-Z0-9_])", true, false),
-		NEW("new(?![a-zA-Z0-9_])", true, false), NULL("null(?![a-zA-Z0-9_])", true, false), IF("if(?![a-zA-Z0-9_])", true, false),
-		ELSE("else(?![a-zA-Z0-9_])", true, false), FOR("for(?![a-zA-Z0-9_])", true, false), WHILE("while(?![a-zA-Z0-9_])", true, false),
-		BREAK("break(?![a-zA-Z0-9_])", true, false), CONTINUE("continue(?![a-zA-Z0-9_])", true, false), RETURN("return(?![a-zA-Z0-9_])", true, false),
-		TRY("try(?![a-zA-Z0-9_])", true, false), CATCH("catch(?![a-zA-Z0-9_])", true, false), THROW("throw(?![a-zA-Z0-9_])", true, false),
-		DEF("def(?![a-zA-Z0-9_])", true, false), VAR("var(?![a-zA-Z0-9_])", true, false), EXTENDS("extends(?![a-zA-Z0-9_])", true, false),
-		FINAL("final(?![a-zA-Z0-9_])", true, false),
+		NULL("null(?![a-zA-Z0-9_])", true, false), IF("if(?![a-zA-Z0-9_])", true, false), ELSE("else(?![a-zA-Z0-9_])", true, false),
+		FOR("for(?![a-zA-Z0-9_])", true, false), WHILE("while(?![a-zA-Z0-9_])", true, false), BREAK("break(?![a-zA-Z0-9_])", true, false),
+		CONTINUE("continue(?![a-zA-Z0-9_])", true, false), RETURN("return(?![a-zA-Z0-9_])", true, false), TRY("try(?![a-zA-Z0-9_])", true, false),
+		CATCH("catch(?![a-zA-Z0-9_])", true, false), THROW("throw(?![a-zA-Z0-9_])", true, false), DEF("def(?![a-zA-Z0-9_])", true, false),
+		VAR("var(?![a-zA-Z0-9_])", true, false), EXTENDS("extends(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
 		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),

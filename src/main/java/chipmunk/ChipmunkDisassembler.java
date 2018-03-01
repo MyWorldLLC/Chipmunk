@@ -23,6 +23,7 @@ import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
 import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.INIT;
 import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
 import static chipmunk.Opcodes.ITER;
@@ -34,7 +35,6 @@ import static chipmunk.Opcodes.MAP;
 import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
-import static chipmunk.Opcodes.NEW;
 import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.NOT;
 import static chipmunk.Opcodes.OR;
@@ -230,11 +230,6 @@ public class ChipmunkDisassembler {
 				builder.append("as");
 				ip++;
 				break;
-			case NEW:
-				builder.append("new ");
-				builder.append(fetchByte(codeSegment, ip + 1));
-				ip += 2;
-				break;
 			case IF:
 				builder.append("if ");
 				builder.append(fetchInt(codeSegment, ip + 1));
@@ -337,6 +332,10 @@ public class ChipmunkDisassembler {
 				builder.append("map ");
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
+				break;
+			case INIT:
+				builder.append("init");
+				ip += 1;
 				break;
 			case GETMODULE:
 				builder.append("getmodule ");

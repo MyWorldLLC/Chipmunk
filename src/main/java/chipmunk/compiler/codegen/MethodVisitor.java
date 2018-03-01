@@ -25,6 +25,10 @@ public class MethodVisitor implements AstVisitor {
 	protected MethodNode methodNode;
 	
 	
+	public MethodVisitor(ChipmunkAssembler assembler){
+		this.assembler = assembler;
+	}
+	
 	public MethodVisitor(List<Object> constantPool){
 		assembler = new ChipmunkAssembler(constantPool);
 	}

@@ -59,12 +59,12 @@ public class Opcodes {
 	public static final byte SETAT = 0x2C;
 	public static final byte TRUTH = 0x2D;
 	public static final byte AS = 0x2E;
-	public static final byte NEW = 0x2F;
-	public static final byte ITER = 0x30;
-	public static final byte NEXT = 0x31;
-	public static final byte RANGE = 0x32;
-	public static final byte LIST = 0x33;
-	public static final byte MAP = 0x34;
+	public static final byte ITER = 0x2F;
+	public static final byte NEXT = 0x30;
+	public static final byte RANGE = 0x31;
+	public static final byte LIST = 0x32;
+	public static final byte MAP = 0x33;
+	public static final byte INIT = 0x34;
 	
 	// module level variables
 	public static final byte GETMODULE = 0x35;

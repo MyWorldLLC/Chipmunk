@@ -23,6 +23,7 @@ import static chipmunk.Opcodes.GOTO;
 import static chipmunk.Opcodes.GT;
 import static chipmunk.Opcodes.IF;
 import static chipmunk.Opcodes.INC;
+import static chipmunk.Opcodes.INIT;
 import static chipmunk.Opcodes.INSTANCEOF;
 import static chipmunk.Opcodes.IS;
 import static chipmunk.Opcodes.ITER;
@@ -34,7 +35,6 @@ import static chipmunk.Opcodes.MAP;
 import static chipmunk.Opcodes.MOD;
 import static chipmunk.Opcodes.MUL;
 import static chipmunk.Opcodes.NEG;
-import static chipmunk.Opcodes.NEW;
 import static chipmunk.Opcodes.NEXT;
 import static chipmunk.Opcodes.NOT;
 import static chipmunk.Opcodes.OR;
@@ -75,16 +75,17 @@ import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.modules.reflectiveruntime.Initializable;
 import chipmunk.modules.reflectiveruntime.RuntimeObject;
 
 public class ChipmunkVM {
 
 	public class CallFrame {
-		public final Object method;
+		public final CMethod method;
 		public final int ip;
 		public final Object[] locals;
 
-		public CallFrame(Object method, int ip, Object[] locals) {
+		public CallFrame(CMethod method, int ip, Object[] locals) {
 			this.method = method;
 			this.ip = ip;
 			this.locals = locals;
@@ -93,13 +94,15 @@ public class ChipmunkVM {
 	
 	public class QueuedInvocation {
 		
-		public QueuedInvocation(CMethod method, Object[] params){
+		public QueuedInvocation(CMethod method, Object[] params, ExecutionState state){
 			this.method = method;
 			this.params = params;
+			this.state = state;
 		}
 		
 		public CMethod method;
 		public Object[] params;
+		public ExecutionState state;
 	}
 	
 	private class CallRecord {
@@ -165,6 +168,7 @@ public class ChipmunkVM {
 	
 	protected List<ModuleLoader> loaders;
 	
+	protected ExecutionState state;
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
@@ -205,10 +209,10 @@ public class ChipmunkVM {
 		loaders = new ArrayList<ModuleLoader>();
 		
 		modules = new HashMap<String, CModule>();
-		// initialize operand stack to be 128 elements deep
-		stack = new ArrayList<Object>(128);
-
-		frozenCallStack = new ArrayDeque<CallFrame>(128);
+		
+		state = new ExecutionState(modules, 128);
+		stack = state.stack;
+		frozenCallStack = state.frozenCallStack;
 		
 		callQueue = new ArrayDeque<QueuedInvocation>(1);
 		
@@ -239,7 +243,7 @@ public class ChipmunkVM {
 				
 				if(module != null){
 					if(module.hasInitializer()){
-						callQueue.push(new QueuedInvocation(module.getInitializer(), null));
+						callQueue.push(new QueuedInvocation(module.getInitializer(), null, state));
 					}
 					// TODO - set up this module as the active module
 				}
@@ -271,7 +275,13 @@ public class ChipmunkVM {
 	}
 	
 	public void queueMethod(CMethod method, Object[] params){
-		callQueue.push(new QueuedInvocation(method, params));
+		// share modules with current invocation, but stack is separate
+		callQueue.push(new QueuedInvocation(method, params, new ExecutionState(modules)));
+	}
+	
+	public void queueMethodFirst(CMethod method, Object[] params){
+		// queue method at the front, so that it will be completed before any previously queued methods
+		callQueue.addFirst(new QueuedInvocation(method, params, new ExecutionState(modules)));
 	}
 
 	public void push(Object obj) {
@@ -305,7 +315,7 @@ public class ChipmunkVM {
 		stack.set(index2, obj1);
 	}
 
-	public void freeze(Object method, int ip, Object[] locals) {
+	public void freeze(CMethod method, int ip, Object[] locals) {
 		frozenCallStack.push(new CallFrame(method, ip, locals));
 	}
 
@@ -346,13 +356,17 @@ public class ChipmunkVM {
 		Object lastReturned = null;
 		
 		while(!callQueue.isEmpty()){
-			QueuedInvocation invocation = callQueue.poll();
+			QueuedInvocation invocation = callQueue.peek();
 			
 			for(int i = invocation.params.length - 1; i >= 0; i--){
 				this.push(invocation.params[i]);
 			}
 			
+			// if this is suspended, the exception will propagate and we don't need to do anything
 			lastReturned = doInternal(InternalOp.CALL, invocation.method, invocation.params.length);
+			
+			// only dequeue the method *after* it's finished (keep at head of queue in case it's suspended)
+			callQueue.poll();
 		}
 		
 		return lastReturned;
@@ -602,11 +616,6 @@ public class ChipmunkVM {
 					this.push(doInternal(InternalOp.AS, ins, 2));
 					ip++;
 					break;
-				case NEW:
-					ins = this.pop();
-					internalParams[2][1] = fetchByte(instructions, ip + 1);
-					this.push(doInternal(InternalOp.NEWINSTANCE, ins, 2));
-					break;
 				case IF:
 					ins = this.pop();
 					int target = fetchInt(instructions, ip + 1);
@@ -631,9 +640,12 @@ public class ChipmunkVM {
 						// Otherwise,
 						// the ip will be stored in its old state and when this
 						// method resumes after being suspended, it will try to
-						// re-run this call.
+						// re-run this call. Skip frames with a call into a non-CMethod
+						// instance.
 						ip += 2;
-						this.freeze(ins, ip, locals);
+						if(ins instanceof CMethod){
+							this.freeze((CMethod)ins, ip, locals);
+						}
 						throw e;
 					}
 					ip += 2;
@@ -654,9 +666,12 @@ public class ChipmunkVM {
 						// Otherwise,
 						// the ip will be stored in its old state and when this
 						// method resumes after being suspended, it will try to
-						// re-run this call.
+						// re-run this call. Skip frames with a call into a non-CMethod
+						// instance.
 						ip += 6;
-						this.freeze(ins, ip, locals);
+						if(ins instanceof CMethod){
+							this.freeze((CMethod)ins, ip, locals);
+						}
 						throw e;
 					}
 					ip += 6;
@@ -809,6 +824,9 @@ public class ChipmunkVM {
 					this.push(map);
 					ip += 5;
 					break;
+				case INIT:
+					ins = this.pop();
+					this.push(((Initializable) ins).getInitializer());
 				case GETMODULE:
 					this.push(method.getModule().getNamespace()
 							.get(constantPool.get(fetchInt(instructions, ip + 1)).toString()));

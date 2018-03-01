@@ -231,12 +231,6 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
-	public void _new(byte paramCount){
-		code.write(Opcodes.NEW);
-		code.write(paramCount);
-		index += 2;
-	}
-	
 	/*public void _if(Label elseLabel){
 		_if(elseLabel.getName());
 	}*/
@@ -462,6 +456,11 @@ public class ChipmunkAssembler {
 		code.write(elementCount >> 8);
 		code.write(elementCount);
 		index += 5;
+	}
+	
+	public void init(){
+		code.write(Opcodes.INIT);
+		index++;
 	}
 	
 	public void getModule(String name){

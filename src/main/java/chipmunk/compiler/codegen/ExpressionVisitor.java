@@ -224,9 +224,6 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.eq();
 				assembler.not();
 				break;
-			case NEW:
-				emitNew((OperatorNode) op.getLeft());
-				break;
 			default:
 				return;
 			}
@@ -270,14 +267,5 @@ public class ExpressionVisitor implements AstVisitor {
 			op.getLeft().visit(this);
 			assembler.call((byte) argCount);
 		}
-	}
-	
-	private void emitNew(OperatorNode op){
-		int argCount = op.getChildren().size() - 1;
-		// visit parameters first
-		op.visitChildren(this, 1);
-		// visit call target, then emit call
-		op.getLeft().visit(this);
-		assembler._new((byte) argCount);
 	}
 }

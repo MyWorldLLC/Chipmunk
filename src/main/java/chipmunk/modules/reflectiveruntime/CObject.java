@@ -2,7 +2,7 @@ package chipmunk.modules.reflectiveruntime;
 
 import chipmunk.Namespace;
 
-public class CObject implements RuntimeObject{
+public class CObject implements RuntimeObject, Initializable {
 	
 	private final CClass cClass;
 	
@@ -32,6 +32,10 @@ public class CObject implements RuntimeObject{
 
 	public CMethod getInitializer(){
 		return initializer;
+	}
+	
+	public boolean hasInitializer(){
+		return initializer != null;
 	}
 	
 	public void setInitializer(CMethod initializer){

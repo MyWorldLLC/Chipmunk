@@ -27,6 +27,8 @@ public class ClassVisitor implements AstVisitor {
 	
 	protected CModule module;
 	
+	private boolean alreadyReachedConstructor;
+	
 	public ClassVisitor(CModule module){
 		this(new ArrayList<Object>(), module);
 	}
@@ -34,6 +36,7 @@ public class ClassVisitor implements AstVisitor {
 	public ClassVisitor(List<Object> constantPool, CModule module){
 		this.constantPool = constantPool;
 		this.module = module;
+		alreadyReachedConstructor = false;
 	}
 	
 	@Override
@@ -77,7 +80,32 @@ public class ClassVisitor implements AstVisitor {
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;
 			
-			MethodVisitor visitor = new MethodVisitor(constantPool);
+			
+			MethodVisitor visitor = null;
+			
+			// this is the constructor
+			if(methodNode.getSymbol().getName().equals(cClass.getName())){
+				if(alreadyReachedConstructor){
+					// TODO - throw error until we have support for multi-methods
+					throw new IllegalStateException("Only one constructor per class allowed");
+				}
+				alreadyReachedConstructor = true;
+				
+				ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
+				
+				// call instance initializer before doing anything else
+				assembler.getLocal(0);
+				assembler.init();
+				assembler.call((byte)0);
+				assembler.pop();
+				
+				visitor = new MethodVisitor(assembler);
+				
+			}else{
+				// regular method, use shared constant pool
+				visitor = new MethodVisitor(constantPool);
+			}
+			
 			methodNode.visit(visitor);
 				
 			CMethod method = visitor.getMethod();
@@ -104,7 +132,7 @@ public class ClassVisitor implements AstVisitor {
 		
 		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool());
 		sharedInitializer.setCode(sharedInitAssembler.getCodeSegment());
-		sharedInitializer.setLocalCount(0);
+		sharedInitializer.setLocalCount(1);
 		
 		sharedInitializer.bind(cClass);
 		sharedInitializer.setModule(module);
@@ -118,12 +146,31 @@ public class ClassVisitor implements AstVisitor {
 		
 		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool());
 		instanceInitializer.setCode(instanceInitAssembler.getCodeSegment());
-		instanceInitializer.setLocalCount(0);
+		instanceInitializer.setLocalCount(1);
 		
-		instanceInitializer.bind(cClass);
 		instanceInitializer.setModule(module);
+		// instance initializer will be bound at runtime to newly created
+		// instances
 		
 		cClass.setInstanceInitializer(instanceInitializer);
+		
+		// generate default constructor if no constructor was specified
+		if(!alreadyReachedConstructor){
+			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
+			assembler.getLocal(0);
+			assembler.init();
+			assembler.call((byte)0);
+			assembler._return();
+			
+			CMethod constructor = new CMethod();
+			constructor.setArgCount(0);
+			constructor.setLocalCount(1);
+			constructor.setConstantPool(constantPool);
+			constructor.setModule(module);
+			constructor.setCode(assembler.getCodeSegment());
+			
+			cClass.getInstanceAttributes().set(cClass.getName(), constructor);
+		}
 		
 		return cClass;
 	}

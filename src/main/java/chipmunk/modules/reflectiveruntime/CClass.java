@@ -52,23 +52,22 @@ public class CClass implements RuntimeObject{
 		return module;
 	}
 	
-	public Object newInstance(ChipmunkVM vm, Integer paramCount){
+	public Object call(ChipmunkVM vm, Byte paramCount){
 		
 		// TODO - memory tracing
 		CObject obj = new CObject(this, instanceAttributes.duplicate(), instanceMethods.duplicate());
+		obj.setInitializer(instanceInitializer.duplicate(vm));
+		obj.getInitializer().bind(obj);
 		
-		// TODO - interruptible initialization/construction
-		if(instanceInitializer != null){
-			CMethod initializer = instanceInitializer.duplicate(vm);
-			initializer.bind(obj);
-			vm.dispatch(initializer, 0);
-		}
-		
-		if(instanceMethods.has(name)){
-			vm.dispatch((CMethod)obj.getMethods().get(name), paramCount);
-		}
-		
-		return obj;
+		// Invoke constructor (compiler ensures that all classes have exactly one constructor).
+		// This is suspension/exception-safe because (a) any exceptions will seamlessly propagate
+		// out of this method and back into the VM, and (b) any suspension will freeze the running
+		// constructor, skip this, and continue freezing the previous call stack. Since this method
+		// just returns what the constructor returns (the newly created object), when the call stack
+		// is resumed this method will not be invoked, the constructor will resume where it left off,
+		// and the VM will have pushed the newly created object onto the stack when the constructor
+		// returns.
+		return vm.dispatch((CMethod)obj.getAttributes().get(name), paramCount.intValue());
 	}
 
 	public CMethod getSharedInitializer() {

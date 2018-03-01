@@ -123,9 +123,7 @@ public class ChipmunkParser {
 		// method def operator (allow method definitions in expressions)
 		register(Token.Type.DEF, new MethodDefParselet());
 		// class definition operator (allows creating anonymous classes in expressions)
-		register(Token.Type.CLASS, new ClassDefParselet());
-		
-		register(Token.Type.NEW, new PrefixOperatorParselet());
+		//register(Token.Type.CLASS, new ClassDefParselet());
 	}
 	
 	protected void register(Token.Type type, InfixParselet parselet){
