@@ -45,6 +45,10 @@ public class CModule {
 	
 	private CMethod initializer;
 	
+	public CModule(String name){
+		this(name, new ArrayList<Object>());
+	}
+	
 	public CModule(String name, List<Object> constantPool){
 		if(name == null){
 			throw new NullPointerException("Module name cannot be null");

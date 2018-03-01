@@ -270,6 +270,7 @@ public class ChipmunkParser {
 		}
 		
 		forceNext(Token.Type.LBRACE);
+		skipNewlines();
 		while(!peek(Token.Type.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
 			skipNewlines();
