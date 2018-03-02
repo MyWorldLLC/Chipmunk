@@ -1,6 +1,8 @@
 package chipmunk.compiler.codegen;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.MethodNode;
 
 public class Codegen implements AstVisitor {
 
@@ -70,46 +73,92 @@ public class Codegen implements AstVisitor {
 	}
 	
 	private void emitSymbolReference(String name, boolean assign){
+		
+		Deque<SymbolTable> trace = getSymbolTrace(name);
+		
+		// NOTE: in general use, the null check is unneeded because all accessing code
+		// will be inside a method. In some of the tests, however, this is not the case
+		// so leave this in here.
+		SymbolTable methodTable = getMethodScope(trace);
+		MethodNode method = null;
+		if(methodTable != null){
+			method = (MethodNode) methodTable.getNode();
+		}
+		
+		SymbolTable table = trace.getLast();
+		SymbolTable.Scope scope = table.getScope();
+		
+		if(scope == SymbolTable.Scope.LOCAL || scope == SymbolTable.Scope.METHOD){
+			// local scope
+			// TODO - closure support
+			if(assign){
+				assembler.setLocal(table.getLocalIndex(name));
+			}else{
+				assembler.getLocal(table.getLocalIndex(name));
+			}
+		}else if(scope == SymbolTable.Scope.CLASS){
+			Symbol symbol = table.getSymbol(name);
+			
+			if(symbol.isShared()){
+				if(method.getSymbol().isShared()){
+					// shared method reference to shared variable. Self
+					// refers to class, so emit reference via self
+				}else{
+					// TODO - instance method reference to shared variable.
+				}
+			}else{
+				if(method.getSymbol().isShared()){
+					// TODO - shared method reference to instance variable. Illegal.
+				}else{
+					// TODO - instance method reference to instance variable. Emit
+					// reference via self
+				}
+			}
+		}else if(scope == SymbolTable.Scope.MODULE){
+			// Module
+			if(assign){
+				assembler.setModule(name);
+			}else{
+				assembler.getModule(name);
+			}
+		}
+	}
+	
+	private Deque<SymbolTable> getSymbolTrace(String name){
+		Deque<SymbolTable> trace = new ArrayDeque<SymbolTable>();
+		
 		SymbolTable symTab = symbols;
 		
 		boolean found = false;
 		while(!found){
+			trace.add(symTab);
+			
 			for(Symbol symbol : symTab.getAllSymbols()){
 				if(symbol.getName().equals(name)){
-					// found symbol - emit access
-					if(symTab.getScope() == SymbolTable.Scope.LOCAL || symTab.getScope() == SymbolTable.Scope.METHOD){
-						// local scope
-						if(assign){
-							assembler.setLocal(symTab.getLocalIndex(name));
-						}else{
-							assembler.getLocal(symTab.getLocalIndex(name));
-						}
-					}else if(symTab.getScope() == SymbolTable.Scope.CLASS){
-						// TODO - class instance & shared
-					}else{
-						// Module
-						if(assign){
-							assembler.setModule(name);
-						}else{
-							assembler.getModule(name);
-						}
-					}
 					found = true;
 					break;
 				}
 			}
 			
 			if(!found){
-				// TODO - support "tracing" through multiple nested method & class scopes
 				symTab = symTab.getParent();
 				if(symTab == null){
-					// TODO - throw new UnresolvedSymbolChipmunk(String.format("Undeclared variable %s at %s: %d",
-					//		symbolToken.getText(), symbolToken.getFile(), symbolToken.getLine()), symbolToken);
+					// TODO - need better exception type
+					// TODO - undeclared variables as module variables?
 					throw new IllegalArgumentException("Undeclared variable " + name);
 				}
 			}
-			
 		}
+		return trace;
+	}
+	
+	private SymbolTable getMethodScope(Deque<SymbolTable> trace){
+		for(SymbolTable table : trace){
+			if(table.getScope() == SymbolTable.Scope.METHOD){
+				return table;
+			}
+		}
+		return null;
 	}
 	
 	public SymbolTable getActiveSymbols(){
