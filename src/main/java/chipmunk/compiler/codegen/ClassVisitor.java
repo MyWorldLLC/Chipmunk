@@ -60,10 +60,12 @@ public class ClassVisitor implements AstVisitor {
 			// TODO - final variables
 			VarDecNode varDec = (VarDecNode) node;
 			
+			System.out.println("Visiting var dec");
 			VarDecVisitor visitor = null;
 			final boolean isShared = varDec.getSymbol().isShared();
 			
 			if(isShared){
+				System.out.println("Var is shared");
 				visitor = new VarDecVisitor(sharedInitCodegen);
 			}else{
 				visitor = new VarDecVisitor(instanceInitCodegen);

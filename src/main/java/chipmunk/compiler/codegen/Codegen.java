@@ -8,8 +8,6 @@ import java.util.Map;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
-import chipmunk.compiler.Token;
-import chipmunk.compiler.UnresolvedSymbolChipmunk;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 
