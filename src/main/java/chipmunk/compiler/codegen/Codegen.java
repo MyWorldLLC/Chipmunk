@@ -113,11 +113,14 @@ public class Codegen implements AstVisitor {
 					// TODO - instance method reference to shared variable.
 				}
 			}else{
-				if(method.getSymbol().isShared()){
+				if(method != null && method.getSymbol().isShared()){
 					// TODO - shared method reference to instance variable. Illegal.
 				}else{
-					// TODO - instance method reference to instance variable. Emit
+					// TODO - instance method (or initializer) reference to instance variable. Emit
 					// reference via self
+					assembler.push(symbol.getName());
+					assembler.getLocal(0);
+					assembler.setattr();
 				}
 			}
 		}else if(scope == SymbolTable.Scope.MODULE){

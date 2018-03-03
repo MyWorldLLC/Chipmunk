@@ -7,6 +7,7 @@ import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.reflectiveruntime.CClass
 import chipmunk.modules.reflectiveruntime.CModule
+import chipmunk.modules.reflectiveruntime.CObject
 import spock.lang.Specification
 
 class ClassVisitorSpecification extends Specification {
@@ -36,7 +37,7 @@ class ClassVisitorSpecification extends Specification {
 			class Chipmunk {
 				shared var foo = 2
 			}
-		""", "shared var init")
+		""")
 		
 		vm.dispatch(cClass.getSharedInitializer(), 0)
 		
@@ -46,6 +47,22 @@ class ClassVisitorSpecification extends Specification {
 		cClass.getAttributes().get("foo").intValue() == 2
 		cClass.getInstanceAttributes().names().size() == 1
 		cClass.getInstanceInitializer() != null
+	}
+	
+	def "Parse class with instance variable and initialize"(){
+		when:
+		CClass cClass = parseClass("""
+			class Chipmunk {
+				var foo = 2
+			}
+		""", "instance var init")
+		
+		CObject instance = cClass.call(vm, (byte)0)
+		
+		then:
+		instance.getCClass().getName() == "Chipmunk"
+		instance.getAttributes().names().size() == 2
+		instance.getAttributes().get("foo").intValue() == 2
 	}
 	
 	def parseClass(String expression, String test = ""){
@@ -62,8 +79,8 @@ class ClassVisitorSpecification extends Specification {
 			println()
 			println("============= ${test} =============")
 			println(cClass.getName().toString())
-			println("====Shared Initializer====")
-			println(ChipmunkDisassembler.disassemble(cClass.getSharedInitializer().getCode(), cClass.getSharedInitializer().getConstantPool()))
+			println("====Instance Initializer====")
+			println(ChipmunkDisassembler.disassemble(cClass.getInstanceInitializer().getCode(), cClass.getInstanceInitializer().getConstantPool()))
 		}
 		
 		return cClass

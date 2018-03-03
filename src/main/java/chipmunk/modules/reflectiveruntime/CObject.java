@@ -1,5 +1,6 @@
 package chipmunk.modules.reflectiveruntime;
 
+import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 
 public class CObject implements RuntimeObject, Initializable {
@@ -16,6 +17,14 @@ public class CObject implements RuntimeObject, Initializable {
 		
 		this.attributes = attributes;
 		this.methods = methods;
+		
+		for(String name : attributes.names()){
+			Object attr = attributes.get(name);
+			
+			if(attr instanceof CMethod){
+				((CMethod) attr).bind(this);
+			}
+		}
 	}
 	
 	public CClass getCClass(){
@@ -40,6 +49,12 @@ public class CObject implements RuntimeObject, Initializable {
 	
 	public void setInitializer(CMethod initializer){
 		this.initializer = initializer;
+	}
+	
+	public Object setAttr(ChipmunkVM vm, String name, Object value){
+		vm.traceMem(8);
+		attributes.set(name, value);
+		return value;
 	}
 
 }

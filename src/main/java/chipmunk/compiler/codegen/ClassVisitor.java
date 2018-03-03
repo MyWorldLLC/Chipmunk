@@ -60,12 +60,10 @@ public class ClassVisitor implements AstVisitor {
 			// TODO - final variables
 			VarDecNode varDec = (VarDecNode) node;
 			
-			System.out.println("Visiting var dec");
 			VarDecVisitor visitor = null;
 			final boolean isShared = varDec.getSymbol().isShared();
 			
 			if(isShared){
-				System.out.println("Var is shared");
 				visitor = new VarDecVisitor(sharedInitCodegen);
 			}else{
 				visitor = new VarDecVisitor(instanceInitCodegen);
@@ -96,10 +94,7 @@ public class ClassVisitor implements AstVisitor {
 				ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
 				
 				// call instance initializer before doing anything else
-				assembler.getLocal(0);
-				assembler.init();
-				assembler.call((byte)0);
-				assembler.pop();
+				genInitCall(assembler);
 				
 				visitor = new MethodVisitor(assembler);
 				
@@ -129,7 +124,7 @@ public class ClassVisitor implements AstVisitor {
 		
 		CMethod sharedInitializer = new CMethod();
 		
-		sharedInitAssembler.pushNull();
+		sharedInitAssembler.getLocal(0);
 		sharedInitAssembler._return();
 		
 		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool());
@@ -160,10 +155,7 @@ public class ClassVisitor implements AstVisitor {
 		// generate default constructor if no constructor was specified
 		if(!alreadyReachedConstructor){
 			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-			assembler.getLocal(0);
-			assembler.init();
-			assembler.call((byte)0);
-			assembler._return();
+			genInitCall(assembler);
 			
 			CMethod constructor = new CMethod();
 			constructor.setArgCount(0);
@@ -176,6 +168,13 @@ public class ClassVisitor implements AstVisitor {
 		}
 		
 		return cClass;
+	}
+	
+	private void genInitCall(ChipmunkAssembler assembler){
+		assembler.getLocal(0);
+		assembler.init();
+		assembler.call((byte)0);
+		assembler._return();
 	}
 
 }

@@ -830,6 +830,8 @@ public class ChipmunkVM {
 				case INIT:
 					ins = this.pop();
 					this.push(((Initializable) ins).getInitializer());
+					ip++;
+					break;
 				case GETMODULE:
 					this.push(method.getModule().getNamespace()
 							.get(constantPool.get(fetchInt(instructions, ip + 1)).toString()));
@@ -849,6 +851,8 @@ public class ChipmunkVM {
 				}
 
 			} catch (RuntimeException e) {
+				
+				System.out.print(ChipmunkDisassembler.disassemble(instructions));
 
 				// SuspendedChipmunk must be re-thrown - don't
 				// allow exception handlers to run or they will
