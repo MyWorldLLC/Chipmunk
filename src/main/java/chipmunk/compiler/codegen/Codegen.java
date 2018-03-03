@@ -100,9 +100,15 @@ public class Codegen implements AstVisitor {
 			Symbol symbol = table.getSymbol(name);
 			
 			if(symbol.isShared()){
-				if(method.getSymbol().isShared()){
+				// initializers aren't enclosed by a method
+				// shared and non-shared variable initializers both bind via "self"
+				// object
+				if(method == null || method.getSymbol().isShared()){
 					// shared method reference to shared variable. Self
 					// refers to class, so emit reference via self
+					assembler.push(symbol.getName());
+					assembler.getLocal(0);
+					assembler.setattr();
 				}else{
 					// TODO - instance method reference to shared variable.
 				}

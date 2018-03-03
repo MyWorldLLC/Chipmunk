@@ -559,9 +559,12 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case SETATTR:
-					rh = this.pop();
-					lh = this.pop();
+					// ins - instance to set attribute on
+					// lh - attribute name
+					// rh - attribute value
 					ins = this.pop();
+					lh = this.pop();
+					rh = this.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
 					doInternal(InternalOp.SETATTR, ins, 3);

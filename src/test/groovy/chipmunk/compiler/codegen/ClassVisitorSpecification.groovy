@@ -43,7 +43,7 @@ class ClassVisitorSpecification extends Specification {
 		then:
 		cClass.getName() == "Chipmunk"
 		cClass.getAttributes().names().size() == 1
-		cClass.getAttributes().get("foo") == 2
+		cClass.getAttributes().get("foo").intValue() == 2
 		cClass.getInstanceAttributes().names().size() == 1
 		cClass.getInstanceInitializer() != null
 	}

@@ -86,5 +86,10 @@ public class CClass implements RuntimeObject{
 		this.instanceInitializer = instanceInitializer;
 	}
 	
+	public Object setAttr(ChipmunkVM vm, String name, Object value){
+		vm.traceMem(8);
+		sharedAttributes.set(name, value);
+		return value;
+	}
 	
 }
