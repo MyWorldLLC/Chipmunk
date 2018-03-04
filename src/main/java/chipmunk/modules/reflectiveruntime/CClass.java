@@ -92,4 +92,9 @@ public class CClass implements RuntimeObject{
 		return value;
 	}
 	
+	public Object getAttr(ChipmunkVM vm, String name){
+		vm.traceMem(8);
+		return sharedAttributes.get(name);
+	}
+	
 }

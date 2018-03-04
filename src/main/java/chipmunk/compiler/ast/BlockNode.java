@@ -15,11 +15,13 @@ public class BlockNode extends AstNode {
 	public BlockNode(SymbolTable.Scope scope){
 		super();
 		symTab = new SymbolTable(scope);
+		symTab.setNode(this);
 	}
 	
 	public BlockNode(AstNode... children){
 		super(children);
 		symTab = new SymbolTable();
+		symTab.setNode(this);
 	}
 	
 	public BlockNode(SymbolTable.Scope scope, AstNode... children){

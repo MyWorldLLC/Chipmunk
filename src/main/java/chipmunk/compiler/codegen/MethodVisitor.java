@@ -24,13 +24,17 @@ public class MethodVisitor implements AstVisitor {
 	protected Codegen codegen;
 	protected MethodNode methodNode;
 	
+	protected boolean defaultReturn;
+	
 	
 	public MethodVisitor(ChipmunkAssembler assembler){
 		this.assembler = assembler;
+		defaultReturn = true;
 	}
 	
 	public MethodVisitor(List<Object> constantPool){
 		assembler = new ChipmunkAssembler(constantPool);
+		defaultReturn = true;
 	}
 	
 	@Override
@@ -73,17 +77,36 @@ public class MethodVisitor implements AstVisitor {
 			methodNode.visitChildren(codegen, startAt);
 			codegen.exitScope();
 			
-			// return null in case a return has not yet been hit
-			assembler.pushNull();
-			assembler._return();
+			if(defaultReturn){
+				// return null in case a return has not yet been hit
+				genDefaultReturn();
+			}
 		}
 		
-		method.setConstantPool(assembler.getConstantPool());
-		method.setCode(assembler.getCodeSegment());
-		method.setLocalCount(symbols.getLocalMax());
+	}
+	
+	public void genSelfReturn(){
+		assembler.getLocal(0);
+		assembler._return();
+	}
+	
+	public void genDefaultReturn(){
+		assembler.pushNull();
+		assembler._return();
+	}
+	
+	public boolean willGenDefaultReturn(){
+		return defaultReturn;
+	}
+	
+	public void setDefaultReturn(boolean defaultReturn){
+		this.defaultReturn = defaultReturn;
 	}
 	
 	public CMethod getMethod(){
+		method.setConstantPool(assembler.getConstantPool());
+		method.setCode(assembler.getCodeSegment());
+		method.setLocalCount(symbols.getLocalMax());
 		return method;
 	}
 	

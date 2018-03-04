@@ -31,6 +31,11 @@ public class CObject implements RuntimeObject, Initializable {
 		return cClass;
 	}
 	
+	public CClass getClass(ChipmunkVM vm){
+		vm.traceMem(8);
+		return cClass;
+	}
+	
 	public Namespace getAttributes(){
 		return attributes;
 	}
@@ -55,6 +60,11 @@ public class CObject implements RuntimeObject, Initializable {
 		vm.traceMem(8);
 		attributes.set(name, value);
 		return value;
+	}
+	
+	public Object getAttr(ChipmunkVM vm, String name){
+		vm.traceMem(8);
+		return attributes.get(name);
 	}
 
 }

@@ -255,7 +255,7 @@ public class ChipmunkAssembler {
 		index += 2;
 	}
 	
-	public void callAt(byte paramCount, String methodName){
+	public void callAt(String methodName, byte paramCount){
 		code.write(Opcodes.CALLAT);
 		code.write(paramCount);
 		

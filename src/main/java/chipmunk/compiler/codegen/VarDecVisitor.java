@@ -2,7 +2,6 @@ package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
-import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.VarDecNode;
@@ -20,10 +19,7 @@ public class VarDecVisitor implements AstVisitor {
 		VarDecNode dec = (VarDecNode) node;
 		
 		ChipmunkAssembler assembler = codegen.getAssembler();
-		SymbolTable symbols = codegen.getActiveSymbols();
-		
-		Symbol symbol = new Symbol(dec.getVarName());
-		symbols.setSymbol(symbol);
+		Symbol symbol = codegen.getActiveSymbols().getSymbol(dec.getVarName());
 		
 		if(dec.getAssignExpr() != null){
 			dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
@@ -31,7 +27,7 @@ public class VarDecVisitor implements AstVisitor {
 			assembler.pushNull();
 		}
 		codegen.emitSymbolAssignment(symbol.getName());
-		assembler.pop();
+		codegen.getAssembler().pop();
 	}
 
 }

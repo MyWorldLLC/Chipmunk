@@ -97,13 +97,18 @@ public class ClassVisitor implements AstVisitor {
 				genInitCall(assembler);
 				
 				visitor = new MethodVisitor(assembler);
+				visitor.setDefaultReturn(false);
+				methodNode.visit(visitor);
+
+				// return self
+				visitor.genSelfReturn();
 				
 			}else{
 				// regular method, use shared constant pool
 				visitor = new MethodVisitor(constantPool);
+				methodNode.visit(visitor);
 			}
 			
-			methodNode.visit(visitor);
 				
 			CMethod method = visitor.getMethod();
 			
@@ -156,6 +161,9 @@ public class ClassVisitor implements AstVisitor {
 		if(!alreadyReachedConstructor){
 			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
 			genInitCall(assembler);
+			// return self
+			assembler.getLocal(0);
+			assembler._return();
 			
 			CMethod constructor = new CMethod();
 			constructor.setArgCount(0);
@@ -174,7 +182,6 @@ public class ClassVisitor implements AstVisitor {
 		assembler.getLocal(0);
 		assembler.init();
 		assembler.call((byte)0);
-		assembler._return();
 	}
 
 }

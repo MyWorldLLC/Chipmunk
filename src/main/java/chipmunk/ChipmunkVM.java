@@ -572,8 +572,8 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case GETATTR:
-					lh = this.pop();
 					ins = this.pop();
+					lh = this.pop();
 					internalParams[2][1] = lh;
 					this.push(doInternal(InternalOp.GETATTR, ins, 2));
 					ip++;
@@ -852,8 +852,6 @@ public class ChipmunkVM {
 
 			} catch (RuntimeException e) {
 				
-				System.out.print(ChipmunkDisassembler.disassemble(instructions));
-
 				// SuspendedChipmunk must be re-thrown - don't
 				// allow exception handlers to run or they will
 				// block suspension
