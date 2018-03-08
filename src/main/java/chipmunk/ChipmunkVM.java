@@ -168,12 +168,12 @@ public class ChipmunkVM {
 	
 	protected List<ModuleLoader> loaders;
 	
-	protected ExecutionState state;
+	protected ExecutionState suspendedState;
+	
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
-	
-	protected Deque<QueuedInvocation> callQueue;
+	protected Deque<CMethod> initializerQueue;
 	
 	public volatile boolean interrupted;
 	private volatile boolean resuming;
@@ -182,6 +182,8 @@ public class ChipmunkVM {
 
 	private final CBoolean trueValue;
 	private final CBoolean falseValue;
+	
+	private final int refLength;
 	
 	protected Map<Class<?>, CallRecord[]> internalCallCache;
 	protected Object[][] internalParams;
@@ -210,16 +212,18 @@ public class ChipmunkVM {
 		
 		modules = new HashMap<String, CModule>();
 		
-		state = new ExecutionState(modules, 128);
-		stack = state.stack;
-		frozenCallStack = state.frozenCallStack;
+		suspendedState = new ExecutionState(modules, 128);
+		stack = suspendedState.stack;
+		frozenCallStack = suspendedState.frozenCallStack;
 		
-		callQueue = new ArrayDeque<QueuedInvocation>(1);
+		initializerQueue = new ArrayDeque<CMethod>();
 		
 		memHigh = 0;
 
 		trueValue = new CBoolean(true);
 		falseValue = new CBoolean(false);
+		
+		refLength = 8;
 	}
 	
 	public void setLoaders(List<ModuleLoader> loaders){
@@ -235,24 +239,32 @@ public class ChipmunkVM {
 		return loaders;
 	}
 	
-	public void loadModule(String moduleName){
+	public void loadModule(String moduleName) throws ModuleLoadChipmunk {
 		for(ModuleLoader loader : loaders){
 			CModule module = null;
 			try {
 				module = loader.loadModule(moduleName);
 				
 				if(module != null){
-					if(module.hasInitializer()){
-						callQueue.push(new QueuedInvocation(module.getInitializer(), null, state));
+					
+					for(CModule.Import importedModule : module.getImports()){
+						loadModule(importedModule.getName());
 					}
-					// TODO - set up this module as the active module
+					
+					if(module.hasInitializer()){
+						initializerQueue.push(module.getInitializer());
+					}
+					
+					modules.put(module.getName(), module);
+					
+					return;
 				}
 			}catch(Exception e){
-				// TODO
+				throw new ModuleLoadChipmunk(e);
 			}
 		}
 		
-		// TODO - module not found
+		throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
 	}
 	
 	private void loadModule(String moduleName, Set<String> partiallyLoaded){
@@ -274,6 +286,7 @@ public class ChipmunkVM {
 		return null;
 	}
 	
+	/*
 	public void queueMethod(CMethod method, Object[] params){
 		// share modules with current invocation, but stack is separate
 		callQueue.push(new QueuedInvocation(method, params, new ExecutionState(modules)));
@@ -282,8 +295,15 @@ public class ChipmunkVM {
 	public void queueMethodFirst(CMethod method, Object[] params){
 		// queue method at the front, so that it will be completed before any previously queued methods
 		callQueue.addFirst(new QueuedInvocation(method, params, new ExecutionState(modules)));
-	}
+	}*/
 
+	public void pushArgs(Object[] args){
+		// push arguments right -> left
+		for(int i = args.length - 1; i >= 0; i--){
+			this.push(args[i]);
+		}
+	}
+	
 	public void push(Object obj) {
 		if (obj == null) {
 			throw new NullPointerException("Cannot push a null value onto the VM operand stack");
@@ -327,49 +347,72 @@ public class ChipmunkVM {
 		return !frozenCallStack.isEmpty();
 	}
 
-	public void resume() {
+	public Object resume(ExecutionState frozenState){
 		// TODO - if frozen call stack isn't empty,
 		// get method at top and call it.
+		interrupted = false;
+		resuming = true;
+		
+		if(!suspendedState.frozenCallStack.isEmpty()){
+			// if 
+		}
+		
+		while(!suspendedState.initializerQueue.isEmpty()){
+			CMethod initializer = suspendedState.initializerQueue.poll();
+			this.dispatch(initializer, 0);
+		}
+		
+		/*int params = 0;
+		if(suspendedState.entryArgs != null){
+			this.pushArgs(suspendedState.entryArgs);
+			params = suspendedState.entryArgs.length;
+		}*/
+		
+		return this.dispatch(suspendedState.entryMethod, 0);
 	}
 
 	public void traceMem(int newlyAllocated) {
 		memHigh += newlyAllocated;
 	}
+	
+	public void untraceMem(int amount) {
+		memHigh -= amount;
+	}
 
 	public void traceBoolean() {
 		memHigh += 1;
+	}
+	
+	public void untraceBoolean() {
+		memHigh -= 1;
 	}
 
 	public void traceInteger() {
 		memHigh += 4;
 	}
+	
+	public void untraceInteger() {
+		memHigh -= 4;
+	}
 
 	public void traceFloat() {
 		memHigh += 4;
+	}
+	
+	public void untraceFloat() {
+		memHigh -= 4;
 	}
 
 	public void traceString(String str) {
 		memHigh += str.length() * 2;
 	}
 	
-	public Object runQueuedMethods() {
-		Object lastReturned = null;
-		
-		while(!callQueue.isEmpty()){
-			QueuedInvocation invocation = callQueue.peek();
-			
-			for(int i = invocation.params.length - 1; i >= 0; i--){
-				this.push(invocation.params[i]);
-			}
-			
-			// if this is suspended, the exception will propagate and we don't need to do anything
-			lastReturned = doInternal(InternalOp.CALL, invocation.method, invocation.params.length);
-			
-			// only dequeue the method *after* it's finished (keep at head of queue in case it's suspended)
-			callQueue.poll();
-		}
-		
-		return lastReturned;
+	public void traceReference() {
+		memHigh += refLength;
+	}
+	
+	public void untraceReference() {
+		memHigh -= refLength;
 	}
 
 	public Object dispatch(CMethod method, int paramCount) {

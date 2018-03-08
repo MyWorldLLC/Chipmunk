@@ -4,6 +4,6 @@ import chipmunk.modules.reflectiveruntime.CModule;
 
 public interface ModuleLoader {
 
-	public CModule loadModule(String moduleName);
+	public CModule loadModule(String moduleName) throws Exception;
 	
 }

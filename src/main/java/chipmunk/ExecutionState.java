@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM.CallFrame;
+import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 
 public class ExecutionState {
@@ -15,6 +16,10 @@ public class ExecutionState {
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
+	protected Deque<CMethod> initializerQueue;
+	
+	protected CMethod entryMethod;
+	protected Object[] entryArgs;
 	
 	public ExecutionState(){
 		this(new HashMap<String, CModule>(), 128);
@@ -28,6 +33,7 @@ public class ExecutionState {
 		this.modules = modules;
 		stack = new ArrayList<Object>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<CallFrame>();
+		initializerQueue = new ArrayDeque<CMethod>();
 	}
 	
 	public boolean isFrozen(){
