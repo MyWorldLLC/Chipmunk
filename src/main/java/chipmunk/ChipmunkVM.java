@@ -173,7 +173,7 @@ public class ChipmunkVM {
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
-	protected Deque<CMethod> initializerQueue;
+	protected Deque<CModule> initializationQueue;
 	
 	public volatile boolean interrupted;
 	private volatile boolean resuming;
@@ -216,7 +216,7 @@ public class ChipmunkVM {
 		stack = suspendedState.stack;
 		frozenCallStack = suspendedState.frozenCallStack;
 		
-		initializerQueue = new ArrayDeque<CMethod>();
+		initializationQueue = new ArrayDeque<CModule>();
 		
 		memHigh = 0;
 
@@ -252,7 +252,7 @@ public class ChipmunkVM {
 					}
 					
 					if(module.hasInitializer()){
-						initializerQueue.push(module.getInitializer());
+						initializationQueue.push(module);
 					}
 					
 					modules.put(module.getName(), module);
@@ -285,17 +285,6 @@ public class ChipmunkVM {
 		// TODO - resolve module name, loading it if needed
 		return null;
 	}
-	
-	/*
-	public void queueMethod(CMethod method, Object[] params){
-		// share modules with current invocation, but stack is separate
-		callQueue.push(new QueuedInvocation(method, params, new ExecutionState(modules)));
-	}
-	
-	public void queueMethodFirst(CMethod method, Object[] params){
-		// queue method at the front, so that it will be completed before any previously queued methods
-		callQueue.addFirst(new QueuedInvocation(method, params, new ExecutionState(modules)));
-	}*/
 
 	public void pushArgs(Object[] args){
 		// push arguments right -> left
@@ -353,23 +342,51 @@ public class ChipmunkVM {
 		interrupted = false;
 		resuming = true;
 		
-		if(!suspendedState.frozenCallStack.isEmpty()){
-			// if 
+		if(!suspendedState.frozenCallStack.isEmpty() && !suspendedState.initializationQueue.isEmpty()){
+			// if the frozen call stack contains anything and we're not done initializing modules,
+			// continue running initializers
+			// TODO
 		}
 		
-		while(!suspendedState.initializerQueue.isEmpty()){
+		while(!suspendedState.initializationQueue.isEmpty()){
 			// At this point, the module initializers of modules this
 			// module depends on have run, so we can safely import the
 			// symbols now.
-			CMethod initializer = suspendedState.initializerQueue.poll();
-			this.dispatch(initializer, 0);
+			
+			CModule module = suspendedState.initializationQueue.poll();
+			
+			for(CModule.Import moduleImport : module.getImports()){
+
+				Namespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
+				
+				if(moduleImport.isImportAll()){
+					
+					Set<String> importedNames = importedNamespace.names();
+					
+					for(String name : importedNames){
+						module.getNamespace().setFinal(name, importedNamespace.get(name));
+					}
+				}else{
+					
+					List<String> symbols = moduleImport.getSymbols();
+					List<String> aliases = moduleImport.getAliases();
+					
+					for(int i = 0; i < symbols.size(); i++){
+						
+						if(aliases != null){
+							module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
+						}else{
+							module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
+						}
+					}
+				}
+			}
+			
+			if(module.hasInitializer())
+			{
+				this.dispatch(module.getInitializer(), 0);
+			}
 		}
-		
-		/*int params = 0;
-		if(suspendedState.entryArgs != null){
-			this.pushArgs(suspendedState.entryArgs);
-			params = suspendedState.entryArgs.length;
-		}*/
 		
 		return this.dispatch(suspendedState.entryMethod, 0);
 	}
