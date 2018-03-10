@@ -358,6 +358,9 @@ public class ChipmunkVM {
 		}
 		
 		while(!suspendedState.initializerQueue.isEmpty()){
+			// At this point, the module initializers of modules this
+			// module depends on have run, so we can safely import the
+			// symbols now.
 			CMethod initializer = suspendedState.initializerQueue.poll();
 			this.dispatch(initializer, 0);
 		}

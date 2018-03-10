@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import chipmunk.modules.reflectiveruntime.CNull;
+
 public class Namespace {
 
 	private final Map<String, Object> attributes;
@@ -27,7 +29,7 @@ public class Namespace {
 	public void set(String name, Object value) throws IllegalArgumentException {
 		
 		if(value == null){
-			throw new NullPointerException("Cannot set null attributes: use CNull instead");
+			value = new CNull();
 		}
 		
 		if(finalAttributes != null && finalAttributes.contains(name)){
@@ -40,7 +42,7 @@ public class Namespace {
 	public void setFinal(String name, Object value){
 		
 		if(value == null){
-			throw new NullPointerException("Cannot set null attributes: use CNull instead");
+			value = new CNull();
 		}
 		
 		if(finalAttributes == null){
