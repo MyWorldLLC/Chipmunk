@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -223,7 +224,7 @@ public class ChipmunkVM {
 		trueValue = new CBoolean(true);
 		falseValue = new CBoolean(false);
 		
-		refLength = 8;
+		refLength = 8; // assume 64-bit references
 	}
 	
 	public void setLoaders(List<ModuleLoader> loaders){
@@ -240,6 +241,18 @@ public class ChipmunkVM {
 	}
 	
 	public void loadModule(String moduleName) throws ModuleLoadChipmunk {
+		loadModule(moduleName, new HashSet<String>());
+	}
+	
+	private void loadModule(String moduleName, Set<String> loadedSet){
+		
+		if(loadedSet.contains(moduleName)){
+			// this module is already loaded - skip
+			return;
+		}
+		
+		loadedSet.add(moduleName);
+		
 		for(ModuleLoader loader : loaders){
 			CModule module = null;
 			try {
@@ -251,9 +264,7 @@ public class ChipmunkVM {
 						loadModule(importedModule.getName());
 					}
 					
-					if(module.hasInitializer()){
-						initializationQueue.push(module);
-					}
+					initializationQueue.push(module);
 					
 					modules.put(module.getName(), module);
 					
@@ -265,14 +276,6 @@ public class ChipmunkVM {
 		}
 		
 		throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
-	}
-	
-	private void loadModule(String moduleName, Set<String> partiallyLoaded){
-		
-		if(partiallyLoaded.contains(moduleName)){
-			// this module is already being loaded - skip
-			return;
-		}
 		
 		// TODO
 	}
@@ -382,8 +385,7 @@ public class ChipmunkVM {
 				}
 			}
 			
-			if(module.hasInitializer())
-			{
+			if(module.hasInitializer()){
 				this.dispatch(module.getInitializer(), 0);
 			}
 		}
