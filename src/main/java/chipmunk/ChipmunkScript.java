@@ -11,7 +11,7 @@ import chipmunk.ChipmunkVM.CallFrame;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 
-public class ExecutionState {
+public class ChipmunkScript {
 	
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
@@ -21,16 +21,12 @@ public class ExecutionState {
 	protected CMethod entryMethod;
 	protected Object[] entryArgs;
 	
-	public ExecutionState(){
-		this(new HashMap<String, CModule>(), 128);
+	public ChipmunkScript(){
+		this(128);
 	}
 	
-	public ExecutionState(Map<String, CModule> modules){
-		this(modules, 128);
-	}
-	
-	public ExecutionState(Map<String, CModule> modules, int initialStackDepth){
-		this.modules = modules;
+	public ChipmunkScript(int initialStackDepth){
+		modules = new HashMap<String, CModule>();
 		stack = new ArrayList<Object>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<CallFrame>();
 		initializationQueue = new ArrayDeque<CModule>();

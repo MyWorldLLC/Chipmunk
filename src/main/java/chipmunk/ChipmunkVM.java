@@ -95,7 +95,7 @@ public class ChipmunkVM {
 	
 	public class QueuedInvocation {
 		
-		public QueuedInvocation(CMethod method, Object[] params, ExecutionState state){
+		public QueuedInvocation(CMethod method, Object[] params, ChipmunkScript state){
 			this.method = method;
 			this.params = params;
 			this.state = state;
@@ -103,7 +103,7 @@ public class ChipmunkVM {
 		
 		public CMethod method;
 		public Object[] params;
-		public ExecutionState state;
+		public ChipmunkScript state;
 	}
 	
 	private class CallRecord {
@@ -169,7 +169,7 @@ public class ChipmunkVM {
 	
 	protected List<ModuleLoader> loaders;
 	
-	protected ExecutionState suspendedState;
+	protected ChipmunkScript activeScript;
 	
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
@@ -211,11 +211,9 @@ public class ChipmunkVM {
 
 		loaders = new ArrayList<ModuleLoader>();
 		
-		modules = new HashMap<String, CModule>();
-		
-		suspendedState = new ExecutionState(modules, 128);
-		stack = suspendedState.stack;
-		frozenCallStack = suspendedState.frozenCallStack;
+		activeScript = new ChipmunkScript(128);
+		stack = activeScript.stack;
+		frozenCallStack = activeScript.frozenCallStack;
 		
 		initializationQueue = new ArrayDeque<CModule>();
 		
@@ -341,24 +339,24 @@ public class ChipmunkVM {
 		return !frozenCallStack.isEmpty();
 	}
 
-	public Object resume(ExecutionState frozenState){
+	public Object resume(ChipmunkScript frozenState){
 		// TODO - if frozen call stack isn't empty,
 		// get method at top and call it.
 		interrupted = false;
 		resuming = true;
 		
-		if(!suspendedState.frozenCallStack.isEmpty() && !suspendedState.initializationQueue.isEmpty()){
+		if(!activeScript.frozenCallStack.isEmpty() && !activeScript.initializationQueue.isEmpty()){
 			// if the frozen call stack contains anything and we're not done initializing modules,
 			// continue running initializers
 			// TODO
 		}
 		
-		while(!suspendedState.initializationQueue.isEmpty()){
+		while(!activeScript.initializationQueue.isEmpty()){
 			// At this point, the module initializers of modules this
 			// module depends on have run, so we can safely import the
 			// symbols now.
 			
-			CModule module = suspendedState.initializationQueue.poll();
+			CModule module = activeScript.initializationQueue.poll();
 			
 			for(CModule.Import moduleImport : module.getImports()){
 
@@ -392,7 +390,7 @@ public class ChipmunkVM {
 			}
 		}
 		
-		return this.dispatch(suspendedState.entryMethod, 0);
+		return this.dispatch(activeScript.entryMethod, 0);
 	}
 
 	public void traceMem(int newlyAllocated) {
