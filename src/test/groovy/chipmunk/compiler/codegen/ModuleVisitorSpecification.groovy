@@ -175,7 +175,7 @@ class ModuleVisitorSpecification extends Specification {
 		vm.dispatch(module.getNamespace().get("main"), 0).intValue() == 2
 	}
 	
-	def "Parse module and run finalizer"(){
+	def "Parse module and run initializer"(){
 		when:
 		CModule module = parseModule(
 		""" module chipmunk.testing

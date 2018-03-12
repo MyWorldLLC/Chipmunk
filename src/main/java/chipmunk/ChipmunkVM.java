@@ -281,22 +281,13 @@ public class ChipmunkVM {
 		return modules.get(name);
 	}
 
-	public CModule resolveModule(String name) {
-		// TODO - resolve module name, loading it if needed
-		return null;
+	public CModule resolveModule(String name) throws ModuleLoadChipmunk {
+		if(!modules.containsKey(name)){
+			loadModule(name);
+		}
+		return modules.get(name);
 	}
 	
-	/*
-	public void queueMethod(CMethod method, Object[] params){
-		// share modules with current invocation, but stack is separate
-		callQueue.push(new QueuedInvocation(method, params, new ExecutionState(modules)));
-	}
-	
-	public void queueMethodFirst(CMethod method, Object[] params){
-		// queue method at the front, so that it will be completed before any previously queued methods
-		callQueue.addFirst(new QueuedInvocation(method, params, new ExecutionState(modules)));
-	}*/
-
 	public void pushArgs(Object[] args){
 		// push arguments right -> left
 		for(int i = args.length - 1; i >= 0; i--){
