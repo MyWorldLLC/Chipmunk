@@ -36,4 +36,9 @@ public class ChipmunkScript {
 		return !frozenCallStack.isEmpty();
 	}
 	
+	public void setEntryCall(CMethod method, Object... args){
+		entryMethod = method;
+		entryArgs = args;
+	}
+	
 }

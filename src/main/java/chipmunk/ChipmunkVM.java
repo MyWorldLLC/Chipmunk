@@ -270,8 +270,6 @@ public class ChipmunkVM {
 		}
 		
 		throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
-		
-		// TODO
 	}
 
 	public CModule getModule(String name) {
@@ -335,24 +333,32 @@ public class ChipmunkVM {
 		return !frozenCallStack.isEmpty();
 	}
 
-	public Object resume(ChipmunkScript frozenState){
-		// TODO - if frozen call stack isn't empty,
-		// get method at top and call it.
-		interrupted = false;
-		resuming = true;
+	public Object run(ChipmunkScript script) throws SuspendedChipmunk, AngryChipmunk {
 		
-		if(!activeScript.frozenCallStack.isEmpty() && !activeScript.initializationQueue.isEmpty()){
+		interrupted = false;
+		
+		if(script.isFrozen()){
+			resuming = true;
+		}
+		
+		activeScript = script;
+		modules = script.modules;
+		stack = script.stack;
+		frozenCallStack = script.frozenCallStack;
+		initializationQueue = script.initializationQueue;
+		
+		if(!frozenCallStack.isEmpty() && !initializationQueue.isEmpty()){
 			// if the frozen call stack contains anything and we're not done initializing modules,
 			// continue running initializers
 			// TODO
 		}
 		
-		while(!activeScript.initializationQueue.isEmpty()){
+		while(!initializationQueue.isEmpty()){
 			// At this point, the module initializers of modules this
 			// module depends on have run, so we can safely import the
 			// symbols now.
 			
-			CModule module = activeScript.initializationQueue.poll();
+			CModule module = initializationQueue.poll();
 			
 			for(CModule.Import moduleImport : module.getImports()){
 
@@ -386,7 +392,16 @@ public class ChipmunkVM {
 			}
 		}
 		
-		return this.dispatch(activeScript.entryMethod, 0);
+		
+		if(resuming){
+			// TODO - if frozen call stack isn't empty,
+			// get method at top and call it.
+			return null;
+		}else{
+			// Starting to run entry method. TODO - push args
+			return this.dispatch(activeScript.entryMethod, 0);
+		}
+		
 	}
 
 	public void traceMem(int newlyAllocated) {
