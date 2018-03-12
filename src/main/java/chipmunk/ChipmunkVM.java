@@ -199,10 +199,6 @@ public class ChipmunkVM {
 		internalParams[2] = new Object[2];
 		internalParams[3] = new Object[3];
 
-		internalParams[1][0] = this;
-		internalParams[2][0] = this;
-		internalParams[3][0] = this;
-
 		internalTypes = new Class<?>[4][];
 		internalTypes[0] = new Class<?>[0];
 		internalTypes[1] = new Class<?>[1];
