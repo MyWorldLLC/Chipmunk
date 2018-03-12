@@ -989,6 +989,7 @@ public class ChipmunkVM {
 		CallRecord[] records = internalCallCache.get(targetType);
 
 		Object[] params = internalParams[paramCount];
+		params[0] = this;
 		Class<?>[] paramTypes = internalTypes[params.length];
 
 		for (int i = 0; i < params.length; i++) {
@@ -1022,7 +1023,9 @@ public class ChipmunkVM {
 		Method method = record.method;
 
 		try {
-			return method.invoke(target, params);
+			Object retVal = method.invoke(target, params);
+			Arrays.fill(params, null);
+			return retVal;
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
