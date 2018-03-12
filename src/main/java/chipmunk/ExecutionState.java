@@ -16,7 +16,7 @@ public class ExecutionState {
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
-	protected Deque<CMethod> initializerQueue;
+	protected Deque<CModule> initializationQueue;
 	
 	protected CMethod entryMethod;
 	protected Object[] entryArgs;
@@ -33,7 +33,7 @@ public class ExecutionState {
 		this.modules = modules;
 		stack = new ArrayList<Object>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<CallFrame>();
-		initializerQueue = new ArrayDeque<CMethod>();
+		initializationQueue = new ArrayDeque<CModule>();
 	}
 	
 	public boolean isFrozen(){
