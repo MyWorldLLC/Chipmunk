@@ -3,7 +3,7 @@ package chipmunk.modules.reflectiveruntime;
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 
-public class CClass implements RuntimeObject{
+public class CClass implements RuntimeObject, Initializable {
 
 	private final Namespace sharedAttributes;
 	private final Namespace sharedMethods;
@@ -95,6 +95,11 @@ public class CClass implements RuntimeObject{
 	public Object getAttr(ChipmunkVM vm, String name){
 		vm.traceMem(8);
 		return sharedAttributes.get(name);
+	}
+
+	@Override
+	public CMethod getInitializer() {
+		return sharedInitializer;
 	}
 	
 }

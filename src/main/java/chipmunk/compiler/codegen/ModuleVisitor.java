@@ -44,6 +44,16 @@ public class ModuleVisitor implements AstVisitor {
 			
 			CClass cClass = visitor.getCClass();
 			
+			// generate initialization code to run class initializer
+			if(cClass.getSharedInitializer() != null){
+				ChipmunkAssembler initAssembler = initCodegen.getAssembler();
+				
+				initAssembler.getModule(cClass.getName());
+				initAssembler.init();
+				initAssembler.call((byte)0);
+				initAssembler.pop();
+			}
+			
 			module.getNamespace().set(cClass.getName(), cClass);
 			
 		}else if(node instanceof MethodNode){
