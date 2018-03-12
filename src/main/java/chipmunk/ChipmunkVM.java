@@ -284,9 +284,11 @@ public class ChipmunkVM {
 		return modules.get(name);
 	}
 
-	public CModule resolveModule(String name) {
-		// TODO - resolve module name, loading it if needed
-		return null;
+	public CModule resolveModule(String name) throws ModuleLoadChipmunk {
+		if(!modules.containsKey(name)){
+			loadModule(name);
+		}
+		return modules.get(name);
 	}
 
 	public void pushArgs(Object[] args){
