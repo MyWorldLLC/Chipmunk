@@ -41,4 +41,7 @@ public class ChipmunkScript {
 		entryArgs = args;
 	}
 	
+	public Map<String, CModule> getModules(){
+		return modules;
+	}
 }

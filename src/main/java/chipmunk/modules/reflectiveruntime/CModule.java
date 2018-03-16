@@ -8,6 +8,8 @@ import chipmunk.Namespace;
 
 public class CModule {
 	
+	public static final String DEFAULT = "";
+	
 	public class Import {
 		private final String name;
 		private final boolean importAll;

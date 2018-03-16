@@ -235,23 +235,20 @@ public class ChipmunkVM {
 	}
 	
 	public void loadModule(String moduleName) throws ModuleLoadChipmunk {
-		loadModule(moduleName, new HashSet<String>());
-	}
-	
-	private void loadModule(String moduleName, Set<String> loadedSet){
 		
-		if(loadedSet.contains(moduleName)){
+		if(modules.containsKey(moduleName)){
 			// this module is already loaded - skip
 			return;
 		}
-		
-		loadedSet.add(moduleName);
 		
 		for(ModuleLoader loader : loaders){
 			CModule module = null;
 			try {
 				module = loader.loadModule(moduleName);
 				
+				// need to record the module *before* handling imports in case
+				// of a circular import
+				modules.put(module.getName(), module);
 				if(module != null){
 					
 					for(CModule.Import importedModule : module.getImports()){
@@ -259,8 +256,6 @@ public class ChipmunkVM {
 					}
 					
 					initializationQueue.push(module);
-					
-					modules.put(module.getName(), module);
 					
 					return;
 				}
@@ -398,8 +393,9 @@ public class ChipmunkVM {
 			// get method at top and call it.
 			return null;
 		}else{
-			// Starting to run entry method. TODO - push args
-			return this.dispatch(activeScript.entryMethod, 0);
+			// Starting to run entry method.
+			this.pushArgs(activeScript.entryArgs);
+			return this.dispatch(activeScript.entryMethod, activeScript.entryArgs.length);
 		}
 		
 	}
@@ -635,9 +631,6 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case SETATTR:
-					// ins - instance to set attribute on
-					// lh - attribute name
-					// rh - attribute value
 					ins = this.pop();
 					lh = this.pop();
 					rh = this.pop();

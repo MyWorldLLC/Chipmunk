@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.ChipmunkScript;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.ModuleVisitor;
@@ -27,7 +28,7 @@ public class ChipmunkCompiler {
 		return visitors;
 	}
 	
-	public List<CModule> compile(CharSequence src) throws CompileChipmunk, SyntaxErrorChipmunk {
+	public ChipmunkScript compile(CharSequence src) throws CompileChipmunk, SyntaxErrorChipmunk {
 		
 		List<CModule> modules = new ArrayList<CModule>();
 		ChipmunkLexer lexer = new ChipmunkLexer();
@@ -48,10 +49,16 @@ public class ChipmunkCompiler {
 			modules.add(visitor.getModule());
 		}
 		
-		return modules;
+		ChipmunkScript script = new ChipmunkScript();
+		
+		for(CModule module : modules){
+			script.getModules().put(module.getName(), module);
+		}
+		
+		return script;
 	}
 	
-	public List<CModule> compile(InputStream src) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
+	public ChipmunkScript compile(InputStream src) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
 		StringBuilder builder = new StringBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
