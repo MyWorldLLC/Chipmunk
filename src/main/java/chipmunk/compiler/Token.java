@@ -7,7 +7,6 @@ public class Token {
 	protected String text;
 	protected Type type;
 	
-	protected String file;
 	protected int line;
 	protected int column;
 	
@@ -110,14 +109,6 @@ public class Token {
 	
 	public Type getType(){
 		return type;
-	}
-	
-	public String getFile() {
-		return file;
-	}
-
-	public void setFile(String file) {
-		this.file = file;
 	}
 
 	public int getLine() {

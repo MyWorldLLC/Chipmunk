@@ -1,0 +1,15 @@
+module test
+
+def other(){
+	return 1 + 2 * 3
+}
+
+def main(){
+	var x = 0
+	
+	while(x < 10){
+		x++
+	}
+	
+	return x + other()
+}

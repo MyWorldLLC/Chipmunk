@@ -84,8 +84,12 @@ public class TokenStream {
 	}
 	
 	public String toString(){
+		return tokenDump(cursor);
+	}
+	
+	public String tokenDump(int startAt){
 		StringBuilder builder = new StringBuilder();
-		for(int i = cursor; i < tokens.size(); i++){
+		for(int i = startAt; i < tokens.size(); i++){
 			builder.append(tokens.get(i).getText());
 			if(i < tokens.size() - 1){
 				builder.append(' ');
@@ -93,5 +97,9 @@ public class TokenStream {
 		}
 		
 		return builder.toString();
+	}
+	
+	public String tokenDump(){
+		return tokenDump(0);
 	}
 }

@@ -22,6 +22,7 @@ import chipmunk.compiler.parselets.*;
 public class ChipmunkParser {
 	
 	protected TokenStream tokens;
+	protected String fileName;
 	
 	private Map<Token.Type, InfixParselet> infix;
 	private Map<Token.Type, PrefixParselet> prefix;
@@ -30,6 +31,7 @@ public class ChipmunkParser {
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
+		fileName = "";
 		moduleRoots = new ArrayList<ModuleNode>();
 		
 		infix = new HashMap<Token.Type, InfixParselet>();
@@ -142,6 +144,14 @@ public class ChipmunkParser {
 		return tokens;
 	}
 	
+	public void setFileName(String name){
+		fileName = name;
+	}
+	
+	public String getFileName(){
+		return fileName;
+	}
+	
 	/**
 	 * Parses all modules in the source stream.
 	 */
@@ -172,7 +182,7 @@ public class ChipmunkParser {
 				if(peek(Token.Type.IDENTIFIER)){
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else{
-					throw new SyntaxErrorChipmunk("Expected identifier or ., got " + tokens.peek().getText());
+					syntaxError("module", tokens.peek(), Token.Type.IDENTIFIER, Token.Type.DOT);
 				}
 			}
 			
@@ -193,7 +203,7 @@ public class ChipmunkParser {
 			module.setName("");
 		}
 		
-		skipNewlines();
+		skipNewlinesAndComments();
 		
 		Token next = tokens.peek();
 		Token.Type nextType = next.getType();
@@ -224,12 +234,11 @@ public class ChipmunkParser {
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
 				Token got = peek();
-				SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing module: expected module start, class or method def, or variable declaration, got %s", got.getType().name()));
-				error.setGot(got);
-				throw error;
+				System.out.println(tokens.tokenDump());
+				syntaxError("module", "module start, class or method def, or variable declaration", got);
 			}
 			
-			skipNewlines();
+			skipNewlinesAndComments();
 			
 			next = tokens.peek();
 			nextType = next.getType();
@@ -780,7 +789,7 @@ public class ChipmunkParser {
 		PrefixParselet prefixParser = prefix.get(token.getType());
 		
 		if(prefixParser == null){
-			throw new SyntaxErrorChipmunk(String.format("Expected a literal, id, or prefix operator at %d:%d, got %s", token.getLine(), token.getColumn(), token.getType()), token);
+			syntaxError("expression", "literal, id, or prefix operator", token);
 		}
 		
 		AstNode left = prefixParser.parse(this, token);
@@ -792,7 +801,6 @@ public class ChipmunkParser {
 			InfixParselet infixParser = infix.get(token.getType());
 			
 			if(infixParser == null){
-				throw new SyntaxErrorChipmunk("Expected an infix operator", token);
 			}
 			
 			left = infixParser.parse(this, left, token);
@@ -815,12 +823,7 @@ public class ChipmunkParser {
 		Token token = tokens.get();
 		
 		if(token.getType() != type){
-			
-			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing: expected %s, got %s", type.name(), token.getType().name()));
-			error.setExpected(new Token.Type[]{type});
-			error.setGot(token);
-			
-			throw error;
+			syntaxError("", token, type);
 		}
 		
 		return token;
@@ -830,12 +833,7 @@ public class ChipmunkParser {
 		Token token = tokens.get();
 		
 		if(token.getType() != type){
-			
-			SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(String.format("Error parsing: expected %s, got %s", type.name(), token.getType().name()));
-			error.setExpected(new Token.Type[]{type});
-			error.setGot(token);
-			
-			throw error;
+			syntaxError("", token, type);
 		}
 	}
 	
@@ -894,9 +892,20 @@ public class ChipmunkParser {
 		node.setEndTokenIndex(tokens.getStreamPosition());
 	}
 	
-	public void syntaxError(String msg, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
+	public void syntaxError(String context, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
+		String msg = String.format("Error parsing %s at %s %d:%d: expected <TODO>, got %s",
+				context, fileName, got.getLine(), got.getColumn(), got.getText());
 		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
 		error.setExpected(expected);
+		error.setGot(got);
+		throw error;
+	}
+	
+	public void syntaxError(String context, String expected, Token got) throws SyntaxErrorChipmunk {
+		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
+				context, fileName, got.getLine(), got.getColumn(), expected, got.getText());
+		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
+		error.setExpected(new Token.Type[]{});
 		error.setGot(got);
 		throw error;
 	}

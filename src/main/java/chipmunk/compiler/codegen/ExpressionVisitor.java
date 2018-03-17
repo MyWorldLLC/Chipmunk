@@ -244,9 +244,12 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.setat();
 			}else{
 				// error!
-				throw new CompileChipmunk(String.format("Invalid assignment at %s: %d. The left hand side of an assignment"
+				//throw new CompileChipmunk(String.format("Invalid assignment at %s: %d. The left hand side of an assignment"
+				//		+ "must be either an attribute, index, or a local variable.", 
+				//		lOp.getOperator().getFile(), lOp.getOperator().getLine()));
+				throw new CompileChipmunk(String.format("Invalid assignment at %d. The left hand side of an assignment"
 						+ "must be either an attribute, index, or a local variable.", 
-						lOp.getOperator().getFile(), lOp.getOperator().getLine()));
+						  lOp.getOperator().getLine()));
 			}
 		}else if(lhs instanceof IdNode){
 			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
