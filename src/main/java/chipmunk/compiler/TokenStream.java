@@ -102,4 +102,20 @@ public class TokenStream {
 	public String tokenDump(){
 		return tokenDump(0);
 	}
+	
+	public String tokenTypeDump(){
+		return tokenTypeDump(0);
+	}
+	
+	public String tokenTypeDump(int startAt){
+		StringBuilder builder = new StringBuilder();
+		for(int i = startAt; i < tokens.size(); i++){
+			builder.append(tokens.get(i).getType().name().toLowerCase());
+			if(i < tokens.size() - 1){
+				builder.append(' ');
+			}
+		}
+		
+		return builder.toString();
+	}
 }

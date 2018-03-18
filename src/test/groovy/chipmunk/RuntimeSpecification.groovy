@@ -14,12 +14,13 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run SimpleMethod.chp"(){
 		when:
-		ChipmunkScript script = compiler.compile(getInputStream("SimpleMethod.chp"), "SimpleMethod.chp")
+		ChipmunkScript script = compiler.compile(
+			getInputStream("SimpleMethod.chp"), "SimpleMethod.chp")
 		script.setEntryCall(script.getModules().get("test").getNamespace().get("main"), [] as Object[])
 		def result = vm.run(script)
 		
 		then:
-		result.intValue() == 5
+		result.intValue() == 17
 	}
 
 }

@@ -66,6 +66,8 @@ public class ChipmunkCompiler {
 		String line = reader.readLine();
 		while(line != null){
 			builder.append(line);
+			// reader.readLine() removes trailing newlines, but Chipmunk needs these
+			builder.append('\n');
 			line = reader.readLine();
 		}
 		

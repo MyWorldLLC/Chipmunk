@@ -156,7 +156,7 @@ public class ChipmunkParser {
 	 * Parses all modules in the source stream.
 	 */
 	public void parse(){
-		while(tokens.remaining() > 0){
+		while(!peek(Token.Type.EOF)){
 			moduleRoots.add(parseModule());
 		}
 	}
@@ -182,7 +182,7 @@ public class ChipmunkParser {
 				if(peek(Token.Type.IDENTIFIER)){
 					identifiers.add(getNext(Token.Type.IDENTIFIER));
 				}else{
-					syntaxError("module", tokens.peek(), Token.Type.IDENTIFIER, Token.Type.DOT);
+					syntaxError("module", tokens.peek(), Token.Type.IDENTIFIER);
 				}
 			}
 			
@@ -234,7 +234,6 @@ public class ChipmunkParser {
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
 				Token got = peek();
-				System.out.println(tokens.tokenDump());
 				syntaxError("module", "module start, class or method def, or variable declaration", got);
 			}
 			
@@ -603,6 +602,7 @@ public class ChipmunkParser {
 				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
 			}
 		}
+
 		forceNext(Token.Type.RBRACE);
 	}
 	

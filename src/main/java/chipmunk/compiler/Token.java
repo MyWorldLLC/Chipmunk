@@ -20,7 +20,7 @@ public class Token {
 	 */
 	public enum Type {
 		// comments and newlines
-		COMMENT("#.*"), NEWLINE("\n|\r\n|\r"),
+		COMMENT("#.*"), NEWLINE("\n|\r|\r\n"),
 		
 		// literals
 		// Binary, octal, and hex literals must go before the int and float literals
@@ -39,7 +39,7 @@ public class Token {
 		// symbols - multiple and single forms
 		DOUBLEPLUSEQUALS("\\+\\+\\="), PLUSEQUALS("\\+\\="), DOUBLEMINUSEQUALS("\\-\\-\\="), MINUSEQUALS("\\-\\="), DOUBLESTAREQUALS("\\*\\*\\="), STAREQUALS("\\*="),
 		DOUBLEFSLASHEQUALS("//\\="), FSLASHEQUALS("/\\="), PERCENTEQUALS("%\\="), DOUBLEAMPERSANDEQUALS("&&\\="), AMPERSANDEQUALS("&\\="),
-		CARETEQUALS("\\^="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
+		CARETEQUALS("\\^\\="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
 		DOUBLEMOREEQUALS(">>\\="), MOREEQUALS(">\\="), EXCLAMATIONEQUALS("\\!\\="), TILDEEQUALS("~\\="), COLON(":"),
 		DOUBLEEQUAlS("\\=\\="), EQUALS("\\="), DOTAMPERSAND("\\.&"), DOUBLEDOTLESS("\\.\\.<"), DOUBLEDOT("\\.\\."), DOT("\\."), DOUBLESTAR("\\*\\*"),
 		STAR("\\*"), DOUBLEPLUS("\\+\\+"),PLUS("\\+"), DOUBLEMINUS("\\-\\-"), MINUS("\\-"), DOUBLEFSLASH("//"), FSLASH("/"),
@@ -125,6 +125,11 @@ public class Token {
 
 	public void setColumn(int column) {
 		this.column = column;
+	}
+	
+	@Override
+	public String toString(){
+		return text.trim() + "(" + type.name().toLowerCase() + ")";
 	}
 
 }

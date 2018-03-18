@@ -78,9 +78,8 @@ public class ChipmunkLexer {
 				
 				if (matcher.lookingAt()){
 
-					String subStr = src.subSequence(cursor, matcher.end()).toString();
+					String subStr = src.subSequence(matcher.start(), matcher.end()).toString();
 					stream.append(new Token(subStr, type, line, column));
-
 					cursor = matcher.end();
 
 					if (type == Token.Type.NEWLINE) {
