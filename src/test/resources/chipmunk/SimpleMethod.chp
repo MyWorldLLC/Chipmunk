@@ -1,13 +1,18 @@
 module test
 
-def other(){
+# test comment
+def other()
+{
 	return 1 + 2 * 3
 }
 
 def main(){
 	var x = 0
 	
-	while(x < 10){
+	# another test comment
+	while(x < 10)
+	{
+		# yet another test comment
 		x = x + 1
 	}
 	

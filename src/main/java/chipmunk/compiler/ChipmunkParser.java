@@ -588,6 +588,7 @@ public class ChipmunkParser {
 	}
 	
 	public void parseBlockBody(BlockNode node){
+		skipNewlines();
 		forceNext(Token.Type.LBRACE);
 		
 		while(!peek(Token.Type.RBRACE)){
