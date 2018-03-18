@@ -9,11 +9,6 @@ public class ChipmunkLexer {
 	
 	protected TokenStream stream;
 	protected CharSequence src;
-	
-	private int line;
-	private int lineBegin;
-	private int column;
-	private int cursor;
 
 	public TokenStream lex(CharSequence source){
 		
@@ -21,10 +16,9 @@ public class ChipmunkLexer {
 		
 		src = source;
 		
-		lineBegin = 0;
-		line = 1;
-		column = 1;
-		cursor = 0;
+		int line = 1;
+		int column = 1;
+		int cursor = 0;
 		
 		// fill matcher cache
 		Map<Token.Type, Matcher> matchers = new HashMap<Token.Type, Matcher>();
@@ -85,9 +79,8 @@ public class ChipmunkLexer {
 					if (type == Token.Type.NEWLINE) {
 						column = 1;
 						line += 1;
-						lineBegin = cursor;
 					} else {
-						column += matcher.end() - lineBegin;
+						column += matcher.end() - matcher.start();
 					}
 
 					foundToken = true;
