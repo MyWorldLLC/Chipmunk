@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM.CallFrame;
-import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 
 public class ChipmunkScript {
@@ -18,7 +17,8 @@ public class ChipmunkScript {
 	protected Deque<CallFrame> frozenCallStack;
 	protected Deque<CModule> initializationQueue;
 	
-	protected CMethod entryMethod;
+	protected String entryModule;
+	protected String entryMethod;
 	protected Object[] entryArgs;
 	
 	public ChipmunkScript(){
@@ -36,9 +36,14 @@ public class ChipmunkScript {
 		return !frozenCallStack.isEmpty();
 	}
 	
-	public void setEntryCall(CMethod method, Object... args){
+	public void setEntryCall(String module, String method, Object... args){
+		entryModule = module;
 		entryMethod = method;
 		entryArgs = args;
+	}
+	
+	public void setEntryCall(String module, String method){
+		setEntryCall(module, method, new Object[]{});
 	}
 	
 	public Map<String, CModule> getModules(){

@@ -331,16 +331,19 @@ public class ChipmunkVM {
 	public Object run(ChipmunkScript script) throws SuspendedChipmunk, AngryChipmunk {
 		
 		interrupted = false;
-		
-		if(script.isFrozen()){
-			resuming = true;
-		}
-		
+
 		activeScript = script;
+		
 		modules = script.modules;
 		stack = script.stack;
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
+		
+		if(script.isFrozen()){
+			resuming = true;
+		}else{
+			loadModule(script.entryModule);
+		}
 		
 		if(!frozenCallStack.isEmpty() && !initializationQueue.isEmpty()){
 			// if the frozen call stack contains anything and we're not done initializing modules,
@@ -394,8 +397,10 @@ public class ChipmunkVM {
 			return null;
 		}else{
 			// Starting to run entry method.
+			CMethod entryMethod = (CMethod) activeScript.modules.get(
+					activeScript.entryModule).getNamespace().get(activeScript.entryMethod);
 			this.pushArgs(activeScript.entryArgs);
-			return this.dispatch(activeScript.entryMethod, activeScript.entryArgs.length);
+			return this.dispatch(entryMethod, activeScript.entryArgs.length);
 		}
 		
 	}

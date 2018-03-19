@@ -1,0 +1,11 @@
+module test
+
+var foo = 2
+
+def other(){
+	return 1 + foo
+}
+
+def main(){
+	return foo + other()
+}

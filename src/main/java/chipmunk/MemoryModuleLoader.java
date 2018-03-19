@@ -1,5 +1,6 @@
 package chipmunk;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +22,12 @@ public class MemoryModuleLoader implements ModuleLoader {
 	
 	public void addModule(CModule module){
 		modules.put(module.getName(), module);
+	}
+	
+	public void addModules(Collection<CModule> modules){
+		for(CModule module : modules){
+			this.modules.put(module.getName(), module);
+		}
 	}
 	
 	public boolean hasModule(String moduleName){

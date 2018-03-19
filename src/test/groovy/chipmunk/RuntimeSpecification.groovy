@@ -8,19 +8,33 @@ class RuntimeSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
-	def getInputStream(String script){
-		return this.getClass().getResourceAsStream(script)
+	def compileAndRun(String scriptName){
+		List modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
+		
+		MemoryModuleLoader loader = new MemoryModuleLoader()
+		loader.addModules(modules)
+		vm.getLoaders().add(loader)
+		
+		ChipmunkScript script = new ChipmunkScript()
+		
+		script.setEntryCall("test", "main")
+		return vm.run(script)
 	}
 	
 	def "Run SimpleMethod.chp"(){
 		when:
-		ChipmunkScript script = compiler.compile(
-			getInputStream("SimpleMethod.chp"), "SimpleMethod.chp")
-		script.setEntryCall(script.getModules().get("test").getNamespace().get("main"), [] as Object[])
-		def result = vm.run(script)
+		def result = compileAndRun("SimpleMethod.chp")
 		
 		then:
 		result.intValue() == 17
+	}
+	
+	def "Run ModuleWithInitializer.chp"(){
+		when:
+		def result = compileAndRun("ModuleWithInitializer.chp")
+		
+		then:
+		result.intValue() == 5
 	}
 
 }

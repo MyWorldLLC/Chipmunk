@@ -28,7 +28,7 @@ public class ChipmunkCompiler {
 		return visitors;
 	}
 	
-	public ChipmunkScript compile(CharSequence src, String fileName) throws CompileChipmunk, SyntaxErrorChipmunk {
+	public List<CModule> compile(CharSequence src, String fileName) throws CompileChipmunk, SyntaxErrorChipmunk {
 		
 		List<CModule> modules = new ArrayList<CModule>();
 		ChipmunkLexer lexer = new ChipmunkLexer();
@@ -50,16 +50,10 @@ public class ChipmunkCompiler {
 			modules.add(visitor.getModule());
 		}
 		
-		ChipmunkScript script = new ChipmunkScript();
-		
-		for(CModule module : modules){
-			script.getModules().put(module.getName(), module);
-		}
-		
-		return script;
+		return modules;
 	}
 	
-	public ChipmunkScript compile(InputStream src, String fileName) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
+	public List<CModule> compile(InputStream src, String fileName) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
 		StringBuilder builder = new StringBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
