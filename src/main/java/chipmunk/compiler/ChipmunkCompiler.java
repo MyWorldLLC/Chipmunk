@@ -8,7 +8,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.ChipmunkScript;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.ModuleVisitor;

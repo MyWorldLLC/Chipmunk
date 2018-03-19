@@ -600,7 +600,7 @@ public class ChipmunkParser {
 			skipNewlinesAndComments();
 			
 			if(peek(Token.Type.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+				syntaxError("block body", peek(), Token.Type.RBRACE);
 			}
 		}
 
@@ -894,8 +894,21 @@ public class ChipmunkParser {
 	}
 	
 	public void syntaxError(String context, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
-		String msg = String.format("Error parsing %s at %s %d:%d: expected <TODO>, got %s",
-				context, fileName, got.getLine(), got.getColumn(), got.getText());
+		StringBuilder expectedTypes = new StringBuilder();
+		
+		for(int i = 0; i < expected.length; i++){
+			expectedTypes.append(expected[i].toString().toLowerCase());
+			
+			if(i < expected.length - 2){
+				expectedTypes.append(", ");
+			}else if(i == expected.length - 2){
+				expectedTypes.append(", or ");
+			}
+		}
+		
+		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
+				context, fileName, got.getLine(), got.getColumn(), expectedTypes.toString(), got.getText());
+		
 		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
 		error.setExpected(expected);
 		error.setGot(got);
