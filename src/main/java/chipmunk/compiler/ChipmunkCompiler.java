@@ -63,12 +63,10 @@ public class ChipmunkCompiler {
 		StringBuilder builder = new StringBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
-		String line = reader.readLine();
-		while(line != null){
-			builder.append(line);
-			// reader.readLine() removes trailing newlines, but Chipmunk needs these
-			builder.append('\n');
-			line = reader.readLine();
+		int character = reader.read();
+		while(character != -1){
+			builder.append((char) character);
+			character = reader.read();
 		}
 		
 		return compile(builder, fileName);
