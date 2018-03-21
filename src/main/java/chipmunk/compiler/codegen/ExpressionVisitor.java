@@ -208,8 +208,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.pop();
 				break;
 			case DOT:
-				op.visitChildren(this);
-				assembler.getattr();
+				emitDotGet(op);
 				return;
 			case EQUALS:
 				rhs.visit(this);
@@ -270,5 +269,16 @@ public class ExpressionVisitor implements AstVisitor {
 			op.getLeft().visit(this);
 			assembler.call((byte) argCount);
 		}
+	}
+	
+	private void emitDotGet(OperatorNode op){
+		if(op.getRight() instanceof IdNode){
+			IdNode attr = (IdNode) op.getRight();
+			assembler.push(attr.getID().getText());
+		}else{
+			op.getRight().visit(this);
+		}
+		op.getLeft().visit(this);
+		assembler.getattr();
 	}
 }

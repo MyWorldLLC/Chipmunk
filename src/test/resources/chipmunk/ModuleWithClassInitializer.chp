@@ -1,0 +1,10 @@
+module test
+
+class Foo {
+	shared var bar = 5
+
+}
+
+def main(){
+	return Foo.bar
+}

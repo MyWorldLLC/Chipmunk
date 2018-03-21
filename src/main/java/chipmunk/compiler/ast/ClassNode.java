@@ -1,36 +1,37 @@
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 
-public class ClassNode extends BlockNode {
+public class ClassNode extends BlockNode implements SymbolNode {
 	
-	protected String name;
 	protected boolean isFinal;
 	protected String superName;
+	protected Symbol symbol;
 	
 	public ClassNode(){
 		super(SymbolTable.Scope.CLASS);
-		name = "";
+		symbol = new Symbol();
 		isFinal = false;
 	}
 	
 	public ClassNode(String name){
 		super();
-		this.name = name;
+		symbol.setName(name);
 	}
 	
 	public ClassNode(String name, String superName){
 		super();
-		this.name = name;
+		symbol.setName(name);
 		this.superName = superName;
 	}
 
 	public String getName(){
-		return name;
+		return symbol.getName();
 	}
 
 	public void setName(String name){
-		this.name = name;
+		symbol.setName(name);
 	}
 	
 	public boolean isFinal(){
@@ -57,7 +58,7 @@ public class ClassNode extends BlockNode {
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append("(class ");
-		builder.append(name);
+		builder.append(symbol.getName());
 		
 		if(superName != null){
 			builder.append(" extends ");
@@ -71,5 +72,10 @@ public class ClassNode extends BlockNode {
 		
 		builder.append(")");
 		return builder.toString();
+	}
+
+	@Override
+	public Symbol getSymbol() {
+		return symbol;
 	}
 }

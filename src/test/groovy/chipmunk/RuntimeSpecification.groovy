@@ -36,5 +36,13 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 5
 	}
+	
+	def "Run ModuleWithClassInitializer.chp"(){
+		when:
+		def result = compileAndRun("ModuleWithClassInitializer.chp")
+		
+		then:
+		result.intValue() == 5
+	}
 
 }
