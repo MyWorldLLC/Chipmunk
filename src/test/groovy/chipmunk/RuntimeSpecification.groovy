@@ -61,4 +61,28 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 10
 	}
+	
+	def "Run ModuleStarImport.chp"(){
+		when:
+		def result = compileAndRun("ModuleStarImport.chp")
+		
+		then:
+		result.intValue() == 10
+	}
+	
+	def "Run ModuleFromImport.chp"(){
+		when:
+		def result = compileAndRun("ModuleFromImport.chp")
+		
+		then:
+		result.intValue() == 10
+	}
+	
+	def "Run ModuleFromImportStar.chp"(){
+		when:
+		def result = compileAndRun("ModuleFromImportStar.chp")
+		
+		then:
+		result.intValue() == 10
+	}
 }
