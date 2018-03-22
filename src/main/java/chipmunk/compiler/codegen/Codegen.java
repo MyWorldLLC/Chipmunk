@@ -76,6 +76,16 @@ public class Codegen implements AstVisitor {
 		
 		Deque<SymbolTable> trace = getSymbolTrace(name);
 		
+		if(trace == null){
+			// no variable with that name was returned. Assume it was a module-level symbol
+			if(assign){
+				assembler.setModule(name);
+			}else{
+				assembler.getModule(name);
+			}
+			return;
+		}
+		
 		// NOTE: in general use, the null check is unneeded because all accessing code
 		// will be inside a method. In some of the tests, however, this is not the case
 		// so leave this in here.
@@ -175,9 +185,8 @@ public class Codegen implements AstVisitor {
 			if(!found){
 				symTab = symTab.getParent();
 				if(symTab == null){
-					// TODO - need better exception type
-					// TODO - undeclared variables as module variables?
-					throw new IllegalArgumentException("Undeclared variable " + name);
+					// variable was not found
+					return null;
 				}
 			}
 		}

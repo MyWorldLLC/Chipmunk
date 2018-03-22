@@ -38,6 +38,10 @@ public class CModule {
 		public boolean isImportAll(){
 			return importAll;
 		}
+		
+		public boolean isAliased(){
+			return aliases.size() != 0;
+		}
 	}
 	
 	private final List<Object> constants;

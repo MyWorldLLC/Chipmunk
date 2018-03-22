@@ -255,8 +255,7 @@ public class ChipmunkVM {
 					for(CModule.Import importedModule : module.getImports()){
 						loadModule(importedModule.getName());
 					}
-					
-					initializationQueue.push(module);
+					initializationQueue.add(module);
 					
 					return;
 				}
@@ -377,7 +376,7 @@ public class ChipmunkVM {
 					
 					for(int i = 0; i < symbols.size(); i++){
 						
-						if(aliases != null){
+						if(moduleImport.isAliased()){
 							module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
 						}else{
 							module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
@@ -909,7 +908,7 @@ public class ChipmunkVM {
 					break;
 				case GETMODULE:
 					this.push(method.getModule().getNamespace()
-							.get(constantPool.get(fetchInt(instructions, ip + 1)).toString()));
+							.get((String)constantPool.get(fetchInt(instructions, ip + 1))));
 					ip += 5;
 					break;
 				case SETMODULE:

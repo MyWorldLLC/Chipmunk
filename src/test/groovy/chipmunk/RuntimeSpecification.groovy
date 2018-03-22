@@ -1,6 +1,7 @@
 package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.modules.reflectiveruntime.CMethod
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {
@@ -51,5 +52,13 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 11
+	}
+	
+	def "Run ModuleImports.chp"(){
+		when:
+		def result = compileAndRun("ModuleImports.chp")
+		
+		then:
+		result.intValue() == 10
 	}
 }
