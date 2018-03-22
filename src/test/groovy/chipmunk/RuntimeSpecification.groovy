@@ -42,7 +42,7 @@ class RuntimeSpecification extends Specification {
 		def result = compileAndRun("ModuleWithClassInitializer.chp")
 		
 		then:
-		result.intValue() == 5
+		result.intValue() == 10
 	}
 
 }

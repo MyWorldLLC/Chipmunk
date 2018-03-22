@@ -258,8 +258,14 @@ public class ExpressionVisitor implements AstVisitor {
 	private void emitCall(OperatorNode op){
 		if(op.getLeft() instanceof OperatorNode 
 				&& ((OperatorNode) op.getLeft()).getOperator().getType() == Token.Type.DOT){
+			OperatorNode dotOp = (OperatorNode) op.getLeft();
 			// TODO - this is a dot access, so issue a callAt opcode
+			IdNode callID = (IdNode) dotOp.getRight();
 			
+			dotOp.getLeft().visit(this);
+			
+			int argCount = op.getChildren().size() - 1;
+			assembler.callAt(callID.getID().getText(), (byte)argCount);
 			
 		}else{
 			int argCount = op.getChildren().size() - 1;

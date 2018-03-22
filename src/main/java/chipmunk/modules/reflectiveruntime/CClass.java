@@ -3,13 +3,11 @@ package chipmunk.modules.reflectiveruntime;
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 
-public class CClass implements RuntimeObject, Initializable {
+public class CClass implements RuntimeObject, Initializable, CallInterceptor {
 
 	private final Namespace sharedAttributes;
-	private final Namespace sharedMethods;
 	
 	private final Namespace instanceAttributes;
-	private final Namespace instanceMethods;
 	
 	private final String name;
 	private final CModule module;
@@ -19,10 +17,8 @@ public class CClass implements RuntimeObject, Initializable {
 	
 	public CClass(String name, CModule module){
 		sharedAttributes = new Namespace();
-		sharedMethods = new Namespace();
 		
 		instanceAttributes = new Namespace();
-		instanceMethods = new Namespace();
 		
 		this.name = name;
 		this.module = module;
@@ -32,16 +28,8 @@ public class CClass implements RuntimeObject, Initializable {
 		return sharedAttributes;
 	}
 	
-	public Namespace getMethods(){
-		return sharedMethods;
-	}
-	
 	public Namespace getInstanceAttributes(){
 		return instanceAttributes;
-	}
-	
-	public Namespace getInstanceMethods(){
-		return instanceMethods;
 	}
 	
 	public String getName(){
@@ -55,7 +43,7 @@ public class CClass implements RuntimeObject, Initializable {
 	public Object call(ChipmunkVM vm, Byte paramCount){
 		
 		// TODO - memory tracing
-		CObject obj = new CObject(this, instanceAttributes.duplicate(), instanceMethods.duplicate());
+		CObject obj = new CObject(this, instanceAttributes.duplicate());
 		obj.setInitializer(instanceInitializer.duplicate(vm));
 		obj.getInitializer().bind(obj);
 		
@@ -100,6 +88,15 @@ public class CClass implements RuntimeObject, Initializable {
 	@Override
 	public CMethod getInitializer() {
 		return sharedInitializer;
+	}
+
+	@Override
+	public Object callAt(ChipmunkVM vm, String methodName, int paramCount) {
+		CMethod method = (CMethod) sharedAttributes.get(methodName);
+		if(method != null){
+			return vm.dispatch(method, paramCount);
+		}
+		return null;
 	}
 	
 }

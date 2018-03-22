@@ -76,6 +76,7 @@ import chipmunk.modules.reflectiveruntime.CMap;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.modules.reflectiveruntime.CallInterceptor;
 import chipmunk.modules.reflectiveruntime.Initializable;
 import chipmunk.modules.reflectiveruntime.RuntimeObject;
 
@@ -1042,6 +1043,15 @@ public class ChipmunkVM {
 
 	private Object callExternal(Object target, String methodName, byte paramCount) {
 
+		if(target instanceof CallInterceptor){
+			Object result = ((CallInterceptor) target).callAt(this, methodName, paramCount);
+			// null result indicates that the interceptor did not intercept the call, so
+			// continue with a plain dispatch
+			if(result != null){
+				return result;
+			}
+		}
+		
 		Object[] params = null;
 
 		if (target instanceof RuntimeObject) {
@@ -1060,7 +1070,7 @@ public class ChipmunkVM {
 				params[i] = this.pop();
 			}
 		}
-
+		
 		Class<?>[] paramTypes = new Class<?>[params.length];
 
 		for (int i = 0; i < params.length; i++) {
