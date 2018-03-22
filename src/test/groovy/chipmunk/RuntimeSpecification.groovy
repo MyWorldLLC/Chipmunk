@@ -45,4 +45,11 @@ class RuntimeSpecification extends Specification {
 		result.intValue() == 10
 	}
 
+	def "Run ClassAndInstanceVariables.chp"(){
+		when:
+		def result = compileAndRun("ClassAndInstanceVariables.chp")
+		
+		then:
+		result.intValue() == 11
+	}
 }
