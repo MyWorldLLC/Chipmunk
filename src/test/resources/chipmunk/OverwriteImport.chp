@@ -1,0 +1,15 @@
+module foo
+
+var asdf = 5
+
+def getAsdf(){
+	return asdf
+}
+
+module test
+from foo import asdf, getAsdf
+
+def main(){
+	asdf = 2
+	return asdf + getAsdf()
+}

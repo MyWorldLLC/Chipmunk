@@ -85,4 +85,28 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 10
 	}
+	
+	def "Run ModuleSingleFromImport.chp"(){
+		when:
+		def result = compileAndRun("ModuleSingleFromImport.chp")
+		
+		then:
+		result.intValue() == 10
+	}
+	
+	def "Run ModuleSingleFromImportAliased.chp"(){
+		when:
+		def result = compileAndRun("ModuleSingleFromImportAliased.chp")
+		
+		then:
+		result.intValue() == 10
+	}
+	
+	def "Run OverwriteImport.chp"(){
+		when:
+		def result = compileAndRun("OverwriteImport.chp")
+		
+		then:
+		thrown(AngryChipmunk)
+	}
 }
