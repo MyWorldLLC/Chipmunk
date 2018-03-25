@@ -19,6 +19,7 @@ class RuntimeSpecification extends Specification {
 		ChipmunkScript script = new ChipmunkScript()
 		
 		script.setEntryCall("test", "main")
+		
 		return vm.run(script)
 	}
 	
@@ -52,6 +53,14 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 11
+	}
+	
+	def "Run SetClassAndInstanceVariables.chp"(){
+		when:
+		def result = compileAndRun("SetClassAndInstanceVariables.chp")
+		
+		then:
+		result.intValue() == 9
 	}
 	
 	def "Run ModuleImports.chp"(){

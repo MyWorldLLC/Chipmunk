@@ -1,0 +1,25 @@
+module test
+
+class Foo {
+	shared var bar = 5
+	var age = 2
+	
+	def Foo(){
+		age = 6
+	}
+	
+	shared def getBar(){
+		return bar
+	}
+	
+	def addAgeAndBar(){
+		return age + bar
+	}
+}
+
+def main(){
+	var myFoo = Foo()
+	Foo.bar = 6
+	myFoo.age = 3
+	return myFoo.addAgeAndBar()
+}
