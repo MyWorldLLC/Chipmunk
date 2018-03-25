@@ -127,6 +127,10 @@ public class ExpressionVisitor implements AstVisitor {
 				op.visitChildren(this);
 				assembler.mul();
 				return;
+			case DOUBLESTAR:
+				op.visitChildren(this);
+				assembler.pow();
+				return;
 			case FSLASH:
 				op.visitChildren(this);
 				assembler.div();
@@ -139,10 +143,6 @@ public class ExpressionVisitor implements AstVisitor {
 				op.visitChildren(this);
 				assembler.mod();
 				return;
-			case DOUBLESTAR:
-				op.visitChildren(this);
-				assembler.pow();
-				return;
 			case DOUBLEDOTLESS:
 				op.visitChildren(this);
 				assembler.range(false);
@@ -151,13 +151,13 @@ public class ExpressionVisitor implements AstVisitor {
 				op.visitChildren(this);
 				assembler.range(true);
 				return;
-			case DOUBLEBAR:
-				op.visitChildren(this);
-				assembler.or();
-				return;
 			case BAR:
 				op.visitChildren(this);
 				assembler.bor();
+				return;
+			case DOUBLEBAR:
+				op.visitChildren(this);
+				assembler.or();
 				return;
 			case EXCLAMATION:
 				op.visitChildren(this);
