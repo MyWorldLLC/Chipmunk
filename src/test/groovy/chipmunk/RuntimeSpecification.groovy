@@ -134,7 +134,7 @@ class RuntimeSpecification extends Specification {
 		def result = compileAndRun("List.chp")
 		
 		then:
-		result.intValue() == 5
+		result.intValue() == 10
 	}
 	
 	def "Run Map.chp"(){
