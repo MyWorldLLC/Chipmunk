@@ -115,9 +115,18 @@ class ExpressionVisitorSpecification extends Specification {
 		result instanceof CString
 		result.stringValue() == string
 		
-		//where:
-		//string
-		//"\"Hello, World!\""
+		where:
+		string              		 | _
+		"Hello, World!"     		 | _
+		"\"Hello, World!\"" 		 | _
+		'"Hello, World!"'			 | _
+		'Hello, World!'				 | _
+		'\'Hello, World!\'' 		 | _
+		"\\\"Hello, World!\\\"" 	 | _
+		'\\\"Hello, World!\\\"' 	 | _
+		'\\\'Hello, World!\\\'' 	 | _
+		"\\\"Hello, \\\" World!\\\"" | _
+		"\\\'Hello, \\\' World!\\\'" | _
 	}
 
 	def "Generate and run code for 1 + 2"(){
