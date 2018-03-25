@@ -106,13 +106,18 @@ class ExpressionVisitorSpecification extends Specification {
 		result.getValue() == 0b101
 	}
 	
-	def "Evaluate String literal \"Hello, World!\""(){
+	@Ignore
+	def "Test escaped and unescaped strings"(def string){
 		when:
-		def result = parseAndCall("\"Hello, World!\"")
+		def result = parseAndCall(string)
 		
 		then:
 		result instanceof CString
-		result.stringValue() == "Hello, World!"
+		result.stringValue() == string
+		
+		//where:
+		//string
+		//"\"Hello, World!\""
 	}
 
 	def "Generate and run code for 1 + 2"(){

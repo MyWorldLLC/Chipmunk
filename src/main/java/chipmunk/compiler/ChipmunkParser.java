@@ -72,7 +72,6 @@ public class ChipmunkParser {
 		
 		register(Token.Type.DOUBLESTAR, new PowerOperatorParselet());
 		
-		register(Token.Type.DOTAMPERSAND, new DotOperatorParselet());
 		register(Token.Type.DOT, new DotOperatorParselet());
 		
 		register(Token.Type.DOUBLELESSTHAN, new ShiftRangeOperatorParselet());

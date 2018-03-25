@@ -206,11 +206,6 @@ public class ExpressionVisitor implements AstVisitor {
 			case LPAREN:
 				emitCall(op);
 				return;
-			case DOTAMPERSAND:
-				op.visitChildren(this);
-				// TODO - need bytecodes & assembler support for accessing the method table
-				assembler.pop();
-				break;
 			case DOT:
 				emitDotGet(op);
 				return;
