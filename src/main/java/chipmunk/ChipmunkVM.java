@@ -934,7 +934,7 @@ public class ChipmunkVM {
 				}
 
 				if (!(e instanceof AngryChipmunk)) {
-					e = new AngryChipmunk(e);
+					e = new AngryChipmunk(String.format("Error at ip: %d", ip), e);
 				}
 				// TODO - jump to exception handler (if present)
 				// or fill in trace info and propagate

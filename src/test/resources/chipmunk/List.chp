@@ -1,0 +1,7 @@
+module test
+
+def main(){
+	var list = [1, 2, 3]
+	list.add(4)
+	return list[0] + list[3]
+}

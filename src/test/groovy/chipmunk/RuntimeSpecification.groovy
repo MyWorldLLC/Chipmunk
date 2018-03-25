@@ -9,7 +9,7 @@ class RuntimeSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
-	def compileAndRun(String scriptName){
+	def compileAndRun(String scriptName, boolean disassembleOnException = false){
 		List modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
 		
 		MemoryModuleLoader loader = new MemoryModuleLoader()
@@ -20,7 +20,17 @@ class RuntimeSpecification extends Specification {
 		
 		script.setEntryCall("test", "main")
 		
-		return vm.run(script)
+		if(!disassembleOnException){
+			return vm.run(script)
+		}else{
+			try{
+				return vm.run(script)
+			}catch(Exception e){
+				CMethod method = script.getModules().get("test").getNamespace().get("main")
+				println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
+				throw e
+			}
+		}
 	}
 	
 	def "Run SimpleMethod.chp"(){
@@ -117,5 +127,13 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		thrown(AngryChipmunk)
+	}
+	
+	def "Run List.chp"(){
+		when:
+		def result = compileAndRun("List.chp", true)
+		
+		then:
+		result.intValue() == 5
 	}
 }
