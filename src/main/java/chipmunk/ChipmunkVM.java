@@ -1034,7 +1034,7 @@ public class ChipmunkVM {
 		try {
 			Object retVal = method.invoke(target, params);
 			Arrays.fill(params, null);
-			return retVal;
+			return retVal != null ? retVal : new CNull();
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
@@ -1078,7 +1078,8 @@ public class ChipmunkVM {
 
 		try {
 			Method method = lookupMethod(target, methodName, paramTypes);
-			return method.invoke(target, params);
+			Object retVal = method.invoke(target, params);
+			return retVal != null ? retVal : new CNull();
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		}
