@@ -1,0 +1,7 @@
+module test
+
+def main(){
+	var map = {"one":1, "two":2, "three":3}
+	map.put("four", 4)
+	return map['one'] + map['four']
+}
