@@ -1,6 +1,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.ChipmunkLexer;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
@@ -58,10 +59,7 @@ public class ExpressionVisitor implements AstVisitor {
 			case STRINGLITERAL:
 				// strip quotes
 				String value = literal.getText().substring(1, literal.getText().length() - 1);
-				// unescape quote marks
-				value = value.replaceAll("\\\\\"", "\"");
-				value = value.replaceAll("\\\\\'", "'");
-				assembler.push(new CString(value));
+				assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
 				return;
 				
 				default:

@@ -106,27 +106,24 @@ class ExpressionVisitorSpecification extends Specification {
 		result.getValue() == 0b101
 	}
 	
-	@Ignore
-	def "Test escaped and unescaped strings"(def string){
+	def "Test escaped and unescaped strings"(def source, def expected){
 		when:
-		def result = parseAndCall(string)
+		def result = parseAndCall(source)
 		
 		then:
 		result instanceof CString
-		result.stringValue() == string
+		result.stringValue() == expected
 		
 		where:
-		string              		 | _
-		"Hello, World!"     		 | _
-		"\"Hello, World!\"" 		 | _
-		'"Hello, World!"'			 | _
-		'Hello, World!'				 | _
-		'\'Hello, World!\'' 		 | _
-		"\\\"Hello, World!\\\"" 	 | _
-		'\\\"Hello, World!\\\"' 	 | _
-		'\\\'Hello, World!\\\'' 	 | _
-		"\\\"Hello, \\\" World!\\\"" | _
-		"\\\'Hello, \\\' World!\\\'" | _
+		source              		 	| 	expected
+		'"Double quotes"'			 	| "Double quotes"
+		"'Single quotes'"			 	| "Single quotes"
+		"'\"Escaped double quotes\"'"	| '"Escaped double quotes"'
+		'"\'Escaped single quotes\'"' 	| "'Escaped single quotes'"
+		"'\\\"Hello, World!\\\"'" 	 	| '\"Hello, World!\"'
+		"'\\\'Hello, World!\\\''" 	 	| "\'Hello, World!\'"
+		'"\\"Hello, \\" World!\\""' 	| '"Hello, " World!"'
+		"'\\'Hello, \\' World!\\''" 	| "'Hello, ' World!'"
 	}
 
 	def "Generate and run code for 1 + 2"(){
