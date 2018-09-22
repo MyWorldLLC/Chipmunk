@@ -4,6 +4,8 @@ import chipmunk.AngryChipmunk;
 
 public class BadConversionChipmunk extends AngryChipmunk {
 
+	private static final long serialVersionUID = 2673936336954560112L;
+	
 	private final Object obj;
 	private final Class<?> targetClass;
 	

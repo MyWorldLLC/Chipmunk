@@ -70,4 +70,8 @@ public class Opcodes {
 	public static final byte GETMODULE = 0x35;
 	public static final byte SETMODULE = 0x36;
 	
+	// Closures (always local)
+	public static final byte GETCLOSURE = 0x37;
+	public static final byte SETCLOSURE = 0x38;
+	
 }

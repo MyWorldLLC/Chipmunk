@@ -7,6 +7,7 @@ import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.ListNode;
 import chipmunk.compiler.ast.LiteralNode;
@@ -90,6 +91,10 @@ public class ExpressionVisitor implements AstVisitor {
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
 			visitor.visit(node);
 			assembler.push(visitor.getMethod());
+		}else if(node instanceof ClassNode) {
+			//ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool());
+			//visitor.visit(node);
+			//assembler.push(visitor.getCClass());
 		}else if(node instanceof OperatorNode){
 			
 			OperatorNode op = (OperatorNode) node;

@@ -4,24 +4,30 @@ public class Symbol {
 	
 	protected boolean isShared;
 	protected boolean isFinal;
+	protected boolean isClosure;
 	protected String name;
 	
 	public Symbol(){
-		this("", false, false);
+		this("", false, false, false);
 	}
 	
 	public Symbol(String name){
-		this(name, false, false);
+		this(name, false, false, false);
 	}
 	
 	public Symbol(String name, boolean isFinal){
-		this(name, isFinal, false);
+		this(name, isFinal, false, false);
 	}
 	
-	public Symbol(String name, boolean isFinal, boolean isShared){
+	public Symbol(String name, boolean isFinal, boolean isShared) {
+		this(name, isFinal, isShared, false);
+	}
+	
+	public Symbol(String name, boolean isFinal, boolean isShared, boolean isClosure){
 		this.name = name;
 		this.isFinal = isFinal;
 		this.isShared = isShared;
+		this.isClosure = isClosure;
 	}
 
 	public boolean isShared(){
@@ -38,6 +44,14 @@ public class Symbol {
 
 	public void setFinal(boolean isFinal){
 		this.isFinal = isFinal;
+	}
+	
+	public boolean isClosure() {
+		return isClosure;
+	}
+	
+	public void setClosure(boolean isClosure) {
+		this.isClosure = isClosure;
 	}
 
 	public String getName(){

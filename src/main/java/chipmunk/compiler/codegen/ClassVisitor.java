@@ -53,11 +53,11 @@ public class ClassVisitor implements AstVisitor {
 			
 			cClass = new CClass(classNode.getName(), module);
 			
-			// TODO - inheritance
 			classNode.visitChildren(this);
 			
 		}else if(node instanceof VarDecNode){
 			// TODO - final variables
+			// TODO - compositional inheritance
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = null;
