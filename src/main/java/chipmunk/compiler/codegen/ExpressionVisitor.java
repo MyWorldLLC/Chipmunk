@@ -30,6 +30,16 @@ public class ExpressionVisitor implements AstVisitor {
 		assembler = codegen.getAssembler();
 		this.symbols = codegen.getActiveSymbols();
 	}
+	
+	public static boolean isExpressionNode(AstNode node) {
+		return node instanceof IdNode
+				|| node instanceof LiteralNode
+				|| node instanceof ListNode
+				|| node instanceof MapNode
+				|| node instanceof MethodNode
+				|| node instanceof ClassNode
+				|| node instanceof OperatorNode;
+	}
 
 	@Override
 	public void visit(AstNode node) {

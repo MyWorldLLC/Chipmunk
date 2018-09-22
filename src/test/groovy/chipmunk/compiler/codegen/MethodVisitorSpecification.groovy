@@ -378,7 +378,8 @@ class MethodVisitorSpecification extends Specification {
 		when:
 		def result = parseAndCall("""
 			def method(){
-				var v1 = def(a){return a}
+				# Use shorthand single expression syntax
+				var v1 = def(a) a
 				return v1(1)
 			}
 			""", "")
@@ -392,7 +393,7 @@ class MethodVisitorSpecification extends Specification {
 		when:
 		def result = parseAndCall("""
 			def method(){
-				var v1 = def(a, b){return a + b}
+				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
 			""", "")

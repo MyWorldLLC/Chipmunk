@@ -354,7 +354,16 @@ public class ChipmunkParser {
 		}
 		forceNext(Token.Type.RPAREN);
 		skipNewlines();
-		parseBlockBody(node);
+		
+		// If the next token is a block start, parse this as a regular
+		// method. Otherwise, treat it as a single expression method
+		// with an automatic return.
+		if(peek(Token.Type.LBRACE)) {
+			parseBlockBody(node);
+		}else {
+			AstNode expression = parseExpression();
+			node.addToBody(expression);
+		}
 		
 		endNode(node);
 		return node;
@@ -380,7 +389,16 @@ public class ChipmunkParser {
 		}
 		forceNext(Token.Type.RPAREN);
 		skipNewlines();
-		parseBlockBody(node);
+		
+		// If the next token is a block start, parse this as a regular
+		// method. Otherwise, treat it as a single expression method
+		// with an automatic return.
+		if(peek(Token.Type.LBRACE)) {
+			parseBlockBody(node);
+		}else {
+			AstNode expression = parseExpression();
+			node.addToBody(expression);
+		}
 		
 		endNode(node);
 		return node;
