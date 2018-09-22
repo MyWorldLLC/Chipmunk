@@ -48,8 +48,8 @@ public class ClassVisitor implements AstVisitor {
 			sharedInitAssembler = new ChipmunkAssembler(constantPool);
 			instanceInitAssembler = new ChipmunkAssembler(constantPool);
 
-			sharedInitCodegen = new Codegen(sharedInitAssembler, classNode.getSymbolTable());
-			instanceInitCodegen = new Codegen(instanceInitAssembler, classNode.getSymbolTable());
+			sharedInitCodegen = new Codegen(sharedInitAssembler, classNode.getSymbolTable(), module);
+			instanceInitCodegen = new Codegen(instanceInitAssembler, classNode.getSymbolTable(), module);
 			
 			cClass = new CClass(classNode.getName(), module);
 			
@@ -96,7 +96,7 @@ public class ClassVisitor implements AstVisitor {
 				// call instance initializer before doing anything else
 				genInitCall(assembler);
 				
-				visitor = new MethodVisitor(assembler);
+				visitor = new MethodVisitor(assembler, module);
 				visitor.setDefaultReturn(false);
 				methodNode.visit(visitor);
 
@@ -105,17 +105,15 @@ public class ClassVisitor implements AstVisitor {
 				
 			}else{
 				// regular method, use shared constant pool
-				visitor = new MethodVisitor(constantPool);
+				visitor = new MethodVisitor(constantPool, module);
 				methodNode.visit(visitor);
 			}
 			
 				
 			CMethod method = visitor.getMethod();
 			
-			method.bind(cClass);
-			method.setModule(module);
-			
 			if(methodNode.getSymbol().isShared()){
+				method.bind(cClass);
 				cClass.getAttributes().set(methodNode.getName(), method);
 			}else{
 				cClass.getInstanceAttributes().set(methodNode.getName(), method);

@@ -15,6 +15,7 @@ import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.reflectiveruntime.CMethod;
+import chipmunk.modules.reflectiveruntime.CModule;
 
 public class MethodVisitor implements AstVisitor {
 
@@ -24,17 +25,21 @@ public class MethodVisitor implements AstVisitor {
 	protected Codegen codegen;
 	protected MethodNode methodNode;
 	
+	protected CModule module;
+	
 	protected boolean defaultReturn;
 	
 	
-	public MethodVisitor(ChipmunkAssembler assembler){
+	public MethodVisitor(ChipmunkAssembler assembler, CModule module){
 		this.assembler = assembler;
 		defaultReturn = true;
+		this.module = module;
 	}
 	
-	public MethodVisitor(List<Object> constantPool){
+	public MethodVisitor(List<Object> constantPool, CModule module){
 		assembler = new ChipmunkAssembler(constantPool);
 		defaultReturn = true;
+		this.module = module;
 	}
 	
 	@Override
@@ -50,12 +55,12 @@ public class MethodVisitor implements AstVisitor {
 			
 			symbols = methodNode.getSymbolTable();
 			
-			codegen = new Codegen(assembler, symbols);
+			codegen = new Codegen(assembler, symbols, module);
 			
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool()));
+			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
@@ -116,6 +121,7 @@ public class MethodVisitor implements AstVisitor {
 		method.setConstantPool(assembler.getConstantPool());
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
+		method.setModule(module);
 		return method;
 	}
 	

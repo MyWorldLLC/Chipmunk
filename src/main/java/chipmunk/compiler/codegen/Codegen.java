@@ -13,6 +13,7 @@ import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.MethodNode;
+import chipmunk.modules.reflectiveruntime.CModule;
 
 public class Codegen implements AstVisitor {
 
@@ -20,20 +21,28 @@ public class Codegen implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
+	protected CModule module;
+	
 	protected List<LoopLabels> loopStack;
 	
-	public Codegen(){
+	public Codegen(CModule module){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
+		this.module = module;
 	}
 	
-	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols){
+	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
 		this.assembler = assembler;
 		this.symbols = symbols;
+		this.module = module;
+	}
+	
+	public CModule getModule() {
+		return module;
 	}
 	
 	public void setVisitorForNode(Class<? extends AstNode> nodeType, AstVisitor visitor){

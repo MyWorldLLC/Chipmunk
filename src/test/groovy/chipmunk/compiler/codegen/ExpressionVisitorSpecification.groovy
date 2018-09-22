@@ -1,7 +1,7 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkVM
 import chipmunk.ChipmunkDisassembler
+import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
@@ -12,15 +12,15 @@ import chipmunk.modules.reflectiveruntime.CInteger
 import chipmunk.modules.reflectiveruntime.CList
 import chipmunk.modules.reflectiveruntime.CMap
 import chipmunk.modules.reflectiveruntime.CMethod
+import chipmunk.modules.reflectiveruntime.CModule
 import chipmunk.modules.reflectiveruntime.CString
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {
 
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
-	Codegen codegen = new Codegen()
+	Codegen codegen = new Codegen(new CModule())
 	ChipmunkAssembler assembler = codegen.getAssembler()
 	ChipmunkVM context = new ChipmunkVM()
 	ExpressionVisitor visitor = new ExpressionVisitor(codegen)

@@ -98,7 +98,7 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
-			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool());
+			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
 			assembler.push(visitor.getMethod());
 		}else if(node instanceof ClassNode) {

@@ -51,6 +51,10 @@ public class CModule {
 	
 	private CMethod initializer;
 	
+	public CModule() {
+		this(DEFAULT);
+	}
+	
 	public CModule(String name){
 		this(name, new ArrayList<Object>());
 	}

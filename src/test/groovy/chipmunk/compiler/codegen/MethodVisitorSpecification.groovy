@@ -1,13 +1,14 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkVM
 import chipmunk.ChipmunkDisassembler
+import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.reflectiveruntime.CBoolean
 import chipmunk.modules.reflectiveruntime.CInteger
 import chipmunk.modules.reflectiveruntime.CMethod
+import chipmunk.modules.reflectiveruntime.CModule
 import chipmunk.modules.reflectiveruntime.CNull
 import spock.lang.Specification
 
@@ -17,7 +18,8 @@ class MethodVisitorSpecification extends Specification {
 	ChipmunkParser parser
 	List constantPool = []
 	ChipmunkVM context = new ChipmunkVM()
-	MethodVisitor visitor = new MethodVisitor(constantPool)
+	CModule module = new CModule()
+	MethodVisitor visitor = new MethodVisitor(constantPool, module)
 	
 	def "Parse, generate, and run empty method def"(){
 		expect:

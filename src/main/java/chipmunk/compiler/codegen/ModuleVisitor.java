@@ -34,7 +34,7 @@ public class ModuleVisitor implements AstVisitor {
 			
 			ModuleNode moduleNode = (ModuleNode) node;
 			module = new CModule(moduleNode.getName(), constantPool);
-			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable());
+			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable(), module);
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
@@ -58,7 +58,7 @@ public class ModuleVisitor implements AstVisitor {
 			
 		}else if(node instanceof MethodNode){
 			
-			MethodVisitor visitor = new MethodVisitor(constantPool);
+			MethodVisitor visitor = new MethodVisitor(constantPool, module);
 			node.visit(visitor);
 			CMethod method = visitor.getMethod();
 			
