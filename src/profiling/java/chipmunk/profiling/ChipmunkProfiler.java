@@ -13,6 +13,7 @@ import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.codegen.MethodVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
 import chipmunk.modules.reflectiveruntime.CMethod;
+import chipmunk.modules.reflectiveruntime.CModule;
 
 public class ChipmunkProfiler {
 	
@@ -33,7 +34,7 @@ public class ChipmunkProfiler {
 		root.visit(new SymbolTableBuilderVisitor());
 		
 		List<Object> constantPool = new ArrayList<Object>();
-		MethodVisitor visitor = new MethodVisitor(constantPool);
+		MethodVisitor visitor = new MethodVisitor(constantPool, new CModule());
 		
 		root.visit(visitor);
 		return visitor.getMethod();
