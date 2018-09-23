@@ -6,6 +6,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
+	protected boolean isTrait;
 	protected Symbol symbol;
 	
 	
@@ -13,6 +14,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 		super();
 		hasVar = false;
 		hasAssignExpr = false;
+		isTrait = false;
 		symbol = new Symbol();
 	}
 	
@@ -48,6 +50,14 @@ public class VarDecNode extends AstNode implements SymbolNode {
 		}else{
 			hasAssignExpr = false;
 		}
+	}
+	
+	public boolean isTrait() {
+		return isTrait;
+	}
+	
+	public void setTrait(boolean isTrait) {
+		this.isTrait = isTrait;
 	}
 	
 	public IdNode getIDNode(){

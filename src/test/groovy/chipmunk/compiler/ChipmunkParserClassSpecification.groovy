@@ -18,19 +18,6 @@ class ChipmunkParserClassSpecification extends Specification {
 		node.toString() == "(class Foobar)"
 	}
 	
-	def "parse class Foobar extends Foo{}"(){
-		setup:
-		def lexer = new ChipmunkLexer()
-		def tokens = lexer.lex("class Foobar extends Foo{}")
-		
-		when:
-		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ClassNode node = parser.parseClassDef()
-		
-		then:
-		node.toString() == "(class Foobar extends Foo)"
-	}
-	
 	def "parse class with a variable declaration"(){
 		setup:
 		def lexer = new ChipmunkLexer()

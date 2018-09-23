@@ -84,6 +84,15 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor {
 		vm.traceMem(8);
 		return sharedAttributes.get(name);
 	}
+	
+	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {
+		if(clazz.getName().equals("Class") && clazz.getModule().getName().equals("chipmunk.lang")) {
+			vm.traceBoolean();
+			return new CBoolean(true);
+		}
+		vm.traceBoolean();
+		return new CBoolean(false);
+	}
 
 	@Override
 	public CMethod getInitializer() {

@@ -262,19 +262,11 @@ public class ChipmunkParser {
 		
 		ClassNode node = new ClassNode();
 		startNode(node);
-		if(dropNext(Token.Type.FINAL)){
-			node.setFinal(true);
-		}
 		
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
 		node.setName(id.getText());
-		
-		if(peek(Token.Type.EXTENDS)){
-			dropNext(Token.Type.EXTENDS);
-			node.setSuperName(getNext(Token.Type.IDENTIFIER).getText());
-		}
 		
 		forceNext(Token.Type.LBRACE);
 		skipNewlines();
@@ -290,8 +282,8 @@ public class ChipmunkParser {
 			Symbol symbol = new Symbol();
 			symbol.setShared(shared);
 			
-			if(checkVarDec()){
-				VarDecNode varNode = parseVarDec();
+			if(checkVarOrTraitDec()){
+				VarDecNode varNode = parseVarOrTraitDec();
 				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
@@ -405,16 +397,43 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkVarDec(){
-		return checkVarDec(true);
+		return peek(Token.Type.VAR) || peek(Token.Type.FINAL, Token.Type.VAR);
 	}
 	
-	public boolean checkVarDec(boolean allowFinal){
-		if(allowFinal){
-			return peek(Token.Type.FINAL, Token.Type.VAR) || peek(Token.Type.VAR);
-		}else{
-			return peek(Token.Type.VAR);
-		}
+	public boolean checkVarOrTraitDec() {
+		return peek(Token.Type.VAR)
+				|| peek(Token.Type.TRAIT)
+				|| peek(Token.Type.FINAL, Token.Type.VAR)
+				|| peek(Token.Type.FINAL, Token.Type.TRAIT);
 	}
+	
+	public VarDecNode parseVarOrTraitDec() {
+		
+		VarDecNode dec = new VarDecNode();
+		startNode(dec);
+		if(dropNext(Token.Type.FINAL)){
+			dec.getSymbol().setFinal(true);
+		}
+		
+		if(peek(Token.Type.TRAIT)) {
+			dropNext();
+			dec.setTrait(true);
+		}else {
+			forceNext(Token.Type.VAR);
+		}
+		Token id = getNext(Token.Type.IDENTIFIER);
+		
+		dec.setVar(new IdNode(id));
+		
+		if(peek(Token.Type.EQUALS)){
+			forceNext(Token.Type.EQUALS);
+			dec.setAssignExpr(parseExpression());
+		}
+		
+		endNode(dec);
+		return dec;
+	}
+	
 	public VarDecNode parseVarDec(){
 		VarDecNode dec = new VarDecNode();
 		startNode(dec);

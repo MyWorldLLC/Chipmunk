@@ -1,5 +1,7 @@
 package chipmunk.modules.reflectiveruntime;
 
+import java.util.List;
+
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 
@@ -30,7 +32,6 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	}
 	
 	public CClass getClass(ChipmunkVM vm){
-		vm.traceMem(8);
 		return cClass;
 	}
 	
@@ -51,14 +52,40 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	}
 	
 	public Object setAttr(ChipmunkVM vm, String name, Object value){
-		vm.traceMem(8);
+		vm.traceReference();
 		attributes.set(name, value);
 		return value;
 	}
 	
 	public Object getAttr(ChipmunkVM vm, String name){
-		vm.traceMem(8);
 		return attributes.get(name);
+	}
+	
+	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {
+		if(clazz == cClass) {
+			vm.traceBoolean();
+			return new CBoolean(true);
+		}else {
+			List<Object> traitAttributes = attributes.traitAttributes();
+			for(int i = 0; i < traitAttributes.size(); i++) {
+				Object trait = traitAttributes.get(i);
+				if(trait instanceof CObject) {
+					CBoolean isInstance = ((CObject) trait).instanceOf(vm, clazz);
+					if(isInstance.booleanValue()) {
+						vm.traceBoolean();
+						return isInstance;
+					}
+				}else if(trait instanceof CClass) {
+					CBoolean isInstance = ((CClass) trait).instanceOf(vm, clazz);
+					if(isInstance.booleanValue()) {
+						vm.traceBoolean();
+						return isInstance;
+					}
+				}
+			}
+		}
+		vm.traceBoolean();
+		return new CBoolean(false);
 	}
 	
 	@Override
