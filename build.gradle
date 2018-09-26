@@ -1,3 +1,16 @@
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.8'
+    }
+}
+
+
+
 plugins {
 	id 'me.champeau.gradle.jmh' version '0.4.5'
 }
@@ -5,6 +18,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
+apply plugin: 'org.asciidoctor.convert'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -16,6 +30,8 @@ repositories {
 }
 
 dependencies {
+	compile 'com.oracle.truffle:truffle-api:1.0.0-rc6'
+	compile 'com.oracle.truffle:truffle-dsl-processor:1.0.0-rc6'
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     jmh 'org.openjdk.jmh:jmh-core:1.19'
 }
@@ -45,6 +61,10 @@ sourceSets {
 			srcDir 'src/profiling/resources'
 		}
 	}
+}
+
+asciidoctor {
+	sourceDir 'src/doc/asciidoc'
 }
 
 jmh {

@@ -1,0 +1,47 @@
+= Chipmunk Language Specification
+Daniel Perano <djperano@gmail.com>
+v1.0, September, 2018
+:icons: font
+:toc: left
+
+== Design Principles
+Chipmunk is designed from the ground up to be straightforward
+and accessible for new programmers, yet fast, powerful, and easy
+to use for professionals.
+
+Chipmunk's design was based around the following three principles:
+
+
+****
+. Code should do what it looks like it does.
+ 
+. A language should be simple and elegant.
+ 
+. A language should be flexible and should not force its users
+	into specific patterns or paradigms.
+****
+
+Many languages compromise on either syntactic or semantic clarity in
+order to enable advanced functionality. The downside of this approach
+is that code becomes much harder to read and debug, even for the
+person who wrote it. Chipmunk tends to value clarity above saving
+a few keystrokes, although unneeded verbosity is always avoided.
+
+== Built-in types
+=== Boolean
+=== Byte
+=== Integer
+=== Long
+=== Float
+=== Double
+=== String
+=== List
+=== Map
+
+== Variables
+== Methods
+== Modules
+== Classes
+
+== Runtime
+=== Sandboxing
