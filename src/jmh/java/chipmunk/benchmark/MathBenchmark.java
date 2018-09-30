@@ -18,6 +18,9 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+
 import chipmunk.ChipmunkVM;
 import chipmunk.compiler.ChipmunkLexer;
 import chipmunk.compiler.ChipmunkParser;
@@ -26,6 +29,19 @@ import chipmunk.compiler.codegen.MethodVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.truffle.ast.BlockNode;
+import chipmunk.truffle.ast.IntegerLiteralNode;
+import chipmunk.truffle.ast.MethodNode;
+import chipmunk.truffle.ast.ReadLocalNode;
+import chipmunk.truffle.ast.ReadLocalNodeGen;
+import chipmunk.truffle.ast.StatementNode;
+import chipmunk.truffle.ast.WriteLocalNode;
+import chipmunk.truffle.ast.WriteLocalNodeGen;
+import chipmunk.truffle.ast.flow.WhileNode;
+import chipmunk.truffle.ast.operators.AddNode;
+import chipmunk.truffle.ast.operators.AddNodeGen;
+import chipmunk.truffle.ast.operators.LessThanNode;
+import chipmunk.truffle.ast.operators.LessThanNodeGen;
 
 public class MathBenchmark {
 	
@@ -68,15 +84,56 @@ public class MathBenchmark {
 		public void initializeVM(){
 			vm = new ChipmunkVM();
 		}
+		
+		public MethodNode truffleMethod;
+		
+		@Setup(Level.Trial)
+		public void makeTruffleMethod() {
+			FrameSlot slot = new FrameDescriptor().addFrameSlot(0);
+			
+			WriteLocalNode writeX = WriteLocalNodeGen.create(new IntegerLiteralNode(0), slot);
+			ReadLocalNode readX = ReadLocalNodeGen.create(slot);
+			IntegerLiteralNode oneMillion = new IntegerLiteralNode(1000000);
+			LessThanNode condition = LessThanNodeGen.create(readX, oneMillion);
+			
+			ReadLocalNode readXInBody = ReadLocalNodeGen.create(slot); // TODO
+			IntegerLiteralNode one = new IntegerLiteralNode(1);
+			AddNode add = AddNodeGen.create(readXInBody, one);
+			WriteLocalNode writeXInBody = WriteLocalNodeGen.create(add, slot);
+			BlockNode whileBody = new BlockNode(new StatementNode[]{writeXInBody});
+			
+			WhileNode whileLoop = new WhileNode(condition, whileBody);
+			
+			BlockNode methodBody = new BlockNode(new StatementNode[] {writeX, whileLoop});
+			
+			truffleMethod = new MethodNode(methodBody);
+		}
 	}
 	
 	@Benchmark
 	@BenchmarkMode(Mode.SampleTime)
-	public Object countToOneMillion(ChipmunkScripts scripts) {
+	public Object countToOneMillionCVM(ChipmunkScripts scripts) {
 		ChipmunkVM vm = scripts.vm;
 		CMethod method = scripts.countToAMillion;
 		return vm.dispatch(method, method.getArgCount());
 	}
+	
+	@Benchmark
+	@BenchmarkMode(Mode.SampleTime)
+	public Object countToOneMillionTruffle(ChipmunkScripts scripts) {
+		return scripts.truffleMethod.getCallTarget().call();
+	}
+	
+	@Benchmark
+	@BenchmarkMode(Mode.SampleTime)
+	public Object countToOneMillionJava(ChipmunkScripts scripts) {
+		int x = 0;
+		while(x < 1000000) {
+			x = x + 1;
+		}
+		return x;
+	}
+
 
 	public static void main(String[] args) throws RunnerException {
 

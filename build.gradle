@@ -13,6 +13,7 @@ buildscript {
 
 plugins {
 	id 'me.champeau.gradle.jmh' version '0.4.5'
+	id 'net.ltgt.apt-eclipse' version '0.18'
 }
 
 apply plugin: 'java'
@@ -61,6 +62,15 @@ sourceSets {
 			srcDir 'src/profiling/resources'
 		}
 	}
+	
+	jmh {
+		java {
+			srcDir 'src/jmh/java'
+		}
+		resources {
+			srcDir 'src/jmh/resources'
+		}
+	}
 }
 
 asciidoctor {
@@ -69,9 +79,10 @@ asciidoctor {
 
 jmh {
 	fork = 1
+	jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI'] // Ensure Graal is enabled
 }
 
 task runProfiler(type:JavaExec) {
    main = 'chipmunk.profiling.ChipmunkProfiler'
-   classpath = sourceSets.profiling.runtimeClasspath
+   classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }
