@@ -1,7 +1,8 @@
-package chipmunk.truffle.ast;
+package chipmunk.truffle.ast.literal;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
+
+import chipmunk.truffle.ast.ExpressionNode;
 
 public class IntegerLiteralNode extends ExpressionNode {
 
