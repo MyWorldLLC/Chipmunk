@@ -19,8 +19,8 @@ public class ClassVisitor implements AstVisitor {
 	protected CClass cClass;
 	protected List<Object> constantPool;
 	
-	protected Codegen sharedInitCodegen;
-	protected Codegen instanceInitCodegen;
+	protected TruffleCodegen sharedInitCodegen;
+	protected TruffleCodegen instanceInitCodegen;
 	
 	protected ChipmunkAssembler sharedInitAssembler;
 	protected ChipmunkAssembler instanceInitAssembler;
@@ -48,8 +48,8 @@ public class ClassVisitor implements AstVisitor {
 			sharedInitAssembler = new ChipmunkAssembler(constantPool);
 			instanceInitAssembler = new ChipmunkAssembler(constantPool);
 
-			sharedInitCodegen = new Codegen(sharedInitAssembler, classNode.getSymbolTable(), module);
-			instanceInitCodegen = new Codegen(instanceInitAssembler, classNode.getSymbolTable(), module);
+			//sharedInitCodegen = new TruffleCodegen(sharedInitAssembler, classNode.getSymbolTable(), module);
+			//instanceInitCodegen = new TruffleCodegen(instanceInitAssembler, classNode.getSymbolTable(), module);
 			
 			cClass = new CClass(classNode.getName(), module);
 			

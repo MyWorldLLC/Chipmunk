@@ -8,11 +8,10 @@ import chipmunk.compiler.ast.WhileNode;
 public class WhileVisitor implements AstVisitor {
 
 	private ChipmunkAssembler assembler;
-	private Codegen codegen;
+	private TruffleCodegen codegen;
 	
-	public WhileVisitor(Codegen codegen){
+	public WhileVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 	}
 	
 	@Override
@@ -20,7 +19,7 @@ public class WhileVisitor implements AstVisitor {
 		if(node instanceof WhileNode){
 			WhileNode loop = (WhileNode) node;
 			
-			LoopLabels labels = codegen.pushLoop();
+			LoopLabels labels = null; //codegen.pushLoop();
 			
 			assembler.setLabelTarget(labels.getStartLabel());
 			assembler.setLabelTarget(labels.getGuardLabel());
@@ -32,7 +31,7 @@ public class WhileVisitor implements AstVisitor {
 			
 			codegen.enterScope(loop.getSymbolTable());
 			// generate body
-			loop.visitChildren(codegen, 1);
+			//loop.visitChildren(codegen, 1);
 			codegen.exitScope();
 			
 			// jump to guard
@@ -41,7 +40,7 @@ public class WhileVisitor implements AstVisitor {
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());
 			
-			codegen.exitLoop();
+			//codegen.exitLoop();
 		}
 	}
 

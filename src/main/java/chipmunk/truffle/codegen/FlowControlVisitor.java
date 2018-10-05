@@ -9,12 +9,11 @@ import chipmunk.compiler.ast.FlowControlNode;
 
 public class FlowControlVisitor implements AstVisitor {
 	
-	protected Codegen codegen;
+	protected TruffleCodegen codegen;
 	protected ChipmunkAssembler assembler;
 	
-	public FlowControlVisitor(Codegen codegen){
+	public FlowControlVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 	}
 
 	@Override
@@ -35,18 +34,18 @@ public class FlowControlVisitor implements AstVisitor {
 				node.visitChildren(new ExpressionVisitor(codegen));
 				assembler._throw();
 			}else if(token.getType() == Token.Type.BREAK){
-				if(!codegen.inLoop()){
+				/*if(!codegen.inLoop()){
 					//throw new CompileChipmunk(String.format("Invalid break at %s: %d: Can only break when inside a loop", token.getFile(), token.getLine()));
 					throw new CompileChipmunk(String.format("Invalid break at %d: Can only break when inside a loop", token.getLine()));
 	
-				}
-				assembler._goto(codegen.peekClosestLoop().getEndLabel());
+				}*/
+				//assembler._goto(codegen.peekClosestLoop().getEndLabel());
 			}else if(token.getType() == Token.Type.CONTINUE){
-				if(!codegen.inLoop()){
+				/*if(!codegen.inLoop()){
 					//throw new CompileChipmunk(String.format("Invalid continue at %s: %d: Can only continue when inside a loop", token.getFile(), token.getLine()));
 					throw new CompileChipmunk(String.format("Invalid continue at %d: Can only continue when inside a loop", token.getLine()));
-				}
-				assembler._goto(codegen.peekClosestLoop().getGuardLabel());
+				}*/
+				//assembler._goto(codegen.peekClosestLoop().getGuardLabel());
 			}
 			return;
 		}

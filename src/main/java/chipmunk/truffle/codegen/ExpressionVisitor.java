@@ -21,13 +21,12 @@ import chipmunk.modules.reflectiveruntime.CString;
 
 public class ExpressionVisitor implements AstVisitor {
 	
-	protected Codegen codegen;
+	protected TruffleCodegen codegen;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	public ExpressionVisitor(Codegen codegen){
+	public ExpressionVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 		this.symbols = codegen.getActiveSymbols();
 	}
 	
@@ -98,13 +97,13 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
-			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
-			visitor.visit(node);
-			assembler.push(visitor.getMethod());
+			//MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
+			//visitor.visit(node);
+			//assembler.push(visitor.getMethod());
 		}else if(node instanceof ClassNode) {
-			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
-			visitor.visit(node);
-			assembler.push(visitor.getCClass());
+			//ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
+			//visitor.visit(node);
+			//assembler.push(visitor.getCClass());
 		}else if(node instanceof OperatorNode){
 			
 			OperatorNode op = (OperatorNode) node;

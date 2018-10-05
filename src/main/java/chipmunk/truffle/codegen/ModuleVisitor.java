@@ -19,7 +19,7 @@ import chipmunk.modules.reflectiveruntime.CNull;
 public class ModuleVisitor implements AstVisitor {
 	
 	protected CModule module;
-	protected Codegen initCodegen;
+	protected TruffleCodegen initCodegen;
 	protected ChipmunkAssembler assembler;
 	protected List<Object> constantPool;
 	
@@ -34,7 +34,7 @@ public class ModuleVisitor implements AstVisitor {
 			
 			ModuleNode moduleNode = (ModuleNode) node;
 			module = new CModule(moduleNode.getName(), constantPool);
-			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable(), module);
+			//initCodegen = new TruffleCodegen(assembler, moduleNode.getSymbolTable(), module);
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
@@ -46,7 +46,7 @@ public class ModuleVisitor implements AstVisitor {
 			
 			// generate initialization code to run class initializer
 			if(cClass.getSharedInitializer() != null){
-				ChipmunkAssembler initAssembler = initCodegen.getAssembler();
+				ChipmunkAssembler initAssembler = null; // initCodegen.getAssembler();
 				
 				initAssembler.getModule(cClass.getName());
 				initAssembler.init();

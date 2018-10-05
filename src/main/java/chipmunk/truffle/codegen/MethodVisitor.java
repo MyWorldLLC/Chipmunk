@@ -22,7 +22,7 @@ public class MethodVisitor implements AstVisitor {
 	protected CMethod method;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
-	protected Codegen codegen;
+	protected TruffleCodegen codegen;
 	protected MethodNode methodNode;
 	
 	protected CModule module;
@@ -55,17 +55,17 @@ public class MethodVisitor implements AstVisitor {
 			
 			symbols = methodNode.getSymbolTable();
 			
-			codegen = new Codegen(assembler, symbols, module);
+			//codegen = new TruffleCodegen(assembler, symbols, module);
 			
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
-			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
-			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
-			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
-			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
-			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
-			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
+			//codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
+			//codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
+			//codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
+			//codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
+			//codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
+			//codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
+			//codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
 			
 			// The VM sets the locals for arguments for us - we only need to handle default arguments
 			// that aren't supplied in the call.
@@ -87,7 +87,7 @@ public class MethodVisitor implements AstVisitor {
 				assembler._return();
 			}else {
 				// regular methods
-				methodNode.visitChildren(codegen, startAt);
+				//methodNode.visitChildren(codegen, startAt);
 			}
 			codegen.exitScope();
 			

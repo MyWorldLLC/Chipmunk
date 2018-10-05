@@ -8,9 +8,9 @@ import chipmunk.compiler.ast.VarDecNode;
 
 public class VarDecVisitor implements AstVisitor {
 
-	protected Codegen codegen;
+	protected TruffleCodegen codegen;
 	
-	public VarDecVisitor(Codegen codegen){
+	public VarDecVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
 	}
 	
@@ -18,7 +18,7 @@ public class VarDecVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		VarDecNode dec = (VarDecNode) node;
 		
-		ChipmunkAssembler assembler = codegen.getAssembler();
+		ChipmunkAssembler assembler = null;//codegen.getAssembler();
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(dec.getVarName());
 		
 		if(dec.getAssignExpr() != null){
@@ -27,7 +27,7 @@ public class VarDecVisitor implements AstVisitor {
 			assembler.pushNull();
 		}
 		codegen.emitSymbolAssignment(symbol.getName());
-		codegen.getAssembler().pop();
+		// codegen.getAssembler().pop();
 	}
 
 }

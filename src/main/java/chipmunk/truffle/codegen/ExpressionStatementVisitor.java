@@ -7,11 +7,10 @@ import chipmunk.compiler.ast.AstVisitor;
 public class ExpressionStatementVisitor implements AstVisitor {
 
 	protected ChipmunkAssembler assembler;
-	protected Codegen codegen;
+	protected TruffleCodegen codegen;
 	
-	public ExpressionStatementVisitor(Codegen codegen){
+	public ExpressionStatementVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 	}
 	
 	@Override

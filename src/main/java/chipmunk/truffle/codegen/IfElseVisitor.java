@@ -12,13 +12,12 @@ public class IfElseVisitor implements AstVisitor {
 	
 	private ChipmunkAssembler assembler;
 	private SymbolTable symbols;
-	private Codegen codegen;
+	private TruffleCodegen codegen;
 	
 	private String endLabel;
 	
-	public IfElseVisitor(Codegen codegen){
+	public IfElseVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 		symbols = codegen.getActiveSymbols();
 	}
 
@@ -41,7 +40,7 @@ public class IfElseVisitor implements AstVisitor {
 			assembler._if(endOfIf);
 			
 			// generate code for the children, skipping the guard statement
-			ifBranch.visitChildren(codegen, 1);
+			//ifBranch.visitChildren(codegen, 1);
 			
 			// go to the end of the entire if/else if body executes
 			assembler._goto(endLabel);
@@ -50,7 +49,7 @@ public class IfElseVisitor implements AstVisitor {
 			
 		}else if(node instanceof BlockNode){
 			BlockNode elseBranch = (BlockNode) node;
-			elseBranch.visitChildren(codegen);
+			//elseBranch.visitChildren(codegen);
 		}
 	}
 

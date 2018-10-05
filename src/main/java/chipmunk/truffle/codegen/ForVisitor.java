@@ -10,11 +10,10 @@ import chipmunk.compiler.ast.VarDecNode;
 public class ForVisitor implements AstVisitor {
 
 	private ChipmunkAssembler assembler;
-	private Codegen codegen;
+	private TruffleCodegen codegen;
 	
-	public ForVisitor(Codegen codegen){
+	public ForVisitor(TruffleCodegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 	}
 	
 	@Override
@@ -23,7 +22,7 @@ public class ForVisitor implements AstVisitor {
 			ForNode loop = (ForNode) node;
 			
 			SymbolTable symbols = loop.getSymbolTable();
-			LoopLabels labels = codegen.pushLoop();
+			LoopLabels labels = null;// codegen.pushLoop();
 			
 			assembler.setLabelTarget(labels.getStartLabel());
 			
@@ -44,7 +43,7 @@ public class ForVisitor implements AstVisitor {
 
 			// generate body
 			codegen.enterScope(symbols);
-			loop.visitChildren(codegen, 2);
+			//loop.visitChildren(codegen, 2);
 			codegen.exitScope();
 			
 			// jump to iterator
@@ -53,7 +52,7 @@ public class ForVisitor implements AstVisitor {
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());
 			
-			codegen.exitLoop();
+			//codegen.exitLoop();
 		}
 	}
 

@@ -1,66 +1,37 @@
 package chipmunk.truffle.codegen;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import chipmunk.compiler.ChipmunkAssembler;
+import com.oracle.truffle.api.nodes.Node;
+
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.MethodNode;
-import chipmunk.modules.reflectiveruntime.CModule;
 
-public class Codegen implements AstVisitor {
+public class TruffleCodegen {
 
-	protected Map<Class<? extends AstNode>, AstVisitor> visitors;
-	protected ChipmunkAssembler assembler;
+	protected Map<Class<? extends AstNode>, TruffleAstVisitor<?>> visitors;
 	protected SymbolTable symbols;
 	
-	protected CModule module;
-	
-	protected List<LoopLabels> loopStack;
-	
-	public Codegen(CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		assembler = new ChipmunkAssembler();
+	public TruffleCodegen(){
+		visitors = new HashMap<Class<? extends AstNode>, TruffleAstVisitor<?>>();
 		symbols = new SymbolTable();
-		this.module = module;
+		
+		// TODO - register visitors
 	}
 	
-	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		this.assembler = assembler;
-		this.symbols = symbols;
-		this.module = module;
-	}
-	
-	public CModule getModule() {
-		return module;
-	}
-	
-	public void setVisitorForNode(Class<? extends AstNode> nodeType, AstVisitor visitor){
-		visitors.put(nodeType, visitor);
-	}
-	
-	public void visit(AstNode node){
-		AstVisitor visitor = visitors.get(node.getClass());
+	public Node emit(AstNode node) {
+		TruffleAstVisitor<?> visitor = visitors.get(node.getClass());
 		
 		if(visitor == null){
 			throw new IllegalArgumentException("Unknown node type: " + node.getClass().getSimpleName());
 		}
 		
-		node.visit(visitor);
-	}
-	
-	public ChipmunkAssembler getAssembler(){
-		return assembler;
+		return visitor.visit(node);
 	}
 	
 	public void enterScope(SymbolTable symbols){
@@ -88,9 +59,9 @@ public class Codegen implements AstVisitor {
 		if(trace == null){
 			// no variable with that name was returned. Assume it was a module-level symbol
 			if(assign){
-				assembler.setModule(name);
+				//assembler.setModule(name);
 			}else{
-				assembler.getModule(name);
+				//assembler.getModule(name);
 			}
 			return;
 		}
@@ -111,9 +82,9 @@ public class Codegen implements AstVisitor {
 			// local scope
 			// TODO - closure support
 			if(assign){
-				assembler.setLocal(table.getLocalIndex(name));
+				//assembler.setLocal(table.getLocalIndex(name));
 			}else{
-				assembler.getLocal(table.getLocalIndex(name));
+				//assembler.getLocal(table.getLocalIndex(name));
 			}
 		}else if(scope == SymbolTable.Scope.CLASS){
 			Symbol symbol = table.getSymbol(name);
@@ -126,25 +97,25 @@ public class Codegen implements AstVisitor {
 					// shared method reference to shared variable. Self
 					// refers to class, so emit reference via self
 					if(assign){
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.setattr();
+						///assembler.push(symbol.getName());
+						//assembler.getLocal(0);
+						//assembler.setattr();
 					}else{
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.getattr();
+						//assembler.push(symbol.getName());
+						//assembler.getLocal(0);
+						///assembler.getattr();
 					}
 					
 				}else{
 					// TODO - instance method reference to shared variable. Get class and reference variable
 					// as shared attribute
-					assembler.push(symbol.getName());
-					assembler.getLocal(0);
-					assembler.callAt("getClass", (byte)0);
+					///assembler.push(symbol.getName());
+					//assembler.getLocal(0);
+					//assembler.callAt("getClass", (byte)0);
 					if(assign){
-						assembler.setattr();
+						//assembler.setattr();
 					}else{
-						assembler.getattr();
+						//assembler.getattr();
 					}
 				}
 			}else{
@@ -155,22 +126,22 @@ public class Codegen implements AstVisitor {
 					// reference via self
 					
 					if(assign){
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.setattr();
+						//assembler.push(symbol.getName());
+						//assembler.getLocal(0);
+						//assembler.setattr();
 					}else{
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.getattr();
+						//assembler.push(symbol.getName());
+						//assembler.getLocal(0);
+						//assembler.getattr();
 					}
 				}
 			}
 		}else if(scope == SymbolTable.Scope.MODULE){
 			// Module
 			if(assign){
-				assembler.setModule(name);
+				//assembler.setModule(name);
 			}else{
-				assembler.getModule(name);
+				//assembler.getModule(name);
 			}
 		}
 	}
@@ -213,32 +184,6 @@ public class Codegen implements AstVisitor {
 	
 	public SymbolTable getActiveSymbols(){
 		return symbols;
-	}
-	
-	public LoopLabels pushLoop(){
-		LoopLabels labels = new LoopLabels(assembler.nextLabelName(), assembler.nextLabelName(), assembler.nextLabelName());
-		loopStack.add(labels);
-		return labels;
-	}
-	
-	public LoopLabels peekClosestLoop(){
-		if(loopStack.size() > 0){
-			return loopStack.get(loopStack.size() - 1);
-		}
-		return null;
-	}
-	
-	public LoopLabels exitLoop(){
-		if(loopStack.size() > 0){
-			LoopLabels labels = loopStack.get(loopStack.size() - 1);
-			loopStack.remove(loopStack.size() - 1);
-			return labels;
-		}
-		return null;
-	}
-	
-	public boolean inLoop(){
-		return loopStack.size() > 0;
 	}
 	
 }
