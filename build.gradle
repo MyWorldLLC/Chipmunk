@@ -13,6 +13,7 @@ buildscript {
 
 plugins {
 	id 'me.champeau.gradle.jmh' version '0.4.5'
+	id 'net.ltgt.apt' version '0.18'
 	id 'net.ltgt.apt-eclipse' version '0.18'
 }
 
@@ -32,7 +33,7 @@ repositories {
 
 dependencies {
 	compile 'com.oracle.truffle:truffle-api:1.0.0-rc6'
-	compile 'com.oracle.truffle:truffle-dsl-processor:1.0.0-rc6'
+	annotationProcessor 'com.oracle.truffle:truffle-dsl-processor:1.0.0-rc6'
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     jmh 'org.openjdk.jmh:jmh-core:1.19'
 }

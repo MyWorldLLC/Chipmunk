@@ -1,0 +1,30 @@
+# CPU: i7 4710MQ @ 2.50 GHZ, Linux Kernel 4.13.0-39-generic
+Benchmark                                                                  Mode     Cnt   Score    Error  Units
+MathBenchmark.countToOneMillionCVM                                       sample     100   0.204 ±  0.002   s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.00            sample           0.198            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.50            sample           0.203            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.90            sample           0.211            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.95            sample           0.215            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.99            sample           0.234            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.999           sample           0.234            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p0.9999          sample           0.234            s/op
+MathBenchmark.countToOneMillionCVM:countToOneMillionCVM·p1.00            sample           0.234            s/op
+MathBenchmark.countToOneMillionJava                                      sample  611749  ≈ 10⁻⁸            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.00          sample          ≈ 10⁻⁸            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.50          sample          ≈ 10⁻⁸            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.90          sample          ≈ 10⁻⁸            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.95          sample          ≈ 10⁻⁷            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.99          sample          ≈ 10⁻⁷            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.999         sample          ≈ 10⁻⁷            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p0.9999        sample          ≈ 10⁻⁵            s/op
+MathBenchmark.countToOneMillionJava:countToOneMillionJava·p1.00          sample          ≈ 10⁻⁵            s/op
+MathBenchmark.countToOneMillionTruffle                                   sample     824   0.025 ±  0.001   s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.00    sample           0.024            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.50    sample           0.024            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.90    sample           0.025            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.95    sample           0.025            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.99    sample           0.027            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.999   sample           0.041            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p0.9999  sample           0.041            s/op
+MathBenchmark.countToOneMillionTruffle:countToOneMillionTruffle·p1.00    sample           0.041            s/op
+

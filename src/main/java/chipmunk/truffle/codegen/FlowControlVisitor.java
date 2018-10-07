@@ -25,13 +25,13 @@ public class FlowControlVisitor implements AstVisitor {
 			
 			if(token.getType() == Token.Type.RETURN){
 				if(node.hasChildren()){
-					node.visitChildren(new ExpressionVisitor(codegen));
+					//node.visitChildren(new ExpressionVisitor(codegen));
 				}else{
 					assembler.pushNull();
 				}
 				assembler._return();
 			}else if(token.getType() == Token.Type.THROW){
-				node.visitChildren(new ExpressionVisitor(codegen));
+				//node.visitChildren(new ExpressionVisitor(codegen));
 				assembler._throw();
 			}else if(token.getType() == Token.Type.BREAK){
 				/*if(!codegen.inLoop()){

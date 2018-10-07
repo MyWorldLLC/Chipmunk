@@ -6,7 +6,6 @@ import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.ListNode;
@@ -14,12 +13,17 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.reflectiveruntime.CBoolean;
-import chipmunk.modules.reflectiveruntime.CFloat;
-import chipmunk.modules.reflectiveruntime.CInteger;
-import chipmunk.modules.reflectiveruntime.CString;
+import chipmunk.truffle.ast.ExpressionNode;
+import chipmunk.truffle.ast.literal.BooleanLiteralNode;
+import chipmunk.truffle.ast.literal.FloatLiteralNode;
+import chipmunk.truffle.ast.literal.IntegerLiteralNode;
+import chipmunk.truffle.ast.literal.ListLiteralNode;
+import chipmunk.truffle.ast.literal.MapLiteralNode;
+import chipmunk.truffle.ast.literal.StringLiteralNode;
+import chipmunk.truffle.ast.operators.*;
 
-public class ExpressionVisitor implements AstVisitor {
+
+public class ExpressionVisitor implements TruffleAstVisitor<ExpressionNode> {
 	
 	protected TruffleCodegen codegen;
 	protected ChipmunkAssembler assembler;
@@ -41,61 +45,59 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 
 	@Override
-	public void visit(AstNode node) {
+	public ExpressionNode visit(AstNode node) {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
+			// TODO
 			codegen.emitSymbolAccess(id.getID().getText());
+			
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
+			// TODO - double and long literals
 			case BOOLLITERAL:
-				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
-				return;
+				return new BooleanLiteralNode(Boolean.parseBoolean(literal.getText()));
 			case INTLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
-				return;
+				return new IntegerLiteralNode(Integer.parseInt(literal.getText(), 10));
 			case HEXLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
-				return;
+				return new IntegerLiteralNode(Integer.parseInt(literal.getText().substring(2), 16));
 			case OCTLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
-				return;
+				return new IntegerLiteralNode(Integer.parseInt(literal.getText().substring(2), 8));
 			case BINARYLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
-				return;
+				return new IntegerLiteralNode(Integer.parseInt(literal.getText().substring(2), 2));
 			case FLOATLITERAL:
-				assembler.push(new CFloat(Float.parseFloat(literal.getText())));
-				return;
+				return new FloatLiteralNode(Integer.parseInt(literal.getText().substring(2), 2));
 			case STRINGLITERAL:
 				// strip quotes
 				String value = literal.getText().substring(1, literal.getText().length() - 1);
-				assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
-				return;
-				
-				default:
-					return;
+				return new StringLiteralNode(ChipmunkLexer.unescapeString(value));
 			}
 		}else if(node instanceof ListNode){
 			ListNode listNode = (ListNode) node;
 			
+			ExpressionNode[] expressions = new ExpressionNode[listNode.getChildren().size()];
+			
 			for(int i = 0; i < listNode.getChildren().size(); i++){
-				// visit expression
-				this.visit(listNode.getChildren().get(i));
+				expressions[i] = this.visit(listNode.getChildren().get(i));
+				
 			}
-			assembler.list(listNode.getChildren().size());
+			return new ListLiteralNode(expressions);
 		}else if(node instanceof MapNode){
 			MapNode mapNode = (MapNode) node;
-			mapNode.visitChildren(this);
+			
+			ExpressionNode[] keys = new ExpressionNode[mapNode.getChildren().size()];
+			ExpressionNode[] values = new ExpressionNode[mapNode.getChildren().size()];
 			
 			for(int i = 0; i < mapNode.getChildren().size(); i++){
 				// visit key & value expressions
 				AstNode keyValue = mapNode.getChildren().get(i);
 				// key
-				this.visit(keyValue.getChildren().get(0));
+				keys[i] = this.visit(keyValue.getChildren().get(0));
 				// value
-				this.visit(keyValue.getChildren().get(1));
+				values[i] = this.visit(keyValue.getChildren().get(1));
 			}
-			assembler.map(mapNode.getChildren().size());
+			
+			return new MapLiteralNode(keys, values);
 		}else if(node instanceof MethodNode){
 			//MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			//visitor.visit(node);
@@ -108,137 +110,95 @@ public class ExpressionVisitor implements AstVisitor {
 			
 			OperatorNode op = (OperatorNode) node;
 			Token operator = op.getOperator();
+			
 			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
 
 			switch (operator.getType()) {
 			case PLUS:
-				op.visitChildren(this);
 				if (rhs == null) {
-					assembler.pos();
+					return PosNodeGen.create(this.visit(lhs));
 				} else {
-					assembler.add();
+					return AddNodeGen.create(this.visit(lhs), this.visit(rhs));
 				}
-				return;
 			case DOUBLEPLUS:
-				op.visitChildren(this);
-				assembler.inc();
-				return;
+				return IncrementNodeGen.create(this.visit(lhs));
 			case MINUS:
-				op.visitChildren(this);
 				if (rhs == null) {
-					assembler.neg();
+					return NegNodeGen.create(this.visit(lhs));
 				} else {
-					assembler.sub();
+					return SubNodeGen.create(this.visit(lhs), this.visit(rhs));
 				}
-				return;
 			case DOUBLEMINUS:
-				op.visitChildren(this);
-				assembler.dec();
+				return DecrementNodeGen.create(this.visit(lhs));
 			case STAR:
-				op.visitChildren(this);
-				assembler.mul();
-				return;
+				return MulNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLESTAR:
-				op.visitChildren(this);
-				assembler.pow();
-				return;
+				return PowerNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case FSLASH:
-				op.visitChildren(this);
-				assembler.div();
-				return;
+				return DivNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLEFSLASH:
-				op.visitChildren(this);
-				assembler.fdiv();
-				return;
+				return FloorDivNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case PERCENT:
-				op.visitChildren(this);
-				assembler.mod();
-				return;
+				return ModNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLEDOTLESS:
-				op.visitChildren(this);
-				assembler.range(false);
-				return;
+				// TODO
+				// op.visitChildren(this);
+				// assembler.range(false);
+				return null;
 			case DOUBLEDOT:
-				op.visitChildren(this);
-				assembler.range(true);
-				return;
+				// TODO
+				// op.visitChildren(this);
+				// assembler.range(true);
+				return null;
 			case BAR:
-				op.visitChildren(this);
-				assembler.bor();
-				return;
+				return BitwiseOrNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLEBAR:
-				op.visitChildren(this);
-				assembler.or();
-				return;
+				return new LogicalOrNode(this.visit(lhs), this.visit(rhs));
 			case EXCLAMATION:
-				op.visitChildren(this);
-				assembler.not();
-				return;
+				return NotNodeGen.create(this.visit(lhs));
 			case TILDE:
-				op.visitChildren(this);
-				assembler.bneg();
-				return;
+				return BitwiseNegNodeGen.create(this.visit(lhs));
 			case CARET:
-				op.visitChildren(this);
-				assembler.bxor();
-				return;
+				return BitwiseXorNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLELESSTHAN:
-				op.visitChildren(this);
-				assembler.lshift();
-				return;
+				return LeftShiftNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case LESSTHAN:
-				op.visitChildren(this);
-				assembler.lt();
-				return;
+				return LessThanNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case TRIPLEMORETHAN:
-				op.visitChildren(this);
-				assembler.urshift();
-				return;
+				return UnsignedRightShiftNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLEMORETHAN:
-				op.visitChildren(this);
-				assembler.rshift();
-				return;
+				return RightShiftNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case MORETHAN:
-				op.visitChildren(this);
-				assembler.gt();
-				return;
+				return LogicalGreaterThanNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case DOUBLEAMPERSAND:
-				op.visitChildren(this);
-				assembler.and();
-				return;
+				return new LogicalAndNode(this.visit(lhs), this.visit(rhs));
 			case AMPERSAND:
-				op.visitChildren(this);
-				assembler.band();
-				return;
+				return BitwiseAndNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case LBRACKET:
-				op.visitChildren(this);
-				assembler.getat();
-				return;
+				return GetAtNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case LPAREN:
+				// TODO
 				emitCall(op);
-				return;
+				return null;
 			case DOT:
+				// TODO
 				emitDotGet(op);
-				return;
+				return null;
 			case EQUALS:
-				rhs.visit(this);
-				emitAssignment(lhs);
-				return;
+				// TODO
+				//rhs.visit(this);
+				//emitAssignment(lhs);
+				return null;
 			case DOUBLEEQUAlS:
-				op.visitChildren(this);
-				assembler.eq();
-				break;
+				return LogicalEqualityNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case EXCLAMATIONEQUALS:
-				op.visitChildren(this);
-				assembler.eq();
-				assembler.not();
-				break;
+				return NotNodeGen.create(LogicalEqualityNodeGen.create(this.visit(lhs), this.visit(rhs)));
 			default:
-				return;
+				return null;
 			}
 		}
-
+		return null;
 	}
 	
 	private void emitAssignment(AstNode lhs){
@@ -248,13 +208,13 @@ public class ExpressionVisitor implements AstVisitor {
 				if(lOp.getRight() instanceof IdNode){
 					assembler.push(((IdNode) lOp.getRight()).getID().getText());
 				}else{
-					lOp.getRight().visit(this);
+					//lOp.getRight().visit(this);
 				}
-				lOp.getLeft().visit(this);
+				//lOp.getLeft().visit(this);
 				assembler.setattr();
 			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
-				lOp.getRight().visit(this);
-				lOp.getLeft().visit(this);
+				//lOp.getRight().visit(this);
+				//lOp.getLeft().visit(this);
 				assembler.setat();
 			}else{
 				// error!
@@ -278,8 +238,8 @@ public class ExpressionVisitor implements AstVisitor {
 			// this is a dot access, so issue a callAt opcode
 			IdNode callID = (IdNode) dotOp.getRight();
 			
-			op.visitChildren(this, 1);
-			dotOp.getLeft().visit(this);
+			//op.visitChildren(this, 1);
+			//dotOp.getLeft().visit(this);
 			
 			int argCount = op.getChildren().size() - 1;
 			assembler.callAt(callID.getID().getText(), (byte)argCount);
@@ -287,9 +247,9 @@ public class ExpressionVisitor implements AstVisitor {
 		}else{
 			int argCount = op.getChildren().size() - 1;
 			// visit parameters first
-			op.visitChildren(this, 1);
+			//op.visitChildren(this, 1);
 			// visit call target, then emit call
-			op.getLeft().visit(this);
+			//op.getLeft().visit(this);
 			assembler.call((byte) argCount);
 		}
 	}
@@ -299,9 +259,9 @@ public class ExpressionVisitor implements AstVisitor {
 			IdNode attr = (IdNode) op.getRight();
 			assembler.push(attr.getID().getText());
 		}else{
-			op.getRight().visit(this);
+			//op.getRight().visit(this);
 		}
-		op.getLeft().visit(this);
+		//op.getLeft().visit(this);
 		assembler.getattr();
 	}
 }

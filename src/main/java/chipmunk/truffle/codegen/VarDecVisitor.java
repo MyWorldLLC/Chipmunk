@@ -22,7 +22,7 @@ public class VarDecVisitor implements AstVisitor {
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(dec.getVarName());
 		
 		if(dec.getAssignExpr() != null){
-			dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
+			//dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
 		}else{
 			assembler.pushNull();
 		}

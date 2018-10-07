@@ -20,7 +20,6 @@ import chipmunk.modules.reflectiveruntime.CModule;
 public class MethodVisitor implements AstVisitor {
 
 	protected CMethod method;
-	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	protected TruffleCodegen codegen;
 	protected MethodNode methodNode;
@@ -31,13 +30,11 @@ public class MethodVisitor implements AstVisitor {
 	
 	
 	public MethodVisitor(ChipmunkAssembler assembler, CModule module){
-		this.assembler = assembler;
 		defaultReturn = true;
 		this.module = module;
 	}
 	
 	public MethodVisitor(List<Object> constantPool, CModule module){
-		assembler = new ChipmunkAssembler(constantPool);
 		defaultReturn = true;
 		this.module = module;
 	}
@@ -84,7 +81,7 @@ public class MethodVisitor implements AstVisitor {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
 				visitor.visit(methodNode.getChildren().get(methodNode.getChildren().size() - 1));
-				assembler._return();
+				//assembler._return();
 			}else {
 				// regular methods
 				//methodNode.visitChildren(codegen, startAt);
@@ -100,13 +97,13 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public void genSelfReturn(){
-		assembler.getLocal(0);
-		assembler._return();
+		//assembler.getLocal(0);
+		//assembler._return();
 	}
 	
 	public void genDefaultReturn(){
-		assembler.pushNull();
-		assembler._return();
+		//assembler.pushNull();
+		//assembler._return();
 	}
 	
 	public boolean willGenDefaultReturn(){
@@ -118,8 +115,8 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public CMethod getMethod(){
-		method.setConstantPool(assembler.getConstantPool());
-		method.setCode(assembler.getCodeSegment());
+		//method.setConstantPool(assembler.getConstantPool());
+		//method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
 		method.setModule(module);
 		return method;
