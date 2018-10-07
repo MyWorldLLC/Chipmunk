@@ -17,10 +17,12 @@ public class TruffleCodegen {
 	protected Map<Class<? extends AstNode>, TruffleAstVisitor<?>> visitors;
 	protected SymbolTable symbols;
 	
+	private boolean inLoop;
+	
 	public TruffleCodegen(){
 		visitors = new HashMap<Class<? extends AstNode>, TruffleAstVisitor<?>>();
 		symbols = new SymbolTable();
-		
+		inLoop = false;
 		// TODO - register visitors
 	}
 	
@@ -42,6 +44,18 @@ public class TruffleCodegen {
 		if(symbols != null){
 			symbols = symbols.getParent();
 		}
+	}
+	
+	public void enterLoop() {
+		inLoop = true;
+	}
+	
+	public void exitLoop() {
+		inLoop = false;
+	}
+	
+	public boolean inLoop() {
+		return inLoop;
 	}
 	
 	public void emitSymbolAccess(String name){

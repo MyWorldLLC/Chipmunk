@@ -2,9 +2,9 @@ package chipmunk.truffle.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.truffle.ast.StatementNode;
 
-public class ExpressionStatementVisitor implements AstVisitor {
+public class ExpressionStatementVisitor implements TruffleAstVisitor<StatementNode> {
 
 	protected ChipmunkAssembler assembler;
 	protected TruffleCodegen codegen;
@@ -14,10 +14,11 @@ public class ExpressionStatementVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
+	public StatementNode visit(AstNode node) {
 		//node.visit(new ExpressionVisitor(codegen));
 		// evaluate expression and ignore result
 		assembler.pop();
+		return null;
 	}
 
 }

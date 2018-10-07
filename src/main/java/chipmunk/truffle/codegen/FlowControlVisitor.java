@@ -4,10 +4,15 @@ import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
+import chipmunk.truffle.ast.ExpressionNode;
+import chipmunk.truffle.ast.StatementNode;
+import chipmunk.truffle.ast.flow.BreakNode;
+import chipmunk.truffle.ast.flow.ContinueNode;
+import chipmunk.truffle.ast.flow.ReturnNode;
+import chipmunk.truffle.ast.flow.ThrowNode;
 
-public class FlowControlVisitor implements AstVisitor {
+public class FlowControlVisitor implements TruffleAstVisitor<StatementNode> {
 	
 	protected TruffleCodegen codegen;
 	protected ChipmunkAssembler assembler;
@@ -17,38 +22,39 @@ public class FlowControlVisitor implements AstVisitor {
 	}
 
 	@Override
-	public void visit(AstNode node) {
+	public StatementNode visit(AstNode node) {
 		if(node instanceof FlowControlNode){
 			FlowControlNode flowNode = (FlowControlNode) node;
 			
 			Token token = flowNode.getControlToken();
 			
 			if(token.getType() == Token.Type.RETURN){
+				ExpressionNode returnExp = null;
+				
 				if(node.hasChildren()){
-					//node.visitChildren(new ExpressionVisitor(codegen));
-				}else{
-					assembler.pushNull();
+					returnExp = new ExpressionVisitor(codegen).visit(node);
 				}
-				assembler._return();
+				
+				return new ReturnNode(returnExp);
 			}else if(token.getType() == Token.Type.THROW){
-				//node.visitChildren(new ExpressionVisitor(codegen));
-				assembler._throw();
+				ExpressionNode throwNode = new ExpressionVisitor(codegen).visit(node);
+				return new ThrowNode(throwNode);
 			}else if(token.getType() == Token.Type.BREAK){
-				/*if(!codegen.inLoop()){
+				if(!codegen.inLoop()){
 					//throw new CompileChipmunk(String.format("Invalid break at %s: %d: Can only break when inside a loop", token.getFile(), token.getLine()));
 					throw new CompileChipmunk(String.format("Invalid break at %d: Can only break when inside a loop", token.getLine()));
 	
-				}*/
-				//assembler._goto(codegen.peekClosestLoop().getEndLabel());
+				}
+				return new BreakNode();
 			}else if(token.getType() == Token.Type.CONTINUE){
-				/*if(!codegen.inLoop()){
+				if(!codegen.inLoop()){
 					//throw new CompileChipmunk(String.format("Invalid continue at %s: %d: Can only continue when inside a loop", token.getFile(), token.getLine()));
 					throw new CompileChipmunk(String.format("Invalid continue at %d: Can only continue when inside a loop", token.getLine()));
-				}*/
-				//assembler._goto(codegen.peekClosestLoop().getGuardLabel());
+				}
+				return new ContinueNode();
 			}
-			return;
 		}
+		return null;
 	}
 
 }
