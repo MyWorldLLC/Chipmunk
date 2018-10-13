@@ -1,12 +1,12 @@
 package chipmunk.truffle.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.truffle.ast.ExpressionNode;
+import chipmunk.truffle.ast.literal.NullLiteralNode;
 
-public class VarDecVisitor implements AstVisitor {
+public class VarDecVisitor implements TruffleAstVisitor<ExpressionNode> {
 
 	protected TruffleCodegen codegen;
 	
@@ -15,19 +15,20 @@ public class VarDecVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
+	public ExpressionNode visit(AstNode node) {
 		VarDecNode dec = (VarDecNode) node;
 		
-		ChipmunkAssembler assembler = null;//codegen.getAssembler();
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(dec.getVarName());
 		
+		ExpressionNode value = null;
+		
 		if(dec.getAssignExpr() != null){
-			//dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
+			value = new ExpressionVisitor(codegen).visit(dec.getAssignExpr());
 		}else{
-			assembler.pushNull();
+			value = new NullLiteralNode();
 		}
-		codegen.emitSymbolAssignment(symbol.getName());
-		// codegen.getAssembler().pop();
+		
+		return codegen.emitSymbolAssignment(symbol.getName(), value);
 	}
 
 }

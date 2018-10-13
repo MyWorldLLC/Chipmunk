@@ -3,12 +3,11 @@ package chipmunk.truffle.codegen;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
 import chipmunk.compiler.ast.GuardedNode;
-import chipmunk.compiler.ast.IfElseNode;
+import chipmunk.truffle.ast.flow.IfElseNode;
 
-public class IfElseVisitor implements AstVisitor {
+public class IfElseVisitor implements TruffleAstVisitor<IfElseNode> {
 	
 	private ChipmunkAssembler assembler;
 	private SymbolTable symbols;
@@ -22,12 +21,12 @@ public class IfElseVisitor implements AstVisitor {
 	}
 
 	@Override
-	public void visit(AstNode node) {
-		if(node instanceof IfElseNode){
-			IfElseNode ifElse = (IfElseNode) node;
+	public IfElseNode visit(AstNode node) {
+		if(node instanceof chipmunk.compiler.ast.IfElseNode){
+			chipmunk.compiler.ast.IfElseNode ifElse = (chipmunk.compiler.ast.IfElseNode) node;
 			endLabel = assembler.nextLabelName();
 			
-			ifElse.visitChildren(this);
+			this.visit(ifElse);
 			
 			// label the end of the if/else
 			assembler.setLabelTarget(endLabel);
@@ -51,6 +50,7 @@ public class IfElseVisitor implements AstVisitor {
 			BlockNode elseBranch = (BlockNode) node;
 			//elseBranch.visitChildren(codegen);
 		}
+		return null; // TODO
 	}
 
 }

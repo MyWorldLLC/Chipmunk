@@ -10,19 +10,19 @@ import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.ForNode;
 import chipmunk.compiler.ast.IfElseNode;
-import chipmunk.compiler.ast.MethodNode;
+import chipmunk.truffle.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
 
-public class MethodVisitor implements AstVisitor {
+public class MethodVisitor implements TruffleAstVisitor<MethodNode> {
 
 	protected CMethod method;
 	protected SymbolTable symbols;
 	protected TruffleCodegen codegen;
-	protected MethodNode methodNode;
+	protected chipmunk.compiler.ast.MethodNode methodNode;
 	
 	protected CModule module;
 	
@@ -40,12 +40,12 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
+	public MethodNode visit(AstNode node) {
 		
 		method = new CMethod();
 		
-		if(node instanceof MethodNode){
-			methodNode = (MethodNode) node;
+		if(node instanceof chipmunk.compiler.ast.MethodNode){
+			methodNode = (chipmunk.compiler.ast.MethodNode) node;
 			
 			method.setArgCount(methodNode.getParamCount());
 			method.setDefaultArgCount(methodNode.getDefaultParamCount());

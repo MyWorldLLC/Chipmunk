@@ -10,7 +10,16 @@ import com.oracle.truffle.api.nodes.Node;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ast.FlowControlNode;
+import chipmunk.compiler.ast.ForNode;
+import chipmunk.compiler.ast.IfElseNode;
 import chipmunk.compiler.ast.MethodNode;
+import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.ast.WhileNode;
+import chipmunk.truffle.ast.ExpressionNode;
+import chipmunk.truffle.ast.ReadLocalNodeGen;
+import chipmunk.truffle.ast.WriteLocalNodeGen;
 
 public class TruffleCodegen {
 
@@ -23,7 +32,15 @@ public class TruffleCodegen {
 		visitors = new HashMap<Class<? extends AstNode>, TruffleAstVisitor<?>>();
 		symbols = new SymbolTable();
 		inLoop = false;
-		// TODO - register visitors
+		
+		
+		visitors.put(OperatorNode.class, new ExpressionVisitor(this));
+		// visitors.put(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
+		visitors.put(VarDecNode.class, new VarDecVisitor(this));
+		visitors.put(IfElseNode.class, new IfElseVisitor(this));
+		visitors.put(WhileNode.class, new WhileVisitor(this));
+		visitors.put(ForNode.class, new ForVisitor(this));
+		visitors.put(FlowControlNode.class, new FlowControlVisitor(this));
 	}
 	
 	public Node emit(AstNode node) {
@@ -58,15 +75,55 @@ public class TruffleCodegen {
 		return inLoop;
 	}
 	
-	public void emitSymbolAccess(String name){
-		emitSymbolReference(name, false);
+	public Deque<SymbolTable> getSymbolTrace(String name){
+		Deque<SymbolTable> trace = new ArrayDeque<SymbolTable>();
+		
+		SymbolTable symTab = symbols;
+		
+		boolean found = false;
+		while(!found){
+			trace.add(symTab);
+			
+			for(Symbol symbol : symTab.getAllSymbols()){
+				if(symbol.getName().equals(name)){
+					found = true;
+					break;
+				}
+			}
+			
+			if(!found){
+				symTab = symTab.getParent();
+				if(symTab == null){
+					// variable was not found
+					return null;
+				}
+			}
+		}
+		return trace;
 	}
 	
-	public void emitSymbolAssignment(String name){
-		emitSymbolReference(name, true);
+	public SymbolTable getMethodScope(Deque<SymbolTable> trace){
+		for(SymbolTable table : trace){
+			if(table.getScope() == SymbolTable.Scope.METHOD){
+				return table;
+			}
+		}
+		return null;
 	}
 	
-	private void emitSymbolReference(String name, boolean assign){
+	public SymbolTable getActiveSymbols(){
+		return symbols;
+	}
+	
+	public ExpressionNode emitSymbolAccess(String name){
+		return emitSymbolReference(name, null, false);
+	}
+	
+	public ExpressionNode emitSymbolAssignment(String name, ExpressionNode value){
+		return emitSymbolReference(name, value, true);
+	}
+	
+	private ExpressionNode emitSymbolReference(String name, ExpressionNode writeValue, boolean assign){
 		
 		Deque<SymbolTable> trace = getSymbolTrace(name);
 		
@@ -77,7 +134,7 @@ public class TruffleCodegen {
 			}else{
 				//assembler.getModule(name);
 			}
-			return;
+			return null;
 		}
 		
 		// NOTE: in general use, the null check is unneeded because all accessing code
@@ -96,9 +153,9 @@ public class TruffleCodegen {
 			// local scope
 			// TODO - closure support
 			if(assign){
-				//assembler.setLocal(table.getLocalIndex(name));
+				return WriteLocalNodeGen.create(writeValue, table.getLocalIndex(name));
 			}else{
-				//assembler.getLocal(table.getLocalIndex(name));
+				return ReadLocalNodeGen.create(table.getLocalIndex(name));
 			}
 		}else if(scope == SymbolTable.Scope.CLASS){
 			Symbol symbol = table.getSymbol(name);
@@ -158,46 +215,7 @@ public class TruffleCodegen {
 				//assembler.getModule(name);
 			}
 		}
-	}
-	
-	private Deque<SymbolTable> getSymbolTrace(String name){
-		Deque<SymbolTable> trace = new ArrayDeque<SymbolTable>();
 		
-		SymbolTable symTab = symbols;
-		
-		boolean found = false;
-		while(!found){
-			trace.add(symTab);
-			
-			for(Symbol symbol : symTab.getAllSymbols()){
-				if(symbol.getName().equals(name)){
-					found = true;
-					break;
-				}
-			}
-			
-			if(!found){
-				symTab = symTab.getParent();
-				if(symTab == null){
-					// variable was not found
-					return null;
-				}
-			}
-		}
-		return trace;
+		return null; // TODO
 	}
-	
-	private SymbolTable getMethodScope(Deque<SymbolTable> trace){
-		for(SymbolTable table : trace){
-			if(table.getScope() == SymbolTable.Scope.METHOD){
-				return table;
-			}
-		}
-		return null;
-	}
-	
-	public SymbolTable getActiveSymbols(){
-		return symbols;
-	}
-	
 }

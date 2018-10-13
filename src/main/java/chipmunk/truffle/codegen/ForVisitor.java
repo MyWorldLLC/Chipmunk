@@ -3,11 +3,10 @@ package chipmunk.truffle.codegen;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ForNode;
 import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.truffle.ast.flow.ForNode;
 
-public class ForVisitor implements AstVisitor {
+public class ForVisitor implements TruffleAstVisitor<ForNode> {
 
 	private ChipmunkAssembler assembler;
 	private TruffleCodegen codegen;
@@ -17,9 +16,9 @@ public class ForVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
-		if(node instanceof ForNode){
-			ForNode loop = (ForNode) node;
+	public ForNode visit(AstNode node) {
+		if(node instanceof chipmunk.compiler.ast.ForNode){
+			chipmunk.compiler.ast.ForNode loop = (chipmunk.compiler.ast.ForNode) node;
 			
 			SymbolTable symbols = loop.getSymbolTable();
 			LoopLabels labels = null;// codegen.pushLoop();
@@ -54,6 +53,8 @@ public class ForVisitor implements AstVisitor {
 			
 			//codegen.exitLoop();
 		}
+
+		return null; // TODO
 	}
 
 }

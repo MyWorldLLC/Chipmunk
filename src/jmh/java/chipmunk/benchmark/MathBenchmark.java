@@ -91,7 +91,7 @@ public class MathBenchmark {
 		public void makeTruffleMethod() {
 			FrameSlot slot = new FrameDescriptor().addFrameSlot(0);
 			
-			WriteLocalNode writeX = WriteLocalNodeGen.create(new IntegerLiteralNode(0), slot);
+			WriteLocalNode writeX = WriteLocalNodeGen.create(new IntegerLiteralNode(0), slot.getIndex());
 			ReadLocalNode readX = ReadLocalNodeGen.create(slot);
 			IntegerLiteralNode oneMillion = new IntegerLiteralNode(1000000);
 			LessThanNode condition = LessThanNodeGen.create(readX, oneMillion);
@@ -99,7 +99,7 @@ public class MathBenchmark {
 			ReadLocalNode readXInBody = ReadLocalNodeGen.create(slot); // TODO
 			IntegerLiteralNode one = new IntegerLiteralNode(1);
 			AddNode add = AddNodeGen.create(readXInBody, one);
-			WriteLocalNode writeXInBody = WriteLocalNodeGen.create(add, slot);
+			WriteLocalNode writeXInBody = WriteLocalNodeGen.create(add, slot.getIndex());
 			BlockNode whileBody = new BlockNode(new StatementNode[]{writeXInBody});
 			
 			WhileNode whileLoop = new WhileNode(condition, whileBody);

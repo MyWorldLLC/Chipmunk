@@ -44,14 +44,16 @@ public class ExpressionVisitor implements TruffleAstVisitor<ExpressionNode> {
 				|| node instanceof OperatorNode;
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	public ExpressionNode visit(AstNode node) {
 		if(node instanceof IdNode){
+			
 			IdNode id = (IdNode) node;
-			// TODO
-			codegen.emitSymbolAccess(id.getID().getText());
+			return codegen.emitSymbolAccess(id.getID().getText());
 			
 		}else if(node instanceof LiteralNode){
+			
 			Token literal = ((LiteralNode) node).getLiteral();
 			switch(literal.getType()){
 			// TODO - double and long literals
@@ -186,10 +188,8 @@ public class ExpressionVisitor implements TruffleAstVisitor<ExpressionNode> {
 				emitDotGet(op);
 				return null;
 			case EQUALS:
-				// TODO
-				//rhs.visit(this);
-				//emitAssignment(lhs);
-				return null;
+				emitAssignment(lhs, this.visit(rhs));
+				return emitAssignment(lhs, this.visit(rhs));
 			case DOUBLEEQUAlS:
 				return LogicalEqualityNodeGen.create(this.visit(lhs), this.visit(rhs));
 			case EXCLAMATIONEQUALS:
@@ -201,33 +201,37 @@ public class ExpressionVisitor implements TruffleAstVisitor<ExpressionNode> {
 		return null;
 	}
 	
-	private void emitAssignment(AstNode lhs){
+	private ExpressionNode emitAssignment(AstNode lhs, ExpressionNode rhs){
 		if(lhs instanceof OperatorNode){
+			// attribute or array assignment
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
+				// attribute assignment
 				if(lOp.getRight() instanceof IdNode){
-					assembler.push(((IdNode) lOp.getRight()).getID().getText());
+					// ... by name
+					// assembler.push(((IdNode) lOp.getRight()).getID().getText());
 				}else{
+					// ... by generic expression
 					//lOp.getRight().visit(this);
 				}
 				//lOp.getLeft().visit(this);
 				assembler.setattr();
 			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
+				// array assignment
 				//lOp.getRight().visit(this);
 				//lOp.getLeft().visit(this);
-				assembler.setat();
+				// assembler.setat();
 			}else{
 				// error!
-				//throw new CompileChipmunk(String.format("Invalid assignment at %s: %d. The left hand side of an assignment"
-				//		+ "must be either an attribute, index, or a local variable.", 
-				//		lOp.getOperator().getFile(), lOp.getOperator().getLine()));
+				// TODO - better messages
 				throw new CompileChipmunk(String.format("Invalid assignment at %d. The left hand side of an assignment"
 						+ "must be either an attribute, index, or a local variable.", 
 						  lOp.getOperator().getLine()));
 			}
 		}else if(lhs instanceof IdNode){
-			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
+			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText(), rhs);
 		}
+		return null;
 	}
 	
 	private void emitCall(OperatorNode op){
@@ -242,26 +246,32 @@ public class ExpressionVisitor implements TruffleAstVisitor<ExpressionNode> {
 			//dotOp.getLeft().visit(this);
 			
 			int argCount = op.getChildren().size() - 1;
-			assembler.callAt(callID.getID().getText(), (byte)argCount);
+			// assembler.callAt(callID.getID().getText(), (byte)argCount);
 			
 		}else{
+			// emit direct call
 			int argCount = op.getChildren().size() - 1;
 			// visit parameters first
 			//op.visitChildren(this, 1);
 			// visit call target, then emit call
 			//op.getLeft().visit(this);
-			assembler.call((byte) argCount);
+			// assembler.call((byte) argCount);
 		}
 	}
 	
 	private void emitDotGet(OperatorNode op){
 		if(op.getRight() instanceof IdNode){
 			IdNode attr = (IdNode) op.getRight();
-			assembler.push(attr.getID().getText());
+			// assembler.push(attr.getID().getText());
 		}else{
 			//op.getRight().visit(this);
 		}
 		//op.getLeft().visit(this);
-		assembler.getattr();
+		// assembler.getattr();
 	}
+	
+	
+	
+	
+	
 }
