@@ -33,9 +33,8 @@ public class TruffleCodegen {
 		symbols = new SymbolTable();
 		inLoop = false;
 		
-		
 		visitors.put(OperatorNode.class, new ExpressionVisitor(this));
-		// visitors.put(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
+		visitors.put(MethodNode.class, new MethodVisitor());
 		visitors.put(VarDecNode.class, new VarDecVisitor(this));
 		visitors.put(IfElseNode.class, new IfElseVisitor(this));
 		visitors.put(WhileNode.class, new WhileVisitor(this));

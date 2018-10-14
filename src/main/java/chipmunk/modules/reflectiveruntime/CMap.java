@@ -52,7 +52,7 @@ public class CMap implements RuntimeObject {
 			return former;
 		}
 		vm.traceMem(8);
-		return new CNull();
+		return CNull.instance();
 	}
 	
 	public CInteger hashCode(ChipmunkVM vm){

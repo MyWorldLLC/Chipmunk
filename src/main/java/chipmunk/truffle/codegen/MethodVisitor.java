@@ -6,16 +6,9 @@ import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.FlowControlNode;
-import chipmunk.compiler.ast.ForNode;
-import chipmunk.compiler.ast.IfElseNode;
-import chipmunk.truffle.ast.MethodNode;
-import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.compiler.ast.VarDecNode;
-import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.truffle.ast.MethodNode;
 
 public class MethodVisitor implements TruffleAstVisitor<MethodNode> {
 
@@ -29,7 +22,7 @@ public class MethodVisitor implements TruffleAstVisitor<MethodNode> {
 	protected boolean defaultReturn;
 	
 	
-	public MethodVisitor(ChipmunkAssembler assembler, CModule module){
+	public MethodVisitor(){
 		defaultReturn = true;
 		this.module = module;
 	}
@@ -93,7 +86,7 @@ public class MethodVisitor implements TruffleAstVisitor<MethodNode> {
 				genDefaultReturn();
 			}
 		}
-		
+		return null; // TODO
 	}
 	
 	public void genSelfReturn(){
@@ -115,8 +108,6 @@ public class MethodVisitor implements TruffleAstVisitor<MethodNode> {
 	}
 	
 	public CMethod getMethod(){
-		//method.setConstantPool(assembler.getConstantPool());
-		//method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
 		method.setModule(module);
 		return method;

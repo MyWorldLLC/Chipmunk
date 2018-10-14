@@ -14,7 +14,7 @@ import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.modules.reflectiveruntime.CClass;
 import chipmunk.modules.reflectiveruntime.CMethod;
 import chipmunk.modules.reflectiveruntime.CModule;
-import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.truffle.runtime.Null;
 
 public class ModuleVisitor implements AstVisitor {
 	
@@ -59,7 +59,7 @@ public class ModuleVisitor implements AstVisitor {
 		}else if(node instanceof MethodNode){
 			
 			MethodVisitor visitor = new MethodVisitor(constantPool, module);
-			node.visit(visitor);
+			visitor.visit(node);
 			CMethod method = visitor.getMethod();
 			
 			method.bind(module);
@@ -88,7 +88,7 @@ public class ModuleVisitor implements AstVisitor {
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
 			visitor.visit(varDec);
 			
-			module.getNamespace().set(varDec.getVarName(), new CNull());
+			module.getNamespace().set(varDec.getVarName(), Null.instance());
 		}else{
 			throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
 		}

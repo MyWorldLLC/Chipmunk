@@ -17,7 +17,7 @@ public class CMethod implements RuntimeObject {
 	
 	public CMethod(){
 		super();
-		self = new CNull();
+		self = CNull.instance();
 		localCount = 1;
 	}
 	

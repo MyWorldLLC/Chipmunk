@@ -72,9 +72,9 @@ public class ClassVisitor implements AstVisitor {
 			visitor.visit(varDec);
 			
 			if(isShared){
-				cClass.getAttributes().set(varDec.getVarName(), new CNull());
+				cClass.getAttributes().set(varDec.getVarName(), CNull.instance());
 			}else{
-				cClass.getInstanceAttributes().set(varDec.getVarName(), new CNull());
+				cClass.getInstanceAttributes().set(varDec.getVarName(), CNull.instance());
 			}
 			
 		}else if(node instanceof MethodNode){

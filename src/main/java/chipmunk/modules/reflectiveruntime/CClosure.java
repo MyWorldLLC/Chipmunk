@@ -22,7 +22,7 @@ public class CClosure implements RuntimeObject {
 	}
 	
 	public Object get() {
-		return value != null ? value : new CNull();
+		return value != null ? value : CNull.instance();
 	}
 
 }

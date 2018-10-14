@@ -90,13 +90,14 @@ public class MathBenchmark {
 		@Setup(Level.Trial)
 		public void makeTruffleMethod() {
 			FrameSlot slot = new FrameDescriptor().addFrameSlot(0);
+			String varName = "x";
 			
 			WriteLocalNode writeX = WriteLocalNodeGen.create(new IntegerLiteralNode(0), slot.getIndex());
-			ReadLocalNode readX = ReadLocalNodeGen.create(slot);
+			ReadLocalNode readX = ReadLocalNodeGen.create(varName);
 			IntegerLiteralNode oneMillion = new IntegerLiteralNode(1000000);
 			LessThanNode condition = LessThanNodeGen.create(readX, oneMillion);
 			
-			ReadLocalNode readXInBody = ReadLocalNodeGen.create(slot); // TODO
+			ReadLocalNode readXInBody = ReadLocalNodeGen.create(varName);
 			IntegerLiteralNode one = new IntegerLiteralNode(1);
 			AddNode add = AddNodeGen.create(readXInBody, one);
 			WriteLocalNode writeXInBody = WriteLocalNodeGen.create(add, slot.getIndex());

@@ -72,9 +72,9 @@ public class ClassVisitor implements AstVisitor {
 			visitor.visit(varDec);
 			
 			if(isShared){
-				cClass.getAttributes().set(varDec.getVarName(), new CNull());
+				cClass.getAttributes().set(varDec.getVarName(), CNull.instance());
 			}else{
-				cClass.getInstanceAttributes().set(varDec.getVarName(), new CNull());
+				cClass.getInstanceAttributes().set(varDec.getVarName(), CNull.instance());
 			}
 			
 		}else if(node instanceof MethodNode){
@@ -96,9 +96,9 @@ public class ClassVisitor implements AstVisitor {
 				// call instance initializer before doing anything else
 				genInitCall(assembler);
 				
-				visitor = new MethodVisitor(assembler, module);
-				visitor.setDefaultReturn(false);
-				methodNode.visit(visitor);
+				//visitor = new MethodVisitor(assembler, module);
+				//visitor.setDefaultReturn(false);
+				//methodNode.visit(visitor);
 
 				// return self
 				visitor.genSelfReturn();
@@ -106,7 +106,7 @@ public class ClassVisitor implements AstVisitor {
 			}else{
 				// regular method, use shared constant pool
 				visitor = new MethodVisitor(constantPool, module);
-				methodNode.visit(visitor);
+				//methodNode.visit(visitor);
 			}
 			
 				

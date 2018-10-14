@@ -88,7 +88,7 @@ public class ModuleVisitor implements AstVisitor {
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
 			visitor.visit(varDec);
 			
-			module.getNamespace().set(varDec.getVarName(), new CNull());
+			module.getNamespace().set(varDec.getVarName(), CNull.instance());
 		}else{
 			throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
 		}

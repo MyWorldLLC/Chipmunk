@@ -9,6 +9,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 
 import chipmunk.truffle.ChipmunkLanguage;
 import chipmunk.truffle.ast.flow.ReturnException;
+import chipmunk.truffle.runtime.Null;
 
 @NodeInfo(language="Chipmunk", shortName="body")
 public class MethodNode extends RootNode {
@@ -35,7 +36,7 @@ public class MethodNode extends RootNode {
 			return e.getValue();
 		}
 		
-		return null;
+		return Null.instance();
 	}
 
 }

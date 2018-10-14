@@ -379,7 +379,7 @@ public class ChipmunkAssembler {
 	}
 	
 	public void pushNull(){
-		push(new CNull());
+		push(CNull.instance());
 	}
 	
 	public void eq(){

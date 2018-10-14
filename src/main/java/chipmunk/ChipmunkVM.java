@@ -55,6 +55,10 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.WrongMethodTypeException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -108,7 +112,7 @@ public class ChipmunkVM {
 	
 	private class CallRecord {
 		public Class<?>[] callTypes;
-		public Method method;
+		public MethodHandle method;
 	}
 
 	private class CallArrays {
@@ -189,21 +193,24 @@ public class ChipmunkVM {
 	protected Map<Class<?>, CallRecord[]> internalCallCache;
 	protected Object[][] internalParams;
 	protected Class<?>[][] internalTypes;
+	protected final MethodHandles.Lookup methodLookup;
 
 	public ChipmunkVM() {
 		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
 
-		internalParams = new Object[4][];
+		internalParams = new Object[5][];
 		internalParams[0] = new Object[0];
 		internalParams[1] = new Object[1];
 		internalParams[2] = new Object[2];
 		internalParams[3] = new Object[3];
+		internalParams[4] = new Object[4];
 
-		internalTypes = new Class<?>[4][];
+		internalTypes = new Class<?>[5][];
 		internalTypes[0] = new Class<?>[0];
 		internalTypes[1] = new Class<?>[1];
 		internalTypes[2] = new Class<?>[2];
 		internalTypes[3] = new Class<?>[3];
+		internalTypes[4] = new Class<?>[4];
 
 		loaders = new ArrayList<ModuleLoader>();
 		
@@ -219,6 +226,8 @@ public class ChipmunkVM {
 		falseValue = new CBoolean(false);
 		
 		refLength = 8; // assume 64-bit references
+		
+		methodLookup = MethodHandles.lookup();
 	}
 	
 	public void setLoaders(List<ModuleLoader> loaders){
@@ -736,7 +745,7 @@ public class ChipmunkVM {
 						// a different caching mechanism
 						// here
 						Object result = callExternal(ins, methodName, fetchByte(instructions, ip + 1));
-						this.push(result != null ? result : new CNull());
+						this.push(result != null ? result : CNull.instance());
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
 						// Otherwise,
@@ -954,9 +963,14 @@ public class ChipmunkVM {
 		return instructions[ip];
 	}
 
-	private Method lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
+	private MethodHandle lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
 
 		Method[] methods = target.getClass().getMethods();
+		/*try {
+			return methodLookup.findVirtual(target.getClass(), opName, MethodType.methodType(target.getClass(), callTypes));
+		} catch (IllegalAccessException e) {
+			throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+		}*/
 
 		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
@@ -966,12 +980,17 @@ public class ChipmunkVM {
 						&& ((method.getModifiers() & Modifier.PUBLIC) != 0)) {
 					// suppress access checks
 					method.setAccessible(true);
-					return method;
+					try {
+						return methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
+					} catch (IllegalAccessException e) {
+						throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+					}
 				}
 			}
 		}
 
 		throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+		
 	}
 
 	private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes) {
@@ -998,9 +1017,9 @@ public class ChipmunkVM {
 
 		Object[] params = internalParams[paramCount];
 		params[0] = this;
-		Class<?>[] paramTypes = internalTypes[params.length];
+		Class<?>[] paramTypes = internalTypes[paramCount];
 
-		for (int i = 0; i < params.length; i++) {
+		for (int i = 0; i < paramCount; i++) {
 			paramTypes[i] = params[i].getClass();
 		}
 
@@ -1016,7 +1035,7 @@ public class ChipmunkVM {
 		if (record == null || !paramTypesMatch(record.callTypes, paramTypes)) {
 			// lookup & make call record
 			try {
-				Method method = lookupMethod(target, op.getOpName(), paramTypes);
+				MethodHandle method = lookupMethod(target, op.getOpName(), paramTypes);
 
 				record = new CallRecord();
 				record.method = method;
@@ -1028,13 +1047,16 @@ public class ChipmunkVM {
 			}
 		}
 
-		Method method = record.method;
+		MethodHandle method = record.method;
 
 		try {
 			Object retVal = method.invoke(target, params);
-			Arrays.fill(params, null);
-			return retVal != null ? retVal : new CNull();
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// Arrays.fill(params, null);
+			return retVal != null ? retVal : CNull.instance();
+		} catch (ClassCastException | WrongMethodTypeException e) {
+			// rebind the cached method and attempt to invoke again
+			throw new AngryChipmunk(e);
+		} catch (Throwable e) {
 			throw new AngryChipmunk(e);
 		}
 	}
@@ -1076,10 +1098,12 @@ public class ChipmunkVM {
 		}
 
 		try {
-			Method method = lookupMethod(target, methodName, paramTypes);
-			Object retVal = method.invoke(target, params);
-			return retVal != null ? retVal : new CNull();
+			MethodHandle method = lookupMethod(target, methodName, paramTypes);
+			Object retVal = method.invokeExact(params);
+			return retVal != null ? retVal : CNull.instance();
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			throw new AngryChipmunk(e);
+		} catch (Throwable e) {
 			throw new AngryChipmunk(e);
 		}
 	}

@@ -49,7 +49,7 @@ public class Namespace {
 	public void set(String name, Object value) throws IllegalArgumentException {
 		
 		if(value == null){
-			value = new CNull();
+			value = CNull.instance();
 		}
 		
 		if(finalAttributes != null && finalAttributes.contains(name)){
@@ -98,7 +98,7 @@ public class Namespace {
 	public void setFinal(String name, Object value){
 		
 		if(value == null){
-			value = new CNull();
+			value = CNull.instance();
 		}
 		
 		if(finalAttributes == null){

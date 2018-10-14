@@ -9,10 +9,10 @@ import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("valueNode")
-@NodeField(name="localIndex", type=Integer.class)
+@NodeField(name="slotIdentifier", type=Object.class)
 public abstract class WriteLocalNode extends ExpressionNode {
 	
-	protected abstract Integer getLocalIndex();
+	protected abstract Object getSlotIdentifier();
 	protected FrameSlot slot;
 	
 	public FrameSlot getSlot() {
@@ -46,7 +46,7 @@ public abstract class WriteLocalNode extends ExpressionNode {
 	protected void bindSlot(VirtualFrame frame) {
 		if(slot == null) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			slot = frame.getFrameDescriptor().findOrAddFrameSlot(getLocalIndex());
+			slot = frame.getFrameDescriptor().findOrAddFrameSlot(getSlotIdentifier());
 		}
 	}
 }
