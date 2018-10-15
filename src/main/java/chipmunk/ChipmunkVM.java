@@ -190,13 +190,13 @@ public class ChipmunkVM {
 	
 	private final int refLength;
 	
-	protected Map<Class<?>, CallRecord[]> internalCallCache;
+	protected Map<Class<?>, MethodHandle[]> internalCallCache;
 	protected Object[][] internalParams;
 	protected Class<?>[][] internalTypes;
 	protected final MethodHandles.Lookup methodLookup;
 
 	public ChipmunkVM() {
-		internalCallCache = new HashMap<Class<?>, CallRecord[]>();
+		internalCallCache = new HashMap<Class<?>, MethodHandle[]>();
 
 		internalParams = new Object[5][];
 		internalParams[0] = new Object[0];
@@ -966,11 +966,6 @@ public class ChipmunkVM {
 	private MethodHandle lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
 
 		Method[] methods = target.getClass().getMethods();
-		/*try {
-			return methodLookup.findVirtual(target.getClass(), opName, MethodType.methodType(target.getClass(), callTypes));
-		} catch (IllegalAccessException e) {
-			throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
-		}*/
 
 		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
@@ -1013,52 +1008,44 @@ public class ChipmunkVM {
 	private Object doInternal(InternalOp op, Object target, int paramCount) {
 		Class<?> targetType = target.getClass();
 
-		CallRecord[] records = internalCallCache.get(targetType);
-
 		Object[] params = internalParams[paramCount];
 		params[0] = this;
-		Class<?>[] paramTypes = internalTypes[paramCount];
-
-		for (int i = 0; i < paramCount; i++) {
-			paramTypes[i] = params[i].getClass();
-		}
-
-		if (records == null) {
-			records = new CallRecord[InternalOp.values().length];
-			internalCallCache.put(target.getClass(), records);
-		}
-
-		final int opIndex = op.ordinal();
-
-		CallRecord record = records[opIndex];
-
-		if (record == null || !paramTypesMatch(record.callTypes, paramTypes)) {
-			// lookup & make call record
-			try {
-				MethodHandle method = lookupMethod(target, op.getOpName(), paramTypes);
-
-				record = new CallRecord();
-				record.method = method;
-				record.callTypes = Arrays.copyOf(paramTypes, paramTypes.length);
-
-				records[opIndex] = record;
-			} catch (NoSuchMethodException e) {
-				throw new AngryChipmunk(e);
-			}
-		}
-
-		MethodHandle method = record.method;
-
+		
 		try {
+
+			MethodHandle method = getOrCacheInternal(op, target, params);
+		
 			Object retVal = method.invoke(target, params);
+			// the following is helpful when weird bugs crop up - it nulls the parameter array after use
 			// Arrays.fill(params, null);
 			return retVal != null ? retVal : CNull.instance();
+			
 		} catch (ClassCastException | WrongMethodTypeException e) {
-			// rebind the cached method and attempt to invoke again
-			throw new AngryChipmunk(e);
+			// rebind the cached method and attempt to invoke again with the actual parameters we have now
+			try {
+				Class<?>[] paramTypes = internalTypes[paramCount];
+				for (int i = 0; i < paramCount; i++) {
+					paramTypes[i] = params[i].getClass();
+				}
+				MethodHandle method = lookupMethod(target, op.getOpName(), paramTypes);
+				cacheInternal(op, targetType, method);
+				
+				method = getOrCacheInternal(op, target, params);
+				
+				Object retVal = method.invoke(target, params);
+				// the following is helpful when weird bugs crop up - it nulls the parameter array after use
+				// Arrays.fill(params, null);
+				return retVal != null ? retVal : CNull.instance();
+			}catch(NoSuchMethodException ex) {
+				throw new AngryChipmunk(ex);
+			}catch(Throwable ex) {
+				throw new AngryChipmunk(ex);
+			}
+			
 		} catch (Throwable e) {
 			throw new AngryChipmunk(e);
 		}
+		
 	}
 
 	private Object callExternal(Object target, String methodName, byte paramCount) {
@@ -1099,13 +1086,47 @@ public class ChipmunkVM {
 
 		try {
 			MethodHandle method = lookupMethod(target, methodName, paramTypes);
-			Object retVal = method.invokeExact(params);
+			Object retVal = method.invoke(target, params);
 			return retVal != null ? retVal : CNull.instance();
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
 		} catch (Throwable e) {
 			throw new AngryChipmunk(e);
 		}
+	}
+	
+	private MethodHandle getOrCacheInternal(InternalOp op, Object target, Object[] params) throws NoSuchMethodException {
+		Class<?> targetType = target.getClass();
+		
+		MethodHandle method = getCachedInternalOpMethod(op, targetType);
+		if (method == null) {
+			Class<?>[] paramTypes = internalTypes[params.length];
+			for (int i = 0; i < params.length; i++) {
+				paramTypes[i] = params[i].getClass();
+			}
+			method = lookupMethod(target, op.getOpName(), paramTypes);
+			cacheInternal(op, targetType, method);
+		}
+		return method;
+	}
+	
+	private void cacheInternal(InternalOp op, Class<?> targetType, MethodHandle method) {
+		
+		MethodHandle[] records = internalCallCache.get(targetType);
+		if (records == null) {
+			records = new MethodHandle[InternalOp.values().length];
+			internalCallCache.put(targetType, records);
+		}
+		
+		records[op.ordinal()] = method;
+	}
+	
+	private MethodHandle getCachedInternalOpMethod(InternalOp op, Class<?> targetType) {
+		MethodHandle[] records = internalCallCache.get(targetType);
+		if(records == null) {
+			return null;
+		}
+		return records[op.ordinal()];
 	}
 
 	private String formatMissingMethodMessage(Class<?> targetType, String methodName, Class<?>[] paramTypes) {
