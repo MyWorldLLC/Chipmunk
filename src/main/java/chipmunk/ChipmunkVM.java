@@ -55,6 +55,8 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
+import java.lang.invoke.LambdaConversionException;
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -64,12 +66,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import chipmunk.modules.reflectiveruntime.CBoolean;
 import chipmunk.modules.reflectiveruntime.CInteger;
@@ -84,6 +87,10 @@ import chipmunk.modules.reflectiveruntime.Initializable;
 import chipmunk.modules.reflectiveruntime.RuntimeObject;
 
 public class ChipmunkVM {
+	
+	private interface InternalOperation {
+		Object apply(Object[] args);
+	}
 
 	public class CallFrame {
 		public final CMethod method;
@@ -976,8 +983,17 @@ public class ChipmunkVM {
 					// suppress access checks
 					method.setAccessible(true);
 					try {
-						return methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
-					} catch (IllegalAccessException e) {
+						MethodHandle implementationHandle = methodLookup.unreflect(method);
+						MethodHandle handle = implementationHandle.asSpreader(1, Object[].class, callTypes.length);
+						MethodType interfaceType = MethodType.methodType(InternalOperation.class);
+						
+						MethodType samType = MethodType.methodType(InternalOperation.class, Object.class, Object[].class); //rawHandle.type();
+						MethodType implType = MethodType.methodType(Object.class, callTypes);
+						
+						return LambdaMetafactory.metafactory(methodLookup, "apply", interfaceType, implType, implementationHandle, implType)
+								.dynamicInvoker();
+					} catch (IllegalAccessException | LambdaConversionException e) {
+						e.printStackTrace();
 						throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
 					}
 				}
