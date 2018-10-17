@@ -984,14 +984,21 @@ public class ChipmunkVM {
 					method.setAccessible(true);
 					try {
 						MethodHandle implementationHandle = methodLookup.unreflect(method);
+						MethodType methodType = MethodType.methodType(method.getReturnType(), method.getParameterTypes());
 						MethodHandle handle = implementationHandle.asSpreader(1, Object[].class, callTypes.length);
 						MethodType interfaceType = MethodType.methodType(InternalOperation.class);
 						
-						MethodType samType = MethodType.methodType(InternalOperation.class, Object.class, Object[].class); //rawHandle.type();
+						MethodType samType = MethodType.methodType(Object.class, InternalOperation.class, Object[].class); //rawHandle.type();
 						MethodType implType = MethodType.methodType(Object.class, callTypes);
 						
-						return LambdaMetafactory.metafactory(methodLookup, "apply", interfaceType, implType, implementationHandle, implType)
-								.dynamicInvoker();
+						return LambdaMetafactory.metafactory(
+								methodLookup,
+								"apply",
+								interfaceType,
+								methodType,
+								implementationHandle,
+								implType)
+								.getTarget();
 					} catch (IllegalAccessException | LambdaConversionException e) {
 						e.printStackTrace();
 						throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
