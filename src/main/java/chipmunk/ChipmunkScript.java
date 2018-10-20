@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM.CallFrame;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkScript {
 	

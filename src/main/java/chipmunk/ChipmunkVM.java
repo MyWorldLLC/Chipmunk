@@ -72,18 +72,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import chipmunk.invoke.*;
-import chipmunk.modules.reflectiveruntime.CBoolean;
-import chipmunk.modules.reflectiveruntime.CInteger;
-import chipmunk.modules.reflectiveruntime.CIterator;
-import chipmunk.modules.reflectiveruntime.CList;
-import chipmunk.modules.reflectiveruntime.CMap;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
-import chipmunk.modules.reflectiveruntime.CNull;
-import chipmunk.modules.reflectiveruntime.CallInterceptor;
-import chipmunk.modules.reflectiveruntime.Initializable;
-import chipmunk.modules.reflectiveruntime.RuntimeObject;
+import chipmunk.invoke.Call;
+import chipmunk.invoke.CallEight;
+import chipmunk.invoke.CallEightVoid;
+import chipmunk.invoke.CallFive;
+import chipmunk.invoke.CallFiveVoid;
+import chipmunk.invoke.CallFour;
+import chipmunk.invoke.CallFourVoid;
+import chipmunk.invoke.CallNine;
+import chipmunk.invoke.CallNineVoid;
+import chipmunk.invoke.CallOne;
+import chipmunk.invoke.CallOneVoid;
+import chipmunk.invoke.CallSeven;
+import chipmunk.invoke.CallSevenVoid;
+import chipmunk.invoke.CallSix;
+import chipmunk.invoke.CallSixVoid;
+import chipmunk.invoke.CallTen;
+import chipmunk.invoke.CallTenVoid;
+import chipmunk.invoke.CallThree;
+import chipmunk.invoke.CallThreeVoid;
+import chipmunk.invoke.CallTwo;
+import chipmunk.invoke.CallTwoVoid;
+import chipmunk.invoke.CallVoid;
+import chipmunk.invoke.VoidMarker;
+import chipmunk.modules.runtime.CBoolean;
+import chipmunk.modules.runtime.CFloat;
+import chipmunk.modules.runtime.CInteger;
+import chipmunk.modules.runtime.CIterator;
+import chipmunk.modules.runtime.CList;
+import chipmunk.modules.runtime.CMap;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
+import chipmunk.modules.runtime.CNull;
+import chipmunk.modules.runtime.CallInterceptor;
+import chipmunk.modules.runtime.Initializable;
+import chipmunk.modules.runtime.RuntimeObject;
 
 public class ChipmunkVM {
 
@@ -196,6 +219,7 @@ public class ChipmunkVM {
 	protected Object[][] internalParams;
 	protected Class<?>[][] internalTypes;
 	protected Class<?>[] callTypes;
+	protected Class<?>[] voidCallTypes;
 	protected final MethodHandles.Lookup methodLookup;
 
 	public ChipmunkVM() {
@@ -227,6 +251,20 @@ public class ChipmunkVM {
 		callTypes[8] = CallEight.class;
 		callTypes[9] = CallNine.class;
 		callTypes[10] = CallTen.class;
+		
+		voidCallTypes = new Class<?>[11];
+		voidCallTypes[0] = CallVoid.class;
+		voidCallTypes[1] = CallOneVoid.class;
+		voidCallTypes[2] = CallTwoVoid.class;
+		voidCallTypes[3] = CallThreeVoid.class;
+		voidCallTypes[4] = CallFourVoid.class;
+		voidCallTypes[5] = CallFiveVoid.class;
+		voidCallTypes[6] = CallSixVoid.class;
+		voidCallTypes[7] = CallSevenVoid.class;
+		voidCallTypes[8] = CallEightVoid.class;
+		voidCallTypes[9] = CallNineVoid.class;
+		voidCallTypes[10] = CallTenVoid.class;
+		
 
 		loaders = new ArrayList<ModuleLoader>();
 		
@@ -441,12 +479,22 @@ public class ChipmunkVM {
 		memHigh += 1;
 	}
 	
+	public CBoolean traceBoolean(boolean value) {
+		traceBoolean();
+		return new CBoolean(value);
+	}
+	
 	public void untraceBoolean() {
 		memHigh -= 1;
 	}
 
 	public void traceInteger() {
 		memHigh += 4;
+	}
+	
+	public CInteger traceInteger(int value) {
+		traceInteger();
+		return new CInteger(value);
 	}
 	
 	public void untraceInteger() {
@@ -457,20 +505,35 @@ public class ChipmunkVM {
 		memHigh += 4;
 	}
 	
+	public CFloat traceFloat(float value) {
+		traceFloat();
+		return new CFloat(value);
+	}
+	
 	public void untraceFloat() {
 		memHigh -= 4;
 	}
 
-	public void traceString(String str) {
+	public String traceString(String str) {
 		memHigh += str.length() * 2;
+		return str;
 	}
 	
 	public void traceReference() {
 		memHigh += refLength;
 	}
 	
+	public Object traceReference(Object obj) {
+		traceReference();
+		return obj;
+	}
+	
 	public void untraceReference() {
 		memHigh -= refLength;
+	}
+	
+	public void untraceReferences(int count) {
+		memHigh -= refLength * count;
 	}
 
 	public Object dispatch(CMethod method, int paramCount) {
@@ -982,49 +1045,60 @@ public class ChipmunkVM {
 	private Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
 
 		Method[] methods = target.getClass().getMethods();
-		
-		Class<?> callTypeClass = null;
-		if(callTypes.length < 11) {
-			callTypeClass = this.callTypes[callTypes.length];
-		}else {
-			// TODO - need to non-statically bind
-		}
-
+		Method method = null;
 		for (int i = 0; i < methods.length; i++) {
-			Method method = methods[i];
+			method = methods[i];
 			if (method.getName().equals(opName)) {
 				// only call public methods
 				if (paramTypesMatch(method.getParameterTypes(), callTypes)
 						&& ((method.getModifiers() & Modifier.PUBLIC) != 0)) {
-					// suppress access checks
-					method.setAccessible(true);
-					try {
-						MethodHandle implementationHandle = methodLookup.unreflect(method);
-						MethodType interfaceType = MethodType.methodType(callTypeClass);
-						
-						MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(callTypes);
-						
-						return LambdaMetafactory.metafactory(
-								methodLookup,
-								"call",
-								interfaceType,
-								implType.generic(),
-								implementationHandle,
-								implementationHandle.type())
-								.getTarget().invoke();
-					} catch (IllegalAccessException | LambdaConversionException e) {
-						e.printStackTrace();
-						throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
-					}catch(Throwable e) {
-						e.printStackTrace();
-						throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
-					}
+					break;
 				}
 			}
 		}
-
-		throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
 		
+		if(method == null) {
+			throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+		}
+		
+		Class<?> callTypeClass = null;
+		if(callTypes.length < 11) {
+			// direct-bind method
+			
+			if(method.getReturnType().equals(void.class)) {
+				callTypeClass = this.voidCallTypes[callTypes.length];
+			}else {
+				callTypeClass = this.callTypes[callTypes.length];
+			}
+			
+			try {
+				MethodHandle implementationHandle = methodLookup.unreflect(method);
+				
+				MethodType interfaceType = MethodType.methodType(callTypeClass);
+				MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(callTypes);
+				
+				return LambdaMetafactory.metafactory(
+						methodLookup,
+						"call",
+						interfaceType,
+						implType.erase(),
+						implementationHandle,
+						implementationHandle.type())
+						.getTarget().invoke();
+			} catch (IllegalAccessException | LambdaConversionException e) {
+				throw new AngryChipmunk(e);
+			}catch(Throwable e) {
+				throw new AngryChipmunk(e);
+			}
+			
+		}else {
+			// non-statically bind method
+			try {
+				return methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
+			} catch (IllegalAccessException e) {
+				throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+			}
+		}
 	}
 
 	private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes) {
@@ -1055,56 +1129,12 @@ public class ChipmunkVM {
 		try {
 
 			Object method = getOrCacheInternal(op, target, params);
-			
-			Object retVal = null;
-			switch(paramCount) {
-			case 0:
-				retVal = ((Call) method).call(target);
-				break;
-			case 1:
-				retVal = ((CallOne) method).call(target, params[0]);
-				break;
-			case 2:
-				retVal = ((CallTwo) method).call(target, params[0], params[1]);
-				break;
-			case 3:
-				retVal = ((CallThree) method).call(target, params[0], params[1], params[2]);
-				break;
-			case 4:
-				retVal = ((CallFour) method).call(target, params[0], params[1], params[2], params[3]);
-				break;
-			case 5:
-				retVal = ((CallFive) method).call(target, params[0], params[1], params[2], params[3], params[4]);
-				break;
-			case 6:
-				retVal = ((CallSix) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5]);
-				break;
-			case 7:
-				retVal = ((CallSeven) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-						params[6]);
-				break;
-			case 8:
-				retVal = ((CallEight) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-						params[6], params[7]);
-				break;
-			case 9:
-				retVal = ((CallNine) method).call(target, params[0], params[1], params[2], params[3], params[4],  params[5],
-						params[6], params[7], params[8]);
-				break;
-			case 10:
-				retVal = ((CallTen) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-						params[6], params[7], params[8], params[9]);
-				break;
-			default:
-				throw new IllegalStateException();
-			}
+			Object retVal = invoke(method, target, params);
 		
 			// the following is helpful when weird bugs crop up - it nulls the parameter array after use
 			// Arrays.fill(params, null);
 			return retVal != null ? retVal : CNull.instance();
-			
 		} catch (IllegalStateException | ClassCastException | WrongMethodTypeException e) {
-			e.printStackTrace();
 			// rebind the cached method and attempt to invoke again with the actual parameters we have now
 			try {
 				Class<?>[] paramTypes = internalTypes[paramCount];
@@ -1115,49 +1145,7 @@ public class ChipmunkVM {
 				cacheInternal(op, targetType, method);
 				
 				method = getOrCacheInternal(op, target, params);
-				
-				Object retVal = null;
-				switch(paramCount) {
-				case 0:
-					retVal = ((Call) method).call(target);
-					break;
-				case 1:
-					retVal = ((CallOne) method).call(target, params[0]);
-					break;
-				case 2:
-					retVal = ((CallTwo) method).call(target, params[0], params[1]);
-					break;
-				case 3:
-					retVal = ((CallThree) method).call(target, params[0], params[1], params[2]);
-					break;
-				case 4:
-					retVal = ((CallFour) method).call(target, params[0], params[1], params[2], params[3]);
-					break;
-				case 5:
-					retVal = ((CallFive) method).call(target, params[0], params[1], params[2], params[3], params[4]);
-					break;
-				case 6:
-					retVal = ((CallSix) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5]);
-					break;
-				case 7:
-					retVal = ((CallSeven) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-							params[6]);
-					break;
-				case 8:
-					retVal = ((CallEight) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-							params[6], params[7]);
-					break;
-				case 9:
-					retVal = ((CallNine) method).call(target, params[0], params[1], params[2], params[3], params[4],  params[5],
-							params[6], params[7], params[8]);
-					break;
-				case 10:
-					retVal = ((CallTen) method).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
-							params[6], params[7], params[8], params[9]);
-					break;
-				default:
-					throw new IllegalStateException();
-				}
+				Object retVal = invoke(method, target, params);
 				// the following is helpful when weird bugs crop up - it nulls the parameter array after use
 				// Arrays.fill(params, null);
 				return retVal != null ? retVal : CNull.instance();
@@ -1208,17 +1196,114 @@ public class ChipmunkVM {
 		for (int i = 0; i < params.length; i++) {
 			paramTypes[i] = params[i].getClass();
 		}
-		return CNull.instance();
 
-//		try {
-//			MethodHandle method = lookupMethod(target, methodName, paramTypes);
-//			Object retVal = method.invoke(target, params);
-//			return retVal != null ? retVal : CNull.instance();
-//		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-//			throw new AngryChipmunk(e);
-//		} catch (Throwable e) {
-//			throw new AngryChipmunk(e);
-//		}
+		try {
+			Object invokeTarget = lookupMethod(target, methodName, paramTypes);
+			Object retVal = invoke(invokeTarget, target, params);
+			
+			return retVal != null ? retVal : CNull.instance();
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			throw new AngryChipmunk(e);
+		} catch (Throwable e) {
+			throw new AngryChipmunk(e);
+		}
+	}
+	
+	private Object invoke(Object callTarget, Object target, Object[] params) throws Throwable {
+
+		if(callTarget instanceof VoidMarker) {
+			switch (params.length) {
+			case 0:
+				((CallVoid) callTarget).call(target);
+				break;
+			case 1:
+				((CallOneVoid) callTarget).call(target, params[0]);
+				break;
+			case 2:
+				((CallTwoVoid) callTarget).call(target, params[0], params[1]);
+				break;
+			case 3:
+				((CallThreeVoid) callTarget).call(target, params[0], params[1], params[2]);
+				break;
+			case 4:
+				((CallFourVoid) callTarget).call(target, params[0], params[1], params[2], params[3]);
+				break;
+			case 5:
+				((CallFiveVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4]);
+				break;
+			case 6:
+				((CallSixVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5]);
+				break;
+			case 7:
+				((CallSevenVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6]);
+				break;
+			case 8:
+				((CallEightVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7]);
+				break;
+			case 9:
+				((CallNineVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7], params[8]);
+				break;
+			case 10:
+				((CallTenVoid) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7], params[8], params[9]);
+				break;
+			default:
+				// target is a non-direct method handle.
+				MethodHandle handle = (MethodHandle) callTarget;
+				handle.invoke(target, params);
+			}
+			return CNull.instance();
+		}else {
+			Object retVal = null;
+			switch (params.length) {
+			case 0:
+				retVal = ((Call) callTarget).call(target);
+				break;
+			case 1:
+				retVal = ((CallOne) callTarget).call(target, params[0]);
+				break;
+			case 2:
+				retVal = ((CallTwo) callTarget).call(target, params[0], params[1]);
+				break;
+			case 3:
+				retVal = ((CallThree) callTarget).call(target, params[0], params[1], params[2]);
+				break;
+			case 4:
+				retVal = ((CallFour) callTarget).call(target, params[0], params[1], params[2], params[3]);
+				break;
+			case 5:
+				retVal = ((CallFive) callTarget).call(target, params[0], params[1], params[2], params[3], params[4]);
+				break;
+			case 6:
+				retVal = ((CallSix) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5]);
+				break;
+			case 7:
+				retVal = ((CallSeven) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6]);
+				break;
+			case 8:
+				retVal = ((CallEight) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7]);
+				break;
+			case 9:
+				retVal = ((CallNine) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7], params[8]);
+				break;
+			case 10:
+				retVal = ((CallTen) callTarget).call(target, params[0], params[1], params[2], params[3], params[4], params[5],
+						params[6], params[7], params[8], params[9]);
+				break;
+			default:
+				// target is a non-direct method handle.
+				MethodHandle handle = (MethodHandle) callTarget;
+				retVal = handle.invoke(target, params);
+			}
+			
+			return retVal;
+		}
 	}
 	
 	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params) throws NoSuchMethodException {

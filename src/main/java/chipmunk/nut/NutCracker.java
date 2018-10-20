@@ -9,7 +9,7 @@ import java.util.List;
 import chipmunk.ChipmunkVM;
 import chipmunk.modules.lang.CObject;
 import chipmunk.modules.lang.CType;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CModule;
 
 public class NutCracker {
 

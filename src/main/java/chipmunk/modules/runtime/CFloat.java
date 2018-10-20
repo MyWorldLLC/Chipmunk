@@ -1,4 +1,4 @@
-package chipmunk.modules.reflectiveruntime;
+package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
 import chipmunk.nut.InputCapsule;

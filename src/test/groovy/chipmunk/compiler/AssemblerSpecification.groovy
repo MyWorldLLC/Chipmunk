@@ -1,8 +1,8 @@
 package chipmunk.compiler
 
 import chipmunk.ChipmunkVM
-import chipmunk.modules.reflectiveruntime.CInteger
-import chipmunk.modules.reflectiveruntime.CMethod
+import chipmunk.modules.runtime.CInteger
+import chipmunk.modules.runtime.CMethod
 import spock.lang.Specification
 
 class AssemblerSpecification extends Specification {

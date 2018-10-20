@@ -1,4 +1,4 @@
-package chipmunk.modules.reflectiveruntime;
+package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
 
@@ -36,7 +36,7 @@ public class CIntegerRange implements RuntimeObject{
 		return new CIntegerRangeIterator();
 	}
 	
-	private class CIntegerRangeIterator implements CIterator {
+	protected class CIntegerRangeIterator implements CIterator {
 		
 		private int current;
 		
@@ -47,15 +47,13 @@ public class CIntegerRange implements RuntimeObject{
 		@Override
 		public CInteger next(ChipmunkVM vm) {
 			if(!hasNext(vm)){
-				// TODO - error
-				throw new IllegalStateException();
+				throw new IllegalStateException("Iteration past end of range");
 			}
 			
 			int value = current;
 			current += step;
 			
-			vm.traceMem(4);
-			return new CInteger(value);
+			return vm.traceInteger(value);
 		}
 
 		@Override

@@ -1,6 +1,12 @@
 package chipmunk.modules.reflectiveruntime
 
 import chipmunk.ChipmunkVM
+import chipmunk.modules.runtime.CBoolean
+import chipmunk.modules.runtime.CFloat
+import chipmunk.modules.runtime.CFloatRange
+import chipmunk.modules.runtime.CInteger
+import chipmunk.modules.runtime.CIntegerRange
+import chipmunk.modules.runtime.CString
 import spock.lang.Shared
 import spock.lang.Specification
 

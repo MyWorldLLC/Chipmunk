@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CModule;
 
 public class MemoryModuleLoader implements ModuleLoader {
 

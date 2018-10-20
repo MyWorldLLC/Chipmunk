@@ -11,10 +11,10 @@ import chipmunk.compiler.ast.ImportNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.ast.VarDecNode;
-import chipmunk.modules.reflectiveruntime.CClass;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
-import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.modules.runtime.CClass;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
+import chipmunk.modules.runtime.CNull;
 
 public class ModuleVisitor implements AstVisitor {
 	

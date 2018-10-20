@@ -1,6 +1,6 @@
 package chipmunk;
 
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CModule;
 
 public interface ModuleLoader {
 

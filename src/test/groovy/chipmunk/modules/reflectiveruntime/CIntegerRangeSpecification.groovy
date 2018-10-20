@@ -1,6 +1,7 @@
 package chipmunk.modules.reflectiveruntime
 
 import chipmunk.ChipmunkVM
+import chipmunk.modules.runtime.CIntegerRange
 import spock.lang.Specification
 
 class CIntegerRangeSpecification extends Specification {

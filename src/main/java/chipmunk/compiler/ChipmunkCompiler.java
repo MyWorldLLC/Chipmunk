@@ -12,7 +12,7 @@ import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.ModuleVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkCompiler {
 	

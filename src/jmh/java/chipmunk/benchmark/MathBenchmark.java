@@ -13,6 +13,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -24,8 +25,8 @@ import chipmunk.compiler.ChipmunkParser;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.codegen.MethodVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
 
 public class MathBenchmark {
 	
@@ -78,15 +79,15 @@ public class MathBenchmark {
 		return vm.dispatch(method, method.getArgCount());
 	}
 	
-	@Benchmark
-	@BenchmarkMode(Mode.SampleTime)
-	public Object countToOneMillionJava(ChipmunkScripts scripts) {
-		int x = 0;
-		while(x < 1000000) {
-			x = x + 1;
-		}
-		return x;
-	}
+//	@Benchmark
+//	@BenchmarkMode(Mode.SampleTime)
+//	public Object countToOneMillionJava(ChipmunkScripts scripts) {
+//		int x = 0;
+//		while(x < 1000000) {
+//			x = x + 1;
+//		}
+//		return x;
+//	}
 
 
 	public static void main(String[] args) throws RunnerException {

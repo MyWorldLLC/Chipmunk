@@ -1,4 +1,4 @@
-package chipmunk.modules.reflectiveruntime;
+package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
 
@@ -36,7 +36,7 @@ public class CFloatRange implements RuntimeObject {
 		return new CFloatRangeIterator();
 	}
 	
-	private class CFloatRangeIterator implements CIterator {
+	protected class CFloatRangeIterator implements CIterator {
 		
 		private float current;
 		
@@ -47,15 +47,13 @@ public class CFloatRange implements RuntimeObject {
 		@Override
 		public CFloat next(ChipmunkVM vm) {
 			if(!hasNext(vm)){
-				// TODO - error
-				throw new IllegalStateException();
+				throw new IllegalStateException("Iteration past end of range");
 			}
 			
 			float value = current;
 			current += step;
 			
-			vm.traceMem(4);
-			return new CFloat(value);
+			return vm.traceFloat(value);
 		}
 
 		@Override

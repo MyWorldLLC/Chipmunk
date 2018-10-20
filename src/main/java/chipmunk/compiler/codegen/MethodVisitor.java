@@ -14,8 +14,8 @@ import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
 
 public class MethodVisitor implements AstVisitor {
 

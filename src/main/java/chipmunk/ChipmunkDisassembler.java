@@ -57,7 +57,7 @@ import static chipmunk.Opcodes.URSHIFT;
 
 import java.util.List;
 
-import chipmunk.modules.reflectiveruntime.CMethod;
+import chipmunk.modules.runtime.CMethod;
 
 public class ChipmunkDisassembler {
 	

@@ -5,8 +5,8 @@ import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.reflectiveruntime.CMethod
-import chipmunk.modules.reflectiveruntime.CModule
+import chipmunk.modules.runtime.CMethod
+import chipmunk.modules.runtime.CModule
 import spock.lang.Specification
 
 class ModuleVisitorSpecification extends Specification {

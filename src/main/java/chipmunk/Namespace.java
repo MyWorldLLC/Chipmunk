@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import chipmunk.modules.reflectiveruntime.CClass;
-import chipmunk.modules.reflectiveruntime.CClosure;
-import chipmunk.modules.reflectiveruntime.CNull;
-import chipmunk.modules.reflectiveruntime.CObject;
+import chipmunk.modules.runtime.CClass;
+import chipmunk.modules.runtime.CClosure;
+import chipmunk.modules.runtime.CNull;
+import chipmunk.modules.runtime.CObject;
 
 public class Namespace {
 

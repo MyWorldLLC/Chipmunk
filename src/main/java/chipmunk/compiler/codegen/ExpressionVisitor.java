@@ -14,10 +14,10 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.reflectiveruntime.CBoolean;
-import chipmunk.modules.reflectiveruntime.CFloat;
-import chipmunk.modules.reflectiveruntime.CInteger;
-import chipmunk.modules.reflectiveruntime.CString;
+import chipmunk.modules.runtime.CBoolean;
+import chipmunk.modules.runtime.CFloat;
+import chipmunk.modules.runtime.CInteger;
+import chipmunk.modules.runtime.CString;
 
 public class ExpressionVisitor implements AstVisitor {
 	

@@ -1,7 +1,7 @@
 package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.modules.reflectiveruntime.CMethod
+import chipmunk.modules.runtime.CMethod
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {

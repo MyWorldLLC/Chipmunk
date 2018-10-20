@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.Opcodes;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CNull;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CNull;
 
 public class ChipmunkAssembler {
 	

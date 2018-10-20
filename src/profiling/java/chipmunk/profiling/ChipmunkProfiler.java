@@ -12,8 +12,8 @@ import chipmunk.compiler.ChipmunkParser;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.codegen.MethodVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkProfiler {
 	

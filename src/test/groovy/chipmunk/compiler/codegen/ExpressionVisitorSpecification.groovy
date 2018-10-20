@@ -6,14 +6,14 @@ import chipmunk.compiler.ChipmunkAssembler
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.reflectiveruntime.CBoolean
-import chipmunk.modules.reflectiveruntime.CFloat
-import chipmunk.modules.reflectiveruntime.CInteger
-import chipmunk.modules.reflectiveruntime.CList
-import chipmunk.modules.reflectiveruntime.CMap
-import chipmunk.modules.reflectiveruntime.CMethod
-import chipmunk.modules.reflectiveruntime.CModule
-import chipmunk.modules.reflectiveruntime.CString
+import chipmunk.modules.runtime.CBoolean
+import chipmunk.modules.runtime.CFloat
+import chipmunk.modules.runtime.CInteger
+import chipmunk.modules.runtime.CList
+import chipmunk.modules.runtime.CMap
+import chipmunk.modules.runtime.CMethod
+import chipmunk.modules.runtime.CModule
+import chipmunk.modules.runtime.CString
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {

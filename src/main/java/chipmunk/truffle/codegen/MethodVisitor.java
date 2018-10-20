@@ -6,8 +6,8 @@ import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.modules.reflectiveruntime.CMethod;
-import chipmunk.modules.reflectiveruntime.CModule;
+import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CModule;
 import chipmunk.truffle.ast.MethodNode;
 
 public class MethodVisitor implements TruffleAstVisitor<MethodNode> {

@@ -5,11 +5,11 @@ import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.reflectiveruntime.CBoolean
-import chipmunk.modules.reflectiveruntime.CInteger
-import chipmunk.modules.reflectiveruntime.CMethod
-import chipmunk.modules.reflectiveruntime.CModule
-import chipmunk.modules.reflectiveruntime.CNull
+import chipmunk.modules.runtime.CBoolean
+import chipmunk.modules.runtime.CInteger
+import chipmunk.modules.runtime.CMethod
+import chipmunk.modules.runtime.CModule
+import chipmunk.modules.runtime.CNull
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
