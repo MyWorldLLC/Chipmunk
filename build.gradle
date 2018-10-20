@@ -80,7 +80,7 @@ asciidoctor {
 
 jmh {
 	fork = 1
-	jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI'] // Ensure Graal is enabled
+	// jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI'] // Ensure Graal is enabled
 }
 
 task runProfiler(type:JavaExec) {
