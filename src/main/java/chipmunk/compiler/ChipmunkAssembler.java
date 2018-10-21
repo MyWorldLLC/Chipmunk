@@ -19,6 +19,9 @@ public class ChipmunkAssembler {
 	private List<Label> labels;
 	private List<LabelTarget> labelTargets;
 	
+	private int virtualStackIndex;
+	private int maxStackDepth;
+	
 	public ChipmunkAssembler(){
 		this(new ArrayList<Object>());
 	}
@@ -32,6 +35,9 @@ public class ChipmunkAssembler {
 		
 		labels = new ArrayList<Label>();
 		labelTargets = new ArrayList<LabelTarget>();
+		
+		virtualStackIndex = 0;
+		maxStackDepth = 0;
 	}
 	
 	public List<Object> getConstantPool(){
@@ -371,11 +377,15 @@ public class ChipmunkAssembler {
 		int entryIndex = getConstantPoolEntry(value);
 		
 		code.write(Opcodes.PUSH);
+		
 		code.write(entryIndex >> 24);
 		code.write(entryIndex >> 16);
 		code.write(entryIndex >> 8);
 		code.write(entryIndex);
 		index += 5;
+		
+		virtualStackIndex++;
+		maxStackDepth = Math.max(maxStackDepth, virtualStackIndex);
 	}
 	
 	public void pushNull(){
@@ -481,6 +491,50 @@ public class ChipmunkAssembler {
 		code.write(index >> 8);
 		code.write(index);
 		index += 5;
+	}
+	
+	private void emitBinaryOp(byte op) {
+		writeByte(op);
+		// TODO - callsite tracking
+		writeShort(virtualStackIndex);
+		writeShort(virtualStackIndex - 1);
+		virtualStackIndex -= 2;
+	}
+	
+	private void emitUnaryOp(byte op) {
+		writeByte(op);
+		// TODO - callsite tracking
+		writeShort(virtualStackIndex);
+		virtualStackIndex--;
+	}
+	
+	private void emitUnaryOpNoPop(byte op) {
+		writeByte(op);
+		// TODO - callsite tracking
+		writeShort(virtualStackIndex);
+	}
+	
+	private void writeByte(byte b) {
+		code.write(b);
+		index++;
+	}
+	
+	private void writeShort(int s) {
+		writeShort((short) s);
+	}
+	
+	private void writeShort(short s) {
+		code.write(s >> 8);
+		code.write(s);
+		index += 2;
+	}
+	
+	private void writeInt(int i) {
+		code.write(i >> 24);
+		code.write(i >> 16);
+		code.write(i >> 8);
+		code.write(i);
+		index += 4;
 	}
 
 }
