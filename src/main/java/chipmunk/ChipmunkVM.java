@@ -66,6 +66,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -201,7 +202,8 @@ public class ChipmunkVM {
 	protected ChipmunkScript activeScript;
 	
 	protected Map<String, CModule> modules;
-	protected List<Object> stack;
+	protected Object[] stack;
+	private int stackIndex;
 	protected Deque<CallFrame> frozenCallStack;
 	protected Deque<CModule> initializationQueue;
 	
@@ -269,7 +271,8 @@ public class ChipmunkVM {
 		loaders = new ArrayList<ModuleLoader>();
 		
 		activeScript = new ChipmunkScript(128);
-		stack = activeScript.stack;
+		stack = new Object[128]; //activeScript.stack;
+		stackIndex = 0;
 		frozenCallStack = activeScript.frozenCallStack;
 		
 		initializationQueue = new ArrayDeque<CModule>();
@@ -348,34 +351,38 @@ public class ChipmunkVM {
 	}
 	
 	public void push(Object obj) {
-		if (obj == null) {
-			throw new NullPointerException("Cannot push a null value onto the VM operand stack");
+		try {
+			stack[stackIndex] = obj;
+			stackIndex++;
+		}catch(ArrayIndexOutOfBoundsException e) {
+			stack = Arrays.copyOf(stack, stack.length + 128);
+			this.push(obj);
 		}
-		stack.add(obj);
 	}
 
 	public Object pop() {
-		return stack.remove(stack.size() - 1);
+		stackIndex--;
+		return stack[stackIndex];
 	}
 
 	public Object peek() {
-		return stack.get(stack.size() - 1);
+		return stack[stackIndex - 1];
 	}
 
 	public void dup(int index) {
-		Object obj = stack.get(stack.size() - (index + 1));
-		stack.add(obj);
+		stack[stackIndex] = stack[stackIndex - (index + 1)];
+		stackIndex++;
 	}
 
 	public void swap(int index1, int index2) {
-		int stackIndex1 = stack.size() - (index1 + 1);
-		int stackIndex2 = stack.size() - (index2 + 1);
+		int stackIndex1 = stackIndex - (index1 + 1);
+		int stackIndex2 = stackIndex - (index2 + 1);
 
-		Object obj1 = stack.get(stackIndex1);
-		Object obj2 = stack.get(stackIndex2);
+		Object obj1 = stack[stackIndex1];
+		Object obj2 = stack[stackIndex2];
 
-		stack.set(index1, obj2);
-		stack.set(index2, obj1);
+		stack[index1] = obj2;
+		stack[index2] = obj1;
 	}
 
 	public void freeze(CMethod method, int ip, Object[] locals) {
@@ -397,7 +404,8 @@ public class ChipmunkVM {
 		activeScript = script;
 		
 		modules = script.modules;
-		stack = script.stack;
+		stack = new Object[128]; // script.stack;
+		stackIndex = 0;
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
 		
@@ -542,7 +550,7 @@ public class ChipmunkVM {
 
 		final byte[] instructions = method.getCode();
 		final int localCount = method.getLocalCount();
-		final List<Object> constantPool = method.getConstantPool();
+		final Object[] constantPool = method.getConstantPool().toArray();
 
 		if (resuming) {
 			CallFrame frame = unfreezeNext();
@@ -818,7 +826,7 @@ public class ChipmunkVM {
 					ins = this.pop();
 
 					try {
-						String methodName = (String) constantPool.get(fetchInt(instructions, ip + 2));
+						String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
 
 						// TODO - this is not an internal operation, so we need
 						// a different caching mechanism
@@ -867,7 +875,7 @@ public class ChipmunkVM {
 					break;
 				case PUSH:
 					int constIndex = fetchInt(instructions, ip + 1);
-					Object constant = constantPool.get(constIndex);
+					Object constant = constantPool[constIndex];
 					this.push(constant);
 					ip += 5;
 					break;
@@ -995,15 +1003,15 @@ public class ChipmunkVM {
 					break;
 				case GETMODULE:
 					this.push(method.getModule().getNamespace()
-							.get((String)constantPool.get(fetchInt(instructions, ip + 1))));
+							.get((String)constantPool[fetchInt(instructions, ip + 1)]));
 					ip += 5;
 					break;
 				case SETMODULE:
 					ins = this.peek();
 					method.getModule()
 					.getNamespace()
-					.set(constantPool.get(
-							fetchInt(instructions, ip + 1)).toString(),
+					.set(constantPool[
+							fetchInt(instructions, ip + 1)].toString(),
 							ins);
 					ip += 5;
 					break;
