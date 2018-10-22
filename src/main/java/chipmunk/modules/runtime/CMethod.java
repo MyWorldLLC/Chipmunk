@@ -1,7 +1,5 @@
 package chipmunk.modules.runtime;
 
-import java.util.List;
-
 import chipmunk.ChipmunkVM;
 
 public class CMethod implements RuntimeObject {
@@ -10,10 +8,12 @@ public class CMethod implements RuntimeObject {
 	protected int localCount;
 	
 	protected byte[] instructions;
-	protected List<Object> constantPool;
+	protected Object[] constantPool;
 	
 	protected Object self;
 	protected CModule module;
+	
+	protected int callSiteCount;
 	
 	public CMethod(){
 		super();
@@ -45,12 +45,20 @@ public class CMethod implements RuntimeObject {
 		localCount = count + 1; // + 1 for self reference
 	}
 	
-	public void setConstantPool(List<Object> constantPool){
+	public void setConstantPool(Object[] constantPool){
 		this.constantPool = constantPool;
 	}
 	
-	public List<Object> getConstantPool(){
+	public Object[] getConstantPool(){
 		return constantPool;
+	}
+	
+	public void setCallSiteCount(int count) {
+		callSiteCount = count;
+	}
+	
+	public int getCallSiteCount() {
+		return callSiteCount;
 	}
 	
 	public void setCode(byte[] codeSegment) {

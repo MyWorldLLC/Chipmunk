@@ -101,7 +101,7 @@ public class ModuleVisitor implements AstVisitor {
 		assembler.pushNull();
 		assembler._return();
 		
-		initializer.setConstantPool(assembler.getConstantPool());
+		//initializer.setConstantPool(assembler.getConstantPool());
 		initializer.setCode(assembler.getCodeSegment());
 		initializer.setLocalCount(0);
 		

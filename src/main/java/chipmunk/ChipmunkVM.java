@@ -550,7 +550,7 @@ public class ChipmunkVM {
 
 		final byte[] instructions = method.getCode();
 		final int localCount = method.getLocalCount();
-		final Object[] constantPool = method.getConstantPool().toArray();
+		final Object[] constantPool = method.getConstantPool();
 
 		if (resuming) {
 			CallFrame frame = unfreezeNext();

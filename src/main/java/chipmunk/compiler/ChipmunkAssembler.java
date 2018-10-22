@@ -19,8 +19,7 @@ public class ChipmunkAssembler {
 	private List<Label> labels;
 	private List<LabelTarget> labelTargets;
 	
-	private int virtualStackIndex;
-	private int maxStackDepth;
+	private int callSite;
 	
 	public ChipmunkAssembler(){
 		this(new ArrayList<Object>());
@@ -36,8 +35,7 @@ public class ChipmunkAssembler {
 		labels = new ArrayList<Label>();
 		labelTargets = new ArrayList<LabelTarget>();
 		
-		virtualStackIndex = 0;
-		maxStackDepth = 0;
+		callSite = 0;
 	}
 	
 	public List<Object> getConstantPool(){
@@ -76,203 +74,164 @@ public class ChipmunkAssembler {
 		return codeBytes;
 	}
 	
+	public int getCallSiteCount() {
+		return callSite;
+	}
+	
 	public CMethod makeMethod(){
 		CMethod method = new CMethod();
 		
 		method.setCode(getCodeSegment());
-		method.setConstantPool(getConstantPool());
+		method.setCallSiteCount(getCallSiteCount());
+		method.setConstantPool(getConstantPool().toArray());
 		
 		return method;
 	}
 	
 	public void add(){
-		code.write(Opcodes.ADD);
-		index++;
+		writeByte(Opcodes.ADD);
 	}
 	
 	public void sub(){
-		code.write(Opcodes.SUB);
-		index++;
+		writeByte(Opcodes.SUB);
 	}
 	
 	public void mul(){
-		code.write(Opcodes.MUL);
-		index++;
+		writeByte(Opcodes.MUL);
 	}
 	
 	public void div(){
-		code.write(Opcodes.DIV);
-		index++;
+		writeByte(Opcodes.DIV);
 	}
 	
 	public void fdiv(){
-		code.write(Opcodes.FDIV);
-		index++;
+		writeByte(Opcodes.FDIV);
 	}
 	
 	public void mod(){
-		code.write(Opcodes.MOD);
-		index++;
+		writeByte(Opcodes.MOD);
 	}
 	
 	public void pow(){
-		code.write(Opcodes.POW);
-		index++;
+		writeByte(Opcodes.POW);
 	}
 	
 	public void inc(){
-		code.write(Opcodes.INC);
-		index++;
+		writeByte(Opcodes.INC);
 	}
 	
 	public void dec(){
-		code.write(Opcodes.DEC);
-		index++;
+		writeByte(Opcodes.DEC);
 	}
 	
 	public void pos(){
-		code.write(Opcodes.POS);
-		index++;
+		writeByte(Opcodes.POS);
 	}
 	
 	public void neg(){
-		code.write(Opcodes.NEG);
-		index++;
+		writeByte(Opcodes.NEG);
 	}
 	
 	public void and(){
-		code.write(Opcodes.AND);
-		index++;
+		writeByte(Opcodes.AND);
 	}
 	
 	public void or(){
-		code.write(Opcodes.OR);
-		index++;
+		writeByte(Opcodes.OR);
 	}
 	
 	public void not(){
-		code.write(Opcodes.NOT);
-		index++;
+		writeByte(Opcodes.NOT);
 	}
 	
 	public void bxor(){
-		code.write(Opcodes.BXOR);
-		index++;
+		writeByte(Opcodes.BXOR);
 	}
 	
 	public void band(){
-		code.write(Opcodes.BAND);
-		index++;
+		writeByte(Opcodes.BAND);
 	}
 	
 	public void bor(){
-		code.write(Opcodes.BOR);
-		index++;
+		writeByte(Opcodes.BOR);
 	}
 	
 	public void bneg(){
-		code.write(Opcodes.BNEG);
-		index++;
+		writeByte(Opcodes.BNEG);
 	}
 	
 	public void lshift(){
-		code.write(Opcodes.LSHIFT);
-		index++;
+		writeByte(Opcodes.LSHIFT);
 	}
 	
 	public void rshift(){
-		code.write(Opcodes.RSHIFT);
-		index++;
+		writeByte(Opcodes.RSHIFT);
 	}
 	
 	public void urshift(){
-		code.write(Opcodes.URSHIFT);
-		index++;
+		writeByte(Opcodes.URSHIFT);
 	}
 	
 	public void _instanceof(){
-		code.write(Opcodes.INSTANCEOF);
-		index++;
+		writeByte(Opcodes.INSTANCEOF);
 	}
 	
 	public void setattr(){
-		code.write(Opcodes.SETATTR);
-		index++;
+		writeByte(Opcodes.SETATTR);
 	}
 	
 	public void getattr(){
-		code.write(Opcodes.GETATTR);
-		index++;
+		writeByte(Opcodes.GETATTR);
 	}
 	
 	public void getat(){
-		code.write(Opcodes.GETAT);
-		index++;
+		writeByte(Opcodes.GETAT);
 	}
 	
 	public void setat(){
-		code.write(Opcodes.SETAT);
-		index++;
+		writeByte(Opcodes.SETAT);
 	}
 	
 	public void getLocal(int localIndex){
-		code.write(Opcodes.GETLOCAL);
-		code.write(localIndex);
-		index += 2;
+		writeByte(Opcodes.GETLOCAL);
+		writeByte(localIndex);
+		
 	}
 	
 	public void setLocal(int localIndex){
-		code.write(Opcodes.SETLOCAL);
-		code.write(localIndex);
-		index += 2;
+		writeByte(Opcodes.SETLOCAL);
+		writeByte(localIndex);
 	}
 	
 	public void truth(){
-		code.write(Opcodes.TRUTH);
-		index++;
+		writeByte(Opcodes.TRUTH);
 	}
 	
 	public void as(){
-		code.write(Opcodes.AS);
-		index++;
+		writeByte(Opcodes.AS);
 	}
 	
-	/*public void _if(Label elseLabel){
-		_if(elseLabel.getName());
-	}*/
-	
 	public void _if(String elseLabel){
-		code.write(Opcodes.IF);
-		index++;
+		writeByte(Opcodes.IF);
 		
 		label(elseLabel);
 		
-		code.write(0);
-		code.write(0);
-		code.write(0);
-		code.write(0);
+		writeInt(0);
 		
-		index += 4;
 	}
 	
 	public void call(byte paramCount){
-		code.write(Opcodes.CALL);
-		code.write(paramCount);
-		index += 2;
+		writeByte(Opcodes.CALL);
+		writeByte(paramCount);
 	}
 	
 	public void callAt(String methodName, byte paramCount){
-		code.write(Opcodes.CALLAT);
-		code.write(paramCount);
+		writeByte(Opcodes.CALLAT);
+		writeByte(paramCount);
 		
 		int entryIndex = getConstantPoolEntry(methodName);
 		
-		code.write(entryIndex >> 24);
-		code.write(entryIndex >> 16);
-		code.write(entryIndex >> 8);
-		code.write(entryIndex);
-		
-		index += 6;
+		writeInt(entryIndex);
 	}
 	
 	public Label label(String labelName){
@@ -312,53 +271,34 @@ public class ChipmunkAssembler {
 	}
 	
 	public void _goto(String label){
-		code.write(Opcodes.GOTO);
-		index++;
+		writeByte(Opcodes.GOTO);
+		
 		label(label);
 		
-		code.write(0);
-		code.write(0);
-		code.write(0);
-		code.write(0);
-		
-		index += 4;
+		writeInt(0);
 	}
 	
 	public void _throw(){
-		code.write(Opcodes.THROW);
-		index++;
+		writeByte(Opcodes.THROW);
 	}
 	
 	public void _return(){
-		code.write(Opcodes.RETURN);
-		index++;
+		writeByte(Opcodes.RETURN);
 	}
 	
 	public void pop(){
-		code.write(Opcodes.POP);
-		index++;
+		writeByte(Opcodes.POP);
 	}
 	
 	public void dup(int index){
-		code.write(Opcodes.DUP);
-		code.write(index >> 24);
-		code.write(index >> 16);
-		code.write(index >> 8);
-		code.write(index);
-		index += 5;
+		writeByte(Opcodes.DUP);
+		writeInt(index);
 	}
 	
 	public void swap(int index1, int index2){
-		code.write(Opcodes.SWAP);
-		code.write(index1 >> 24);
-		code.write(index1 >> 16);
-		code.write(index1 >> 8);
-		code.write(index1);
-		code.write(index2 >> 24);
-		code.write(index2 >> 16);
-		code.write(index2 >> 8);
-		code.write(index2);
-		index += 9;
+		writeByte(Opcodes.SWAP);
+		writeInt(index1);
+		writeInt(index2);
 	}
 	
 	private int getConstantPoolEntry(Object value){
@@ -376,16 +316,10 @@ public class ChipmunkAssembler {
 		
 		int entryIndex = getConstantPoolEntry(value);
 		
-		code.write(Opcodes.PUSH);
+		writeByte(Opcodes.PUSH);
 		
-		code.write(entryIndex >> 24);
-		code.write(entryIndex >> 16);
-		code.write(entryIndex >> 8);
-		code.write(entryIndex);
-		index += 5;
+		writeInt(entryIndex);
 		
-		virtualStackIndex++;
-		maxStackDepth = Math.max(maxStackDepth, virtualStackIndex);
 	}
 	
 	public void pushNull(){
@@ -393,38 +327,31 @@ public class ChipmunkAssembler {
 	}
 	
 	public void eq(){
-		code.write(Opcodes.EQ);
-		index++;
+		writeByte(Opcodes.EQ);
 	}
 	
 	public void gt(){
-		code.write(Opcodes.GT);
-		index++;
+		writeByte(Opcodes.GT);
 	}
 	
 	public void lt(){
-		code.write(Opcodes.LT);
-		index++;
+		writeByte(Opcodes.LT);
 	}
 	
 	public void ge(){
-		code.write(Opcodes.GE);
-		index++;
+		writeByte(Opcodes.GE);
 	}
 	
 	public void le(){
-		code.write(Opcodes.LE);
-		index++;
+		writeByte(Opcodes.LE);
 	}
 	
 	public void is(){
-		code.write(Opcodes.IS);
-		index++;
+		writeByte(Opcodes.IS);
 	}
 	
 	public void iter(){
-		code.write(Opcodes.ITER);
-		index++;
+		writeByte(Opcodes.ITER);
 	}
 	
 	public void next(Label label){
@@ -432,86 +359,64 @@ public class ChipmunkAssembler {
 	}
 	
 	public void next(String label){
-		code.write(Opcodes.NEXT);
-		index++;
+		writeByte(Opcodes.NEXT);
 		label(label);
 		
-		code.write(0);
-		code.write(0);
-		code.write(0);
-		code.write(0);
-		
-		index += 4;
+		writeInt(0);
 	}
 	
 	public void range(boolean inclusive){
-		code.write(Opcodes.RANGE);
-		code.write(inclusive ? 1 : 0);
-		index += 2;
+		writeByte(Opcodes.RANGE);
+		writeByte(inclusive ? 1 : 0);
 	}
 	
 	public void list(int elementCount){
-		code.write(Opcodes.LIST);
-		code.write(elementCount >> 24);
-		code.write(elementCount >> 16);
-		code.write(elementCount >> 8);
-		code.write(elementCount);
-		index += 5;
+		writeByte(Opcodes.LIST);
+		writeInt(elementCount);
 	}
 	
 	public void map(int elementCount){
-		code.write(Opcodes.MAP);
-		code.write(elementCount >> 24);
-		code.write(elementCount >> 16);
-		code.write(elementCount >> 8);
-		code.write(elementCount);
-		index += 5;
+		writeByte(Opcodes.MAP);
+		writeInt(elementCount);
 	}
 	
 	public void init(){
-		code.write(Opcodes.INIT);
-		index++;
+		writeByte(Opcodes.INIT);
 	}
 	
 	public void getModule(String name){
-		code.write(Opcodes.GETMODULE);
+		writeByte(Opcodes.GETMODULE);
+		
 		int index = getConstantPoolEntry(name);
-		code.write(index >> 24);
-		code.write(index >> 16);
-		code.write(index >> 8);
-		code.write(index);
-		index += 5;
+		writeInt(index);
 	}
 	
 	public void setModule(String name){
-		code.write(Opcodes.SETMODULE);
+		writeByte(Opcodes.SETMODULE);
+		
 		int index = getConstantPoolEntry(name);
-		code.write(index >> 24);
-		code.write(index >> 16);
-		code.write(index >> 8);
-		code.write(index);
-		index += 5;
+		
+		writeInt(index);
 	}
 	
 	private void emitBinaryOp(byte op) {
 		writeByte(op);
-		// TODO - callsite tracking
-		writeShort(virtualStackIndex);
-		writeShort(virtualStackIndex - 1);
-		virtualStackIndex -= 2;
+		//emitCallSite();
 	}
 	
 	private void emitUnaryOp(byte op) {
 		writeByte(op);
-		// TODO - callsite tracking
-		writeShort(virtualStackIndex);
-		virtualStackIndex--;
+		//emitCallSite();
 	}
 	
 	private void emitUnaryOpNoPop(byte op) {
 		writeByte(op);
-		// TODO - callsite tracking
-		writeShort(virtualStackIndex);
+		//emitCallSite();
+	}
+	
+	private void emitCallSite() {
+		//writeShort(callSite);
+		callSite++;
 	}
 	
 	private void writeByte(byte b) {
@@ -519,8 +424,12 @@ public class ChipmunkAssembler {
 		index++;
 	}
 	
+	private void writeByte(int b) {
+		writeByte((byte) b);
+	}
+	
 	private void writeShort(int s) {
-		writeShort((short) s);
+		//writeShort((short) s);
 	}
 	
 	private void writeShort(short s) {

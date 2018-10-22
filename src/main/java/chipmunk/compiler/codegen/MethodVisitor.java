@@ -118,7 +118,7 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public CMethod getMethod(){
-		method.setConstantPool(assembler.getConstantPool());
+		method.setConstantPool(assembler.getConstantPool().toArray());
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
 		method.setModule(module);

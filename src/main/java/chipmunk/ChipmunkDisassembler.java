@@ -65,11 +65,11 @@ public class ChipmunkDisassembler {
 		return disassemble(codeSegment, null);
 	}
 
-	public static String disassemble(byte[] codeSegment, List<Object> constantPool){
+	public static String disassemble(byte[] codeSegment, Object[] constantPool){
 		return disassemble(codeSegment, constantPool, false, "");
 	}
 	
-	private static String disassemble(byte[] codeSegment, List<Object> constantPool, boolean isInnerMethod, String padding){
+	private static String disassemble(byte[] codeSegment, Object[] constantPool, boolean isInnerMethod, String padding){
 		StringBuilder builder = new StringBuilder();
 		
 		if(constantPool != null){
@@ -81,15 +81,15 @@ public class ChipmunkDisassembler {
 				builder.append("Shared\n");
 			}else{
 				String entryPadding = padding + "  ";
-				for(int i = 0; i < constantPool.size(); i++){
+				for(int i = 0; i < constantPool.length; i++){
 					builder.append(entryPadding);
 					builder.append(i);
 					builder.append(": ");
-					builder.append(constantPool.get(i).toString());
+					builder.append(constantPool[i].toString());
 					
-					if(constantPool.get(i) instanceof CMethod){
+					if(constantPool[i] instanceof CMethod){
 						builder.append('\n');
-						CMethod method = (CMethod) constantPool.get(i);
+						CMethod method = (CMethod) constantPool[i];
 						builder.append(disassemble(method.getCode(), method.getConstantPool(), true, padding + "     "));
 					}
 					builder.append('\n');

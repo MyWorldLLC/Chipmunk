@@ -130,7 +130,7 @@ public class ClassVisitor implements AstVisitor {
 		sharedInitAssembler.getLocal(0);
 		sharedInitAssembler._return();
 		
-		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool());
+		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool().toArray());
 		sharedInitializer.setCode(sharedInitAssembler.getCodeSegment());
 		sharedInitializer.setLocalCount(1);
 		
@@ -145,7 +145,7 @@ public class ClassVisitor implements AstVisitor {
 		instanceInitAssembler.getLocal(0);
 		instanceInitAssembler._return();
 		
-		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool());
+		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool().toArray());
 		instanceInitializer.setCode(instanceInitAssembler.getCodeSegment());
 		instanceInitializer.setLocalCount(1);
 		
@@ -166,7 +166,7 @@ public class ClassVisitor implements AstVisitor {
 			CMethod constructor = new CMethod();
 			constructor.setArgCount(0);
 			constructor.setLocalCount(1);
-			constructor.setConstantPool(constantPool);
+			constructor.setConstantPool(constantPool.toArray());
 			constructor.setModule(module);
 			constructor.setCode(assembler.getCodeSegment());
 			
