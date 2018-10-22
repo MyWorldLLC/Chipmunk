@@ -28,7 +28,7 @@ class AssemblerSpecification extends Specification {
 		
 		CMethod method = new CMethod()
 		method.setCode(assembler.getCodeSegment())
-		method.setConstantPool(assembler.getConstantPool())
+		method.setConstantPool(assembler.getConstantPool().toArray())
 		method.setLocalCount(0)
 		
 		return context.dispatch(method, 0)

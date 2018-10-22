@@ -293,7 +293,7 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		CMethod method = assembler.makeMethod()
 		method.setCode(assembler.getCodeSegment())
-		method.setConstantPool(assembler.getConstantPool())
+		method.setConstantPool(assembler.getConstantPool().toArray())
 		method.setLocalCount(0)
 		
 		if(test != ""){
