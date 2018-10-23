@@ -47,7 +47,12 @@ public class ChipmunkProfiler {
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){
-			vm.dispatch(countToAMillion, 0);
+			Object value;
+			long startTime = System.nanoTime();
+			value = vm.dispatch(countToAMillion, 0);
+			long endTime = System.nanoTime();
+			
+			System.out.println("Value: " + value.toString() + ", Time: " + (endTime - startTime) / 10.0e9 + " seconds");
 		}
 		
 	}
