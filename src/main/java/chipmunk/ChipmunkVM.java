@@ -549,6 +549,7 @@ public class ChipmunkVM {
 		Object[] locals;
 
 		final byte[] instructions = method.getCode();
+		final Object[] callCache = method.getCallCache();
 		final int localCount = method.getLocalCount();
 		final Object[] constantPool = method.getConstantPool();
 
@@ -559,7 +560,7 @@ public class ChipmunkVM {
 
 			// call into the next method to resume call stack
 			try {
-				this.push(doInternal(InternalOp.CALL, frame.method, 0));
+				this.push(doInternal(InternalOp.CALL, frame.method, 0, callCache, ip));
 			} catch (SuspendedChipmunk e) {
 				this.freeze(frame.method, ip, locals);
 			} catch (AngryChipmunk e) {
@@ -593,35 +594,35 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.ADD, lh, 2));
+					this.push(doInternal(InternalOp.ADD, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case SUB:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.SUB, lh, 2));
+					this.push(doInternal(InternalOp.SUB, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case MUL:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.MUL, lh, 2));
+					this.push(doInternal(InternalOp.MUL, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case DIV:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.DIV, lh, 2));
+					this.push(doInternal(InternalOp.DIV, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case FDIV:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.FDIV, lh, 2));
+					this.push(doInternal(InternalOp.FDIV, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case MOD:
@@ -629,41 +630,41 @@ public class ChipmunkVM {
 					lh = this.pop();
 
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.MOD, lh, 2));
+					this.push(doInternal(InternalOp.MOD, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case POW:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.POW, lh, 2));
+					this.push(doInternal(InternalOp.POW, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case INC:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.INC, lh, 1));
+					this.push(doInternal(InternalOp.INC, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case DEC:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.DEC, lh, 1));
+					this.push(doInternal(InternalOp.DEC, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case POS:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.POS, lh, 1));
+					this.push(doInternal(InternalOp.POS, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case NEG:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.NEG, lh, 1));
+					this.push(doInternal(InternalOp.NEG, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case AND:
 					rh = this.pop();
 					lh = this.pop();
-					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1)).getValue();
+					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
+					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					if (cond1 && cond2) {
 						this.push(trueValue);
 					} else {
@@ -674,8 +675,8 @@ public class ChipmunkVM {
 				case OR:
 					rh = this.pop();
 					lh = this.pop();
-					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1)).getValue();
+					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
+					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					if (cond1 || cond2) {
 						this.push(trueValue);
 					} else {
@@ -687,47 +688,47 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BXOR, lh, 2));
+					this.push(doInternal(InternalOp.BXOR, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BAND:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BAND, lh, 2));
+					this.push(doInternal(InternalOp.BAND, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BOR:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BOR, lh, 2));
+					this.push(doInternal(InternalOp.BOR, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BNEG:
 					lh = this.pop();
-					this.push(doInternal(InternalOp.BNEG, lh, 1));
+					this.push(doInternal(InternalOp.BNEG, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case LSHIFT:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.LSHIFT, lh, 2));
+					this.push(doInternal(InternalOp.LSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case RSHIFT:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.RSHIFT, lh, 2));
+					this.push(doInternal(InternalOp.RSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case URSHIFT:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.URSHIFT, lh, 2));
+					this.push(doInternal(InternalOp.URSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case SETATTR:
@@ -736,7 +737,7 @@ public class ChipmunkVM {
 					rh = this.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
-					doInternal(InternalOp.SETATTR, ins, 3);
+					doInternal(InternalOp.SETATTR, ins, 3, callCache, ip);
 					this.push(ins);
 					ip++;
 					break;
@@ -744,14 +745,14 @@ public class ChipmunkVM {
 					ins = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = lh;
-					this.push(doInternal(InternalOp.GETATTR, ins, 2));
+					this.push(doInternal(InternalOp.GETATTR, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case GETAT:
 					lh = this.pop();
 					ins = this.pop();
 					internalParams[2][1] = lh;
-					this.push(doInternal(InternalOp.GETAT, ins, 2));
+					this.push(doInternal(InternalOp.GETAT, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case SETAT:
@@ -760,7 +761,7 @@ public class ChipmunkVM {
 					rh = this.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
-					this.push(doInternal(InternalOp.SETAT, ins, 3));
+					this.push(doInternal(InternalOp.SETAT, ins, 3, callCache, ip));
 					ip++;
 					break;
 				case GETLOCAL:
@@ -773,19 +774,19 @@ public class ChipmunkVM {
 					break;
 				case TRUTH:
 					rh = this.pop();
-					this.push(doInternal(InternalOp.TRUTH, rh, 1));
+					this.push(doInternal(InternalOp.TRUTH, rh, 1, callCache, ip));
 					ip++;
 					break;
 				case NOT:
 					rh = this.pop();
-					this.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, 1)).booleanValue()));
+					this.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).booleanValue()));
 					ip++;
 					break;
 				case AS:
 					lh = this.pop();
 					ins = this.pop();
 					internalParams[2][1] = lh;
-					this.push(doInternal(InternalOp.AS, ins, 2));
+					this.push(doInternal(InternalOp.AS, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case IF:
@@ -793,7 +794,7 @@ public class ChipmunkVM {
 					int target = fetchInt(instructions, ip + 1);
 					ip += 5;
 
-					if (!((CBoolean) doInternal(InternalOp.TRUTH, ins, 1)).booleanValue()) {
+					if (!((CBoolean) doInternal(InternalOp.TRUTH, ins, 1, callCache, ip)).booleanValue()) {
 						ip = target;
 					}
 					break;
@@ -806,7 +807,7 @@ public class ChipmunkVM {
 						// isn't really quite an internal operation
 
 						internalParams[2][1] = fetchByte(instructions, ip + 1);
-						this.push(doInternal(InternalOp.CALL, ins, 2));
+						this.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
 						// Otherwise,
@@ -883,14 +884,14 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.EQUALS, lh, 2));
+					this.push(doInternal(InternalOp.EQUALS, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case GT:
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2)).getValue() > 0) {
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() > 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -901,7 +902,7 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2)).getValue() < 0) {
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() < 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -912,7 +913,7 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2)).getValue() >= 0) {
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() >= 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -923,7 +924,7 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2)).getValue() <= 0) {
+					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() <= 0) {
 						this.push(trueValue);
 					} else {
 						this.push(falseValue);
@@ -944,12 +945,12 @@ public class ChipmunkVM {
 					rh = this.pop();
 					lh = this.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.INSTANCEOF, lh, 2));
+					this.push(doInternal(InternalOp.INSTANCEOF, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case ITER:
 					ins = this.pop();
-					this.push(doInternal(InternalOp.ITERATOR, ins, 1));
+					this.push(doInternal(InternalOp.ITERATOR, ins, 1, callCache, ip));
 					ip++;
 					break;
 				case NEXT:
@@ -960,7 +961,7 @@ public class ChipmunkVM {
 						ip = fetchInt(instructions, ip + 1);
 					} else {
 
-						this.push(doInternal(InternalOp.NEXT, ins, 1));
+						this.push(doInternal(InternalOp.NEXT, ins, 1, callCache, ip));
 						ip += 5;
 					}
 					break;
@@ -969,7 +970,7 @@ public class ChipmunkVM {
 					lh = this.pop();
 					internalParams[3][1] = rh;
 					internalParams[3][2] = fetchByte(instructions, ip + 1) == 0 ? false : true;
-					this.push(doInternal(InternalOp.RANGE, lh, 3));
+					this.push(doInternal(InternalOp.RANGE, lh, 3, callCache, ip));
 					ip += 2;
 					break;
 				case LIST:
@@ -1126,7 +1127,7 @@ public class ChipmunkVM {
 		return true;
 	}
 
-	private Object doInternal(InternalOp op, Object target, int paramCount) {
+	private Object doInternal(InternalOp op, Object target, int paramCount, Object[] callCache, int callCacheIndex) {
 		Class<?> targetType = target.getClass();
 
 		Object[] params = internalParams[paramCount];
@@ -1136,7 +1137,7 @@ public class ChipmunkVM {
 		
 		try {
 
-			Object method = getOrCacheInternal(op, target, params);
+			Object method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
 			Object retVal = invoke(method, target, params);
 		
 			// the following is helpful when weird bugs crop up - it nulls the parameter array after use
@@ -1152,7 +1153,7 @@ public class ChipmunkVM {
 				Object method = lookupMethod(target, op.getOpName(), paramTypes);
 				cacheInternal(op, targetType, method);
 				
-				method = getOrCacheInternal(op, target, params);
+				method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
 				Object retVal = invoke(method, target, params);
 				// the following is helpful when weird bugs crop up - it nulls the parameter array after use
 				// Arrays.fill(params, null);
@@ -1314,10 +1315,15 @@ public class ChipmunkVM {
 		}
 	}
 	
-	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params) throws NoSuchMethodException {
+	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params, Object[] callCache, int callCacheIndex) throws NoSuchMethodException {
 		Class<?> targetType = target.getClass();
 		
-		Object method = getCachedInternalOpMethod(op, targetType);
+		Object method = callCache[callCacheIndex];
+		
+		if(method == null) {
+			method = getCachedInternalOpMethod(op, targetType);
+		}
+		
 		if (method == null) {
 			Class<?>[] paramTypes = internalTypes[params.length];
 			for (int i = 0; i < params.length; i++) {
@@ -1326,6 +1332,9 @@ public class ChipmunkVM {
 			method = lookupMethod(target, op.getOpName(), paramTypes);
 			cacheInternal(op, targetType, method);
 		}
+		
+		callCache[callCacheIndex] = method;
+		
 		return method;
 	}
 	

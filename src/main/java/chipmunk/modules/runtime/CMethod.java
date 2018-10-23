@@ -10,6 +10,8 @@ public class CMethod implements RuntimeObject {
 	protected byte[] instructions;
 	protected Object[] constantPool;
 	
+	protected Object[] callCache;
+	
 	protected Object self;
 	protected CModule module;
 	
@@ -63,10 +65,15 @@ public class CMethod implements RuntimeObject {
 	
 	public void setCode(byte[] codeSegment) {
 		instructions = codeSegment;
+		callCache = new Object[codeSegment.length];
 	}
 	
 	public byte[] getCode(){
 		return instructions;
+	}
+	
+	public Object[] getCallCache(){
+		return callCache;
 	}
 	
 	public Object call(ChipmunkVM vm, Byte paramCount) {
