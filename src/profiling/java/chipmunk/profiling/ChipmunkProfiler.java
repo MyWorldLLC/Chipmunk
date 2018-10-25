@@ -52,7 +52,7 @@ public class ChipmunkProfiler {
 			value = vm.dispatch(countToAMillion, 0);
 			long endTime = System.nanoTime();
 			
-			System.out.println("Value: " + value.toString() + ", Time: " + (endTime - startTime) / 10.0e9 + " seconds");
+			System.out.println("Value: " + value.toString() + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}
 		
 	}
