@@ -1051,7 +1051,7 @@ public class ChipmunkVM {
 		return instructions[ip];
 	}
 
-	private Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
+	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
 
 		Method[] methods = target.getClass().getMethods();
 		Method method = null;
@@ -1218,7 +1218,7 @@ public class ChipmunkVM {
 		}
 	}
 	
-	private Object invoke(Object callTarget, Object target, Object[] params) throws Throwable {
+	public Object invoke(Object callTarget, Object target, Object[] params) throws Throwable {
 
 		if(callTarget instanceof VoidMarker) {
 			switch (params.length) {
