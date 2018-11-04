@@ -39,9 +39,7 @@ public class Namespace {
 		// has the value
 		if(traits != null && result == null) {
 			for(int i = 0; i < traits.size(); i++) {
-				Object value = ((CObject) attributes.get(traits.get(i)))
-						.getAttributes()
-						.get(name);
+				Object value = ((CObject) attributes.get(traits.get(i))).getAttributes().get(name);
 				if(value != null) {
 					return value;
 				}
@@ -66,37 +64,7 @@ public class Namespace {
 			return;
 		}
 		
-		/*if(traits != null && traits.contains(name)) {
-			Object oldTrait = attributes.get(name);
-			if(oldTrait instanceof CObject) {
-				unlink(((CObject) oldTrait).getAttributes());
-			}else {
-				unlink(((CClass) oldTrait).getAttributes());
-			}
-			
-			if(value instanceof CObject) {
-				link(((CObject) value).getAttributes());
-			}else {
-				link(((CClass) value).getAttributes());
-			}
-		}*/
-		
 		attributes.put(name, value);
-	}
-	
-	private void link(Namespace space) {
-		if(traitSpaces == null) {
-			traitSpaces = new ArrayList<Namespace>(1);
-		}
-		traitSpaces.add(space);
-	}
-	
-	private void unlink(Namespace space) {
-		for(int i = 0; i < traitSpaces.size(); i++) {
-			if(traitSpaces.get(i) == space) {
-				traitSpaces.remove(i);
-			}
-		}
 	}
 	
 	public void setFinal(String name, Object value){

@@ -150,6 +150,6 @@ class RuntimeSpecification extends Specification {
 		def result = compileAndRun("Polymorphism.chp", true)
 		
 		then:
-		result.intValue() == 3
+		result.intValue() == 21
 	}
 }

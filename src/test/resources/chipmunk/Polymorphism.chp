@@ -5,15 +5,41 @@ class Behavior {
 	def addOneAndTwo(){
 		return 1 + 2
 	}
+	
+	def returnOne(){
+		return 1
+	}
+	
+	def override(){
+		return 0
+	}
+	
+	var five = 5
+}
+
+class Behavior2 {
+	
+	def multiplyThreeAndFour(){
+		return 3 * 4
+	}
+	
+	def returnOne(){
+		return 0
+	}
 }
 
 class TestClass {
 	
 	trait behavior = Behavior()
+	trait behavior2 = Behavior2()
 	
+	def override(){
+		return 1
+	}
+		
 }
 
 def main(){
 	var test = TestClass()
-	return test.addOneAndTwo()
+	return (test.addOneAndTwo() + test.multiplyThreeAndFour() + test.returnOne()) * test.override() + test.five
 }
