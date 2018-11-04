@@ -144,4 +144,12 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 10
 	}
+	
+	def "Run Polymorphism.chp"(){
+		when:
+		def result = compileAndRun("Polymorphism.chp", true)
+		
+		then:
+		result.intValue() == 3
+	}
 }

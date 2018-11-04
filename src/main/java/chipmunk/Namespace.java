@@ -18,7 +18,7 @@ public class Namespace {
 	private final Map<String, Object> attributes;
 	private List<Namespace> traitSpaces;
 	private Set<String> closures;
-	private Set<String> traits;
+	private List<String> traits;
 	private Set<String> finalAttributes;
 	
 	public Namespace(){
@@ -33,17 +33,21 @@ public class Namespace {
 		if(closures != null && closures.contains(name)) {
 			return ((CClosure) attributes.get(name)).get();
 		}
+		
+		Object result = attributes.get(name);
 		// we don't have this ourselves - search our traits to see if one of them
 		// has the value
-		if(traits != null && !attributes.containsKey(name)) {
-			for(int i = 0; i < traitSpaces.size(); i++) {
-				Object value = traitSpaces.get(i);
+		if(traits != null && result == null) {
+			for(int i = 0; i < traits.size(); i++) {
+				Object value = ((CObject) attributes.get(traits.get(i)))
+						.getAttributes()
+						.get(name);
 				if(value != null) {
 					return value;
 				}
 			}
 		}
-		return attributes.get(name);
+		return result;
 	}
 	
 	public void set(String name, Object value) throws IllegalArgumentException {
@@ -62,7 +66,7 @@ public class Namespace {
 			return;
 		}
 		
-		if(traits != null && traits.contains(name)) {
+		/*if(traits != null && traits.contains(name)) {
 			Object oldTrait = attributes.get(name);
 			if(oldTrait instanceof CObject) {
 				unlink(((CObject) oldTrait).getAttributes());
@@ -75,7 +79,7 @@ public class Namespace {
 			}else {
 				link(((CClass) value).getAttributes());
 			}
-		}
+		}*/
 		
 		attributes.put(name, value);
 	}
@@ -120,7 +124,7 @@ public class Namespace {
 	
 	public void setTrait(String name, Object value) {
 		if(traits == null) {
-			traits = new HashSet<String>();
+			traits = new ArrayList<String>(1);
 		}
 		
 		traits.add(name);
@@ -153,6 +157,11 @@ public class Namespace {
 		if(finalAttributes != null) {
 			dup.finalAttributes = new HashSet<String>();
 			dup.finalAttributes.addAll(finalAttributes);
+		}
+		
+		if(traits != null) {
+			dup.traits = new ArrayList<String>(traits.size());
+			dup.traits.addAll(traits);
 		}
 		
 		if(traitSpaces != null) {

@@ -3,6 +3,7 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.Namespace;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
@@ -57,11 +58,14 @@ public class ClassVisitor implements AstVisitor {
 			
 		}else if(node instanceof VarDecNode){
 			// TODO - final variables
-			// TODO - compositional inheritance
+			// TODO - closures
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = null;
 			final boolean isShared = varDec.getSymbol().isShared();
+			final boolean isFinal = varDec.getSymbol().isFinal();
+			final boolean isTrait = varDec.getSymbol().isTrait();
+			final boolean isClosure = varDec.getSymbol().isClosure();
 			
 			if(isShared){
 				visitor = new VarDecVisitor(sharedInitCodegen);
@@ -71,10 +75,17 @@ public class ClassVisitor implements AstVisitor {
 			
 			visitor.visit(varDec);
 			
+			Namespace clsNamespace;
 			if(isShared){
-				cClass.getAttributes().set(varDec.getVarName(), CNull.instance());
+				clsNamespace = cClass.getAttributes();
 			}else{
-				cClass.getInstanceAttributes().set(varDec.getVarName(), CNull.instance());
+				clsNamespace = cClass.getInstanceAttributes();
+			}
+			
+			if(isTrait) {
+				clsNamespace.setTrait(varDec.getVarName(), CNull.instance());
+			}else {
+				clsNamespace.set(varDec.getVarName(), CNull.instance());
 			}
 			
 		}else if(node instanceof MethodNode){

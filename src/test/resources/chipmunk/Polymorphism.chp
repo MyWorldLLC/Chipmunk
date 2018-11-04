@@ -1,0 +1,19 @@
+module test
+
+class Behavior {
+
+	def addOneAndTwo(){
+		return 1 + 2
+	}
+}
+
+class TestClass {
+	
+	trait behavior = Behavior()
+	
+}
+
+def main(){
+	var test = TestClass()
+	return test.addOneAndTwo()
+}

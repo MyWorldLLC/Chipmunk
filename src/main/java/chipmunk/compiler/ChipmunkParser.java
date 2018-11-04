@@ -417,7 +417,7 @@ public class ChipmunkParser {
 		
 		if(peek(Token.Type.TRAIT)) {
 			dropNext();
-			dec.setTrait(true);
+			dec.getSymbol().setTrait(true);
 		}else {
 			forceNext(Token.Type.VAR);
 		}

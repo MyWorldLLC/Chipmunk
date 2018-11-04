@@ -100,6 +100,7 @@ public class CMethod implements RuntimeObject {
 		vm.traceMem(12); // integer sizes
 		
 		CMethod method = new CMethod();
+		method.setModule(module);
 		method.setCode(instructions);
 		method.setConstantPool(constantPool);
 		method.setArgCount(argCount);
