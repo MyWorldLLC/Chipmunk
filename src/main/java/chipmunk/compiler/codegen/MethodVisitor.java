@@ -21,6 +21,7 @@ public class MethodVisitor implements AstVisitor {
 
 	protected CMethod method;
 	protected ChipmunkAssembler assembler;
+	protected Codegen outerCodegen;
 	protected SymbolTable symbols;
 	protected Codegen codegen;
 	protected MethodNode methodNode;
@@ -29,16 +30,28 @@ public class MethodVisitor implements AstVisitor {
 	
 	protected boolean defaultReturn;
 	
+	protected boolean isInner;
+	
 	
 	public MethodVisitor(ChipmunkAssembler assembler, CModule module){
 		this.assembler = assembler;
 		defaultReturn = true;
+		isInner = false;
 		this.module = module;
 	}
 	
 	public MethodVisitor(List<Object> constantPool, CModule module){
 		assembler = new ChipmunkAssembler(constantPool);
 		defaultReturn = true;
+		isInner = false;
+		this.module = module;
+	}
+	
+	public MethodVisitor(Codegen outerCodegen, List<Object> constantPool, CModule module){
+		assembler = new ChipmunkAssembler(constantPool);
+		this.outerCodegen = outerCodegen;
+		defaultReturn = true;
+		isInner = true;
 		this.module = module;
 	}
 	
@@ -60,7 +73,7 @@ public class MethodVisitor implements AstVisitor {
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(assembler.getConstantPool(), module));
+			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
@@ -95,6 +108,14 @@ public class MethodVisitor implements AstVisitor {
 				// return null in case a return has not yet been hit
 				genDefaultReturn();
 			}
+			
+			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an
+			// inner method must be saved as a local variable in the containing method.
+			// TODO - forbid empty inner method names for non-lambda methods.
+			/*if(isInner) {
+				outerCodegen.getAssembler().push(getMethod());
+				outerCodegen.emitSymbolAssignment(getMethodSymbol().getName());
+			}*/
 		}
 		
 	}

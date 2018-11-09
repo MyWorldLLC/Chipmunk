@@ -2,6 +2,7 @@ package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.modules.runtime.CMethod
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {
@@ -35,10 +36,10 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run SimpleMethod.chp"(){
 		when:
-		def result = compileAndRun("SimpleMethod.chp")
+		def result = compileAndRun("SimpleMethod.chp", true)
 		
 		then:
-		result.intValue() == 17
+		result.intValue() == 25
 	}
 	
 	def "Run ModuleWithInitializer.chp"(){
@@ -151,5 +152,14 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 21
+	}
+	
+	@Ignore
+	def "Run Closures.chp"(){
+		when:
+		def result = compileAndRun("Closures.chp", true)
+		
+		then:
+		result.intValue() == 2
 	}
 }

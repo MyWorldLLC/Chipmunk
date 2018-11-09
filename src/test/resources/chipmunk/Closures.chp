@@ -1,0 +1,12 @@
+module test
+
+def main(){
+	var x = 0
+	
+	def innerMethod(){
+		x = x + 2
+	}
+	
+	innerMethod()
+	return x
+}

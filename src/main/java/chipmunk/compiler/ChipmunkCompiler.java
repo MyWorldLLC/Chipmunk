@@ -10,6 +10,7 @@ import java.util.List;
 
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.codegen.InnerMethodRewriteVisitor;
 import chipmunk.compiler.codegen.ModuleVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
 import chipmunk.modules.runtime.CModule;
@@ -20,6 +21,7 @@ public class ChipmunkCompiler {
 	
 	public ChipmunkCompiler(){
 		visitors = new ArrayList<AstVisitor>();
+		visitors.add(new InnerMethodRewriteVisitor());
 		visitors.add(new SymbolTableBuilderVisitor());
 	}
 	

@@ -16,5 +16,11 @@ def main(){
 		x = x + 1
 	}
 	
-	return x + other()
+	var inner = def () 5
+	
+	def inner2(){
+		return 3
+	}
+	
+	return x + other() + inner + inner2()
 }
