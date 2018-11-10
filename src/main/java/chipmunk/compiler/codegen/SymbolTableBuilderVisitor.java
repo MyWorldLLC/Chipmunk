@@ -21,7 +21,12 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 		
 		if(node instanceof SymbolNode){
 			if(currentScope != null){
-				currentScope.setSymbol(((SymbolNode) node).getSymbol());
+				Symbol symbol = ((SymbolNode) node).getSymbol();
+				// only set non-empty symbols - otherwise superfluous local slots are created for
+				// anonymous methods/classes
+				if(!symbol.getName().equals("")) {
+					currentScope.setSymbol(symbol);
+				}
 			}
 		}
 		

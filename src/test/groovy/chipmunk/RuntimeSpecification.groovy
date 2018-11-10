@@ -1,6 +1,8 @@
 package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.compiler.ChipmunkLexer
+import chipmunk.compiler.ChipmunkParser
 import chipmunk.modules.runtime.CMethod
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -29,6 +31,12 @@ class RuntimeSpecification extends Specification {
 			}catch(Exception e){
 				CMethod method = script.getModules().get("test").getNamespace().get("main")
 				println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
+				
+				compiler.getLastParsedModules().forEach({
+				    module -> println(module)
+				})
+
+				
 				throw e
 			}
 		}
@@ -140,7 +148,7 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run Map.chp"(){
 		when:
-		def result = compileAndRun("Map.chp", true)
+		def result = compileAndRun("Map.chp")
 		
 		then:
 		result.intValue() == 10
@@ -148,18 +156,10 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run Polymorphism.chp"(){
 		when:
-		def result = compileAndRun("Polymorphism.chp", true)
+		def result = compileAndRun("Polymorphism.chp")
 		
 		then:
 		result.intValue() == 21
 	}
 	
-	@Ignore
-	def "Run Closures.chp"(){
-		when:
-		def result = compileAndRun("Closures.chp", true)
-		
-		then:
-		result.intValue() == 2
-	}
 }

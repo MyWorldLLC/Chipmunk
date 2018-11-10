@@ -1,10 +1,13 @@
 package chipmunk.compiler.codegen;
 
+import chipmunk.compiler.Symbol;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.MethodNode;
+import chipmunk.compiler.ast.SymbolNode;
 import chipmunk.compiler.ast.VarDecNode;
 
 public class InnerMethodRewriteVisitor implements AstVisitor {
@@ -22,6 +25,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 			AstNode nextChild = node.getChildren().get(i);
 			final boolean rewrite = nextChild instanceof MethodNode && !((MethodNode) nextChild).getName().equals("") && nestingDepth > 0;
 			
+			
 			if(nextChild instanceof MethodNode) {
 				nestingDepth++;
 			}
@@ -30,11 +34,12 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 			
 			if(rewrite) {
 				VarDecNode dec = new VarDecNode();
-				dec.getSymbol().setName(((MethodNode) nextChild).getName());
-				dec.setVar(new IdNode(new Token(((MethodNode) nextChild).getName(), Token.Type.IDENTIFIER)));
+				Symbol symbol = ((SymbolNode) nextChild).getSymbol();
+				dec.getSymbol().setName(symbol.getName());
+				dec.setVar(new IdNode(new Token(symbol.getName(), Token.Type.IDENTIFIER)));
 				dec.setAssignExpr(nextChild);
 				node.getChildren().set(i, dec);
-				((MethodNode) nextChild).setName("");
+				symbol.setName("");
 			}
 				
 			if(nextChild instanceof MethodNode) {

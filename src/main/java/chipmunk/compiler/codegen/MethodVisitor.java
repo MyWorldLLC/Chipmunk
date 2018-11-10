@@ -7,6 +7,7 @@ import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.ForNode;
 import chipmunk.compiler.ast.IfElseNode;
@@ -74,6 +75,7 @@ public class MethodVisitor implements AstVisitor {
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
 			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
+			codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(module));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));

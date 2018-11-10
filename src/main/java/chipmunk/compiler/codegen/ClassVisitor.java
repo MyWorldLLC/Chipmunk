@@ -58,14 +58,12 @@ public class ClassVisitor implements AstVisitor {
 			
 		}else if(node instanceof VarDecNode){
 			// TODO - final variables
-			// TODO - closures
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = null;
 			final boolean isShared = varDec.getSymbol().isShared();
 			final boolean isFinal = varDec.getSymbol().isFinal();
 			final boolean isTrait = varDec.getSymbol().isTrait();
-			final boolean isClosure = varDec.getSymbol().isClosure();
 			
 			if(isShared){
 				visitor = new VarDecVisitor(sharedInitCodegen);

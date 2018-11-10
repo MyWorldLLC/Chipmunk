@@ -308,6 +308,54 @@ public class ChipmunkParser {
 		return node;
 	}
 	
+	public ClassNode parseAnonClassDef(){
+		skipNewlinesAndComments();
+		
+		ClassNode node = new ClassNode();
+		startNode(node);
+		
+		node.setName("");
+		
+		forceNext(Token.Type.LBRACE);
+		skipNewlines();
+		while(!peek(Token.Type.RBRACE)){
+			// parse class body (only variable declarations and method definitions allowed)
+			skipNewlines();
+			
+			boolean shared = false;
+			if(dropNext(Token.Type.SHARED)){
+				shared = true;
+			}
+			
+			Symbol symbol = new Symbol();
+			symbol.setShared(shared);
+			
+			if(checkVarOrTraitDec()){
+				VarDecNode varNode = parseVarOrTraitDec();
+				varNode.getSymbol().setShared(shared);
+				node.addChild(varNode);
+			}else if(checkMethodDef()){
+				MethodNode methodNode = parseMethodDef();
+				methodNode.getSymbol().setShared(shared);
+				node.addChild(methodNode);
+			}else{
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
+			}
+			
+			// TODO - symbol search rules
+			node.getSymbolTable().setSymbol(symbol);
+			
+			skipNewlines();
+			
+			if(peek(Token.Type.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+			}
+		}
+		forceNext(Token.Type.RBRACE);
+		endNode(node);
+		return node;
+	}
+	
 	public boolean checkMethodDef(){
 		return checkMethodDef(true);
 	}
@@ -468,6 +516,8 @@ public class ChipmunkParser {
 			return parseVarDec();
 		}else if(checkMethodDef()){
 			return parseMethodDef();
+		}else if(checkClassDef()){
+			return parseClassDef();
 		}else if(peek().getType().isKeyword()){
 			// parse block or keyword statement
 			Token token = peek();

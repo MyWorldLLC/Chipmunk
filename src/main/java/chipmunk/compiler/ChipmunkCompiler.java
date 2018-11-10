@@ -18,6 +18,7 @@ import chipmunk.modules.runtime.CModule;
 public class ChipmunkCompiler {
 	
 	protected List<AstVisitor> visitors;
+	protected List<ModuleNode> parsedModules;
 	
 	public ChipmunkCompiler(){
 		visitors = new ArrayList<AstVisitor>();
@@ -29,6 +30,10 @@ public class ChipmunkCompiler {
 		return visitors;
 	}
 	
+	public List<ModuleNode> getLastParsedModules(){
+		return parsedModules;
+	}
+	
 	public List<CModule> compile(CharSequence src, String fileName) throws CompileChipmunk, SyntaxErrorChipmunk {
 		
 		List<CModule> modules = new ArrayList<CModule>();
@@ -38,9 +43,9 @@ public class ChipmunkCompiler {
 		ChipmunkParser parser = new ChipmunkParser(tokens);
 		parser.setFileName(fileName);
 		parser.parse();
-		List<ModuleNode> roots = parser.getModuleRoots();
+		parsedModules = parser.getModuleRoots();
 		
-		for(ModuleNode node : roots){
+		for(ModuleNode node : parsedModules){
 			
 			for(AstVisitor visitor : visitors){
 				node.visit(visitor);

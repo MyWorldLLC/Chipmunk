@@ -1159,13 +1159,13 @@ public class ChipmunkVM {
 				// Arrays.fill(params, null);
 				return retVal != null ? retVal : CNull.instance();
 			}catch(NoSuchMethodException ex) {
-				throw new AngryChipmunk(ex);
+				throw new RuntimeException(ex);
 			}catch(Throwable ex) {
-				throw new AngryChipmunk(ex);
+				throw new RuntimeException(ex);
 			}
 			
 		} catch (Throwable e) {
-			throw new AngryChipmunk(e);
+			throw new RuntimeException(e);
 		}
 		
 	}
@@ -1212,9 +1212,9 @@ public class ChipmunkVM {
 			
 			return retVal != null ? retVal : CNull.instance();
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-			throw new AngryChipmunk(e);
+			throw new RuntimeException(e);
 		} catch (Throwable e) {
-			throw new AngryChipmunk(e);
+			throw new RuntimeException(e);
 		}
 	}
 	
