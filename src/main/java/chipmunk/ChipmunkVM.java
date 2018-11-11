@@ -1003,8 +1003,13 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case GETMODULE:
-					this.push(method.getModule().getNamespace()
-							.get((String)constantPool[fetchInt(instructions, ip + 1)]));
+					ins = method.getModule().getNamespace()
+							.get((String)constantPool[fetchInt(instructions, ip + 1)]);
+					if(ins == null) {
+						this.push(CNull.instance());
+					}else {
+						this.push(ins);
+					}
 					ip += 5;
 					break;
 				case SETMODULE:
@@ -1056,11 +1061,12 @@ public class ChipmunkVM {
 		Method[] methods = target.getClass().getMethods();
 		Method method = null;
 		for (int i = 0; i < methods.length; i++) {
-			method = methods[i];
-			if (method.getName().equals(opName)) {
+			if (methods[i].getName().equals(opName)) {
 				// only call public methods
-				if (paramTypesMatch(method.getParameterTypes(), callTypes)
-						&& ((method.getModifiers() & Modifier.PUBLIC) != 0)) {
+				if (paramTypesMatch(methods[i].getParameterTypes(), callTypes)
+						&& ((methods[i].getModifiers() & Modifier.PUBLIC) != 0)) {
+
+					method = methods[i];
 					break;
 				}
 			}

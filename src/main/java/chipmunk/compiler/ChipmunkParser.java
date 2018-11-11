@@ -124,7 +124,7 @@ public class ChipmunkParser {
 		// method def operator (allow method definitions in expressions)
 		register(Token.Type.DEF, new MethodDefParselet());
 		// class definition operator (allows creating anonymous classes in expressions)
-		//register(Token.Type.CLASS, new ClassDefParselet());
+		register(Token.Type.CLASS, new ClassDefParselet());
 	}
 	
 	protected void register(Token.Type type, InfixParselet parselet){
@@ -269,10 +269,10 @@ public class ChipmunkParser {
 		node.setName(id.getText());
 		
 		forceNext(Token.Type.LBRACE);
-		skipNewlines();
+		skipNewlinesAndComments();
 		while(!peek(Token.Type.RBRACE)){
-			// parse class body (only variable declarations and method definitions allowed)
-			skipNewlines();
+			// parse class body (only variable declarations and method/class definitions allowed)
+			skipNewlinesAndComments();
 			
 			boolean shared = false;
 			if(dropNext(Token.Type.SHARED)){
@@ -290,6 +290,12 @@ public class ChipmunkParser {
 				MethodNode methodNode = parseMethodDef();
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
+			}else if(checkClassDef()){
+				ClassNode classNode = parseClassDef();
+				classNode.getSymbol().setShared(shared);
+				node.addChild(classNode);
+			}else if(peek(Token.Type.RBRACE)){
+				break;
 			}else{
 				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
 			}
@@ -309,7 +315,7 @@ public class ChipmunkParser {
 	}
 	
 	public ClassNode parseAnonClassDef(){
-		skipNewlinesAndComments();
+		skipNewlines();
 		
 		ClassNode node = new ClassNode();
 		startNode(node);
@@ -317,10 +323,10 @@ public class ChipmunkParser {
 		node.setName("");
 		
 		forceNext(Token.Type.LBRACE);
-		skipNewlines();
+		skipNewlinesAndComments();
 		while(!peek(Token.Type.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
-			skipNewlines();
+			skipNewlinesAndComments();
 			
 			boolean shared = false;
 			if(dropNext(Token.Type.SHARED)){
@@ -338,6 +344,12 @@ public class ChipmunkParser {
 				MethodNode methodNode = parseMethodDef();
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
+			}else if(checkClassDef()){
+				ClassNode classNode = parseClassDef();
+				classNode.getSymbol().setShared(shared);
+				node.addChild(classNode);
+			}else if(peek(Token.Type.RBRACE)){
+				break;
 			}else{
 				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
 			}

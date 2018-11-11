@@ -29,15 +29,22 @@ public class ClassVisitor implements AstVisitor {
 	protected CModule module;
 	
 	private boolean alreadyReachedConstructor;
+	private ChipmunkAssembler expAssembler;
 	
 	public ClassVisitor(CModule module){
 		this(new ArrayList<Object>(), module);
 	}
 	
 	public ClassVisitor(List<Object> constantPool, CModule module){
+		this(constantPool, module, null);
+	}
+	
+	public ClassVisitor(List<Object> constantPool, CModule module, ChipmunkAssembler expAssembler){
 		this.constantPool = constantPool;
 		this.module = module;
 		alreadyReachedConstructor = false;
+		this.expAssembler = expAssembler;
+		
 	}
 	
 	@Override
@@ -52,9 +59,26 @@ public class ClassVisitor implements AstVisitor {
 			sharedInitCodegen = new Codegen(sharedInitAssembler, classNode.getSymbolTable(), module);
 			instanceInitCodegen = new Codegen(instanceInitAssembler, classNode.getSymbolTable(), module);
 			
-			cClass = new CClass(classNode.getName(), module);
+			if(cClass == null) {
+				cClass = new CClass(classNode.getName(), module);
+				classNode.visitChildren(this);
+			}else {
+				// visit nested class declarations
+				ClassVisitor visitor = new ClassVisitor(constantPool, module);
+				classNode.visit(visitor);
+				CClass inner = visitor.getCClass();
+				
+				if(classNode.getSymbol().isShared()) {
+					cClass.getAttributes().set(inner.getName(), inner);
+				}else {
+					cClass.getInstanceAttributes().set(inner.getName(), inner);
+				}
+			}
 			
-			classNode.visitChildren(this);
+			if(expAssembler != null) {
+				expAssembler.push(cClass);
+			}
+			
 			
 		}else if(node instanceof VarDecNode){
 			// TODO - final variables

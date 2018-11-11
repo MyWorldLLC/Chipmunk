@@ -3,7 +3,7 @@ package chipmunk.modules.runtime;
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
 
-public class CClass implements RuntimeObject, Initializable, CallInterceptor {
+public class CClass implements RuntimeObject, Initializable, CallInterceptor, CCallable {
 
 	private final Namespace sharedAttributes;
 	
@@ -101,11 +101,16 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor {
 
 	@Override
 	public Object callAt(ChipmunkVM vm, String methodName, int paramCount) {
-		CMethod method = (CMethod) sharedAttributes.get(methodName);
-		if(method != null){
-			return vm.dispatch(method, paramCount);
+		CCallable callable = (CCallable) sharedAttributes.get(methodName);
+		if(callable != null){
+			return callable.call(vm, (byte)paramCount);
 		}
 		return null;
+	}
+	
+	@Override
+	public String toString() {
+		return "class " + module.getName() + "." + (!name.equals("") ? name : "<anonymous>");
 	}
 	
 }

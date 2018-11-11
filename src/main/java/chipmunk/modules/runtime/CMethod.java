@@ -2,7 +2,7 @@ package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
 
-public class CMethod implements RuntimeObject {
+public class CMethod implements RuntimeObject, CCallable {
 	protected int argCount;
 	protected int defaultArgCount;
 	protected int localCount;

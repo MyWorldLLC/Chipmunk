@@ -75,7 +75,7 @@ public class MethodVisitor implements AstVisitor {
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
 			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
-			codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(module));
+			codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
 			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));

@@ -35,6 +35,11 @@ class RuntimeSpecification extends Specification {
 				compiler.getLastParsedModules().forEach({
 				    module -> println(module)
 				})
+				
+				modules.forEach({
+				    module -> println(module.getNamespace().names())
+				})
+
 
 				
 				throw e
@@ -160,6 +165,14 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 21
+	}
+	
+	def "Run InnerClasses.chp"(){
+		when:
+		def result = compileAndRun("InnerClasses.chp", true)
+		
+		then:
+		result.intValue() == 18
 	}
 	
 }
