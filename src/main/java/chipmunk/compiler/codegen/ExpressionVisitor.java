@@ -101,11 +101,13 @@ public class ExpressionVisitor implements AstVisitor {
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
 			assembler.push(visitor.getMethod());
-		}else if(node instanceof ClassNode) {
+		}
+		/*else if(node instanceof ClassNode) {
 			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
 			assembler.push(visitor.getCClass());
-		}else if(node instanceof OperatorNode){
+		}*/
+		else if(node instanceof OperatorNode){
 			
 			OperatorNode op = (OperatorNode) node;
 			Token operator = op.getOperator();

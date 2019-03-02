@@ -124,7 +124,7 @@ public class ChipmunkParser {
 		// method def operator (allow method definitions in expressions)
 		register(Token.Type.DEF, new MethodDefParselet());
 		// class definition operator (allows creating anonymous classes in expressions)
-		register(Token.Type.CLASS, new ClassDefParselet());
+		//register(Token.Type.CLASS, new ClassDefParselet());
 	}
 	
 	protected void register(Token.Type type, InfixParselet parselet){
@@ -528,9 +528,11 @@ public class ChipmunkParser {
 			return parseVarDec();
 		}else if(checkMethodDef()){
 			return parseMethodDef();
-		}else if(checkClassDef()){
-			return parseClassDef();
-		}else if(peek().getType().isKeyword()){
+		}
+		//else if(checkClassDef()){
+		//	return parseClassDef();
+		//}
+		else if(peek().getType().isKeyword()){
 			// parse block or keyword statement
 			Token token = peek();
 			Token.Type type = token.getType();

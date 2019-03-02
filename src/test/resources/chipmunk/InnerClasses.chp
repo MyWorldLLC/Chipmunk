@@ -1,29 +1,16 @@
 module test
 
 class TestClass {
-
-	var inner = class {
-		var foo = 5
-	}
 	
-	class Inner2 {
+	class InnerClass {
 		var baz = 7
 	}
 	
 }
 
 def main(){
-
-	class LocalClass {
-		var bar = 6
-	}
-	
-	var cls = class {
-		var bar = 5
-	}
-	
-	#var inner = TestClass().inner()
-	#var inner2 = TestClass().Inner2()
-	#inner.foo + inner2.baz + 
-	return cls().bar
+	var testClass = TestClass().InnerClass()
+	testClass.baz
+	#return testClass.foobar()
+	return TestClass().InnerClass().baz
 }

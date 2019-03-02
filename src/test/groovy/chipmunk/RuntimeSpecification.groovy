@@ -172,7 +172,7 @@ class RuntimeSpecification extends Specification {
 		def result = compileAndRun("InnerClasses.chp", true)
 		
 		then:
-		result.intValue() == 18
+		result.intValue() == 7
 	}
 	
 }

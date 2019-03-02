@@ -75,9 +75,9 @@ public class ClassVisitor implements AstVisitor {
 				}
 			}
 			
-			if(expAssembler != null) {
-				expAssembler.push(cClass);
-			}
+			//if(expAssembler != null) {
+			//	expAssembler.push(cClass);
+			//}
 			
 			
 		}else if(node instanceof VarDecNode){

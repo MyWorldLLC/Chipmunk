@@ -743,8 +743,8 @@ public class ChipmunkVM {
 					break;
 				case GETATTR:
 					ins = this.pop();
-					lh = this.pop();
-					internalParams[2][1] = lh;
+					rh = this.pop();
+					internalParams[2][1] = rh;
 					this.push(doInternal(InternalOp.GETATTR, ins, 2, callCache, ip));
 					ip++;
 					break;
