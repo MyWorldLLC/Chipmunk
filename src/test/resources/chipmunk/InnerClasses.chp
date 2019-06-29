@@ -9,8 +9,6 @@ class TestClass {
 }
 
 def main(){
-	var testClass = TestClass().InnerClass()
-	testClass.baz
-	#return testClass.foobar()
-	return TestClass().InnerClass().baz
+	var inner = TestClass().InnerClass()
+	return TestClass().InnerClass().baz + inner.baz
 }

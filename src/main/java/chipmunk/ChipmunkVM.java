@@ -543,6 +543,17 @@ public class ChipmunkVM {
 	public void untraceReferences(int count) {
 		memHigh -= refLength * count;
 	}
+	
+	public void dumpOperandStack() {
+		System.out.println("Stack depth: " + stackDepth());
+		for(int i = 0; i < stackDepth(); i++) {
+			System.out.println(stack[i].toString());
+		}
+	}
+	
+	public int stackDepth() {
+		return stackIndex;
+	}
 
 	public Object dispatch(CMethod method, int paramCount) {
 		int ip = 0;
@@ -825,7 +836,7 @@ public class ChipmunkVM {
 					break;
 				case CALLAT:
 					ins = this.pop();
-
+					
 					try {
 						String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
 

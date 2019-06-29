@@ -213,6 +213,7 @@ public class ClassVisitor implements AstVisitor {
 		assembler.getLocal(0);
 		assembler.init();
 		assembler.call((byte)0);
+		assembler.pop();
 	}
 
 }

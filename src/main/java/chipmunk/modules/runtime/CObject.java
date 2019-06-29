@@ -96,5 +96,10 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return cClass.getName() + '@' + Integer.toHexString(System.identityHashCode(this));
+	}
 
 }

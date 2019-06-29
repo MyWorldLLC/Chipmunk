@@ -43,6 +43,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	public Object call(ChipmunkVM vm, Byte paramCount){
 		
 		// TODO - memory tracing
+		vm.traceReference();
 		CObject obj = new CObject(this, instanceAttributes.duplicate());
 		obj.setInitializer(instanceInitializer.duplicate(vm));
 		obj.getInitializer().bind(obj);

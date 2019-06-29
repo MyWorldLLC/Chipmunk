@@ -349,6 +349,19 @@ class VMSpecification extends Specification {
 		result.getValue() == 2
 	}
 	
+	def "callat"(){
+		when:
+		assembler.push(two)
+		assembler.callAt('string', (byte)0)
+		assembler._return()
+		def result = vmRun()
+		vm.dumpOperandStack()
+		
+		then:
+		result.stringValue() == "2"
+		vm.stackDepth() == 0
+	}
+	
 	def vmRun(int localCount = 0){
 		CMethod method = assembler.makeMethod()
 		method.setLocalCount(localCount)
