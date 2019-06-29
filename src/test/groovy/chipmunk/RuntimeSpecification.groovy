@@ -186,7 +186,7 @@ class RuntimeSpecification extends Specification {
 		def result = compileAndRun("InnerClasses.chp", true)
 		
 		then:
-		result.intValue() == 14
+		result.intValue() == 21
 		vm.stackDepth() == 0
 	}
 	

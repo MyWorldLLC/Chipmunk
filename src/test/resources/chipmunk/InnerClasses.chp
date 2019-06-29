@@ -6,9 +6,12 @@ class TestClass {
 		var baz = 7
 	}
 	
+	shared class SharedInnerClass {
+		var bar = 7
+	}
 }
 
 def main(){
 	var inner = TestClass().InnerClass()
-	return TestClass().InnerClass().baz + inner.baz
+	return TestClass().InnerClass().baz + inner.baz + TestClass.SharedInnerClass().bar
 }
