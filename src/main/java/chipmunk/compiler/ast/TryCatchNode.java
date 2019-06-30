@@ -3,16 +3,18 @@ package chipmunk.compiler.ast;
 public class TryCatchNode extends AstNode {
 
 	protected boolean hasTry;
+	protected boolean hasFinally;
 	
 	public TryCatchNode(){
 		hasTry = false;
+		hasFinally = false;
 	}
 	
 	public boolean hasTryBlock(){
 		return hasTry;
 	}
 	
-	public void setTryBlock(BlockNode tryBlock){
+	public void setTryBlock(TryNode tryBlock){
 		if(tryBlock != null){
 			if(hasTry){
 				children.remove(0);
@@ -28,7 +30,26 @@ public class TryCatchNode extends AstNode {
 	}
 	
 	public void addCatchBlock(CatchNode catchBlock){
-		children.add(catchBlock);
+		if(hasFinally) {
+			children.add(catchBlock);
+		}else{
+			children.add(children.size() - 1, catchBlock);
+		}
+	}
+	
+	public void setFinallyBlock(BlockNode finallyBlock) {
+		if(finallyBlock != null){
+			if(hasFinally){
+				children.remove(children.size() - 1);
+			}
+			children.add(children.size() - 1, finallyBlock);
+			hasFinally = true;
+		}else{
+			if(hasFinally){
+				children.remove(children.size() - 1);
+			}
+			hasFinally = false;
+		}
 	}
 	
 }

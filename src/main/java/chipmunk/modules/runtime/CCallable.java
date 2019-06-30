@@ -4,6 +4,6 @@ import chipmunk.ChipmunkVM;
 
 public interface CCallable extends RuntimeObject {
 	
-	public Object call(ChipmunkVM vm, Byte paramCount);
+	public Object call(ChipmunkVM vm, Object[] params);
 
 }

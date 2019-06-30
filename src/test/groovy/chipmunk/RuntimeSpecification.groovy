@@ -39,8 +39,6 @@ class RuntimeSpecification extends Specification {
 				modules.forEach({
 				    module -> println(module.getNamespace().names())
 				})
-
-				vm.dumpOperandStack()
 				
 				throw e
 			}
@@ -53,7 +51,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 25
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleWithInitializer.chp"(){
@@ -62,7 +59,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 5
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleWithClassInitializer.chp"(){
@@ -71,7 +67,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 
 	def "Run ClassAndInstanceVariables.chp"(){
@@ -80,7 +75,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 11
-		vm.stackDepth() == 0
 	}
 	
 	def "Run SetClassAndInstanceVariables.chp"(){
@@ -89,7 +83,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 9
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleImports.chp"(){
@@ -98,7 +91,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleStarImport.chp"(){
@@ -107,7 +99,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleFromImport.chp"(){
@@ -116,7 +107,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleFromImportStar.chp"(){
@@ -125,7 +115,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleSingleFromImport.chp"(){
@@ -134,7 +123,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run ModuleSingleFromImportAliased.chp"(){
@@ -143,7 +131,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run OverwriteImport.chp"(){
@@ -160,7 +147,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run Map.chp"(){
@@ -169,7 +155,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 10
-		vm.stackDepth() == 0
 	}
 	
 	def "Run Polymorphism.chp"(){
@@ -178,7 +163,6 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 21
-		vm.stackDepth() == 0
 	}
 	
 	def "Run InnerClasses.chp"(){
@@ -187,7 +171,14 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 21
-		vm.stackDepth() == 0
+	}
+	
+	def "Run TryCatch.chp"(){
+		when:
+		def result = compileAndRun("TryCatch.chp", true)
+		
+		then:
+		result.intValue() == 2
 	}
 	
 }

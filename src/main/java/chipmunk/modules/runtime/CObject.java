@@ -89,10 +89,10 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	}
 	
 	@Override
-	public Object callAt(ChipmunkVM vm, String methodName, int paramCount) {
+	public Object callAt(ChipmunkVM vm, String methodName, Object[] params) {
 		CCallable callable = (CCallable) attributes.get(methodName);
 		if(callable != null){
-			return callable.call(vm, (byte)paramCount);
+			return callable.call(vm, params);
 		}
 		return null;
 	}

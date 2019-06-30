@@ -197,13 +197,15 @@ public class ChipmunkVM {
 		}
 	}
 	
+	
+	
 	protected List<ModuleLoader> loaders;
 	
 	protected ChipmunkScript activeScript;
 	
 	protected Map<String, CModule> modules;
-	protected Object[] stack;
-	private int stackIndex;
+	//protected Object[] stack;
+	//private int stackIndex;
 	protected Deque<CallFrame> frozenCallStack;
 	protected Deque<CModule> initializationQueue;
 	
@@ -271,8 +273,8 @@ public class ChipmunkVM {
 		loaders = new ArrayList<ModuleLoader>();
 		
 		activeScript = new ChipmunkScript(128);
-		stack = new Object[128]; //activeScript.stack;
-		stackIndex = 0;
+		//stack = new Object[128]; //activeScript.stack;
+		//stackIndex = 0;
 		frozenCallStack = activeScript.frozenCallStack;
 		
 		initializationQueue = new ArrayDeque<CModule>();
@@ -343,47 +345,7 @@ public class ChipmunkVM {
 		return modules.get(name);
 	}
 
-	public void pushArgs(Object[] args){
-		// push arguments right -> left
-		for(int i = args.length - 1; i >= 0; i--){
-			this.push(args[i]);
-		}
-	}
 	
-	public void push(Object obj) {
-		try {
-			stack[stackIndex] = obj;
-			stackIndex++;
-		}catch(ArrayIndexOutOfBoundsException e) {
-			stack = Arrays.copyOf(stack, stack.length + 128);
-			this.push(obj);
-		}
-	}
-
-	public Object pop() {
-		stackIndex--;
-		return stack[stackIndex];
-	}
-
-	public Object peek() {
-		return stack[stackIndex - 1];
-	}
-
-	public void dup(int index) {
-		stack[stackIndex] = stack[stackIndex - (index + 1)];
-		stackIndex++;
-	}
-
-	public void swap(int index1, int index2) {
-		int stackIndex1 = stackIndex - (index1 + 1);
-		int stackIndex2 = stackIndex - (index2 + 1);
-
-		Object obj1 = stack[stackIndex1];
-		Object obj2 = stack[stackIndex2];
-
-		stack[index1] = obj2;
-		stack[index2] = obj1;
-	}
 
 	public void freeze(CMethod method, int ip, Object[] locals) {
 		frozenCallStack.push(new CallFrame(method, ip, locals));
@@ -404,8 +366,9 @@ public class ChipmunkVM {
 		activeScript = script;
 		
 		modules = script.modules;
-		stack = new Object[128]; // script.stack;
-		stackIndex = 0;
+		//stack = new Object[128]; // script.stack;
+		//stackIndex = 0;
+		OperandStack stack = new OperandStack();
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
 		
@@ -456,7 +419,7 @@ public class ChipmunkVM {
 			}
 			
 			if(module.hasInitializer()){
-				this.dispatch(module.getInitializer(), 0);
+				this.dispatch(module.getInitializer(), null);
 			}
 		}
 		
@@ -469,8 +432,8 @@ public class ChipmunkVM {
 			// Starting to run entry method.
 			CMethod entryMethod = (CMethod) activeScript.modules.get(
 					activeScript.entryModule).getNamespace().get(activeScript.entryMethod);
-			this.pushArgs(activeScript.entryArgs);
-			return this.dispatch(entryMethod, activeScript.entryArgs.length);
+			stack.pushArgs(activeScript.entryArgs);
+			return this.dispatch(entryMethod, activeScript.entryArgs);
 		}
 		
 	}
@@ -544,46 +507,54 @@ public class ChipmunkVM {
 		memHigh -= refLength * count;
 	}
 	
-	public void dumpOperandStack() {
-		System.out.println("Stack depth: " + stackDepth());
-		for(int i = 0; i < stackDepth(); i++) {
-			System.out.println(stack[i].toString());
-		}
-	}
-	
-	public int stackDepth() {
-		return stackIndex;
-	}
+//	public void dumpOperandStack(OperandStack stack) {
+//		System.out.println("Stack depth: " + stackDepth(stack));
+//		for(int i = 0; i < stackDepth(stack); i++) {
+//			System.out.println(stack.stack[i].toString());
+//		}
+//	}
+//	
+//	public int stackDepth(OperandStack stack) {
+//		return stack.stackIndex;
+//	}
 
-	public Object dispatch(CMethod method, int paramCount) {
+	public Object dispatch(CMethod method, Object[] parameters) {
 		int ip = 0;
 		Object[] locals;
-
+		OperandStack stack;
+		
 		final byte[] instructions = method.getCode();
 		final Object[] callCache = method.getCallCache();
 		final int localCount = method.getLocalCount();
 		final Object[] constantPool = method.getConstantPool();
+		
 
 		if (resuming) {
 			CallFrame frame = unfreezeNext();
 			ip = frame.ip;
 			locals = frame.locals;
+			stack = new OperandStack();
+			// TODO - restore operand stack
 
 			// call into the next method to resume call stack
 			try {
-				this.push(doInternal(InternalOp.CALL, frame.method, 0, callCache, ip));
+				stack.push(doInternal(InternalOp.CALL, frame.method, 0, callCache, ip));
 			} catch (SuspendedChipmunk e) {
 				this.freeze(frame.method, ip, locals);
 			} catch (AngryChipmunk e) {
 				// TODO - fill in stack trace or jump to exception handler
 			}
 		} else {
-			locals = new Object[localCount];
-			// pop arguments right->left
-			for (int i = paramCount; i >= 1; i--) {
-				locals[i] = this.pop();
-			}
+			locals = new Object[localCount + 1];
+			stack = new OperandStack();
 			locals[0] = method.getSelf();
+			if(parameters != null) {
+				// copy parameters
+				System.out.println(parameters.length);
+				for (int i = 0; i < parameters.length; i++) {
+					locals[i + 1] = parameters[i];
+				}
+			}
 		}
 
 		while (true) {
@@ -602,206 +573,206 @@ public class ChipmunkVM {
 				switch (op) {
 
 				case ADD:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.ADD, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.ADD, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case SUB:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.SUB, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.SUB, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case MUL:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.MUL, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.MUL, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case DIV:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.DIV, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.DIV, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case FDIV:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.FDIV, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.FDIV, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case MOD:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.MOD, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.MOD, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case POW:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.POW, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.POW, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case INC:
-					lh = this.pop();
-					this.push(doInternal(InternalOp.INC, lh, 1, callCache, ip));
+					lh = stack.pop();
+					stack.push(doInternal(InternalOp.INC, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case DEC:
-					lh = this.pop();
-					this.push(doInternal(InternalOp.DEC, lh, 1, callCache, ip));
+					lh = stack.pop();
+					stack.push(doInternal(InternalOp.DEC, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case POS:
-					lh = this.pop();
-					this.push(doInternal(InternalOp.POS, lh, 1, callCache, ip));
+					lh = stack.pop();
+					stack.push(doInternal(InternalOp.POS, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case NEG:
-					lh = this.pop();
-					this.push(doInternal(InternalOp.NEG, lh, 1, callCache, ip));
+					lh = stack.pop();
+					stack.push(doInternal(InternalOp.NEG, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case AND:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					if (cond1 && cond2) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case OR:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
 					if (cond1 || cond2) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case BXOR:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BXOR, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.BXOR, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BAND:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BAND, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.BAND, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BOR:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.BOR, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.BOR, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case BNEG:
-					lh = this.pop();
-					this.push(doInternal(InternalOp.BNEG, lh, 1, callCache, ip));
+					lh = stack.pop();
+					stack.push(doInternal(InternalOp.BNEG, lh, 1, callCache, ip));
 					ip++;
 					break;
 				case LSHIFT:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.LSHIFT, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.LSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case RSHIFT:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.RSHIFT, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.RSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case URSHIFT:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.URSHIFT, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.URSHIFT, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case SETATTR:
-					ins = this.pop();
-					lh = this.pop();
-					rh = this.pop();
+					ins = stack.pop();
+					lh = stack.pop();
+					rh = stack.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
 					doInternal(InternalOp.SETATTR, ins, 3, callCache, ip);
-					this.push(ins);
+					stack.push(ins);
 					ip++;
 					break;
 				case GETATTR:
-					ins = this.pop();
-					rh = this.pop();
+					ins = stack.pop();
+					rh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.GETATTR, ins, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.GETATTR, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case GETAT:
-					lh = this.pop();
-					ins = this.pop();
+					lh = stack.pop();
+					ins = stack.pop();
 					internalParams[2][1] = lh;
-					this.push(doInternal(InternalOp.GETAT, ins, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.GETAT, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case SETAT:
-					ins = this.pop();
-					lh = this.pop();
-					rh = this.pop();
+					ins = stack.pop();
+					lh = stack.pop();
+					rh = stack.pop();
 					internalParams[3][1] = lh;
 					internalParams[3][2] = rh;
-					this.push(doInternal(InternalOp.SETAT, ins, 3, callCache, ip));
+					stack.push(doInternal(InternalOp.SETAT, ins, 3, callCache, ip));
 					ip++;
 					break;
 				case GETLOCAL:
-					this.push(locals[fetchByte(instructions, ip + 1)]);
+					stack.push(locals[fetchByte(instructions, ip + 1)]);
 					ip += 2;
 					break;
 				case SETLOCAL:
-					locals[fetchByte(instructions, ip + 1)] = this.peek();
+					locals[fetchByte(instructions, ip + 1)] = stack.peek();
 					ip += 2;
 					break;
 				case TRUTH:
-					rh = this.pop();
-					this.push(doInternal(InternalOp.TRUTH, rh, 1, callCache, ip));
+					rh = stack.pop();
+					stack.push(doInternal(InternalOp.TRUTH, rh, 1, callCache, ip));
 					ip++;
 					break;
 				case NOT:
-					rh = this.pop();
-					this.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).booleanValue()));
+					rh = stack.pop();
+					stack.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).booleanValue()));
 					ip++;
 					break;
 				case AS:
-					lh = this.pop();
-					ins = this.pop();
+					lh = stack.pop();
+					ins = stack.pop();
 					internalParams[2][1] = lh;
-					this.push(doInternal(InternalOp.AS, ins, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.AS, ins, 2, callCache, ip));
 					ip++;
 					break;
 				case IF:
-					ins = this.pop();
+					ins = stack.pop();
 					int target = fetchInt(instructions, ip + 1);
 					ip += 5;
 
@@ -810,15 +781,20 @@ public class ChipmunkVM {
 					}
 					break;
 				case CALL:
-					ins = this.pop();
+					ins = stack.pop();
 
 					try {
 						// TODO - probably should use the same mechanism used by
 						// CALLAT here, since this
 						// isn't really quite an internal operation
 
-						internalParams[2][1] = fetchByte(instructions, ip + 1);
-						this.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
+						//internalParams[2][1] = fetchByte(instructions, ip + 1);
+						//stack.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
+						Object[] params = new Object[fetchByte(instructions, ip + 1)];
+						this.popParams(stack, params);
+						stack.push(params);
+						Object result = callExternal(stack, ins, "call", 1);
+						stack.push(result != null ? result : CNull.instance());
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
 						// Otherwise,
@@ -835,7 +811,7 @@ public class ChipmunkVM {
 					ip += 2;
 					break;
 				case CALLAT:
-					ins = this.pop();
+					ins = stack.pop();
 					
 					try {
 						String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
@@ -843,8 +819,8 @@ public class ChipmunkVM {
 						// TODO - this is not an internal operation, so we need
 						// a different caching mechanism
 						// here
-						Object result = callExternal(ins, methodName, fetchByte(instructions, ip + 1));
-						this.push(result != null ? result : CNull.instance());
+						Object result = callExternal(stack, ins, methodName, fetchByte(instructions, ip + 1));
+						stack.push(result != null ? result : CNull.instance());
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
 						// Otherwise,
@@ -865,166 +841,166 @@ public class ChipmunkVM {
 					ip = gotoIndex;
 					break;
 				case THROW:
-					ins = this.pop();
+					ins = stack.pop();
 					throw new ExceptionChipmunk(ins);
 				case RETURN:
-					ins = this.pop();
+					ins = stack.pop();
 					return ins;
 				case POP:
-					ins = this.pop();
+					ins = stack.pop();
 					ip++;
 					break;
 				case DUP:
 					int dupIndex = fetchInt(instructions, ip + 1);
-					this.dup(dupIndex);
+					stack.dup(dupIndex);
 					ip += 5;
 					break;
 				case SWAP:
 					int swapIndex1 = fetchInt(instructions, ip + 1);
 					int swapIndex2 = fetchInt(instructions, ip + 5);
-					this.swap(swapIndex1, swapIndex2);
+					stack.swap(swapIndex1, swapIndex2);
 					ip += 9;
 					break;
 				case PUSH:
 					int constIndex = fetchInt(instructions, ip + 1);
 					Object constant = constantPool[constIndex];
-					this.push(constant);
+					stack.push(constant);
 					ip += 5;
 					break;
 				case EQ:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.EQUALS, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.EQUALS, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case GT:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
 					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() > 0) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case LT:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
 					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() < 0) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case GE:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
 					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() >= 0) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case LE:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
 					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() <= 0) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case IS:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					if (lh == rh) {
-						this.push(trueValue);
+						stack.push(trueValue);
 					} else {
-						this.push(falseValue);
+						stack.push(falseValue);
 					}
 					ip++;
 					break;
 				case INSTANCEOF:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[2][1] = rh;
-					this.push(doInternal(InternalOp.INSTANCEOF, lh, 2, callCache, ip));
+					stack.push(doInternal(InternalOp.INSTANCEOF, lh, 2, callCache, ip));
 					ip++;
 					break;
 				case ITER:
-					ins = this.pop();
-					this.push(doInternal(InternalOp.ITERATOR, ins, 1, callCache, ip));
+					ins = stack.pop();
+					stack.push(doInternal(InternalOp.ITERATOR, ins, 1, callCache, ip));
 					ip++;
 					break;
 				case NEXT:
-					ins = this.peek();
+					ins = stack.peek();
 					if (!((CIterator) ins).hasNext(this)) {
 						// pop the iterator
-						this.pop();
+						stack.pop();
 						ip = fetchInt(instructions, ip + 1);
 					} else {
 
-						this.push(doInternal(InternalOp.NEXT, ins, 1, callCache, ip));
+						stack.push(doInternal(InternalOp.NEXT, ins, 1, callCache, ip));
 						ip += 5;
 					}
 					break;
 				case RANGE:
-					rh = this.pop();
-					lh = this.pop();
+					rh = stack.pop();
+					lh = stack.pop();
 					internalParams[3][1] = rh;
 					internalParams[3][2] = fetchByte(instructions, ip + 1) == 0 ? false : true;
-					this.push(doInternal(InternalOp.RANGE, lh, 3, callCache, ip));
+					stack.push(doInternal(InternalOp.RANGE, lh, 3, callCache, ip));
 					ip += 2;
 					break;
 				case LIST:
 					int elementCount = fetchInt(instructions, ip + 1);
 					CList list = new CList();
 					for(int i = 0; i < elementCount; i++){
-						list.add(this, this.pop());
+						list.add(this, stack.pop());
 					}
 					// elements are popped in reverse order
 					list.reverse();
 					traceMem(8);
-					this.push(list);
+					stack.push(list);
 					ip += 5;
 					break;
 				case MAP:
 					elementCount = fetchInt(instructions, ip + 1);
 					CMap map = new CMap();
 					for(int i = 0; i < elementCount; i++){
-						Object value = this.pop();
-						Object key = this.pop();
+						Object value = stack.pop();
+						Object key = stack.pop();
 						map.put(this, key, value);
 					}
 					traceMem(8);
-					this.push(map);
+					stack.push(map);
 					ip += 5;
 					break;
 				case INIT:
-					ins = this.pop();
-					this.push(((Initializable) ins).getInitializer());
+					ins = stack.pop();
+					stack.push(((Initializable) ins).getInitializer());
 					ip++;
 					break;
 				case GETMODULE:
 					ins = method.getModule().getNamespace()
 							.get((String)constantPool[fetchInt(instructions, ip + 1)]);
 					if(ins == null) {
-						this.push(CNull.instance());
+						stack.push(CNull.instance());
 					}else {
-						this.push(ins);
+						stack.push(ins);
 					}
 					ip += 5;
 					break;
 				case SETMODULE:
-					ins = this.peek();
+					ins = stack.peek();
 					method.getModule()
 					.getNamespace()
 					.set(constantPool[
@@ -1143,6 +1119,12 @@ public class ChipmunkVM {
 
 		return true;
 	}
+	
+	private void popParams(OperandStack stack, Object[] params) {
+		for(int i = params.length - 1; i >= 0; i--) {
+			params[i] = stack.pop();
+		}
+	}
 
 	private Object doInternal(InternalOp op, Object target, int paramCount, Object[] callCache, int callCacheIndex) {
 		Class<?> targetType = target.getClass();
@@ -1187,16 +1169,7 @@ public class ChipmunkVM {
 		
 	}
 
-	private Object callExternal(Object target, String methodName, byte paramCount) {
-
-		if(target instanceof CallInterceptor){
-			Object result = ((CallInterceptor) target).callAt(this, methodName, paramCount);
-			// null result indicates that the interceptor did not intercept the call, so
-			// continue with a plain dispatch
-			if(result != null){
-				return result;
-			}
-		}
+	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount) {
 		
 		Object[] params = null;
 
@@ -1205,7 +1178,7 @@ public class ChipmunkVM {
 
 			// pop arguments right->left
 			for (int i = paramCount; i >= 1; i--) {
-				params[i] = this.pop();
+				params[i] = stack.pop();
 			}
 			params[0] = this;
 		} else {
@@ -1213,7 +1186,16 @@ public class ChipmunkVM {
 
 			// pop arguments right->left
 			for (int i = paramCount - 1; i >= 0; i--) {
-				params[i] = this.pop();
+				params[i] = stack.pop();
+			}
+		}
+		
+		if(target instanceof CallInterceptor){
+			Object result = ((CallInterceptor) target).callAt(this, methodName, params);
+			// null result indicates that the interceptor did not intercept the call, so
+			// continue with a plain dispatch
+			if(result != null){
+				return result;
 			}
 		}
 		

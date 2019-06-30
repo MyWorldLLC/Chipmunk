@@ -8,6 +8,7 @@ import spock.lang.Specification
 class VMSpecification extends Specification {
 	
 	ChipmunkVM vm = new ChipmunkVM()
+	OperandStack stack = new OperandStack()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 	
 	CInteger negOne = new CInteger(-1)
@@ -17,66 +18,66 @@ class VMSpecification extends Specification {
 
 	def "push and pop 1 item"(){
 		when:
-		vm.push(one)
+		stack.push(one)
 		
 		then:
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 1
 	}
 	
 	def "push and pop 2 items"(){
 		when:
-		vm.push(one)
-		vm.push(two)
+		stack.push(one)
+		stack.push(two)
 		
 		then:
-		vm.pop().getValue() == 2
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 2
+		stack.pop().getValue() == 1
 	}
 	
 	def "push and dup 1 item"(){
 		when:
-		vm.push(one)
-		vm.dup(0)
+		stack.push(one)
+		stack.dup(0)
 		
 		then:
-		vm.pop().getValue() == 1
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 1
+		stack.pop().getValue() == 1
 	}
 	
 	def "push 2 items and dup 1 item"(){
 		when:
-		vm.push(one)
-		vm.push(two)
-		vm.dup(1)
+		stack.push(one)
+		stack.push(two)
+		stack.dup(1)
 		
 		then:
-		vm.pop().getValue() == 1
-		vm.pop().getValue() == 2
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 1
+		stack.pop().getValue() == 2
+		stack.pop().getValue() == 1
 	}
 	
 	def "push 2 items and swap them"(){
 		when:
-		vm.push(one)
-		vm.push(two)
-		vm.swap(0, 1)
+		stack.push(one)
+		stack.push(two)
+		stack.swap(0, 1)
 		
 		then:
-		vm.pop().getValue() == 2
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 2
+		stack.pop().getValue() == 1
 	}
 	
 	def "push 3 items and swap 2 items"(){
 		when:
-		vm.push(one)
-		vm.push(two)
-		vm.push(three)
-		vm.swap(0, 2)
+		stack.push(one)
+		stack.push(two)
+		stack.push(three)
+		stack.swap(0, 2)
 		
 		then:
-		vm.pop().getValue() == 3
-		vm.pop().getValue() == 2
-		vm.pop().getValue() == 1
+		stack.pop().getValue() == 3
+		stack.pop().getValue() == 2
+		stack.pop().getValue() == 1
 	}
 	
 	def "add"(){
@@ -355,11 +356,9 @@ class VMSpecification extends Specification {
 		assembler.callAt('string', (byte)0)
 		assembler._return()
 		def result = vmRun()
-		vm.dumpOperandStack()
 		
 		then:
 		result.stringValue() == "2"
-		vm.stackDepth() == 0
 	}
 	
 	def vmRun(int localCount = 0){

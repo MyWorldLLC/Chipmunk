@@ -712,13 +712,13 @@ public class ChipmunkParser {
 		startNode(node);
 		
 		forceNext(Token.Type.TRY);
-		BlockNode bodyNode = new BlockNode();
+		TryNode tryNode = new TryNode();
 		
-		startNode(bodyNode);
-		parseBlockBody(bodyNode);
-		endNode(bodyNode);
+		startNode(tryNode);
+		parseBlockBody(tryNode);
+		endNode(tryNode);
 		// add try block to body
-		node.setTryBlock(bodyNode);
+		node.setTryBlock(tryNode);
 		
 		// parse and add catch blocks
 		while(true){

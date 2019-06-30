@@ -56,7 +56,7 @@ public class Token {
 		NULL("null(?![a-zA-Z0-9_])", true, false), IF("if(?![a-zA-Z0-9_])", true, false), ELSE("else(?![a-zA-Z0-9_])", true, false),
 		FOR("for(?![a-zA-Z0-9_])", true, false), WHILE("while(?![a-zA-Z0-9_])", true, false), BREAK("break(?![a-zA-Z0-9_])", true, false),
 		CONTINUE("continue(?![a-zA-Z0-9_])", true, false), RETURN("return(?![a-zA-Z0-9_])", true, false), TRY("try(?![a-zA-Z0-9_])", true, false),
-		CATCH("catch(?![a-zA-Z0-9_])", true, false), THROW("throw(?![a-zA-Z0-9_])", true, false), DEF("def(?![a-zA-Z0-9_])", true, false),
+		CATCH("catch(?![a-zA-Z0-9_])", true, false), FINALLY("finally(?![a-zA-Z0-9_])"), THROW("throw(?![a-zA-Z0-9_])", true, false), DEF("def(?![a-zA-Z0-9_])", true, false),
 		VAR("var(?![a-zA-Z0-9_])", true, false), TRAIT("trait(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords

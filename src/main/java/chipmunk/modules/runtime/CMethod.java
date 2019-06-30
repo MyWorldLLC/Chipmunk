@@ -76,8 +76,8 @@ public class CMethod implements RuntimeObject, CCallable {
 		return callCache;
 	}
 	
-	public Object call(ChipmunkVM vm, Byte paramCount) {
-		return vm.dispatch(this, paramCount.intValue());
+	public Object call(ChipmunkVM vm, Object[] params) {
+		return vm.dispatch(this, params);
 	}
 	
 	public Object getSelf(){

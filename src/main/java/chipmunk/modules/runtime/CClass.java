@@ -40,7 +40,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		return module;
 	}
 	
-	public Object call(ChipmunkVM vm, Byte paramCount){
+	public Object call(ChipmunkVM vm, Object[] params){
 		
 		// TODO - memory tracing
 		vm.traceReference();
@@ -56,7 +56,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		// is resumed this method will not be invoked, the constructor will resume where it left off,
 		// and the VM will have pushed the newly created object onto the stack when the constructor
 		// returns.
-		return vm.dispatch((CMethod)obj.getAttributes().get(name), paramCount.intValue());
+		return vm.dispatch((CMethod)obj.getAttributes().get(name), params);
 	}
 
 	public CMethod getSharedInitializer() {
@@ -101,10 +101,10 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 
 	@Override
-	public Object callAt(ChipmunkVM vm, String methodName, int paramCount) {
+	public Object callAt(ChipmunkVM vm, String methodName, Object[] params) {
 		CCallable callable = (CCallable) sharedAttributes.get(methodName);
 		if(callable != null){
-			return callable.call(vm, (byte)paramCount);
+			return callable.call(vm, params);
 		}
 		return null;
 	}

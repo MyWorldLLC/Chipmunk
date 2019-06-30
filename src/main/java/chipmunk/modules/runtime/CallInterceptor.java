@@ -4,5 +4,5 @@ import chipmunk.ChipmunkVM;
 
 public interface CallInterceptor {
 
-	public Object callAt(ChipmunkVM vm, String methodName, int paramCount);
+	public Object callAt(ChipmunkVM vm, String methodName, Object[] params);
 }

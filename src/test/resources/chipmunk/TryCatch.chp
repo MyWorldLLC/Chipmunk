@@ -1,0 +1,15 @@
+module test
+
+def main(){
+	var x = 0
+	var y = 0
+	
+	try {
+		x = 1
+		throw x
+	}catch(e){
+		y = 1
+	}
+	
+	return x + y
+}
