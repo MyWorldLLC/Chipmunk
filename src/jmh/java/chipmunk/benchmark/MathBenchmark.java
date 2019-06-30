@@ -75,7 +75,7 @@ public class MathBenchmark {
 	public Object countToOneMillionCVM(ChipmunkScripts scripts) {
 		ChipmunkVM vm = scripts.vm;
 		CMethod method = scripts.countToAMillion;
-		return vm.dispatch(method, method.getArgCount());
+		return vm.dispatch(method, null);
 	}
 	
 //	@Benchmark
