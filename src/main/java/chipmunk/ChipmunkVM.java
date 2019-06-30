@@ -550,7 +550,6 @@ public class ChipmunkVM {
 			locals[0] = method.getSelf();
 			if(parameters != null) {
 				// copy parameters
-				System.out.println(parameters.length);
 				for (int i = 0; i < parameters.length; i++) {
 					locals[i + 1] = parameters[i];
 				}
