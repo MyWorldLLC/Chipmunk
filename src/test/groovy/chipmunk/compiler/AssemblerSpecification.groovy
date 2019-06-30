@@ -27,7 +27,7 @@ class AssemblerSpecification extends Specification {
 	def callMethod(){
 		
 		CMethod method = new CMethod()
-		method.setCode(assembler.getCodeSegment())
+		method.setInstructions(assembler.getCodeSegment())
 		method.setConstantPool(assembler.getConstantPool().toArray())
 		method.setLocalCount(0)
 		

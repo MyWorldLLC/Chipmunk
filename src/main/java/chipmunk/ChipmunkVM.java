@@ -523,10 +523,10 @@ public class ChipmunkVM {
 		Object[] locals;
 		OperandStack stack;
 		
-		final byte[] instructions = method.getCode();
-		final Object[] callCache = method.getCallCache();
-		final int localCount = method.getLocalCount();
-		final Object[] constantPool = method.getConstantPool();
+		final byte[] instructions = method.getCode().getCode();
+		final Object[] callCache = method.getCode().getCallCache();
+		final int localCount = method.getCode().getLocalCount();
+		final Object[] constantPool = method.getCode().getConstantPool();
 		
 
 		if (resuming) {
@@ -989,7 +989,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case GETMODULE:
-					ins = method.getModule().getNamespace()
+					ins = method.getCode().getModule().getNamespace()
 							.get((String)constantPool[fetchInt(instructions, ip + 1)]);
 					if(ins == null) {
 						stack.push(CNull.instance());
@@ -1000,7 +1000,7 @@ public class ChipmunkVM {
 					break;
 				case SETMODULE:
 					ins = stack.peek();
-					method.getModule()
+					method.getCode().getModule()
 					.getNamespace()
 					.set(constantPool[
 							fetchInt(instructions, ip + 1)].toString(),

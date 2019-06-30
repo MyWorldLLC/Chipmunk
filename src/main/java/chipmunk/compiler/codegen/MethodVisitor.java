@@ -64,8 +64,8 @@ public class MethodVisitor implements AstVisitor {
 		if(node instanceof MethodNode){
 			methodNode = (MethodNode) node;
 			
-			method.setArgCount(methodNode.getParamCount());
-			method.setDefaultArgCount(methodNode.getDefaultParamCount());
+			method.getCode().setArgCount(methodNode.getParamCount());
+			method.getCode().setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
 			
@@ -141,10 +141,10 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public CMethod getMethod(){
-		method.setConstantPool(assembler.getConstantPool().toArray());
-		method.setCode(assembler.getCodeSegment());
-		method.setLocalCount(symbols.getLocalMax());
-		method.setModule(module);
+		method.getCode().setConstantPool(assembler.getConstantPool().toArray());
+		method.getCode().setCode(assembler.getCodeSegment());
+		method.getCode().setLocalCount(symbols.getLocalMax());
+		method.getCode().setModule(module);
 		return method;
 	}
 	

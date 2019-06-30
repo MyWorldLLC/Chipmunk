@@ -63,7 +63,7 @@ public class ModuleVisitor implements AstVisitor {
 			CMethod method = visitor.getMethod();
 			
 			method.bind(module);
-			method.setModule(module);
+			method.getCode().setModule(module);
 			
 			module.getNamespace().set(visitor.getMethodSymbol().getName(), method);
 			
@@ -101,12 +101,12 @@ public class ModuleVisitor implements AstVisitor {
 		assembler.pushNull();
 		assembler._return();
 		
-		initializer.setConstantPool(assembler.getConstantPool().toArray());
-		initializer.setCode(assembler.getCodeSegment());
-		initializer.setLocalCount(0);
+		initializer.getCode().setConstantPool(assembler.getConstantPool().toArray());
+		initializer.getCode().setCode(assembler.getCodeSegment());
+		initializer.getCode().setLocalCount(0);
 		
 		initializer.bind(module);
-		initializer.setModule(module);
+		initializer.getCode().setModule(module);
 		module.setInitializer(initializer);
 		
 		return module;

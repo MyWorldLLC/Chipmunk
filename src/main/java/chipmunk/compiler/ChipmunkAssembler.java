@@ -81,9 +81,9 @@ public class ChipmunkAssembler {
 	public CMethod makeMethod(){
 		CMethod method = new CMethod();
 		
-		method.setCode(getCodeSegment());
-		method.setCallSiteCount(getCallSiteCount());
-		method.setConstantPool(getConstantPool().toArray());
+		method.getCode().setCode(getCodeSegment());
+		method.getCode().setCallSiteCount(getCallSiteCount());
+		method.getCode().setConstantPool(getConstantPool().toArray());
 		
 		return method;
 	}

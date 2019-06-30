@@ -90,7 +90,7 @@ public class ChipmunkDisassembler {
 					if(constantPool[i] instanceof CMethod){
 						builder.append('\n');
 						CMethod method = (CMethod) constantPool[i];
-						builder.append(disassemble(method.getCode(), method.getConstantPool(), true, padding + "     "));
+						builder.append(disassemble(method.getCode().getCode(), method.getCode().getConstantPool(), true, padding + "     "));
 					}
 					builder.append('\n');
 				}

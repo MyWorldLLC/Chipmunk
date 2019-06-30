@@ -3,81 +3,79 @@ package chipmunk.modules.runtime;
 import chipmunk.ChipmunkVM;
 
 public class CMethod implements RuntimeObject, CCallable {
-	protected int argCount;
-	protected int defaultArgCount;
-	protected int localCount;
-	
-	protected byte[] instructions;
-	protected Object[] constantPool;
-	
-	protected Object[] callCache;
 	
 	protected Object self;
-	protected CModule module;
-	
-	protected int callSiteCount;
+	protected CMethodCode code;
 	
 	public CMethod(){
+		this(new CMethodCode());
+	}
+	
+	public CMethod(CMethodCode code) {
 		super();
 		self = CNull.instance();
-		localCount = 1;
+		this.code = code;
+	}
+	
+	public void setCode(CMethodCode code) {
+		this.code = code;
+	}
+	
+	public CMethodCode getCode() {
+		return code;
 	}
 	
 	public int getArgCount(){
-		return argCount;
+		return code.argCount;
 	}
 	
 	public void setArgCount(int count){
-		argCount = count;
+		code.argCount = count;
 	}
 	
 	public int getDefaultArgCount(){
-		return defaultArgCount;
+		return code.defaultArgCount;
 	}
 	
 	public void setDefaultArgCount(int count){
-		defaultArgCount = count;
+		code.defaultArgCount = count;
 	}
 	
 	public int getLocalCount(){
-		return localCount;
+		return code.localCount;
 	}
 	
 	public void setLocalCount(int count){
-		localCount = count + 1; // + 1 for self reference
+		code.localCount = count + 1; // + 1 for self reference
 	}
 	
 	public void setConstantPool(Object[] constantPool){
-		this.constantPool = constantPool;
+		code.constantPool = constantPool;
 	}
 	
 	public Object[] getConstantPool(){
-		return constantPool;
+		return code.constantPool;
 	}
 	
 	public void setCallSiteCount(int count) {
-		callSiteCount = count;
+		code.callSiteCount = count;
 	}
 	
 	public int getCallSiteCount() {
-		return callSiteCount;
+		return code.callSiteCount;
 	}
 	
-	public void setCode(byte[] codeSegment) {
-		instructions = codeSegment;
-		callCache = new Object[codeSegment.length];
+	public void setInstructions(byte[] codeSegment) {
+		code.instructions = codeSegment;
+		code.callCache = new Object[codeSegment.length];
 	}
 	
-	public byte[] getCode(){
-		return instructions;
+	public byte[] getInstructions(){
+		return code.instructions;
 	}
 	
 	public Object[] getCallCache(){
-		return callCache;
-	}
-	
-	public Object call(ChipmunkVM vm, Object[] params) {
-		return vm.dispatch(this, params);
+		return code.callCache;
 	}
 	
 	public Object getSelf(){
@@ -89,24 +87,24 @@ public class CMethod implements RuntimeObject, CCallable {
 	}
 	
 	public CModule getModule(){
-		return module;
+		return code.module;
 	}
 	
 	public void setModule(CModule module){
-		this.module = module;
+		this.code.module = module;
+	}
+	
+	@Override
+	public Object call(ChipmunkVM vm, Object[] params) {
+		return vm.dispatch(this, params);
 	}
 	
 	public CMethod duplicate(ChipmunkVM vm){
-		vm.traceMem(12); // integer sizes
+		vm.traceMem(16); // references
 		
 		CMethod method = new CMethod();
-		method.setModule(module);
-		method.setCode(instructions);
-		method.setConstantPool(constantPool);
-		method.setArgCount(argCount);
-		method.setDefaultArgCount(defaultArgCount);
-		method.setLocalCount(localCount);
 		method.bind(self);
+		method.setCode(code);
 		
 		return method;
 	}
@@ -116,11 +114,11 @@ public class CMethod implements RuntimeObject, CCallable {
 		
 		builder.append(this.getClass().getSimpleName());
 		builder.append("[Locals: ");
-		builder.append(localCount);
+		builder.append(code.localCount);
 		builder.append(", Args: ");
-		builder.append(argCount);
+		builder.append(code.argCount);
 		builder.append(", Def. Args: ");
-		builder.append(defaultArgCount);
+		builder.append(code.defaultArgCount);
 		builder.append("]");
 		
 		return builder.toString();
