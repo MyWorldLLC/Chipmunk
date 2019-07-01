@@ -1,0 +1,15 @@
+module test
+
+def fib(f){
+	if(f == 0){
+		return 0
+	}else if(f == 1){
+		return 1
+	}else{
+		return fib(f - 1) + fib(f - 2)
+	}
+}
+
+def main(){
+	return fib(6)
+}

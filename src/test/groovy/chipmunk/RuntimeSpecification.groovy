@@ -181,4 +181,12 @@ class RuntimeSpecification extends Specification {
 		result.intValue() == 2
 	}
 	
+	def "Run Fibonacci.chp"(){
+		when:
+		def result = compileAndRun("Fibonacci.chp", true)
+		
+		then:
+		result.intValue() == 8
+	}
+	
 }

@@ -1,3 +1,5 @@
+module profiling
+
 def countToAMillion(){
 	var x = 0
 	while(x < 1000000){

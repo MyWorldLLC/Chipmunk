@@ -55,6 +55,8 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.LambdaConversionException;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
@@ -66,13 +68,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.CompileChipmunk;
+import chipmunk.compiler.SyntaxErrorChipmunk;
 import chipmunk.invoke.Call;
 import chipmunk.invoke.CallEight;
 import chipmunk.invoke.CallEightVoid;
@@ -344,9 +348,7 @@ public class ChipmunkVM {
 		}
 		return modules.get(name);
 	}
-
 	
-
 	public void freeze(CMethod method, int ip, Object[] locals) {
 		frozenCallStack.push(new CallFrame(method, ip, locals));
 	}
@@ -357,6 +359,41 @@ public class ChipmunkVM {
 	
 	public boolean hasNextFrame(){
 		return !frozenCallStack.isEmpty();
+	}
+
+	public static ChipmunkScript compile(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
+		ChipmunkCompiler compiler = new ChipmunkCompiler();
+
+		List<CModule> modules = compiler.compile(is, scriptName);
+
+		CModule mainModule = null;
+		for (CModule module : modules) {
+			if (module.getNamespace().has("main")) {
+				mainModule = module;
+				break;
+			}
+		}
+
+		if (mainModule == null) {
+			throw new IllegalArgumentException("Script contains no main method");
+		}
+
+		ChipmunkScript script = new ChipmunkScript();
+		script.setEntryCall(mainModule.getName(), "main");
+
+		for (CModule module : modules) {
+			script.getModules().put(module.getName(), module);
+		}
+
+		return script;
+	}
+	
+	public static Object run(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
+		
+		ChipmunkScript script = compile(is, scriptName);
+		ChipmunkVM vm = new ChipmunkVM();
+		
+		return vm.run(script);
 	}
 
 	public Object run(ChipmunkScript script) throws SuspendedChipmunk, AngryChipmunk {
