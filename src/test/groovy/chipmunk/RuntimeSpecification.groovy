@@ -189,4 +189,12 @@ class RuntimeSpecification extends Specification {
 		result.intValue() == 8
 	}
 	
+	def "Run Mandelbrot.chp"(){
+		when:
+		def result = compileAndRun("Mandelbrot.chp", true)
+		
+		then:
+		noExceptionThrown()
+	}
+	
 }

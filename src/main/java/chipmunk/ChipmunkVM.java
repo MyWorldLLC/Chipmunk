@@ -829,7 +829,7 @@ public class ChipmunkVM {
 						Object[] params = new Object[fetchByte(instructions, ip + 1)];
 						this.popParams(stack, params);
 						stack.push(params);
-						Object result = callExternal(stack, ins, "call", 1);
+						Object result = callExternal(stack, ins, "call", 1, callCache, ip);
 						stack.push(result != null ? result : CNull.instance());
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
@@ -855,7 +855,7 @@ public class ChipmunkVM {
 						// TODO - this is not an internal operation, so we need
 						// a different caching mechanism
 						// here
-						Object result = callExternal(stack, ins, methodName, fetchByte(instructions, ip + 1));
+						Object result = callExternal(stack, ins, methodName, fetchByte(instructions, ip + 1), callCache, ip);
 						stack.push(result != null ? result : CNull.instance());
 					} catch (SuspendedChipmunk e) {
 						// Need to bump ip BEFORE calling next method.
@@ -1205,7 +1205,7 @@ public class ChipmunkVM {
 		
 	}
 
-	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount) {
+	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount, Object[] callCache, int callCacheIndex) {
 		
 		Object[] params = null;
 
@@ -1242,10 +1242,20 @@ public class ChipmunkVM {
 		}
 
 		try {
-			Object invokeTarget = lookupMethod(target, methodName, paramTypes);
-			Object retVal = invoke(invokeTarget, target, params);
+			if(callCache[callCacheIndex] == null) {
+				Object invokeTarget = lookupMethod(target, methodName, paramTypes);
+				callCache[callCacheIndex] = invokeTarget;
+				Object retVal = invoke(invokeTarget, target, params);
+				
+				return retVal != null ? retVal : CNull.instance();
+			}else {
+				// TODO - need to check parameter types, call target, etc. and verify that the call is valid
+				Object invokeTarget = callCache[callCacheIndex];
+				Object retVal = invoke(invokeTarget, target, params);
+				
+				return retVal != null ? retVal : CNull.instance();
+			}
 			
-			return retVal != null ? retVal : CNull.instance();
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		} catch (Throwable e) {

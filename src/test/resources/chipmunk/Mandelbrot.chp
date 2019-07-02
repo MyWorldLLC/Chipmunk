@@ -1,0 +1,34 @@
+module test
+
+def scaleX(x, xDim){
+	return x/xDim * (1 - -2.5) + -2.5
+}
+
+def scaleY(y, yDim){
+	return y/yDim * (1 - -1) + -1
+}
+
+def mandelbrot(xDim, yDim, maxIterations){
+
+	for(var px in 0..xDim){
+		for(var py in 0..yDim){
+		
+			var x0 = scaleX(px, xDim)
+			var y0 = scaleY(py, yDim)
+			
+			var x = 0.0
+			var y = 0.0
+			var iteration = 0
+			while(x*x + y*y <= 2*2 && iteration < maxIterations){
+				var xTemp = x*x - y*y + x0
+				y = 2*x*y + y0
+				x = xTemp
+				iteration++
+			}
+		}
+	}
+}
+
+def main(){
+	return mandelbrot(250, 250, 10)
+}
