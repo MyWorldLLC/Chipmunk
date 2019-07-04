@@ -1,7 +1,6 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
@@ -11,15 +10,13 @@ import chipmunk.compiler.ast.IfElseNode;
 public class IfElseVisitor implements AstVisitor {
 	
 	private ChipmunkAssembler assembler;
-	private SymbolTable symbols;
 	private Codegen codegen;
 	
-	private String endLabel;
+	private String endLabel; // TODO - won't work with nested if/else blocks
 	
 	public IfElseVisitor(Codegen codegen){
 		this.codegen = codegen;
 		assembler = codegen.getAssembler();
-		symbols = codegen.getActiveSymbols();
 	}
 
 	@Override

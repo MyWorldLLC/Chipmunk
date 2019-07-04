@@ -7,12 +7,12 @@ import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.ForNode;
 import chipmunk.compiler.ast.IfElseNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.ast.TryCatchNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.runtime.CMethod;
@@ -81,6 +81,7 @@ public class MethodVisitor implements AstVisitor {
 			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
 			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
 			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
+			codegen.setVisitorForNode(TryCatchNode.class, new TryCatchVisitor(codegen));
 			
 			// The VM sets the locals for arguments for us - we only need to handle default arguments
 			// that aren't supplied in the call.
