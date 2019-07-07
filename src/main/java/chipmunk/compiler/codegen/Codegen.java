@@ -24,10 +24,12 @@ public class Codegen implements AstVisitor {
 	protected CModule module;
 	
 	protected List<LoopLabels> loopStack;
+	protected List<IfElseLabels> ifElseStack;
 	
 	public Codegen(CModule module){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
+		ifElseStack = new ArrayList<IfElseLabels>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
@@ -36,6 +38,7 @@ public class Codegen implements AstVisitor {
 	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
+		ifElseStack = new ArrayList<IfElseLabels>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
@@ -241,4 +244,29 @@ public class Codegen implements AstVisitor {
 		return loopStack.size() > 0;
 	}
 	
+	public IfElseLabels pushIfElse() {
+		IfElseLabels labels = new IfElseLabels(assembler.nextLabelName());
+		ifElseStack.add(labels);
+		return labels;
+	}
+	
+	public IfElseLabels peekClosestIfElse() {
+		if(ifElseStack.size() > 0) {
+			return ifElseStack.get(ifElseStack.size() - 1);
+		}
+		return null;
+	}
+	
+	public IfElseLabels exitIfElse(){
+		if(ifElseStack.size() > 0){
+			IfElseLabels labels = ifElseStack.get(ifElseStack.size() - 1);
+			ifElseStack.remove(ifElseStack.size() - 1);
+			return labels;
+		}
+		return null;
+	}
+	
+	public boolean inIfElse(){
+		return ifElseStack.size() > 0;
+	}
 }

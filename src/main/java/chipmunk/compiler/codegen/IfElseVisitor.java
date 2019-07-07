@@ -12,8 +12,6 @@ public class IfElseVisitor implements AstVisitor {
 	private ChipmunkAssembler assembler;
 	private Codegen codegen;
 	
-	private String endLabel; // TODO - won't work with nested if/else blocks
-	
 	public IfElseVisitor(Codegen codegen){
 		this.codegen = codegen;
 		assembler = codegen.getAssembler();
@@ -23,12 +21,13 @@ public class IfElseVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		if(node instanceof IfElseNode){
 			IfElseNode ifElse = (IfElseNode) node;
-			endLabel = assembler.nextLabelName();
+			IfElseLabels endLabels = codegen.pushIfElse();
 			
 			ifElse.visitChildren(this);
 			
 			// label the end of the if/else
-			assembler.setLabelTarget(endLabel);
+			assembler.setLabelTarget(endLabels.getEndLabel());
+			codegen.exitIfElse();
 		}else if(node instanceof GuardedNode){
 			GuardedNode ifBranch = (GuardedNode) node;
 			ifBranch.getGuard().visit(new ExpressionVisitor(codegen));
@@ -42,7 +41,7 @@ public class IfElseVisitor implements AstVisitor {
 			ifBranch.visitChildren(codegen, 1);
 			
 			// go to the end of the entire if/else if body executes
-			assembler._goto(endLabel);
+			assembler._goto(codegen.peekClosestIfElse().getEndLabel());
 			// mark end of the if block
 			assembler.setLabelTarget(endOfIf);
 			
