@@ -197,4 +197,21 @@ class RuntimeSpecification extends Specification {
 		noExceptionThrown()
 	}
 	
+	
+	def "Run NestedRangeLoops.chp"(){
+		when:
+		def result = compileAndRun("NestedRangeLoops.chp", true)
+		
+		then:
+		result.intValue() == 9
+	}
+	
+	def "Run NestedLoops.chp"(){
+		when:
+		def result = compileAndRun("NestedLoops.chp", true)
+		
+		then:
+		result.intValue() == 9
+	}
+	
 }

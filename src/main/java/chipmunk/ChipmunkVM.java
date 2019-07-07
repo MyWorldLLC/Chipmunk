@@ -788,6 +788,7 @@ public class ChipmunkVM {
 					break;
 				case SETLOCAL:
 					locals[fetchByte(instructions, ip + 1)] = stack.peek();
+					System.out.println("Set local " + fetchByte(instructions, ip + 1) + " to " + stack.peek());
 					ip += 2;
 					break;
 				case TRUTH:

@@ -113,6 +113,9 @@ public class ExpressionVisitor implements AstVisitor {
 			Token operator = op.getOperator();
 			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
+			
+			// TODO - need to detect unary inc/dec/etc operators that re-assign variables
+			// and emit correct code
 
 			switch (operator.getType()) {
 			case PLUS:

@@ -16,7 +16,7 @@ class SymbolTableSpecification extends Specification {
 	
 	def "Nested local scopes"(){
 		when:
-		SymbolTable symTab1 = new SymbolTable(SymbolTable.Scope.LOCAL)
+		SymbolTable symTab1 = new SymbolTable(SymbolTable.Scope.METHOD)
 		SymbolTable symTab2 = new SymbolTable(SymbolTable.Scope.LOCAL)
 		SymbolTable symTab3 = new SymbolTable(SymbolTable.Scope.LOCAL)
 		SymbolTable symTab4 = new SymbolTable(SymbolTable.Scope.LOCAL)

@@ -12,6 +12,10 @@ public class ChipmunkLexer {
 
 	public TokenStream lex(CharSequence source){
 		
+		if(source == null) {
+			throw new NullPointerException("Source cannot be null");
+		}
+		
 		stream = new TokenStream();
 		
 		src = source;

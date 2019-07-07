@@ -1,0 +1,11 @@
+module test
+
+def main(){
+	var x = 0
+	for(i in 0..2){
+		for(var j in 0..2){
+			x = x + 1
+		}
+	}
+	return x
+}

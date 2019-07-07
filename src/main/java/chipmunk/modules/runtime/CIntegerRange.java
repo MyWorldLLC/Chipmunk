@@ -52,6 +52,7 @@ public class CIntegerRange implements RuntimeObject{
 			
 			int value = current;
 			current += step;
+			System.out.println("Range iterator: " + this.hashCode() + " returning " + value);
 			
 			return vm.traceInteger(value);
 		}

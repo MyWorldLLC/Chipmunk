@@ -76,9 +76,12 @@ public class SymbolTable {
 		// TODO - support closures
 		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			if(symbols.contains(symbol)){
+				System.out.println(symbol.getName() + ": " + (symbols.indexOf(symbol) + localStartIndex));
 				return symbols.indexOf(symbol) + localStartIndex;
 			}
 			if(parent != null){
+
+				System.out.println(symbol.getName() + ": " + parent.getLocalIndex(symbol));
 				return parent.getLocalIndex(symbol);
 			}
 		}
@@ -148,7 +151,7 @@ public class SymbolTable {
 	}
 	
 	public boolean isInnerLocal(){
-		if(parent != null && parent.scope == Scope.LOCAL){
+		if(parent != null && (parent.scope == Scope.LOCAL || parent.scope == Scope.METHOD)){
 			return true;
 		}
 		return false;
