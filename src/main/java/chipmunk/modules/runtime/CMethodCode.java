@@ -1,5 +1,7 @@
 package chipmunk.modules.runtime;
 
+import chipmunk.ExceptionBlock;
+
 public class CMethodCode {
 	protected int argCount;
 	protected int defaultArgCount;
@@ -7,6 +9,7 @@ public class CMethodCode {
 	
 	protected byte[] instructions;
 	protected Object[] constantPool;
+	protected ExceptionBlock[] exceptionTable;
 	
 	protected Object[] callCache;
 	
@@ -50,6 +53,14 @@ public class CMethodCode {
 		return constantPool;
 	}
 	
+	public void setExceptionTable(ExceptionBlock[] table) {
+		exceptionTable = table;
+	}
+	
+	public ExceptionBlock[] getExceptionTable() {
+		return exceptionTable;
+	}
+	
 	public void setCallSiteCount(int count) {
 		callSiteCount = count;
 	}
@@ -78,4 +89,5 @@ public class CMethodCode {
 	public void setModule(CModule module){
 		this.module = module;
 	}
+	
 }

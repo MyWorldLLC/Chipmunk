@@ -25,11 +25,15 @@ public class Codegen implements AstVisitor {
 	
 	protected List<LoopLabels> loopStack;
 	protected List<IfElseLabels> ifElseStack;
+	protected List<TryCatchLabels> tryCatchStack;
+	
+	
 	
 	public Codegen(CModule module){
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
 		ifElseStack = new ArrayList<IfElseLabels>();
+		tryCatchStack = new ArrayList<TryCatchLabels>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
@@ -39,6 +43,7 @@ public class Codegen implements AstVisitor {
 		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
 		loopStack = new ArrayList<LoopLabels>();
 		ifElseStack = new ArrayList<IfElseLabels>();
+		tryCatchStack = new ArrayList<TryCatchLabels>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
@@ -268,5 +273,31 @@ public class Codegen implements AstVisitor {
 	
 	public boolean inIfElse(){
 		return ifElseStack.size() > 0;
+	}
+	
+	public TryCatchLabels pushTryCatch() {
+		TryCatchLabels labels = new TryCatchLabels(assembler.nextLabelName(), assembler.nextLabelName());
+		tryCatchStack.add(labels);
+		return labels;
+	}
+	
+	public TryCatchLabels peekClosestTryCatch() {
+		if(tryCatchStack.size() > 0) {
+			return tryCatchStack.get(tryCatchStack.size() - 1);
+		}
+		return null;
+	}
+	
+	public TryCatchLabels exitTryCatch(){
+		if(tryCatchStack.size() > 0){
+			TryCatchLabels labels = tryCatchStack.get(tryCatchStack.size() - 1);
+			tryCatchStack.remove(tryCatchStack.size() - 1);
+			return labels;
+		}
+		return null;
+	}
+	
+	public boolean inTryCatch(){
+		return tryCatchStack.size() > 0;
 	}
 }

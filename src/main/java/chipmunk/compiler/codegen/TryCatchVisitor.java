@@ -10,7 +10,6 @@ import chipmunk.compiler.ast.TryNode;
 public class TryCatchVisitor implements AstVisitor {
 
 	protected Codegen codegen;
-	protected String finallyLabel; // TODO - won't work with nested try/catch blocks
 	
 	public TryCatchVisitor(Codegen codegen) {
 		this.codegen = codegen;
@@ -18,20 +17,39 @@ public class TryCatchVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
+		TryCatchLabels labels = codegen.pushTryCatch();
 		if(node instanceof TryCatchNode) {
 			
-			finallyLabel = codegen.assembler.nextLabelName();
 			node.visitChildren(this);
 			
+			// TODO - build exception tables
 		}else if(node instanceof TryNode) {
-			// TODO - mark try body start
+			codegen.getAssembler().setLabelTarget(labels.getStartLabel());
+		
 			// Assemble try body
 			node.visitChildren(codegen);
-			// TODO - mark try body end
+			
+			codegen.getAssembler().setLabelTarget(labels.getEndLabel());
 		}else if(node instanceof CatchNode) {
-			// TODO - assemble catch body
+			BlockLabels catchLabels = new BlockLabels(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
+			labels.getCatchBlocks().add(catchLabels);
+			
+			codegen.getAssembler().setLabelTarget(catchLabels.getStartLabel());
+			
+			// Assemble catch body
+			node.visitChildren(codegen);
+			
+			codegen.getAssembler().setLabelTarget(catchLabels.getEndLabel());
 		}else if(node instanceof FinallyNode) {
-			// TODO - assemble finally body
+			BlockLabels finallyLabels = new BlockLabels(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
+			labels.getCatchBlocks().add(finallyLabels);
+			
+			codegen.getAssembler().setLabelTarget(finallyLabels.getStartLabel());
+			
+			// Assemble finally body
+			node.visitChildren(codegen);
+			
+			codegen.getAssembler().setLabelTarget(finallyLabels.getEndLabel());
 		}
 
 	}
