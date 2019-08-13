@@ -2,6 +2,7 @@ package chipmunk.compiler.codegen;
 
 import java.util.List;
 
+import chipmunk.ExceptionBlock;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -112,6 +113,7 @@ public class MethodVisitor implements AstVisitor {
 				genDefaultReturn();
 			}
 			
+			method.getCode().setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an
 			// inner method must be saved as a local variable in the containing method.
 			// TODO - forbid empty inner method names for non-lambda methods.

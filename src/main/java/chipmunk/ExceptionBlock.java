@@ -4,4 +4,5 @@ public class ExceptionBlock {
 	public int startIndex;
 	public int endIndex;
 	public int catchIndex;
+	public int exceptionLocalIndex;
 }

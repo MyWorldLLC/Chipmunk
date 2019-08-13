@@ -31,9 +31,9 @@ public class TryCatchNode extends AstNode {
 	
 	public void addCatchBlock(CatchNode catchBlock){
 		if(hasFinally) {
-			children.add(catchBlock);
-		}else{
 			children.add(children.size() - 1, catchBlock);
+		}else{
+			children.add(catchBlock);
 		}
 	}
 	

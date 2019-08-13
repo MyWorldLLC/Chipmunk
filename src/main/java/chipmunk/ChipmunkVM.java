@@ -788,7 +788,7 @@ public class ChipmunkVM {
 					break;
 				case SETLOCAL:
 					locals[fetchByte(instructions, ip + 1)] = stack.peek();
-					System.out.println("Set local " + fetchByte(instructions, ip + 1) + " to " + stack.peek());
+					//System.out.println("Set local " + fetchByte(instructions, ip + 1) + " to " + stack.peek());
 					ip += 2;
 					break;
 				case TRUTH:
@@ -1061,9 +1061,15 @@ public class ChipmunkVM {
 				if (!(e instanceof AngryChipmunk)) {
 					e = new AngryChipmunk(String.format("Error at ip: %d", ip), e);
 				}
-				// TODO - jump to exception handler (if present)
-				// or fill in trace info and propagate
-				throw e;
+				
+				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());
+				if(handler != null) {
+					ip = handler.catchIndex;
+					locals[handler.exceptionLocalIndex] = e;
+				}else {
+					// TODO - Fill in trace info (method debug name + line number) and propagate
+					throw e;
+				}
 			}
 		}
 	}
@@ -1407,6 +1413,20 @@ public class ChipmunkVM {
 			return null;
 		}
 		return records[op.ordinal()];
+	}
+	
+	private ExceptionBlock chooseExceptionHandler(int ip, ExceptionBlock[] eTable) {
+		ExceptionBlock lastCandidate = null;
+		
+		for(ExceptionBlock block : eTable) {
+			if(lastCandidate == null) {
+				lastCandidate = block;
+			}else if(block.startIndex > lastCandidate.startIndex && block.catchIndex < lastCandidate.catchIndex){
+				lastCandidate = block;
+			}
+		}
+		
+		return lastCandidate;
 	}
 
 	private String formatMissingMethodMessage(Class<?> targetType, String methodName, Class<?>[] paramTypes) {

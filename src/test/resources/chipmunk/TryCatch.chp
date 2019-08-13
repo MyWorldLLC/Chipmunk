@@ -8,7 +8,7 @@ def main(){
 		x = 1
 		throw x
 	}catch(e){
-		y = e
+		y = 1
 	}
 	
 	return x + y

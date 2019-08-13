@@ -74,6 +74,15 @@ public class ChipmunkAssembler {
 		return codeBytes;
 	}
 	
+	public int getLabelTarget(String label) {
+		for(LabelTarget target : labelTargets) {
+			if(target.getName().equals(label)) {
+				return target.getCodeIndex();
+			}
+		}
+		return -1;
+	}
+	
 	public int getCallSiteCount() {
 		return callSite;
 	}

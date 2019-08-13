@@ -8,6 +8,7 @@ import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
+import chipmunk.compiler.ast.CatchNode;
 import chipmunk.compiler.ast.ImportNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.SymbolNode;

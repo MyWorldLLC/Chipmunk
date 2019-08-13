@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chipmunk.ExceptionBlock;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -27,6 +28,7 @@ public class Codegen implements AstVisitor {
 	protected List<IfElseLabels> ifElseStack;
 	protected List<TryCatchLabels> tryCatchStack;
 	
+	protected List<ExceptionBlock> exceptions;
 	
 	
 	public Codegen(CModule module){
@@ -34,6 +36,7 @@ public class Codegen implements AstVisitor {
 		loopStack = new ArrayList<LoopLabels>();
 		ifElseStack = new ArrayList<IfElseLabels>();
 		tryCatchStack = new ArrayList<TryCatchLabels>();
+		exceptions = new ArrayList<ExceptionBlock>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
@@ -44,6 +47,7 @@ public class Codegen implements AstVisitor {
 		loopStack = new ArrayList<LoopLabels>();
 		ifElseStack = new ArrayList<IfElseLabels>();
 		tryCatchStack = new ArrayList<TryCatchLabels>();
+		exceptions = new ArrayList<ExceptionBlock>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
@@ -299,5 +303,13 @@ public class Codegen implements AstVisitor {
 	
 	public boolean inTryCatch(){
 		return tryCatchStack.size() > 0;
+	}
+	
+	public void addExceptionBlock(ExceptionBlock block) {
+		exceptions.add(block);
+	}
+	
+	public List<ExceptionBlock> getExceptionBlocks(){
+		return exceptions;
 	}
 }

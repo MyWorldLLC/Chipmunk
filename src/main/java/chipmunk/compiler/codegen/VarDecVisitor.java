@@ -26,6 +26,9 @@ public class VarDecVisitor implements AstVisitor {
 		}else{
 			assembler.pushNull();
 		}
+		if(symbol == null) {
+			throw new NullPointerException("Null symbol: " + dec.getVarName() + "\n" + codegen.getActiveSymbols().toString());
+		}
 		codegen.emitSymbolAssignment(symbol.getName());
 		codegen.getAssembler().pop();
 	}
