@@ -13,8 +13,8 @@ public class ClassNode extends BlockNode implements SymbolNode {
 	}
 	
 	public ClassNode(String name){
-		super();
-		symbol.setName(name);
+		this();
+		setName(name);
 	}
 
 	public String getName(){
@@ -23,6 +23,7 @@ public class ClassNode extends BlockNode implements SymbolNode {
 
 	public void setName(String name){
 		symbol.setName(name);
+		getSymbolTable().setDebugSymbol(name);
 	}
 
 	public void addChild(AstNode child){

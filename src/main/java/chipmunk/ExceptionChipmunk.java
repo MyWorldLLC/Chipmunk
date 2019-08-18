@@ -4,20 +4,24 @@ public class ExceptionChipmunk extends AngryChipmunk {
 
 	private static final long serialVersionUID = 1L;
 	
-	protected Object exceptionObj;
+	protected Object payload;
 	
-	public ExceptionChipmunk(Object exception){
+	public ExceptionChipmunk(Object payload){
 		super();
-		exceptionObj = exception;
+		this.payload = payload;
 	}
 	
-	public ExceptionChipmunk(Object exception, String msg){
+	public ExceptionChipmunk(Object payload, String msg){
 		super(msg);
-		exceptionObj = exception;
+		this.payload = payload;
 	}
 	
-	public Object getExceptionObject(){
-		return exceptionObj;
+	public void setPayload(Object payload){
+		this.payload = payload;
+	}
+	
+	public Object getPayload(){
+		return payload;
 	}
 
 }

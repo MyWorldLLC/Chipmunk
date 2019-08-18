@@ -40,6 +40,10 @@ class RuntimeSpecification extends Specification {
 				    module -> println(module.getNamespace().names())
 				})
 				
+				def sw = new StringWriter()
+				e.printStackTrace(new PrintWriter(sw))
+				println(sw.toString())
+				
 				throw e
 			}
 		}

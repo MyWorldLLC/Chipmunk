@@ -22,8 +22,8 @@ apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'org.asciidoctor.convert'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.9
+targetCompatibility = 1.9
 
 version = '1.0'
 

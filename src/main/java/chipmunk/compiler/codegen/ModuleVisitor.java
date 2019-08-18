@@ -33,7 +33,7 @@ public class ModuleVisitor implements AstVisitor {
 		if(node instanceof ModuleNode){
 			
 			ModuleNode moduleNode = (ModuleNode) node;
-			module = new CModule(moduleNode.getName(), constantPool);
+			module = new CModule(moduleNode.getSymbol().getName(), constantPool);
 			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable(), module);
 			moduleNode.visitChildren(this);
 			

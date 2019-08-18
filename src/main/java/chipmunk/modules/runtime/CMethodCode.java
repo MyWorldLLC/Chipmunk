@@ -10,6 +10,7 @@ public class CMethodCode {
 	protected byte[] instructions;
 	protected Object[] constantPool;
 	protected ExceptionBlock[] exceptionTable;
+	protected String debugSymbol;
 	
 	protected Object[] callCache;
 	
@@ -59,6 +60,14 @@ public class CMethodCode {
 	
 	public ExceptionBlock[] getExceptionTable() {
 		return exceptionTable;
+	}
+	
+	public String getDebugSymbol() {
+		return debugSymbol;
+	}
+	
+	public void setDebugSymbol(String symbol) {
+		debugSymbol = symbol;
 	}
 	
 	public void setCallSiteCount(int count) {

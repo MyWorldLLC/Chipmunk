@@ -12,6 +12,7 @@ public class SymbolTable {
 	}
 	
 	protected List<Symbol> symbols;
+	protected String debugSymbol;
 	protected SymbolTable parent;
 	protected Scope scope;
 	protected int localStartIndex;
@@ -160,6 +161,36 @@ public class SymbolTable {
 	
 	public int getSymbolCount(){
 		return symbols.size();
+	}
+	
+	public void setDebugSymbol(String debugSymbol) {
+		this.debugSymbol = debugSymbol;
+	}
+	
+	public String getDebugSymbol() {
+		List<String> symbols = new ArrayList<>();
+		
+		if(parent != null) {
+			
+			SymbolTable debugParent = parent;
+			while(debugParent != null) {
+				String parentSymbol = debugParent.getDebugSymbol();
+				if(parentSymbol != null) {
+					if("".equals(parentSymbol)) {
+						symbols.add("<anon>");
+					} else {
+						symbols.add(debugParent.getDebugSymbol());
+					}
+				}
+				debugParent = debugParent.getParent();
+			}
+		}
+		
+		if(debugSymbol != null) {
+			symbols.add(debugSymbol);
+		}
+		
+		return String.join(".", symbols);
 	}
 	
 	@Override

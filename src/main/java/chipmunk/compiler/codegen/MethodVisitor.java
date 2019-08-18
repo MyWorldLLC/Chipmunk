@@ -69,6 +69,7 @@ public class MethodVisitor implements AstVisitor {
 			method.getCode().setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
+			method.getCode().setDebugSymbol(symbols.getDebugSymbol());
 			
 			codegen = new Codegen(assembler, symbols, module);
 			

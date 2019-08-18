@@ -18,7 +18,7 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	
 	public MethodNode(String name){
 		this();
-		symbol.setName(name);
+		setName(name);
 	}
 	
 	public String getName(){
@@ -27,6 +27,7 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	
 	public void setName(String name){
 		symbol.setName(name);
+		getSymbolTable().setDebugSymbol(name);
 	}
 	
 	public int getParamCount(){

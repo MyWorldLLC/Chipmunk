@@ -94,6 +94,10 @@ public class CMethod implements RuntimeObject, CCallable {
 		this.code.module = module;
 	}
 	
+	public String getDebugSymbol() {
+		return code.getDebugSymbol();
+	}
+	
 	@Override
 	public Object call(ChipmunkVM vm, Object[] params) {
 		return vm.dispatch(this, params);

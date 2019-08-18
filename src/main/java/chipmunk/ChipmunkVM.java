@@ -1055,19 +1055,28 @@ public class ChipmunkVM {
 				// allow exception handlers to run or they will
 				// block suspension
 				if (e instanceof SuspendedChipmunk) {
+					// TODO - freeze call frame
 					throw e;
 				}
 
+				// Wrap all native exceptions as Chipmunk exceptions, add trace info, and propagate
 				if (!(e instanceof AngryChipmunk)) {
-					e = new AngryChipmunk(String.format("Error at ip: %d", ip), e);
+					e = new AngryChipmunk(e.getMessage(), e);
 				}
+				
+				AngryChipmunk ex = (AngryChipmunk) e;
+				
+				CTraceFrame trace = new CTraceFrame();
+				trace.setDebugSymbol(method.getDebugSymbol());
+				trace.lineNumber = 0; // TODO
+				
+				ex.addTraceFrame(trace);
 				
 				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());
 				if(handler != null) {
 					ip = handler.catchIndex;
 					locals[handler.exceptionLocalIndex] = e;
 				}else {
-					// TODO - Fill in trace info (method debug name + line number) and propagate
 					throw e;
 				}
 			}
@@ -1086,7 +1095,7 @@ public class ChipmunkVM {
 		return instructions[ip];
 	}
 
-	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws NoSuchMethodException {
+	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws Throwable {
 
 		Method[] methods = target.getClass().getMethods();
 		Method method = null;
@@ -1131,9 +1140,9 @@ public class ChipmunkVM {
 						implementationHandle.type())
 						.getTarget().invoke();
 			} catch (IllegalAccessException | LambdaConversionException e) {
-				throw new AngryChipmunk(e);
+				throw e;
 			}catch(Throwable e) {
-				throw new AngryChipmunk(e);
+				throw e;
 			}
 			
 		}else {
@@ -1373,7 +1382,7 @@ public class ChipmunkVM {
 		}
 	}
 	
-	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params, Object[] callCache, int callCacheIndex) throws NoSuchMethodException {
+	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params, Object[] callCache, int callCacheIndex) throws Throwable {
 		Class<?> targetType = target.getClass();
 		
 		Object method = callCache[callCacheIndex];
