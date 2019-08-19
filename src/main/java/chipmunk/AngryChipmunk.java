@@ -2,13 +2,14 @@ package chipmunk;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AngryChipmunk extends RuntimeException {
 
 	private static final long serialVersionUID = 4997822014942264350L;
 
-	protected ArrayDeque<CTraceFrame> traceFrames;
+	protected List<CTraceFrame> traceFrames;
 
 	public AngryChipmunk(){
 		this(null, null);
@@ -24,11 +25,11 @@ public class AngryChipmunk extends RuntimeException {
 	
 	public AngryChipmunk(String message, Throwable cause){
 		super(message, cause);
-		traceFrames = new ArrayDeque<CTraceFrame>();
+		traceFrames = new ArrayList<>();
 	}
 
 	public void addTraceFrame(CTraceFrame info){
-		traceFrames.push(info);
+		traceFrames.add(info);
 	}
 	
 	public CTraceFrame[] getTraceFrames() {
