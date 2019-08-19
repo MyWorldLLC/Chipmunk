@@ -29,9 +29,9 @@ public class ForVisitor implements AstVisitor {
 			
 			VarDecNode id = loop.getID();
 			id.getSymbol().setFinal(true);
+			assembler.onLine(id.getLineNumber());
 			
 			codegen.enterScope(symbols);
-			//System.out.println(symbols);
 			
 			// visit iterator expression and push the iterator
 			loop.getIter().visit(new ExpressionVisitor(codegen));
@@ -44,6 +44,8 @@ public class ForVisitor implements AstVisitor {
 			// set the next value in the iterator as a local variable
 			assembler.setLocal(symbols.getLocalIndex(id.getVarName()));
 			assembler.pop();
+			
+			assembler.closeLine();
 
 			// generate body
 			loop.visitChildren(codegen, 2);

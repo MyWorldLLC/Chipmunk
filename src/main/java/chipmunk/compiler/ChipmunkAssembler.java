@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.DebugEntry;
 import chipmunk.Opcodes;
 import chipmunk.modules.runtime.CMethod;
 import chipmunk.modules.runtime.CNull;
@@ -18,6 +19,7 @@ public class ChipmunkAssembler {
 	
 	private List<Label> labels;
 	private List<LabelTarget> labelTargets;
+	private List<DebugEntry> debugTable;
 	
 	private int callSite;
 	
@@ -32,14 +34,20 @@ public class ChipmunkAssembler {
 		
 		constantPool = constants;
 		
-		labels = new ArrayList<Label>();
-		labelTargets = new ArrayList<LabelTarget>();
+		labels = new ArrayList<>();
+		labelTargets = new ArrayList<>();
+		
+		debugTable = new ArrayList<>();
 		
 		callSite = 0;
 	}
 	
 	public List<Object> getConstantPool(){
 		return constantPool;
+	}
+	
+	public List<DebugEntry> getDebugTable(){
+		return debugTable;
 	}
 	
 	public byte[] getCodeSegment(){
@@ -93,8 +101,42 @@ public class ChipmunkAssembler {
 		method.getCode().setCode(getCodeSegment());
 		method.getCode().setCallSiteCount(getCallSiteCount());
 		method.getCode().setConstantPool(getConstantPool().toArray());
+		method.getCode().setDebugTable(getDebugTable().toArray(new DebugEntry[debugTable.size()]));
 		
 		return method;
+	}
+	
+	public void onLine(int lineNumber) {
+		if(debugTable.size() == 0) {
+			
+			DebugEntry debug = new DebugEntry();
+			debug.beginIndex = index;
+			debug.lineNumber = lineNumber;
+			
+			debugTable.add(debug);
+			
+			return;
+		}else {
+
+			DebugEntry dbg = debugTable.get(debugTable.size() - 1);
+			
+			if(dbg.lineNumber != lineNumber) {
+				dbg.endIndex = index;
+				
+				DebugEntry next = new DebugEntry();
+				next.beginIndex = index;
+				next.lineNumber = lineNumber;
+				
+				debugTable.add(next);
+			}
+		}
+		
+	}
+	
+	public void closeLine() {
+		if(debugTable.size() > 0) {
+			debugTable.get(debugTable.size() - 1).endIndex = index;
+		}
 	}
 	
 	public void add(){

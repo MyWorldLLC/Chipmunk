@@ -45,9 +45,11 @@ public class ExpressionVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
+			assembler.onLine(node.getLineNumber());
 			codegen.emitSymbolAccess(id.getID().getText());
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
+			assembler.onLine(node.getLineNumber());
 			switch(literal.getType()){
 			case BOOLLITERAL:
 				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
@@ -83,6 +85,7 @@ public class ExpressionVisitor implements AstVisitor {
 				// visit expression
 				this.visit(listNode.getChildren().get(i));
 			}
+			assembler.onLine(node.getLineNumber());
 			assembler.list(listNode.getChildren().size());
 		}else if(node instanceof MapNode){
 			MapNode mapNode = (MapNode) node;
@@ -96,10 +99,12 @@ public class ExpressionVisitor implements AstVisitor {
 				// value
 				this.visit(keyValue.getChildren().get(1));
 			}
+			assembler.onLine(node.getLineNumber());
 			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
+			assembler.onLine(node.getLineNumber());
 			assembler.push(visitor.getMethod());
 		}
 		/*else if(node instanceof ClassNode) {
@@ -120,6 +125,7 @@ public class ExpressionVisitor implements AstVisitor {
 			switch (operator.getType()) {
 			case PLUS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.pos();
 				} else {
@@ -128,10 +134,12 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case DOUBLEPLUS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.inc();
 				return;
 			case MINUS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.neg();
 				} else {
@@ -140,17 +148,21 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case DOUBLEMINUS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.dec();
 			case STAR:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.mul();
 				return;
 			case DOUBLESTAR:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.pow();
 				return;
 			case FSLASH:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.div();
 				return;
 			case DOUBLEFSLASH:
@@ -159,66 +171,82 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case PERCENT:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.mod();
 				return;
 			case DOUBLEDOTLESS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.range(false);
 				return;
 			case DOUBLEDOT:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.range(true);
 				return;
 			case BAR:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.bor();
 				return;
 			case DOUBLEBAR:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.or();
 				return;
 			case EXCLAMATION:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.not();
 				return;
 			case TILDE:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.bneg();
 				return;
 			case CARET:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.bxor();
 				return;
 			case DOUBLELESSTHAN:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.lshift();
 				return;
 			case LESSTHAN:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.lt();
 				return;
 			case TRIPLEMORETHAN:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.urshift();
 				return;
 			case DOUBLEMORETHAN:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.rshift();
 				return;
 			case MORETHAN:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.gt();
 				return;
 			case DOUBLEAMPERSAND:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.and();
 				return;
 			case AMPERSAND:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.band();
 				return;
 			case LBRACKET:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.getat();
 				return;
 			case LPAREN:
@@ -233,10 +261,12 @@ public class ExpressionVisitor implements AstVisitor {
 				return;
 			case DOUBLEEQUAlS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				break;
 			case EXCLAMATIONEQUALS:
 				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				assembler.not();
 				break;
@@ -252,15 +282,18 @@ public class ExpressionVisitor implements AstVisitor {
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
 				if(lOp.getRight() instanceof IdNode){
+					assembler.onLine(lhs.getLineNumber());
 					assembler.push(((IdNode) lOp.getRight()).getID().getText());
 				}else{
 					lOp.getRight().visit(this);
 				}
 				lOp.getLeft().visit(this);
+				assembler.onLine(lhs.getLineNumber());
 				assembler.setattr();
 			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
 				lOp.getRight().visit(this);
 				lOp.getLeft().visit(this);
+				assembler.onLine(lOp.getLineNumber());
 				assembler.setat();
 			}else{
 				// error!
@@ -272,6 +305,7 @@ public class ExpressionVisitor implements AstVisitor {
 						  lOp.getOperator().getLine()));
 			}
 		}else if(lhs instanceof IdNode){
+			assembler.onLine(lhs.getLineNumber());
 			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
 		}
 	}
@@ -289,6 +323,7 @@ public class ExpressionVisitor implements AstVisitor {
 			dotOp.getLeft().visit(this);
 			
 			int argCount = op.getChildren().size() - 1;
+			assembler.onLine(op.getLineNumber());
 			assembler.callAt(callID.getID().getText(), (byte)argCount);
 			
 		}else{
@@ -297,6 +332,7 @@ public class ExpressionVisitor implements AstVisitor {
 			op.visitChildren(this, 1);
 			// visit call target, then emit call
 			op.getLeft().visit(this);
+			assembler.onLine(op.getLineNumber());
 			assembler.call((byte) argCount);
 		}
 	}
@@ -304,11 +340,13 @@ public class ExpressionVisitor implements AstVisitor {
 	private void emitDotGet(OperatorNode op){
 		if(op.getRight() instanceof IdNode){
 			IdNode attr = (IdNode) op.getRight();
+			assembler.onLine(op.getLineNumber());
 			assembler.push(attr.getID().getText());
 		}else{
 			op.getRight().visit(this);
 		}
 		op.getLeft().visit(this);
+		assembler.onLine(op.getLineNumber());
 		assembler.getattr();
 	}
 }

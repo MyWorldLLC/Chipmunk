@@ -482,8 +482,10 @@ public class ChipmunkParser {
 			forceNext(Token.Type.VAR);
 		}
 		Token id = getNext(Token.Type.IDENTIFIER);
+		IdNode idNode = new IdNode(id);
+		idNode.setLineNumber(id.getLine());
+		dec.setVar(idNode);
 		
-		dec.setVar(new IdNode(id));
 		
 		if(peek(Token.Type.EQUALS)){
 			forceNext(Token.Type.EQUALS);
@@ -670,12 +672,19 @@ public class ChipmunkParser {
 		
 		skipNewlines();
 		dropNext(Token.Type.VAR);
+		
 		IdNode varID = new IdNode(getNext(Token.Type.IDENTIFIER));
+		varID.setLineNumber(varID.getID().getLine());
+		
 		forceNext(Token.Type.IN);
 		
 		AstNode expr = parseExpression();
 		
-		node.setID(new VarDecNode(varID));
+		VarDecNode decl = new VarDecNode(varID);
+		decl.setLineNumber(varID.getLineNumber());
+		
+		node.setID(decl);
+		
 		node.setIter(expr);
 		
 		skipNewlines();
@@ -895,6 +904,7 @@ public class ChipmunkParser {
 		}
 		
 		AstNode left = prefixParser.parse(this, token);
+		left.setLineNumber(token.getLine());
 		
 		token = tokens.peek();
 		while(minPrecedence < getPrecedence(token)){
@@ -906,6 +916,7 @@ public class ChipmunkParser {
 			}
 			
 			left = infixParser.parse(this, left, token);
+			left.setLineNumber(token.getLine());
 			token = tokens.peek();
 		}
 		
@@ -988,6 +999,7 @@ public class ChipmunkParser {
 	
 	private void startNode(AstNode node){
 		node.setBeginTokenIndex(tokens.getStreamPosition());
+		node.setLineNumber(tokens.peek().getLine());
 	}
 	
 	private void endNode(AstNode node){

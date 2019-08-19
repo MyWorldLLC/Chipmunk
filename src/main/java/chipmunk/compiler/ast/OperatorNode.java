@@ -8,7 +8,7 @@ public class OperatorNode extends AstNode {
 	
 	public OperatorNode(Token op){
 		super();
-		this.op = op;
+		setOperator(op);
 	}
 	
 	public OperatorNode(Token op, AstNode operand){
@@ -24,6 +24,11 @@ public class OperatorNode extends AstNode {
 	
 	public Token getOperator(){
 		return op;
+	}
+	
+	public void setOperator(Token op) {
+		this.op = op;
+		setLineNumber(op.getLine());
 	}
 	
 	public AstNode getLeft(){

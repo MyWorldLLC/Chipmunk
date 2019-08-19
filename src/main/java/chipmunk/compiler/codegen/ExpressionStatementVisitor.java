@@ -19,6 +19,7 @@ public class ExpressionStatementVisitor implements AstVisitor {
 		node.visit(new ExpressionVisitor(codegen));
 		// evaluate expression and ignore result
 		assembler.pop();
+		assembler.closeLine();
 	}
 
 }

@@ -12,7 +12,7 @@ public class FlowControlNode extends AstNode {
 	
 	public FlowControlNode(Token controlToken){
 		super();
-		token = controlToken;
+		setControlToken(controlToken);
 	}
 	
 	public Token getControlToken(){
@@ -21,6 +21,7 @@ public class FlowControlNode extends AstNode {
 	
 	public void setControlToken(Token controlToken){
 		token = controlToken;
+		setLineNumber(controlToken.getLine());
 	}
 	
 	public void addControlExpression(AstNode expression){

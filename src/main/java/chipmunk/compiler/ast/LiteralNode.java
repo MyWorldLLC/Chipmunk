@@ -12,7 +12,7 @@ public class LiteralNode extends AstNode {
 	
 	public LiteralNode(Token literalValue){
 		super();
-		literal = literalValue;
+		setLiteral(literalValue);
 	}
 	
 	public Token getLiteral(){
@@ -21,6 +21,7 @@ public class LiteralNode extends AstNode {
 	
 	public void setLiteral(Token literalValue){
 		literal = literalValue;
+		setLineNumber(literal.getLine());
 	}
 	
 	@Override

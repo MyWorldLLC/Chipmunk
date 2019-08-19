@@ -2,6 +2,7 @@ package chipmunk.compiler.codegen;
 
 import java.util.List;
 
+import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
@@ -17,6 +18,7 @@ import chipmunk.compiler.ast.TryCatchNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
 import chipmunk.modules.runtime.CMethod;
+import chipmunk.modules.runtime.CMethodCode;
 import chipmunk.modules.runtime.CModule;
 
 public class MethodVisitor implements AstVisitor {
@@ -114,7 +116,6 @@ public class MethodVisitor implements AstVisitor {
 				genDefaultReturn();
 			}
 			
-			method.getCode().setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an
 			// inner method must be saved as a local variable in the containing method.
 			// TODO - forbid empty inner method names for non-lambda methods.
@@ -145,10 +146,15 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public CMethod getMethod(){
-		method.getCode().setConstantPool(assembler.getConstantPool().toArray());
-		method.getCode().setCode(assembler.getCodeSegment());
-		method.getCode().setLocalCount(symbols.getLocalMax());
-		method.getCode().setModule(module);
+		CMethodCode code = method.getCode();
+		
+		code.setConstantPool(assembler.getConstantPool().toArray());
+		code.setCode(assembler.getCodeSegment());
+		code.setLocalCount(symbols.getLocalMax());
+		code.setModule(module);
+		code.setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
+		code.setDebugTable(codegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
+		
 		return method;
 	}
 	

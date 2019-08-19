@@ -1068,7 +1068,7 @@ public class ChipmunkVM {
 				
 				CTraceFrame trace = new CTraceFrame();
 				trace.setDebugSymbol(method.getDebugSymbol());
-				trace.lineNumber = 0; // TODO
+				trace.lineNumber = findLineNumber(ip, method.getCode().getDebugTable());
 				
 				ex.addTraceFrame(trace);
 				
@@ -1436,6 +1436,18 @@ public class ChipmunkVM {
 		}
 		
 		return lastCandidate;
+	}
+	
+	private int findLineNumber(int ip, DebugEntry[] debugTable) {
+
+		for(DebugEntry dbg : debugTable) {
+			
+			if(ip >= dbg.beginIndex && ip < dbg.endIndex) {
+				return dbg.lineNumber;
+			}
+		}
+		
+		return 0;
 	}
 
 	private String formatMissingMethodMessage(Class<?> targetType, String methodName, Class<?>[] paramTypes) {

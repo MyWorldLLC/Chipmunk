@@ -23,6 +23,7 @@ public class FlowControlVisitor implements AstVisitor {
 			FlowControlNode flowNode = (FlowControlNode) node;
 			
 			Token token = flowNode.getControlToken();
+			assembler.onLine(token.getLine());
 			
 			if(token.getType() == Token.Type.RETURN){
 				if(node.hasChildren()){
@@ -48,6 +49,7 @@ public class FlowControlVisitor implements AstVisitor {
 				}
 				assembler._goto(codegen.peekClosestLoop().getGuardLabel());
 			}
+			assembler.closeLine();
 			return;
 		}
 	}

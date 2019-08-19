@@ -9,6 +9,7 @@ public class AstNode {
 	protected List<AstNode> children;
 	protected int beginTokenIndex;
 	protected int endTokenIndex;
+	protected int lineNumber;
 	
 	public AstNode(){
 		children = new ArrayList<AstNode>();
@@ -55,6 +56,14 @@ public class AstNode {
 	
 	public void setEndTokenIndex(int index){
 		endTokenIndex = index;
+	}
+	
+	public int getLineNumber() {
+		return lineNumber;
+	}
+	
+	public void setLineNumber(int line) {
+		lineNumber = line;
 	}
 	
 	public void visit(AstVisitor visitor){

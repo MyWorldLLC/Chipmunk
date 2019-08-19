@@ -12,7 +12,7 @@ public class IdNode extends AstNode {
 	
 	public IdNode(Token id){
 		super();
-		this.id = id;
+		setID(id);
 	}
 	
 	public Token getID(){
@@ -21,6 +21,7 @@ public class IdNode extends AstNode {
 	
 	public void setID(Token id){
 		this.id = id;
+		setLineNumber(id.getLine());
 	}
 	
 	@Override

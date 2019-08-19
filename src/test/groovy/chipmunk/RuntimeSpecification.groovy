@@ -32,14 +32,6 @@ class RuntimeSpecification extends Specification {
 				CMethod method = script.getModules().get("test").getNamespace().get("main")
 				println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
 				
-				compiler.getLastParsedModules().forEach({
-				    module -> println(module)
-				})
-				
-				modules.forEach({
-				    module -> println(module.getNamespace().names())
-				})
-				
 				def sw = new StringWriter()
 				e.printStackTrace(new PrintWriter(sw))
 				println(sw.toString())

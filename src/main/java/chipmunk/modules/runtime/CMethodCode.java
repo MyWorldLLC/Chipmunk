@@ -1,5 +1,6 @@
 package chipmunk.modules.runtime;
 
+import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 
 public class CMethodCode {
@@ -10,6 +11,7 @@ public class CMethodCode {
 	protected byte[] instructions;
 	protected Object[] constantPool;
 	protected ExceptionBlock[] exceptionTable;
+	protected DebugEntry[] debugTable;
 	protected String debugSymbol;
 	
 	protected Object[] callCache;
@@ -60,6 +62,14 @@ public class CMethodCode {
 	
 	public ExceptionBlock[] getExceptionTable() {
 		return exceptionTable;
+	}
+	
+	public void setDebugTable(DebugEntry[] table) {
+		debugTable = table;
+	}
+	
+	public DebugEntry[] getDebugTable() {
+		return debugTable;
 	}
 	
 	public String getDebugSymbol() {
