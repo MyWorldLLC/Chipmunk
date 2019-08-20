@@ -109,10 +109,8 @@ public class ChipmunkParser {
 		register(Token.Type.DOUBLEBAREQUALS, new AssignOperatorParselet());
 		register(Token.Type.BAREQUALS, new AssignOperatorParselet());
 		register(Token.Type.DOUBLELESSEQUALS, new AssignOperatorParselet());
-		register(Token.Type.LESSEQUALS, new AssignOperatorParselet());
 		register(Token.Type.TRIPLEMOREQUALS, new AssignOperatorParselet());
 		register(Token.Type.DOUBLEMOREEQUALS, new AssignOperatorParselet());
-		register(Token.Type.MOREEQUALS, new AssignOperatorParselet());
 		register(Token.Type.TILDEEQUALS, new AssignOperatorParselet());
 		
 		// postfix operators
@@ -660,6 +658,7 @@ public class ChipmunkParser {
 		parseBlockBody(node);
 		
 		endNode(node);
+		System.out.println(node.toString());
 		return node;
 	}
 	
@@ -900,7 +899,7 @@ public class ChipmunkParser {
 		PrefixParselet prefixParser = prefix.get(token.getType());
 		
 		if(prefixParser == null){
-			syntaxError("expression", "literal, id, or prefix operator", token);
+			syntaxError("expression", "literal, id, or unary operator", token);
 		}
 		
 		AstNode left = prefixParser.parse(this, token);
@@ -913,6 +912,7 @@ public class ChipmunkParser {
 			InfixParselet infixParser = infix.get(token.getType());
 			
 			if(infixParser == null){
+				syntaxError("expression", "literal, id, or binary operator", token);
 			}
 			
 			left = infixParser.parse(this, left, token);

@@ -163,7 +163,7 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run InnerClasses.chp"(){
 		when:
-		def result = compileAndRun("InnerClasses.chp", true)
+		def result = compileAndRun("InnerClasses.chp")
 		
 		then:
 		result.intValue() == 21
@@ -171,7 +171,7 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run TryCatch.chp"(){
 		when:
-		def result = compileAndRun("TryCatch.chp", true)
+		def result = compileAndRun("TryCatch.chp")
 		
 		then:
 		result.intValue() == 2
@@ -196,7 +196,7 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run NestedRangeLoops.chp"(){
 		when:
-		def result = compileAndRun("NestedRangeLoops.chp", true)
+		def result = compileAndRun("NestedRangeLoops.chp")
 		
 		then:
 		result.intValue() == 9
@@ -204,7 +204,7 @@ class RuntimeSpecification extends Specification {
 	
 	def "Run NestedLoops.chp"(){
 		when:
-		def result = compileAndRun("NestedLoops.chp", true)
+		def result = compileAndRun("NestedLoops.chp")
 		
 		then:
 		result.intValue() == 9

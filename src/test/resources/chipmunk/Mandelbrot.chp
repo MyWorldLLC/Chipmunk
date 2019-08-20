@@ -23,12 +23,12 @@ def mandelbrot(xDim, yDim, maxIterations){
 				var xTemp = x*x - y*y + x0
 				y = 2*x*y + y0
 				x = xTemp
-				iteration++
+				iteration = iteration++
 			}
 		}
 	}
 }
 
 def main(){
-	return mandelbrot(250, 250, 10)
+	return mandelbrot(5, 5, 2)
 }

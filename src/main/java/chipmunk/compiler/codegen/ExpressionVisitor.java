@@ -4,6 +4,7 @@ import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.ChipmunkLexer;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.SyntaxErrorChipmunk;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
@@ -43,6 +44,7 @@ public class ExpressionVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
+
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
 			assembler.onLine(node.getLineNumber());
@@ -116,6 +118,7 @@ public class ExpressionVisitor implements AstVisitor {
 			
 			OperatorNode op = (OperatorNode) node;
 			Token operator = op.getOperator();
+			
 			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
 			
@@ -270,8 +273,22 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.eq();
 				assembler.not();
 				break;
+			case LESSEQUALS:
+				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
+				assembler.le();
+				break;
+			case MOREEQUALS:
+				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
+				assembler.ge();
+				break;
 			default:
-				return;
+				throw new SyntaxErrorChipmunk(
+						String.format("Unsupported operator %s at %d:%d",
+								operator.getText(),
+								operator.getLine(),
+								operator.getColumn()));
 			}
 		}
 

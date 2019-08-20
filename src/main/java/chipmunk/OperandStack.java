@@ -52,4 +52,20 @@ public class OperandStack {
 		stack[index1] = obj2;
 		stack[index2] = obj1;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Stack depth: " + stackIndex);
+		sb.append('\n');
+		
+		for(int i = 0; i < stackIndex; i++) {
+			sb.append("  ");
+			sb.append(stack[stackIndex].toString());
+			sb.append('\n');
+		}
+		
+		return sb.toString();
+	}
 }

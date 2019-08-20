@@ -682,7 +682,7 @@ public class ChipmunkVM {
 					rh = stack.pop();
 					lh = stack.pop();
 					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
+					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).getValue();
 					if (cond1 && cond2) {
 						stack.push(trueValue);
 					} else {
@@ -694,7 +694,7 @@ public class ChipmunkVM {
 					rh = stack.pop();
 					lh = stack.pop();
 					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
+					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).getValue();
 					if (cond1 || cond2) {
 						stack.push(trueValue);
 					} else {
@@ -1072,6 +1072,12 @@ public class ChipmunkVM {
 				
 				ex.addTraceFrame(trace);
 				
+				System.out.println("Ip is: " + ip);
+				System.out.println("Stack: ");
+				System.out.println(stack.toString());
+				System.out.println("Disassembly: ");
+				System.out.println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()));
+				
 				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());
 				if(handler != null) {
 					ip = handler.catchIndex;
@@ -1204,7 +1210,7 @@ public class ChipmunkVM {
 				Object method = lookupMethod(target, op.getOpName(), paramTypes);
 				cacheInternal(op, targetType, method);
 				
-				method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
+				//method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
 				Object retVal = invoke(method, target, params);
 				// the following is helpful when weird bugs crop up - it nulls the parameter array after use
 				// Arrays.fill(params, null);
@@ -1426,6 +1432,10 @@ public class ChipmunkVM {
 	
 	private ExceptionBlock chooseExceptionHandler(int ip, ExceptionBlock[] eTable) {
 		ExceptionBlock lastCandidate = null;
+		
+		if(eTable == null) {
+			return null;
+		}
 		
 		for(ExceptionBlock block : eTable) {
 			if(lastCandidate == null) {
