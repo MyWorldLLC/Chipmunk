@@ -1072,12 +1072,6 @@ public class ChipmunkVM {
 				
 				ex.addTraceFrame(trace);
 				
-				System.out.println("Ip is: " + ip);
-				System.out.println("Stack: ");
-				System.out.println(stack.toString());
-				System.out.println("Disassembly: ");
-				System.out.println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()));
-				
 				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());
 				if(handler != null) {
 					ip = handler.catchIndex;

@@ -3,8 +3,8 @@ package chipmunk;
 import java.util.Arrays;
 
 public class OperandStack {
-	public Object[] stack;
-	public int stackIndex;
+	private Object[] stack;
+	private int stackIndex;
 	
 	public OperandStack() {
 		stack = new Object[16];
@@ -38,8 +38,7 @@ public class OperandStack {
 	}
 
 	public void dup(int index) {
-		stack[stackIndex] = stack[stackIndex - (index + 1)];
-		stackIndex++;
+		this.push(stack[stackIndex - (index + 1)]);
 	}
 
 	public void swap(int index1, int index2) {
@@ -62,7 +61,7 @@ public class OperandStack {
 		
 		for(int i = 0; i < stackIndex; i++) {
 			sb.append("  ");
-			sb.append(stack[stackIndex].toString());
+			sb.append(stack[stackIndex] != null ? stack[stackIndex].toString() : null);
 			sb.append('\n');
 		}
 		

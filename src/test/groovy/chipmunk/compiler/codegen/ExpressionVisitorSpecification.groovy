@@ -227,7 +227,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Generate and run code for complex comparison"(){
 		when:
-		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5", "Complex comparison")
+		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5")
 
 		then:
 		result instanceof CBoolean

@@ -658,7 +658,6 @@ public class ChipmunkParser {
 		parseBlockBody(node);
 		
 		endNode(node);
-		System.out.println(node.toString());
 		return node;
 	}
 	
