@@ -119,11 +119,13 @@ public class ChipmunkVM {
 		public final CMethod method;
 		public final int ip;
 		public final Object[] locals;
+		public final OperandStack stack;
 
-		public CallFrame(CMethod method, int ip, Object[] locals) {
+		public CallFrame(CMethod method, int ip, Object[] locals, OperandStack stack) {
 			this.method = method;
 			this.ip = ip;
 			this.locals = locals;
+			this.stack = stack;
 		}
 	}
 	
@@ -349,8 +351,8 @@ public class ChipmunkVM {
 		return modules.get(name);
 	}
 	
-	public void freeze(CMethod method, int ip, Object[] locals) {
-		frozenCallStack.push(new CallFrame(method, ip, locals));
+	public void freeze(CMethod method, int ip, Object[] locals, OperandStack stack) {
+		frozenCallStack.push(new CallFrame(method, ip, locals, stack));
 	}
 
 	public CallFrame unfreezeNext() {
@@ -403,8 +405,6 @@ public class ChipmunkVM {
 		activeScript = script;
 		
 		modules = script.modules;
-		//stack = new Object[128]; // script.stack;
-		//stackIndex = 0;
 		OperandStack stack = new OperandStack();
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
@@ -418,7 +418,7 @@ public class ChipmunkVM {
 		if(!frozenCallStack.isEmpty() && !initializationQueue.isEmpty()){
 			// if the frozen call stack contains anything and we're not done initializing modules,
 			// continue running initializers
-			// TODO
+			this.dispatch(frozenCallStack.peek().method, null);
 		}
 		
 		while(!initializationQueue.isEmpty()){
@@ -461,10 +461,10 @@ public class ChipmunkVM {
 		}
 		
 		
-		if(resuming){
-			// TODO - if frozen call stack isn't empty,
-			// get method at top and call it.
-			return null;
+		if(resuming && frozenCallStack.size() > 0){
+			// If frozen call stack isn't empty,
+			// continue dispatch
+			return this.dispatch(frozenCallStack.peek().method, null);
 		}else{
 			// Starting to run entry method.
 			CMethod entryMethod = (CMethod) activeScript.modules.get(
@@ -570,16 +570,34 @@ public class ChipmunkVM {
 			CallFrame frame = unfreezeNext();
 			ip = frame.ip;
 			locals = frame.locals;
-			stack = new OperandStack();
-			// TODO - restore operand stack
+			stack = frame.stack;
 
 			// call into the next method to resume call stack
 			try {
 				stack.push(doInternal(InternalOp.CALL, frame.method, 0, callCache, ip));
 			} catch (SuspendedChipmunk e) {
-				this.freeze(frame.method, ip, locals);
+				this.freeze(frame.method, ip, locals, stack);
 			} catch (AngryChipmunk e) {
-				// TODO - fill in stack trace or jump to exception handler
+				// handle exception - fill in trace or jump to handler
+				if (!(e instanceof AngryChipmunk)) {
+					e = new AngryChipmunk(e.getMessage(), e);
+				}
+				
+				AngryChipmunk ex = (AngryChipmunk) e;
+				
+				CTraceFrame trace = new CTraceFrame();
+				trace.setDebugSymbol(method.getDebugSymbol());
+				trace.lineNumber = findLineNumber(ip, method.getCode().getDebugTable());
+				
+				ex.addTraceFrame(trace);
+				
+				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());
+				if(handler != null) {
+					ip = handler.catchIndex;
+					locals[handler.exceptionLocalIndex] = e;
+				}else {
+					throw e;
+				}
 			}
 		} else {
 			locals = new Object[localCount + 1];
@@ -841,7 +859,7 @@ public class ChipmunkVM {
 						// instance.
 						ip += 2;
 						if(ins instanceof CMethod){
-							this.freeze((CMethod)ins, ip, locals);
+							this.freeze((CMethod)ins, ip, locals, stack);
 						}
 						throw e;
 					}
@@ -867,7 +885,7 @@ public class ChipmunkVM {
 						// instance.
 						ip += 6;
 						if(ins instanceof CMethod){
-							this.freeze((CMethod)ins, ip, locals);
+							this.freeze((CMethod)ins, ip, locals, stack);
 						}
 						throw e;
 					}
@@ -1055,7 +1073,7 @@ public class ChipmunkVM {
 				// allow exception handlers to run or they will
 				// block suspension
 				if (e instanceof SuspendedChipmunk) {
-					// TODO - freeze call frame
+					this.freeze(method, ip, locals, stack);
 					throw e;
 				}
 
