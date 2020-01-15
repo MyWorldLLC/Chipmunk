@@ -615,6 +615,11 @@ public class ChipmunkVM {
 
 			try {
 
+				if(interrupted){
+					// TODO - this is reading a volatile field on every operation
+					throw new SuspendedChipmunk();
+				}
+
 				byte op = instructions[ip];
 
 				Object rh;
