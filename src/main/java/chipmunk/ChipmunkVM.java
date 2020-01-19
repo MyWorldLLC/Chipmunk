@@ -459,6 +459,7 @@ public class ChipmunkVM {
 				this.dispatch(module.getInitializer(), null);
 			}
 		}
+		activeScript.initialized();
 		
 		
 		if(resuming && frozenCallStack.size() > 0){
@@ -477,6 +478,11 @@ public class ChipmunkVM {
 
 	public void interrupt(){
 		interrupted = true;
+	}
+
+	public void forceSuspend() throws SuspendedChipmunk {
+		interrupt();
+		throw new SuspendedChipmunk();
 	}
 
 	public void traceMem(int newlyAllocated) {
@@ -546,6 +552,16 @@ public class ChipmunkVM {
 	
 	public void untraceReferences(int count) {
 		memHigh -= refLength * count;
+	}
+
+	public void checkArity(Object[] params, int arity) throws IllegalArgumentException {
+		if(params == null && arity != 0){
+			throw new IllegalArgumentException("Parameter array is null");
+		}
+
+		if(params.length != arity){
+			throw new IllegalArgumentException(String.format("Expected %d parameters, was passed %d", arity, params.length));
+		}
 	}
 	
 //	public void dumpOperandStack(OperandStack stack) {

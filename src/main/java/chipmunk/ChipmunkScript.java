@@ -16,6 +16,7 @@ public class ChipmunkScript {
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
 	protected Deque<CModule> initializationQueue;
+	private boolean initialized;
 	
 	protected String entryModule;
 	protected String entryMethod;
@@ -30,10 +31,16 @@ public class ChipmunkScript {
 		stack = new ArrayList<Object>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<CallFrame>();
 		initializationQueue = new ArrayDeque<CModule>();
+		initialized = false;
 	}
 	
 	public boolean isFrozen(){
 		return !frozenCallStack.isEmpty();
+	}
+	public boolean isInitialized(){ return initialized; }
+
+	protected void initialized(){
+		initialized = true;
 	}
 	
 	public void setEntryCall(String module, String method, Object... args){
@@ -45,8 +52,19 @@ public class ChipmunkScript {
 	public void setEntryCall(String module, String method){
 		setEntryCall(module, method, new Object[]{});
 	}
-	
+
+	public String getEntryModule(){
+		return entryModule;
+	}
+
+	public String getEntryMethod(){
+		return entryMethod;
+	}
+
 	public Map<String, CModule> getModules(){
 		return modules;
+	}
+	public void setModule(CModule module){
+		modules.put(module.getName(), module);
 	}
 }
