@@ -475,6 +475,10 @@ public class ChipmunkVM {
 		
 	}
 
+	public void interrupt(){
+		interrupted = true;
+	}
+
 	public void traceMem(int newlyAllocated) {
 		memHigh += newlyAllocated;
 	}

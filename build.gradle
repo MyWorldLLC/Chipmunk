@@ -40,15 +40,6 @@ dependencies {
     jmh 'org.openjdk.jmh:jmh-core:1.19'
 }
 
-uploadArchives {
-    repositories {
-       mavenLocal()
-       flatDir {
-           dirs 'dist'
-       }
-    }
-}
-
 sourceSets {
 	main {
 	  java {
@@ -77,8 +68,37 @@ sourceSets {
 	}
 }
 
+jar {
+	baseName 'Chipmunk'
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = "${project.group}"
+			artifactId = 'Chipmunk'
+			version = "${project.version}"
+
+			from components.java
+		}
+	}
+
+	repositories {
+		mavenLocal()
+		maven {
+			name = 'Dist'
+			url = "file://${projectDir}/dist"
+		}
+	}
+}
+
 asciidoctor {
 	sourceDir 'src/doc/asciidoc'
+}
+
+clean {
+	delete 'build'
+	delete 'dist'
 }
 
 jmh {
