@@ -316,15 +316,13 @@ public class ChipmunkVM {
 		}
 		
 		for(ModuleLoader loader : loaders){
-			CModule module = null;
 			try {
-				module = loader.loadModule(moduleName);
-				
-				// need to record the module *before* handling imports in case
-				// of a circular import
-				modules.put(module.getName(), module);
+				CModule module = loader.loadModule(moduleName);
 				if(module != null){
-					
+
+					// need to record the module *before* handling imports in case
+					// of a circular import
+					modules.put(module.getName(), module);
 					for(CModule.Import importedModule : module.getImports()){
 						loadModule(importedModule.getName());
 					}
@@ -412,7 +410,7 @@ public class ChipmunkVM {
 		if(script.isFrozen()){
 			resuming = true;
 		}else{
-			loadModule(script.entryModule);
+			loadModule(script.entryModule);// TODO - the initializer is probably never running
 		}
 		
 		if(!frozenCallStack.isEmpty() && !initializationQueue.isEmpty()){
