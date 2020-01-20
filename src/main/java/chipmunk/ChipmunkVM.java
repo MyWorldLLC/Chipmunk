@@ -593,7 +593,9 @@ public class ChipmunkVM {
 
 			// call into the next method to resume call stack
 			try {
-				stack.push(this.dispatch(frozenCallStack.peek().method, null));
+				if(frozenCallStack.size() > 0){
+					stack.push(this.dispatch(frozenCallStack.peek().method, null));
+				}
 			} catch (SuspendedChipmunk e) {
 				this.freeze(frame.method, ip, locals, stack);
 			} catch (AngryChipmunk e) {
