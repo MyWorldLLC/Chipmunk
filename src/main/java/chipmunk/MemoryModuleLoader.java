@@ -13,6 +13,11 @@ public class MemoryModuleLoader implements ModuleLoader {
 	public MemoryModuleLoader(){
 		modules = new HashMap<String, CModule>();
 	}
+
+	public MemoryModuleLoader(Collection<CModule> modules){
+		this();
+		addModules(modules);
+	}
 	
 	@Override
 	public CModule loadModule(String moduleName) {
