@@ -382,6 +382,7 @@ public class ChipmunkVM {
 		script.setEntryCall(mainModule.getName(), "main");
 
 		for (CModule module : modules) {
+			// TODO - this is incorrect - initializers will not run
 			script.getModules().put(module.getName(), module);
 		}
 
@@ -1475,11 +1476,11 @@ public class ChipmunkVM {
 		for(ExceptionBlock block : eTable) {
 			if(lastCandidate == null) {
 				lastCandidate = block;
-			}else if(block.startIndex > lastCandidate.startIndex && block.catchIndex < lastCandidate.catchIndex){
+			}else if(ip >= block.startIndex && ip <= block.catchIndex && block.startIndex > lastCandidate.startIndex && block.catchIndex < lastCandidate.catchIndex){
 				lastCandidate = block;
 			}
 		}
-		
+
 		return lastCandidate;
 	}
 	
