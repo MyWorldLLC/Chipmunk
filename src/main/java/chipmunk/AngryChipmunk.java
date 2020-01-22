@@ -59,7 +59,7 @@ public class AngryChipmunk extends RuntimeException {
 	
 	@Override
 	public void printStackTrace() {
-		printStackTrace(System.out);
+		printStackTrace(System.err);
 	}
 
 }
