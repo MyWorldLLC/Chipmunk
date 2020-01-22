@@ -4,5 +4,9 @@ def main(){
 	var list = [1, 2, 3]
 	list.add(4)
 	list[2] = 5
-	return list[0] + list[2] + list[3]
+	var x = 0
+	for(i in list){
+	    x = x + i
+	}
+	return list[0] + list[2] + list[3] + x
 }

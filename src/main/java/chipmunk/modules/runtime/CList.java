@@ -18,6 +18,8 @@ public class CList implements RuntimeObject {
 	public CList(List<Object> list){
 		this.list = list;
 	}
+
+	public void add(Object obj){ list.add(obj); }
 	
 	public void add(ChipmunkVM vm, Object obj){
 		list.add(obj);
@@ -145,7 +147,7 @@ public class CList implements RuntimeObject {
 		return new CList(list.subList(from, to));
 	}
 	
-	private class ListIterator implements CIterator {
+	protected class ListIterator implements CIterator {
 		
 		private final List<Object> list;
 		private int index;
