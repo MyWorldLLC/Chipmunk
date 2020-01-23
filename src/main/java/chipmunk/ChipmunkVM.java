@@ -414,7 +414,7 @@ public class ChipmunkVM {
 			loadModule(script.entryModule);// TODO - the initializer is probably never running
 		}
 		
-		if(!frozenCallStack.isEmpty() && !initializationQueue.isEmpty()){
+		if(hasNextFrame() && !initializationQueue.isEmpty()){
 			// if the frozen call stack contains anything and we're not done initializing modules,
 			// continue running initializers
 			this.dispatch(frozenCallStack.peek().method, null);
@@ -461,7 +461,7 @@ public class ChipmunkVM {
 		activeScript.initialized();
 		
 		
-		if(resuming && frozenCallStack.size() > 0){
+		if(resuming && hasNextFrame()){
 			// If frozen call stack isn't empty,
 			// continue dispatch
 			return this.dispatch(frozenCallStack.peek().method, null);
@@ -585,7 +585,7 @@ public class ChipmunkVM {
 		final Object[] constantPool = method.getCode().getConstantPool();
 		
 
-		if (resuming) {
+		if (resuming && frozenCallStack.size() > 0) {
 			CallFrame frame = unfreezeNext();
 			ip = frame.ip;
 			locals = frame.locals;
@@ -621,6 +621,7 @@ public class ChipmunkVM {
 				}
 			}
 		} else {
+			resuming = false;
 			locals = new Object[localCount + 1];
 			stack = new OperandStack();
 			locals[0] = method.getSelf();
