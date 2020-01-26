@@ -75,9 +75,8 @@ public class ChipmunkLexer {
 				matcher.region(cursor, src.length());
 				
 				if (matcher.lookingAt()){
-
 					String subStr = src.subSequence(matcher.start(), matcher.end()).toString();
-					stream.append(new Token(subStr, type, line, column));
+					stream.append(new Token(subStr, type, matcher.start(), line, column));
 					cursor = matcher.end();
 
 					if (type == Token.Type.NEWLINE) {
@@ -94,12 +93,12 @@ public class ChipmunkLexer {
 			}
 			
 			// error - we couldn't match a valid token
-			if(!foundToken && cursor != source.length() - 1){
+			if(!foundToken){
 				throw new SyntaxErrorChipmunk("Syntax error at line " + line + ", column " + column + ": Could not match a valid syntax element");
 			}
 		}
 
-		stream.append(new Token("", Token.Type.EOF, line, column));
+		stream.append(new Token("", Token.Type.EOF, source.length() - 1, line, column));
 		return stream;
 	}
 	
