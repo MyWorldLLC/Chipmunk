@@ -80,6 +80,10 @@ public class CMap implements RuntimeObject {
 	public Object remove(Object key){
 		return map.remove(key);
 	}
+
+	public Object remove(ChipmunkVM vm, Object key){
+		return map.remove(key);
+	}
 	
 	public CBoolean remove(ChipmunkVM vm, Object key, Object value){
 		vm.traceBoolean();
