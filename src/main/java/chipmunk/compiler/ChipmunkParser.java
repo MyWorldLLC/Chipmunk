@@ -48,6 +48,7 @@ public class ChipmunkParser {
 		register(Token.Type.INTLITERAL, new LiteralParselet());
 		register(Token.Type.FLOATLITERAL, new LiteralParselet());
 		register(Token.Type.STRINGLITERAL, new LiteralParselet());
+		register(Token.Type.NULL, new LiteralParselet());
 		register(Token.Type.LBRACKET, new ListParselet());
 		register(Token.Type.LBRACE, new MapParselet());
 		

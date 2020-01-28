@@ -24,7 +24,7 @@ public class ChipmunkAssembler {
 	private int callSite;
 	
 	public ChipmunkAssembler(){
-		this(new ArrayList<Object>());
+		this(new ArrayList<>());
 	}
 	
 	public ChipmunkAssembler(List<Object> constants){

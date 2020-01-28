@@ -1112,9 +1112,11 @@ public class ChipmunkVM {
 				AngryChipmunk ex = (AngryChipmunk) e;
 				
 				CTraceFrame trace = new CTraceFrame();
+				System.out.println("Method: " + method.toString());
+				System.out.println("Method symbol: " + method.getDebugSymbol());
 				trace.setDebugSymbol(method.getDebugSymbol());
 				trace.lineNumber = findLineNumber(ip, method.getCode().getDebugTable());
-				
+
 				ex.addTraceFrame(trace);
 				
 				ExceptionBlock handler = chooseExceptionHandler(ip, method.getCode().getExceptionTable());

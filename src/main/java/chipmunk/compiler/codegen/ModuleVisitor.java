@@ -3,6 +3,8 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.DebugEntry;
+import chipmunk.ExceptionBlock;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
@@ -63,7 +65,6 @@ public class ModuleVisitor implements AstVisitor {
 			CMethod method = visitor.getMethod();
 			
 			method.bind(module);
-			method.getCode().setModule(module);
 			
 			module.getNamespace().set(visitor.getMethodSymbol().getName(), method);
 			
@@ -100,10 +101,13 @@ public class ModuleVisitor implements AstVisitor {
 		
 		assembler.pushNull();
 		assembler._return();
-		
+
 		initializer.getCode().setConstantPool(assembler.getConstantPool().toArray());
 		initializer.getCode().setCode(assembler.getCodeSegment());
 		initializer.getCode().setLocalCount(0);
+		initializer.getCode().setExceptionTable(initCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
+		initializer.getCode().setDebugTable(initCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
+		initializer.getCode().setDebugSymbol(module.getName() + ".<init>");
 		
 		initializer.bind(module);
 		initializer.getCode().setModule(module);

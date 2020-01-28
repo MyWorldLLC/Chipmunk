@@ -15,10 +15,7 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.runtime.CBoolean;
-import chipmunk.modules.runtime.CFloat;
-import chipmunk.modules.runtime.CInteger;
-import chipmunk.modules.runtime.CString;
+import chipmunk.modules.runtime.*;
 
 public class ExpressionVisitor implements AstVisitor {
 	
@@ -52,30 +49,33 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			assembler.onLine(node.getLineNumber());
-			switch(literal.getType()){
-			case BOOLLITERAL:
-				assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
-				return;
-			case INTLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
-				return;
-			case HEXLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
-				return;
-			case OCTLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
-				return;
-			case BINARYLITERAL:
-				assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
-				return;
-			case FLOATLITERAL:
-				assembler.push(new CFloat(Float.parseFloat(literal.getText())));
-				return;
-			case STRINGLITERAL:
-				// strip quotes
-				String value = literal.getText().substring(1, literal.getText().length() - 1);
-				assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
-				return;
+			switch (literal.getType()) {
+				case BOOLLITERAL:
+					assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
+					return;
+				case INTLITERAL:
+					assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
+					return;
+				case HEXLITERAL:
+					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
+					return;
+				case OCTLITERAL:
+					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
+					return;
+				case BINARYLITERAL:
+					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
+					return;
+				case FLOATLITERAL:
+					assembler.push(new CFloat(Float.parseFloat(literal.getText())));
+					return;
+				case STRINGLITERAL:
+					// strip quotes
+					String value = literal.getText().substring(1, literal.getText().length() - 1);
+					assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
+					return;
+				case NULL:
+					assembler.push(CNull.instance());
+					return;
 				
 				default:
 					return;

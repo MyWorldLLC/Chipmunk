@@ -3,6 +3,8 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.DebugEntry;
+import chipmunk.ExceptionBlock;
 import chipmunk.Namespace;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
@@ -166,6 +168,10 @@ public class ClassVisitor implements AstVisitor {
 		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool().toArray());
 		sharedInitializer.setInstructions(sharedInitAssembler.getCodeSegment());
 		sharedInitializer.setLocalCount(1);
+
+		sharedInitializer.getCode().setExceptionTable(sharedInitCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
+		sharedInitializer.getCode().setDebugTable(sharedInitCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
+		sharedInitializer.getCode().setDebugSymbol(cClass.getName() + ".<init>");
 		
 		sharedInitializer.bind(cClass);
 		sharedInitializer.setModule(module);
@@ -181,6 +187,10 @@ public class ClassVisitor implements AstVisitor {
 		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool().toArray());
 		instanceInitializer.setInstructions(instanceInitAssembler.getCodeSegment());
 		instanceInitializer.setLocalCount(1);
+
+		instanceInitializer.getCode().setExceptionTable(instanceInitCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
+		instanceInitializer.getCode().setDebugTable(instanceInitCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
+		instanceInitializer.getCode().setDebugSymbol(cClass.getName() + ".<init>");
 		
 		instanceInitializer.setModule(module);
 		// instance initializer will be bound at runtime to newly created
@@ -202,6 +212,9 @@ public class ClassVisitor implements AstVisitor {
 			constructor.setConstantPool(constantPool.toArray());
 			constructor.setModule(module);
 			constructor.setInstructions(assembler.getCodeSegment());
+			instanceInitializer.getCode().setExceptionTable(new ExceptionBlock[]{});
+			instanceInitializer.getCode().setDebugTable(new DebugEntry[]{});
+			instanceInitializer.getCode().setDebugSymbol(cClass.getName() + "." + cClass.getName());
 			
 			cClass.getInstanceAttributes().set(cClass.getName(), constructor);
 		}
