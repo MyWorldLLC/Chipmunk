@@ -598,7 +598,8 @@ public class ChipmunkVM {
 				}
 			} catch (SuspendedChipmunk e) {
 				this.freeze(frame.method, ip, locals, stack);
-			} catch (AngryChipmunk e) {
+				throw e;
+			} catch (Exception e) {
 				// handle exception - fill in trace or jump to handler
 				if (!(e instanceof AngryChipmunk)) {
 					e = new AngryChipmunk(e.getMessage(), e);
@@ -617,7 +618,7 @@ public class ChipmunkVM {
 					ip = handler.catchIndex;
 					locals[handler.exceptionLocalIndex] = e;
 				}else {
-					throw e;
+					throw ex;
 				}
 			}
 		} else {
@@ -1112,8 +1113,6 @@ public class ChipmunkVM {
 				AngryChipmunk ex = (AngryChipmunk) e;
 				
 				CTraceFrame trace = new CTraceFrame();
-				System.out.println("Method: " + method.toString());
-				System.out.println("Method symbol: " + method.getDebugSymbol());
 				trace.setDebugSymbol(method.getDebugSymbol());
 				trace.lineNumber = findLineNumber(ip, method.getCode().getDebugTable());
 
@@ -1257,17 +1256,17 @@ public class ChipmunkVM {
 				// Arrays.fill(params, null);
 				return retVal != null ? retVal : CNull.instance();
 			}catch(NoSuchMethodException ex) {
-				throw new RuntimeException(ex);
+				throw new AngryChipmunk(ex);
 			}catch(AngryChipmunk ex) {
 				throw ex;
 			}catch(Throwable ex) {
-				throw new RuntimeException(ex);
+				throw new AngryChipmunk(ex);
 			}
 			
 		} catch (AngryChipmunk e) {
 			throw e;
 		} catch (Throwable e) {
-			throw new RuntimeException(e);
+			throw new AngryChipmunk(e);
 		}
 		
 	}
@@ -1324,11 +1323,11 @@ public class ChipmunkVM {
 			}
 			
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new AngryChipmunk(e);
 		} catch (AngryChipmunk e) {
 			throw e;
 		} catch (Throwable e) {
-			throw new RuntimeException(e);
+			throw new AngryChipmunk(e);
 		}
 	}
 	

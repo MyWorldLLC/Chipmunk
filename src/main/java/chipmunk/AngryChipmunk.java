@@ -46,15 +46,20 @@ public class AngryChipmunk extends RuntimeException {
 		for(CTraceFrame frame : traceFrames) {
 			writer.println("    at " + frame.toString());
 		}
-		
-		for(StackTraceElement te : super.getStackTrace()) {
+
+		writer.print("Native ");
+		super.printStackTrace(writer);
+		/*for(StackTraceElement te : super.getStackTrace()) {
 			writer.println("    at " + te.toString());
-		}
+		}*/
+		writer.flush();
 	}
 	
 	@Override
 	public void printStackTrace(PrintStream os) {
-		printStackTrace(new PrintWriter(os));
+		PrintWriter writer = new PrintWriter(os);
+		printStackTrace(writer);
+		writer.flush();
 	}
 	
 	@Override
