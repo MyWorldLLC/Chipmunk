@@ -1,5 +1,6 @@
 package chipmunk.modules.runtime;
 
+import chipmunk.ChipmunkDisassembler;
 import chipmunk.ChipmunkVM;
 
 public class CNull implements RuntimeObject {
@@ -22,6 +23,11 @@ public class CNull implements RuntimeObject {
 	
 	public String toString(){
 		return "CNull";
+	}
+
+	public CBoolean equals(ChipmunkVM vm, Object other){
+		vm.traceBoolean();
+		return new CBoolean(equals(other));
 	}
 	
 	public boolean equals(Object other){
