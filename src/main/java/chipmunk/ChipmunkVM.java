@@ -583,7 +583,6 @@ public class ChipmunkVM {
 		final Object[] callCache = method.getCode().getCallCache();
 		final int localCount = method.getCode().getLocalCount();
 		final Object[] constantPool = method.getCode().getConstantPool();
-		
 
 		if (resuming && frozenCallStack.size() > 0) {
 			CallFrame frame = unfreezeNext();
@@ -626,7 +625,7 @@ public class ChipmunkVM {
 			locals = new Object[localCount + 1];
 			stack = new OperandStack();
 			locals[0] = method.getSelf();
-			if(parameters != null) {
+			if (parameters != null) {
 				// copy parameters
 				for (int i = 0; i < parameters.length; i++) {
 					locals[i + 1] = parameters[i];
@@ -834,7 +833,6 @@ public class ChipmunkVM {
 					break;
 				case SETLOCAL:
 					locals[fetchByte(instructions, ip + 1)] = stack.peek();
-					//System.out.println("Set local " + fetchByte(instructions, ip + 1) + " to " + stack.peek());
 					ip += 2;
 					break;
 				case TRUTH:
@@ -866,58 +864,47 @@ public class ChipmunkVM {
 				case CALL:
 					ins = stack.pop();
 
-					try {
-						// TODO - probably should use the same mechanism used by
-						// CALLAT here, since this
-						// isn't really quite an internal operation
+					// TODO - probably should use the same mechanism used by
+					// CALLAT here, since this
+					// isn't really quite an internal operation
 
-						//internalParams[2][1] = fetchByte(instructions, ip + 1);
-						//stack.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
-						Object[] params = new Object[fetchByte(instructions, ip + 1)];
-						this.popParams(stack, params);
-						stack.push(params);
-						Object result = callExternal(stack, ins, "call", 1, callCache, ip);
-						stack.push(result != null ? result : CNull.instance());
-					} catch (SuspendedChipmunk e) {
-						// Need to bump ip BEFORE calling next method.
-						// Otherwise,
-						// the ip will be stored in its old state and when this
-						// method resumes after being suspended, it will try to
-						// re-run this call. Skip frames with a call into a non-CMethod
-						// instance.
-						ip += 2;
-						if(ins instanceof CMethod){
-							this.freeze((CMethod)ins, ip, locals, stack);
-						}
-						throw e;
-					}
+					//internalParams[2][1] = fetchByte(instructions, ip + 1);
+					//stack.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
+					Object[] params = new Object[fetchByte(instructions, ip + 1)];
+					this.popParams(stack, params);
+					stack.push(params);
+
+					// Need to bump ip BEFORE calling next method.
+					// Otherwise,
+					// the ip will be stored in its old state and when this
+					// method resumes after being suspended, it will try to
+					// re-run this call.
 					ip += 2;
+
+					Object result = callExternal(stack, ins, "call", 1, callCache, ip);
+					stack.push(result != null ? result : CNull.instance());
+
 					break;
 				case CALLAT:
 					ins = stack.pop();
-					
-					try {
-						String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
 
-						// TODO - this is not an internal operation, so we need
-						// a different caching mechanism
-						// here
-						Object result = callExternal(stack, ins, methodName, fetchByte(instructions, ip + 1), callCache, ip);
-						stack.push(result != null ? result : CNull.instance());
-					} catch (SuspendedChipmunk e) {
-						// Need to bump ip BEFORE calling next method.
-						// Otherwise,
-						// the ip will be stored in its old state and when this
-						// method resumes after being suspended, it will try to
-						// re-run this call. Skip frames with a call into a non-CMethod
-						// instance.
-						ip += 6;
-						if(ins instanceof CMethod){
-							this.freeze((CMethod)ins, ip, locals, stack);
-						}
-						throw e;
-					}
+					String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
+
+
+					// TODO - this is not an internal operation, so we need
+					// a different caching mechanism
+					// here
+					int paramCount = fetchByte(instructions, ip + 1);
+
+					// Need to bump ip BEFORE calling next method.
+					// Otherwise,
+					// the ip will be stored in its old state and when this
+					// method resumes after being suspended, it will try to
+					// re-run this call.
 					ip += 6;
+
+					result = callExternal(stack, ins, methodName, paramCount, callCache, ip);
+					stack.push(result != null ? result : CNull.instance());
 					break;
 				case GOTO:
 					int gotoIndex = fetchInt(instructions, ip + 1);
