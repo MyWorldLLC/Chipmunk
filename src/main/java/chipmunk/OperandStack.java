@@ -4,11 +4,11 @@ import java.util.Arrays;
 
 public class OperandStack {
 	private Object[] stack;
-	private int stackIndex;
+	private int insertionIndex;
 	
 	public OperandStack() {
 		stack = new Object[16];
-		stackIndex = 0;
+		insertionIndex = 0;
 	}
 	
 	public void pushArgs(Object[] args){
@@ -20,8 +20,8 @@ public class OperandStack {
 	
 	public void push(Object obj) {
 		try {
-			stack[stackIndex] = obj;
-			stackIndex++;
+			stack[insertionIndex] = obj;
+			insertionIndex++;
 		}catch(ArrayIndexOutOfBoundsException e) {
 			stack = Arrays.copyOf(stack, stack.length + 128);
 			this.push(obj);
@@ -29,21 +29,21 @@ public class OperandStack {
 	}
 
 	public Object pop() {
-		stackIndex--;
-		return stack[stackIndex];
+		insertionIndex--;
+		return stack[insertionIndex];
 	}
 
 	public Object peek() {
-		return stack[stackIndex - 1];
+		return stack[insertionIndex - 1];
 	}
 
 	public void dup(int index) {
-		this.push(stack[stackIndex - (index + 1)]);
+		this.push(stack[insertionIndex - (index + 1)]);
 	}
 
 	public void swap(int index1, int index2) {
-		int stackIndex1 = stackIndex - (index1 + 1);
-		int stackIndex2 = stackIndex - (index2 + 1);
+		int stackIndex1 = insertionIndex - (index1 + 1);
+		int stackIndex2 = insertionIndex - (index2 + 1);
 
 		Object obj1 = stack[stackIndex1];
 		Object obj2 = stack[stackIndex2];
@@ -51,17 +51,21 @@ public class OperandStack {
 		stack[index1] = obj2;
 		stack[index2] = obj1;
 	}
+
+	public int getStackDepth(){
+		return insertionIndex + 1;
+	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("Stack depth: " + stackIndex);
+		sb.append("Stack depth: " + insertionIndex);
 		sb.append('\n');
 		
-		for(int i = 0; i < stackIndex; i++) {
+		for(int i = 0; i < insertionIndex; i++) {
 			sb.append("  ");
-			sb.append(stack[stackIndex] != null ? stack[stackIndex].toString() : null);
+			sb.append(stack[insertionIndex] != null ? stack[insertionIndex].toString() : null);
 			sb.append('\n');
 		}
 		

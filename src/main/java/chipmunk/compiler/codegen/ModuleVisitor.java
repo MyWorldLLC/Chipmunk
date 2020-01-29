@@ -107,7 +107,7 @@ public class ModuleVisitor implements AstVisitor {
 		initializer.getCode().setLocalCount(0);
 		initializer.getCode().setExceptionTable(initCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 		initializer.getCode().setDebugTable(initCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		initializer.getCode().setDebugSymbol(module.getName() + ".<init>");
+		initializer.getCode().setDebugSymbol(module.getName() + ".<module init>");
 		
 		initializer.bind(module);
 		initializer.getCode().setModule(module);

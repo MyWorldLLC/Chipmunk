@@ -3,6 +3,7 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.ChipmunkDisassembler;
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.Namespace;
@@ -171,7 +172,7 @@ public class ClassVisitor implements AstVisitor {
 
 		sharedInitializer.getCode().setExceptionTable(sharedInitCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 		sharedInitializer.getCode().setDebugTable(sharedInitCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		sharedInitializer.getCode().setDebugSymbol(cClass.getName() + ".<init>");
+		sharedInitializer.getCode().setDebugSymbol(cClass.getName() + ".<class init>");
 		
 		sharedInitializer.bind(cClass);
 		sharedInitializer.setModule(module);
@@ -212,9 +213,9 @@ public class ClassVisitor implements AstVisitor {
 			constructor.setConstantPool(constantPool.toArray());
 			constructor.setModule(module);
 			constructor.setInstructions(assembler.getCodeSegment());
-			instanceInitializer.getCode().setExceptionTable(new ExceptionBlock[]{});
-			instanceInitializer.getCode().setDebugTable(new DebugEntry[]{});
-			instanceInitializer.getCode().setDebugSymbol(cClass.getName() + "." + cClass.getName());
+			constructor.getCode().setExceptionTable(new ExceptionBlock[]{});
+			constructor.getCode().setDebugTable(new DebugEntry[]{});
+			constructor.getCode().setDebugSymbol(cClass.getName() + "." + cClass.getName());
 			
 			cClass.getInstanceAttributes().set(cClass.getName(), constructor);
 		}
