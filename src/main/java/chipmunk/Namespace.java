@@ -39,9 +39,14 @@ public class Namespace {
 		// has the value
 		if(traits != null && result == null) {
 			for(int i = 0; i < traits.size(); i++) {
-				Object value = ((CObject) attributes.get(traits.get(i))).getAttributes().get(name);
-				if(value != null) {
-					return value;
+
+				Object trait = attributes.get(traits.get(i));
+
+				if(trait instanceof CObject){
+					Object value = ((CObject) trait).getAttributes().get(name);
+					if(value != null) {
+						return value;
+					}
 				}
 			}
 		}
