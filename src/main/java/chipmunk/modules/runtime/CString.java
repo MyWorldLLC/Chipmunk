@@ -1,5 +1,7 @@
 package chipmunk.modules.runtime;
 
+import chipmunk.ChipmunkVM;
+
 public class CString {
 	
 	private String value;
@@ -14,6 +16,16 @@ public class CString {
 	
 	public String stringValue(){
 		return value;
+	}
+
+	public CInteger hashCode(ChipmunkVM vm){
+		vm.traceInteger();
+		return new CInteger(hashCode());
+	}
+
+	public CBoolean equals(ChipmunkVM vm, Object other){
+		vm.traceBoolean();
+		return new CBoolean(equals(other));
 	}
 	
 	@Override
