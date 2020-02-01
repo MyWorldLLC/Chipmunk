@@ -11,6 +11,8 @@ import chipmunk.ChipmunkVM.CallFrame;
 import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkScript {
+
+	protected List<ModuleLoader> loaders;
 	
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
@@ -27,6 +29,7 @@ public class ChipmunkScript {
 	}
 	
 	public ChipmunkScript(int initialStackDepth){
+		loaders = new ArrayList<>();
 		modules = new HashMap<>();
 		stack = new ArrayList<>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<>();
@@ -66,5 +69,13 @@ public class ChipmunkScript {
 	}
 	public void setModule(CModule module){
 		modules.put(module.getName(), module);
+	}
+
+	public List<ModuleLoader> getLoaders(){
+		return loaders;
+	}
+
+	public void setLoaders(List<ModuleLoader> loaders){
+		this.loaders = loaders;
 	}
 }

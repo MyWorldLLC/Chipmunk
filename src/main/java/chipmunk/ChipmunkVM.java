@@ -269,9 +269,6 @@ public class ChipmunkVM {
 		voidCallTypes[9] = CallNineVoid.class;
 		voidCallTypes[10] = CallTenVoid.class;
 		
-
-		loaders = new ArrayList<ModuleLoader>();
-		
 		activeScript = new ChipmunkScript(128);
 		//stack = new Object[128]; //activeScript.stack;
 		//stackIndex = 0;
@@ -289,17 +286,8 @@ public class ChipmunkVM {
 		methodLookup = MethodHandles.lookup();
 	}
 	
-	public void setLoaders(List<ModuleLoader> loaders){
-		
-		if(loaders == null){
-			throw new NullPointerException("Loaders cannot be null");
-		}
-		
-		this.loaders = loaders;
-	}
-	
 	public List<ModuleLoader> getLoaders(){
-		return loaders;
+		return activeScript.getLoaders();
 	}
 	
 	public void loadModule(String moduleName) throws ModuleLoadChipmunk {
@@ -375,10 +363,9 @@ public class ChipmunkVM {
 		ChipmunkScript script = new ChipmunkScript();
 		script.setEntryCall(mainModule.getName(), "main");
 
-		for (CModule module : modules) {
-			// TODO - this is incorrect - initializers will not run
-			script.getModules().put(module.getName(), module);
-		}
+		MemoryModuleLoader loader = new MemoryModuleLoader();
+		loader.addModules(modules);
+		script.getLoaders().add(loader);
 
 		return script;
 	}
@@ -396,8 +383,9 @@ public class ChipmunkVM {
 		interrupted = false;
 
 		activeScript = script;
-		
-		modules = script.modules;
+
+		loaders = script.getLoaders();
+		modules = script.getModules();
 		OperandStack stack = new OperandStack();
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;

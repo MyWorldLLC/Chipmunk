@@ -17,9 +17,9 @@ class RuntimeSpecification extends Specification {
 		
 		MemoryModuleLoader loader = new MemoryModuleLoader()
 		loader.addModules(modules)
-		vm.getLoaders().add(loader)
 		
 		ChipmunkScript script = new ChipmunkScript()
+		script.getLoaders().add(loader)
 		
 		script.setEntryCall("test", "main")
 		
