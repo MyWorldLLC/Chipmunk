@@ -8,11 +8,8 @@ import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.Namespace;
 import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.Token;
+import chipmunk.compiler.ast.*;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CMethod;
 import chipmunk.modules.runtime.CModule;
@@ -22,31 +19,22 @@ public class ClassVisitor implements AstVisitor {
 
 	protected CClass cClass;
 	protected List<Object> constantPool;
-	
-	protected Codegen sharedInitCodegen;
-	protected Codegen instanceInitCodegen;
-	
-	protected ChipmunkAssembler sharedInitAssembler;
-	protected ChipmunkAssembler instanceInitAssembler;
+
+	protected MethodNode sharedInit;
+	protected MethodNode instanceInit;
 	
 	protected CModule module;
 	
 	private boolean alreadyReachedConstructor;
-	private ChipmunkAssembler expAssembler;
 	
 	public ClassVisitor(CModule module){
-		this(new ArrayList<Object>(), module);
+		this(new ArrayList<>(), module);
 	}
 	
 	public ClassVisitor(List<Object> constantPool, CModule module){
-		this(constantPool, module, null);
-	}
-	
-	public ClassVisitor(List<Object> constantPool, CModule module, ChipmunkAssembler expAssembler){
 		this.constantPool = constantPool;
 		this.module = module;
 		alreadyReachedConstructor = false;
-		this.expAssembler = expAssembler;
 		
 	}
 	
@@ -56,14 +44,19 @@ public class ClassVisitor implements AstVisitor {
 		if(node instanceof ClassNode){
 			ClassNode classNode = (ClassNode) node;
 			
-			sharedInitAssembler = new ChipmunkAssembler(constantPool);
-			instanceInitAssembler = new ChipmunkAssembler(constantPool);
-
-			sharedInitCodegen = new Codegen(sharedInitAssembler, classNode.getSymbolTable(), module);
-			instanceInitCodegen = new Codegen(instanceInitAssembler, classNode.getSymbolTable(), module);
-			
 			if(cClass == null) {
 				cClass = new CClass(classNode.getName(), module);
+
+				sharedInit = new MethodNode("<class init>");
+				sharedInit.getSymbol().setShared(true);
+				sharedInit.getSymbolTable().setParent(classNode.getSymbolTable());
+
+				instanceInit = new MethodNode("<init>");
+				instanceInit.getSymbolTable().setParent(classNode.getSymbolTable());
+
+				classNode.addChild(sharedInit);
+				classNode.addChild(instanceInit);
+
 				classNode.visitChildren(this);
 			}else {
 				// visit nested class declarations
@@ -78,11 +71,6 @@ public class ClassVisitor implements AstVisitor {
 				}
 			}
 			
-			//if(expAssembler != null) {
-			//	expAssembler.push(cClass);
-			//}
-			
-			
 		}else if(node instanceof VarDecNode){
 			// TODO - final variables
 			VarDecNode varDec = (VarDecNode) node;
@@ -91,15 +79,25 @@ public class ClassVisitor implements AstVisitor {
 			final boolean isShared = varDec.getSymbol().isShared();
 			final boolean isFinal = varDec.getSymbol().isFinal();
 			final boolean isTrait = varDec.getSymbol().isTrait();
-			
-			if(isShared){
-				visitor = new VarDecVisitor(sharedInitCodegen);
-			}else{
-				visitor = new VarDecVisitor(instanceInitCodegen);
+
+			if(varDec.getAssignExpr() != null){
+				// Move the assignment to the relevant initializer
+				AstNode expr = varDec.getAssignExpr();
+				IdNode id = new IdNode(varDec.getIDNode().getID());
+
+				OperatorNode assign = new OperatorNode(new Token("=", Token.Type.EQUALS));
+				assign.getChildren().add(id);
+				assign.getChildren().add(expr);
+
+				varDec.setAssignExpr(null);
+
+				if(isShared){
+					sharedInit.addToBody(assign);
+				}else{
+					instanceInit.addToBody(assign);
+				}
 			}
-			
-			visitor.visit(varDec);
-			
+
 			Namespace clsNamespace;
 			if(isShared){
 				clsNamespace = cClass.getAttributes();
@@ -140,18 +138,27 @@ public class ClassVisitor implements AstVisitor {
 				visitor.genSelfReturn();
 				
 			}else{
-				// regular method, use shared constant pool
+				// non-constructors
 				visitor = new MethodVisitor(constantPool, module);
 				methodNode.visit(visitor);
 			}
 			
 				
 			CMethod method = visitor.getMethod();
-			
-			if(methodNode.getSymbol().isShared()){
+
+			if(methodNode == sharedInit){
+				// Shared initializer
+				method.bind(cClass);
+				cClass.setSharedInitializer(method);
+			}else if(methodNode == instanceInit){
+				// Instance initializer
+				cClass.setInstanceInitializer(method);
+			}else if(methodNode.getSymbol().isShared()){
+				// Plain shared method
 				method.bind(cClass);
 				cClass.getAttributes().set(methodNode.getName(), method);
 			}else{
+				// Plain instance method
 				cClass.getInstanceAttributes().set(methodNode.getName(), method);
 			}
 		}
@@ -160,44 +167,6 @@ public class ClassVisitor implements AstVisitor {
 	}
 	
 	public CClass getCClass(){
-		
-		CMethod sharedInitializer = new CMethod();
-		
-		sharedInitAssembler.getLocal(0);
-		sharedInitAssembler._return();
-		
-		sharedInitializer.setConstantPool(sharedInitAssembler.getConstantPool().toArray());
-		sharedInitializer.setInstructions(sharedInitAssembler.getCodeSegment());
-		sharedInitializer.setLocalCount(1);
-
-		sharedInitializer.getCode().setExceptionTable(sharedInitCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
-		sharedInitializer.getCode().setDebugTable(sharedInitCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		sharedInitializer.getCode().setDebugSymbol(cClass.getName() + ".<class init>");
-		
-		sharedInitializer.bind(cClass);
-		sharedInitializer.setModule(module);
-		
-		cClass.setSharedInitializer(sharedInitializer);
-		
-		CMethod instanceInitializer = new CMethod();
-		
-		// return newly created instance
-		instanceInitAssembler.getLocal(0);
-		instanceInitAssembler._return();
-		
-		instanceInitializer.setConstantPool(instanceInitAssembler.getConstantPool().toArray());
-		instanceInitializer.setInstructions(instanceInitAssembler.getCodeSegment());
-		instanceInitializer.setLocalCount(1);
-
-		instanceInitializer.getCode().setExceptionTable(instanceInitCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
-		instanceInitializer.getCode().setDebugTable(instanceInitCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		instanceInitializer.getCode().setDebugSymbol(cClass.getName() + ".<init>");
-		
-		instanceInitializer.setModule(module);
-		// instance initializer will be bound at runtime to newly created
-		// instances
-		
-		cClass.setInstanceInitializer(instanceInitializer);
 		
 		// generate default constructor if no constructor was specified
 		if(!alreadyReachedConstructor){

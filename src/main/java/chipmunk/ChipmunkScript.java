@@ -17,7 +17,7 @@ public class ChipmunkScript {
 	protected Deque<CallFrame> frozenCallStack;
 	protected Deque<CModule> initializationQueue;
 	private boolean initialized;
-	
+
 	protected String entryModule;
 	protected String entryMethod;
 	protected Object[] entryArgs;
@@ -27,10 +27,10 @@ public class ChipmunkScript {
 	}
 	
 	public ChipmunkScript(int initialStackDepth){
-		modules = new HashMap<String, CModule>();
-		stack = new ArrayList<Object>(initialStackDepth);
-		frozenCallStack = new ArrayDeque<CallFrame>();
-		initializationQueue = new ArrayDeque<CModule>();
+		modules = new HashMap<>();
+		stack = new ArrayList<>(initialStackDepth);
+		frozenCallStack = new ArrayDeque<>();
+		initializationQueue = new ArrayDeque<>();
 		initialized = false;
 	}
 	
@@ -42,7 +42,7 @@ public class ChipmunkScript {
 	protected void initialized(){
 		initialized = true;
 	}
-	
+
 	public void setEntryCall(String module, String method, Object... args){
 		entryModule = module;
 		entryMethod = method;

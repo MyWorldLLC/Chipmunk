@@ -29,8 +29,10 @@ class RuntimeSpecification extends Specification {
 			try{
 				return vm.run(script)
 			}catch(Exception e){
-				CMethod method = script.getModules().get("test").getNamespace().get("main")
-				println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
+
+				for(def module : script.getModules().values()){
+					println(ChipmunkDisassembler.disassemble(module))
+				}
 				
 				def sw = new StringWriter()
 				e.printStackTrace(new PrintWriter(sw))
@@ -208,6 +210,14 @@ class RuntimeSpecification extends Specification {
 		
 		then:
 		result.intValue() == 9
+	}
+
+	def "Run StateMachines.chp"(){
+		when:
+		def result = compileAndRun("StateMachines.chp", true)
+
+		then:
+		result.intValue() == 5
 	}
 	
 }

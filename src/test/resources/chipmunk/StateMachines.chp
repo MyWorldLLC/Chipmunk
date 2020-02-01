@@ -1,0 +1,86 @@
+module chipmunk.state
+
+class State {
+
+    var name
+
+    def State(name){
+        self.name = name
+    }
+
+    def activate(){}
+
+    def deactivate(){}
+
+    def getName(){
+        return name
+    }
+
+}
+
+class StateManager {
+
+    var states = {}
+    var activeState
+
+    def addState(state){
+        self.states[state.getName()] = state
+    }
+
+    def getAvailableState(){
+        return states
+    }
+
+    def removeState(stateName){
+        states.remove(stateName)
+    }
+
+    def switchState(stateName){
+        if(activeState != null){
+            activeState.deactivate()
+        }
+
+        activeState = states[stateName]
+
+        if(activeState != null){
+            activeState.activate()
+        }
+    }
+
+    def getActiveState(){
+        return activeState
+    }
+}
+
+module test
+from chipmunk.state import StateManager, State
+
+class ActualState {
+
+    shared var STATE_NAME = 'ARealLiveActualState'
+
+    trait state = State(STATE_NAME)
+    var foo
+
+    def activate(){
+        foo = 5
+    }
+
+    def deactivate(){
+        foo = 0
+    }
+
+    def getFoo(){
+        return foo
+    }
+
+}
+
+def main(){
+    var stateManager = StateManager()
+
+    stateManager.addState(ActualState())
+
+    stateManager.switchState(ActualState.STATE_NAME)
+    return stateManager.getActiveState().getFoo()
+}

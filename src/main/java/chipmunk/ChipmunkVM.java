@@ -66,13 +66,7 @@ import java.lang.invoke.WrongMethodTypeException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
@@ -216,7 +210,7 @@ public class ChipmunkVM {
 	protected Deque<CModule> initializationQueue;
 	
 	public volatile boolean interrupted;
-	private volatile boolean resuming;
+	//private volatile boolean resuming;
 	
 	private int memHigh;
 
@@ -397,7 +391,7 @@ public class ChipmunkVM {
 		return vm.run(script);
 	}
 
-	public Object run(ChipmunkScript script) throws SuspendedChipmunk, AngryChipmunk {
+	public Object run(ChipmunkScript script) throws AngryChipmunk {
 		
 		interrupted = false;
 
@@ -408,10 +402,8 @@ public class ChipmunkVM {
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
 		
-		if(script.isFrozen()){
-			resuming = true;
-		}else{
-			loadModule(script.entryModule);// TODO - the initializer is probably never running
+		if(!script.isFrozen() && !activeScript.isInitialized()){
+			loadModule(script.entryModule);
 		}
 		
 		if(hasNextFrame() && !initializationQueue.isEmpty()){
@@ -459,9 +451,9 @@ public class ChipmunkVM {
 			}
 		}
 		activeScript.initialized();
-		
-		
-		if(resuming && hasNextFrame()){
+
+
+		if(hasNextFrame()){//if(resuming && hasNextFrame()){
 			// If frozen call stack isn't empty,
 			// continue dispatch
 			return this.dispatch(frozenCallStack.peek().method, null);
@@ -584,7 +576,7 @@ public class ChipmunkVM {
 		final int localCount = method.getCode().getLocalCount();
 		final Object[] constantPool = method.getCode().getConstantPool();
 
-		if (resuming && frozenCallStack.size() > 0) {
+		if (frozenCallStack.size() > 0) {
 			CallFrame frame = unfreezeNext();
 			ip = frame.ip;
 			locals = frame.locals;
@@ -621,7 +613,6 @@ public class ChipmunkVM {
 				}
 			}
 		} else {
-			resuming = false;
 			locals = new Object[localCount + 1];
 			stack = new OperandStack();
 			locals[0] = method.getSelf();
@@ -880,10 +871,7 @@ public class ChipmunkVM {
 					// method resumes after being suspended, it will try to
 					// re-run this call.
 					ip += 2;
-
-					Object result = callExternal(stack, ins, "call", 1, callCache, ip);
-					stack.push(result != null ? result : CNull.instance());
-
+					stack.push(callExternal(stack, ins, "call", 1, callCache, ip));
 					break;
 				case CALLAT:
 					ins = stack.pop();
@@ -902,9 +890,7 @@ public class ChipmunkVM {
 					// method resumes after being suspended, it will try to
 					// re-run this call.
 					ip += 6;
-
-					result = callExternal(stack, ins, methodName, paramCount, callCache, ip);
-					stack.push(result != null ? result : CNull.instance());
+					stack.push(callExternal(stack, ins, methodName, paramCount, callCache, ip));
 					break;
 				case GOTO:
 					int gotoIndex = fetchInt(instructions, ip + 1);
@@ -1259,28 +1245,23 @@ public class ChipmunkVM {
 	}
 
 	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount, Object[] callCache, int callCacheIndex) {
-		
-		Object[] params = null;
 
-		if (target instanceof RuntimeObject) {
-			params = new Object[paramCount + 1];
+		final boolean isInterceptor = target instanceof CallInterceptor;
+		final boolean isRuntimeObject = target instanceof RuntimeObject;
 
-			// pop arguments right->left
-			for (int i = paramCount; i >= 1; i--) {
-				params[i] = stack.pop();
-			}
+		// Assume that the target is not a call interceptor and that it
+		// is a runtime object
+		final Object[] params = new Object[paramCount + (isRuntimeObject ? 1 : 0)];
+		stack.popArgs(paramCount, params);
+
+		if(isRuntimeObject){
 			params[0] = this;
-		} else {
-			params = new Object[paramCount];
-
-			// pop arguments right->left
-			for (int i = paramCount - 1; i >= 0; i--) {
-				params[i] = stack.pop();
-			}
 		}
-		
-		if(target instanceof CallInterceptor){
-			Object result = ((CallInterceptor) target).callAt(this, methodName, params);
+
+		final Object[] interceptedParams = isInterceptor ? Arrays.copyOfRange(params, 1, params.length) : params;
+
+		if(isInterceptor){
+			Object result = ((CallInterceptor) target).callAt(this, methodName, interceptedParams);
 			// null result indicates that the interceptor did not intercept the call, so
 			// continue with a plain dispatch
 			if(result != null){

@@ -26,7 +26,7 @@ public class ModuleVisitor implements AstVisitor {
 	protected List<Object> constantPool;
 	
 	public ModuleVisitor(){
-		constantPool = new ArrayList<Object>();
+		constantPool = new ArrayList<>();
 		assembler = new ChipmunkAssembler(constantPool);
 	}
 

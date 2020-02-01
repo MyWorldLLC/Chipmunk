@@ -55,12 +55,132 @@ import static chipmunk.Opcodes.THROW;
 import static chipmunk.Opcodes.TRUTH;
 import static chipmunk.Opcodes.URSHIFT;
 
-import java.util.List;
-
+import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CMethod;
 import chipmunk.modules.runtime.CMethodCode;
+import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkDisassembler {
+
+	public static final String INDENTATION = "  ";
+
+	public static String disassemble(CModule module){
+		StringBuilder builder = new StringBuilder();
+		builder.append("module ");
+		builder.append(module.getName());
+		builder.append("\n\n");
+
+		final Object[] constantPool = module.getConstantsUnmodifiable().toArray();
+		disassemble(constantPool, builder, INDENTATION);
+		builder.append("\n");
+
+		builder.append(INDENTATION);
+		builder.append("Variables:\n");
+		for(String varName : module.getNamespace().names()){
+			builder.append(INDENTATION);
+			builder.append(INDENTATION);
+			builder.append(varName);
+			builder.append("\n");
+		}
+		builder.append("\n");
+
+		if(module.hasInitializer()){
+			builder.append(INDENTATION);
+			builder.append("<init>\n");
+			builder.append(disassemble(module.getInitializer().getCode(), null, false, INDENTATION));
+			builder.append("\n\n");
+		}
+
+		// TODO - Get & disassemble classes & methods in the namespace
+		for(String name : module.getNamespace().names()){
+			Object value = module.getNamespace().get(name);
+			if(value instanceof CClass){
+				CClass cls = (CClass) value;
+				disassemble(cls, builder, INDENTATION);
+			}else if(value instanceof CMethod){
+				CMethod method = (CMethod) value;
+			}
+		}
+
+		return builder.toString();
+	}
+
+	public static void disassemble(CClass cls, StringBuilder builder, String padding){
+		builder.append(padding);
+		builder.append("class ");
+		builder.append(cls.getName());
+		builder.append(":\n\n");
+
+		padding = padding + INDENTATION;
+
+		builder.append(padding);
+		builder.append("Shared Attributes:\n");
+		for(String varName : cls.getAttributes().names()){
+			builder.append(padding);
+			builder.append(INDENTATION);
+			builder.append(varName);
+			builder.append("\n");
+		}
+		builder.append("\n");
+
+		if(cls.getSharedInitializer() != null){
+			builder.append(padding);
+			builder.append("<shared init>\n");
+			builder.append(disassemble(cls.getSharedInitializer().getCode(), null, false, padding));
+			builder.append("\n");
+		}
+
+		builder.append(padding);
+		builder.append("Instance Attributes:\n");
+		for(String varName : cls.getInstanceAttributes().names()){
+			builder.append(padding);
+			builder.append(INDENTATION);
+			builder.append(varName);
+			builder.append("\n");
+		}
+		builder.append("\n");
+
+		if(cls.getInstanceInitializer() != null){
+			builder.append(padding);
+			builder.append("<init>\n");
+			builder.append(disassemble(cls.getInstanceInitializer().getCode(), null, false, padding));
+			builder.append("\n\n");
+		}
+
+		for(String varName : cls.getInstanceAttributes().names()){
+			Object value = cls.getInstanceAttributes().get(varName);
+			if(value instanceof CMethod){
+				builder.append(padding);
+				builder.append(INDENTATION);
+				builder.append("def ");
+				builder.append(varName);
+				builder.append(":\n");
+				builder.append(disassemble(((CMethod) value).getCode(), null, false, padding + INDENTATION));
+				builder.append("\n\n");
+			}
+		}
+
+	}
+
+	private static void disassemble(Object[] constantPool, StringBuilder builder, String padding){
+		builder.append(padding);
+		builder.append("Constants:\n");
+
+		String entryPadding = padding + "  ";
+		for(int i = 0; i < constantPool.length; i++){
+			builder.append(entryPadding);
+			builder.append(i);
+			builder.append(": ");
+			builder.append(constantPool[i].toString());
+
+			if(constantPool[i] instanceof CMethod){
+				builder.append('\n');
+				CMethod method = (CMethod) constantPool[i];
+				builder.append(disassemble(method.getCode(), method.getCode().getConstantPool(), true, padding + "     "));
+			}
+			builder.append('\n');
+		}
+	}
 	
 	public static String disassemble(CMethodCode codeSegment){
 		return disassemble(codeSegment, null);
@@ -98,11 +218,7 @@ public class ChipmunkDisassembler {
 			}
 		}
 		
-		builder.append('\n');
-		builder.append(padding);
-		builder.append("Code:\n");
-		
-		String codePadding = padding + "  ";
+		String codePadding = padding + INDENTATION;
 		
 		int ip = 0;
 		while(ip < codeSegment.getCode().length){

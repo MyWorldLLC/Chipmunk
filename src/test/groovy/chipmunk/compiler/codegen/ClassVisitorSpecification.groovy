@@ -61,7 +61,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 2
+		instance.getAttributes().names().size() == 3
 		instance.getAttributes().get("foo").intValue() == 2
 	}
 	
@@ -83,7 +83,7 @@ class ClassVisitorSpecification extends Specification {
 		cClass.getAttributes().get("foo").intValue() == 2
 		
 		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 2
+		instance.getAttributes().names().size() == 3
 		instance.getAttributes().get("bar").intValue() == 3
 	}
 	
@@ -101,7 +101,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 2
+		instance.getAttributes().names().size() == 3
 		instance.getAttributes().get("foo").intValue() == 2
 	}
 	
@@ -121,7 +121,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 2
+		instance.getAttributes().names().size() == 3
 		instance.getAttributes().get("foo").intValue() == 5
 	}
 	
@@ -144,7 +144,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 2
+		instance.getAttributes().names().size() == 3
 		instance.getAttributes().get("bar").intValue() == 6
 		instance.getCClass().getAttributes().names().size() == 1
 		instance.getCClass().getAttributes().get("foo").intValue() == 5

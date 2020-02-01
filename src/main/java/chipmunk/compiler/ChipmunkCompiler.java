@@ -21,7 +21,7 @@ public class ChipmunkCompiler {
 	protected List<ModuleNode> parsedModules;
 	
 	public ChipmunkCompiler(){
-		visitors = new ArrayList<AstVisitor>();
+		visitors = new ArrayList<>();
 		visitors.add(new InnerMethodRewriteVisitor());
 		visitors.add(new SymbolTableBuilderVisitor());
 	}
@@ -34,7 +34,7 @@ public class ChipmunkCompiler {
 		return parsedModules;
 	}
 	
-	public List<CModule> compile(CharSequence src, String fileName) throws CompileChipmunk, SyntaxErrorChipmunk {
+	public List<CModule> compile(CharSequence src, String fileName) throws CompileChipmunk {
 		
 		List<CModule> modules = new ArrayList<CModule>();
 		ChipmunkLexer lexer = new ChipmunkLexer();
@@ -59,7 +59,7 @@ public class ChipmunkCompiler {
 		return modules;
 	}
 	
-	public List<CModule> compile(InputStream src, String fileName) throws IOException, CompileChipmunk, SyntaxErrorChipmunk {
+	public List<CModule> compile(InputStream src, String fileName) throws IOException, CompileChipmunk {
 		StringBuilder builder = new StringBuilder();
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));

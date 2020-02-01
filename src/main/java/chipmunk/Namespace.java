@@ -22,7 +22,7 @@ public class Namespace {
 	private Set<String> finalAttributes;
 	
 	public Namespace(){
-		attributes = new HashMap<String, Object>();
+		attributes = new HashMap<>();
 	}
 	
 	public boolean has(String name){

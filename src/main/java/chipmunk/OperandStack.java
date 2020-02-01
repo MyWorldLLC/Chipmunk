@@ -17,6 +17,14 @@ public class OperandStack {
 			this.push(args[i]);
 		}
 	}
+
+	public void popArgs(int argCount, Object[] args){
+		// pop count args right -> left, leaving padding at the front of the array if it
+		// is larger than needed
+		for(int i = args.length - 1, j = 0; j < argCount; i--, j++){
+			args[i] = pop();
+		}
+	}
 	
 	public void push(Object obj) {
 		try {

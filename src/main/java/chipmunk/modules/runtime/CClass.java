@@ -47,6 +47,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		CObject obj = new CObject(this, instanceAttributes.duplicate());
 		obj.setInitializer(instanceInitializer.duplicate(vm));
 		obj.getInitializer().bind(obj);
+		obj.getAttributes().set("class", this);
 		
 		// Invoke constructor (compiler ensures that all classes have exactly one constructor).
 		// This is suspension/exception-safe because (a) any exceptions will seamlessly propagate

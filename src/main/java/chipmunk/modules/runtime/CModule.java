@@ -56,7 +56,7 @@ public class CModule {
 	}
 	
 	public CModule(String name){
-		this(name, new ArrayList<Object>());
+		this(name, new ArrayList<>());
 	}
 	
 	public CModule(String name, List<Object> constantPool){
@@ -71,7 +71,7 @@ public class CModule {
 		this.name = name;
 		constants = constantPool;
 		namespace = new Namespace();
-		imports = new ArrayList<Import>();
+		imports = new ArrayList<>();
 	}
 	
 	public List<Object> getConstantsUnmodifiable(){

@@ -87,6 +87,11 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 		vm.traceBoolean();
 		return new CBoolean(false);
 	}
+
+	public CBoolean equals(ChipmunkVM vm, Object other){
+		vm.traceBoolean();
+		return new CBoolean(other == this);
+	}
 	
 	@Override
 	public Object callAt(ChipmunkVM vm, String methodName, Object[] params) {
