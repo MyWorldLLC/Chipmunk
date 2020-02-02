@@ -1,6 +1,6 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkDisassembler
+
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser

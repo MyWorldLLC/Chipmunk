@@ -1,10 +1,7 @@
 package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.compiler.ChipmunkLexer
-import chipmunk.compiler.ChipmunkParser
-import chipmunk.modules.runtime.CMethod
-import spock.lang.Ignore
+import chipmunk.compiler.ChipmunkDisassembler
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {

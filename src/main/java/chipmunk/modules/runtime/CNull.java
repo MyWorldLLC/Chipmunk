@@ -1,6 +1,5 @@
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkDisassembler;
 import chipmunk.ChipmunkVM;
 
 public class CNull implements RuntimeObject {

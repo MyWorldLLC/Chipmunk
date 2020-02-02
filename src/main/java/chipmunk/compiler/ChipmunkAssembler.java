@@ -449,6 +449,16 @@ public class ChipmunkAssembler {
 		
 		writeInt(index);
 	}
+
+	public void initModule(int importIndex){
+		writeByte(Opcodes.INITMODULE);
+		writeInt(importIndex);
+	}
+
+	public void _import(int importIndex){
+		writeByte(Opcodes.IMPORT);
+		writeInt(importIndex);
+	}
 	
 	private void emitBinaryOp(byte op) {
 		writeByte(op);

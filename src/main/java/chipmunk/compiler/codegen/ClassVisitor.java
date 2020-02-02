@@ -3,7 +3,6 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.ChipmunkDisassembler;
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.Namespace;

@@ -1,64 +1,12 @@
-package chipmunk;
+package chipmunk.compiler;
 
-import static chipmunk.Opcodes.ADD;
-import static chipmunk.Opcodes.AND;
-import static chipmunk.Opcodes.AS;
-import static chipmunk.Opcodes.BAND;
-import static chipmunk.Opcodes.BNEG;
-import static chipmunk.Opcodes.BOR;
-import static chipmunk.Opcodes.BXOR;
-import static chipmunk.Opcodes.CALL;
-import static chipmunk.Opcodes.CALLAT;
-import static chipmunk.Opcodes.DEC;
-import static chipmunk.Opcodes.DIV;
-import static chipmunk.Opcodes.DUP;
-import static chipmunk.Opcodes.EQ;
-import static chipmunk.Opcodes.FDIV;
-import static chipmunk.Opcodes.GE;
-import static chipmunk.Opcodes.GETAT;
-import static chipmunk.Opcodes.GETATTR;
-import static chipmunk.Opcodes.GETLOCAL;
-import static chipmunk.Opcodes.GETMODULE;
-import static chipmunk.Opcodes.GOTO;
-import static chipmunk.Opcodes.GT;
-import static chipmunk.Opcodes.IF;
-import static chipmunk.Opcodes.INC;
-import static chipmunk.Opcodes.INIT;
-import static chipmunk.Opcodes.INSTANCEOF;
-import static chipmunk.Opcodes.IS;
-import static chipmunk.Opcodes.ITER;
-import static chipmunk.Opcodes.LE;
-import static chipmunk.Opcodes.LIST;
-import static chipmunk.Opcodes.LSHIFT;
-import static chipmunk.Opcodes.LT;
-import static chipmunk.Opcodes.MAP;
-import static chipmunk.Opcodes.MOD;
-import static chipmunk.Opcodes.MUL;
-import static chipmunk.Opcodes.NEG;
-import static chipmunk.Opcodes.NEXT;
-import static chipmunk.Opcodes.NOT;
-import static chipmunk.Opcodes.OR;
-import static chipmunk.Opcodes.POP;
-import static chipmunk.Opcodes.POS;
-import static chipmunk.Opcodes.POW;
-import static chipmunk.Opcodes.PUSH;
-import static chipmunk.Opcodes.RANGE;
-import static chipmunk.Opcodes.RETURN;
-import static chipmunk.Opcodes.RSHIFT;
-import static chipmunk.Opcodes.SETAT;
-import static chipmunk.Opcodes.SETATTR;
-import static chipmunk.Opcodes.SETLOCAL;
-import static chipmunk.Opcodes.SETMODULE;
-import static chipmunk.Opcodes.SUB;
-import static chipmunk.Opcodes.SWAP;
-import static chipmunk.Opcodes.THROW;
-import static chipmunk.Opcodes.TRUTH;
-import static chipmunk.Opcodes.URSHIFT;
-
+import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CMethod;
 import chipmunk.modules.runtime.CMethodCode;
 import chipmunk.modules.runtime.CModule;
+
+import static chipmunk.Opcodes.*;
 
 public class ChipmunkDisassembler {
 
@@ -69,6 +17,8 @@ public class ChipmunkDisassembler {
 		builder.append("module ");
 		builder.append(module.getName());
 		builder.append("\n\n");
+
+		// TODO - import table
 
 		final Object[] constantPool = module.getConstantsUnmodifiable().toArray();
 		disassemble(constantPool, builder, INDENTATION);
@@ -461,6 +411,16 @@ public class ChipmunkDisassembler {
 				break;
 			case SETMODULE:
 				builder.append("setmodule ");
+				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				ip += 5;
+				break;
+			case INITMODULE:
+				builder.append("initmodule ");
+				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				ip += 5;
+				break;
+			case IMPORT:
+				builder.append("import ");
 				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
 				ip += 5;
 				break;

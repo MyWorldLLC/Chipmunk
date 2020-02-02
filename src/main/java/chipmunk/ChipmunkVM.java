@@ -1,60 +1,5 @@
 package chipmunk;
 
-import static chipmunk.Opcodes.ADD;
-import static chipmunk.Opcodes.AND;
-import static chipmunk.Opcodes.AS;
-import static chipmunk.Opcodes.BAND;
-import static chipmunk.Opcodes.BNEG;
-import static chipmunk.Opcodes.BOR;
-import static chipmunk.Opcodes.BXOR;
-import static chipmunk.Opcodes.CALL;
-import static chipmunk.Opcodes.CALLAT;
-import static chipmunk.Opcodes.DEC;
-import static chipmunk.Opcodes.DIV;
-import static chipmunk.Opcodes.DUP;
-import static chipmunk.Opcodes.EQ;
-import static chipmunk.Opcodes.FDIV;
-import static chipmunk.Opcodes.GE;
-import static chipmunk.Opcodes.GETAT;
-import static chipmunk.Opcodes.GETATTR;
-import static chipmunk.Opcodes.GETLOCAL;
-import static chipmunk.Opcodes.GETMODULE;
-import static chipmunk.Opcodes.GOTO;
-import static chipmunk.Opcodes.GT;
-import static chipmunk.Opcodes.IF;
-import static chipmunk.Opcodes.INC;
-import static chipmunk.Opcodes.INIT;
-import static chipmunk.Opcodes.INSTANCEOF;
-import static chipmunk.Opcodes.IS;
-import static chipmunk.Opcodes.ITER;
-import static chipmunk.Opcodes.LE;
-import static chipmunk.Opcodes.LIST;
-import static chipmunk.Opcodes.LSHIFT;
-import static chipmunk.Opcodes.LT;
-import static chipmunk.Opcodes.MAP;
-import static chipmunk.Opcodes.MOD;
-import static chipmunk.Opcodes.MUL;
-import static chipmunk.Opcodes.NEG;
-import static chipmunk.Opcodes.NEXT;
-import static chipmunk.Opcodes.NOT;
-import static chipmunk.Opcodes.OR;
-import static chipmunk.Opcodes.POP;
-import static chipmunk.Opcodes.POS;
-import static chipmunk.Opcodes.POW;
-import static chipmunk.Opcodes.PUSH;
-import static chipmunk.Opcodes.RANGE;
-import static chipmunk.Opcodes.RETURN;
-import static chipmunk.Opcodes.RSHIFT;
-import static chipmunk.Opcodes.SETAT;
-import static chipmunk.Opcodes.SETATTR;
-import static chipmunk.Opcodes.SETLOCAL;
-import static chipmunk.Opcodes.SETMODULE;
-import static chipmunk.Opcodes.SUB;
-import static chipmunk.Opcodes.SWAP;
-import static chipmunk.Opcodes.THROW;
-import static chipmunk.Opcodes.TRUTH;
-import static chipmunk.Opcodes.URSHIFT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.LambdaConversionException;
@@ -94,18 +39,9 @@ import chipmunk.invoke.CallTwo;
 import chipmunk.invoke.CallTwoVoid;
 import chipmunk.invoke.CallVoid;
 import chipmunk.invoke.VoidMarker;
-import chipmunk.modules.runtime.CBoolean;
-import chipmunk.modules.runtime.CFloat;
-import chipmunk.modules.runtime.CInteger;
-import chipmunk.modules.runtime.CIterator;
-import chipmunk.modules.runtime.CList;
-import chipmunk.modules.runtime.CMap;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CModule;
-import chipmunk.modules.runtime.CNull;
-import chipmunk.modules.runtime.CallInterceptor;
-import chipmunk.modules.runtime.Initializable;
-import chipmunk.modules.runtime.RuntimeObject;
+import chipmunk.modules.runtime.*;
+
+import static chipmunk.Opcodes.*;
 
 public class ChipmunkVM {
 
@@ -290,11 +226,11 @@ public class ChipmunkVM {
 		return activeScript.getLoaders();
 	}
 	
-	public void loadModule(String moduleName) throws ModuleLoadChipmunk {
+	public CModule loadModule(String moduleName) throws ModuleLoadChipmunk {
 		
 		if(modules.containsKey(moduleName)){
 			// this module is already loaded - skip
-			return;
+			return modules.get(moduleName);
 		}
 		
 		for(ModuleLoader loader : loaders){
@@ -305,12 +241,12 @@ public class ChipmunkVM {
 					// need to record the module *before* handling imports in case
 					// of a circular import
 					modules.put(module.getName(), module);
-					for(CModule.Import importedModule : module.getImports()){
+					/*for(CModule.Import importedModule : module.getImports()){
 						loadModule(importedModule.getName());
 					}
-					initializationQueue.add(module);
+					initializationQueue.add(module);*/
 					
-					return;
+					return module;
 				}
 			}catch(Exception e){
 				throw new ModuleLoadChipmunk(e);
@@ -386,11 +322,10 @@ public class ChipmunkVM {
 
 		loaders = script.getLoaders();
 		modules = script.getModules();
-		OperandStack stack = new OperandStack();
 		frozenCallStack = script.frozenCallStack;
 		initializationQueue = script.initializationQueue;
 		
-		if(!script.isFrozen() && !activeScript.isInitialized()){
+		/*if(!script.isFrozen() && !activeScript.isInitialized()){
 			loadModule(script.entryModule);
 		}
 		
@@ -398,9 +333,9 @@ public class ChipmunkVM {
 			// if the frozen call stack contains anything and we're not done initializing modules,
 			// continue running initializers
 			this.dispatch(frozenCallStack.peek().method, null);
-		}
+		}*/
 		
-		while(!initializationQueue.isEmpty()){
+		/*while(!initializationQueue.isEmpty()){
 			// At this point, the module initializers of modules this
 			// module depends on have run, so we can safely import the
 			// symbols now.
@@ -437,22 +372,46 @@ public class ChipmunkVM {
 			if(module.hasInitializer()){
 				this.dispatch(module.getInitializer(), null);
 			}
+		}*/
+		//activeScript.initialized();
+
+		if(!activeScript.isInitialized()){
+			loadModule(script.entryModule);
+
+			CModule entryModule = activeScript.modules.get(activeScript.entryModule);
+			if(entryModule.hasInitializer()){
+				// The entry module has an initializer that must run before the entry method.
+				// Push a frozen call frame to invoke it.
+
+				CMethod initializer = entryModule.getInitializer();
+				Object[] initLocals = new Object[initializer.getLocalCount() + 1];
+				initLocals[0] = initializer.getSelf();
+
+				OperandStack initStack = new OperandStack();
+				freeze(initializer, 0, initLocals, initStack);
+			}
+
+			CMethod entryMethod = (CMethod) entryModule.getNamespace().get(activeScript.entryMethod);
+
+			Object[] entryLocals = new Object[entryMethod.getLocalCount() + 1];
+			entryLocals[0] = entryMethod.getSelf();
+
+			OperandStack entryStack = new OperandStack();
+			entryStack.pushArgs(activeScript.entryArgs);
+
+			freeze(entryMethod, 0, entryLocals, entryStack);
+
+
+			activeScript.markInitialized();
 		}
-		activeScript.initialized();
 
-
-		if(hasNextFrame()){//if(resuming && hasNextFrame()){
+		if(hasNextFrame()){
 			// If frozen call stack isn't empty,
 			// continue dispatch
 			return this.dispatch(frozenCallStack.peek().method, null);
-		}else{
-			// Starting to run entry method.
-			CMethod entryMethod = (CMethod) activeScript.modules.get(
-					activeScript.entryModule).getNamespace().get(activeScript.entryMethod);
-			stack.pushArgs(activeScript.entryArgs);
-			return this.dispatch(entryMethod, activeScript.entryArgs);
 		}
-		
+
+		return null;
 	}
 
 	public void interrupt(){
@@ -1052,6 +1011,16 @@ public class ChipmunkVM {
 							ins);
 					ip += 5;
 					break;
+				case INITMODULE:
+					int importIndex = fetchInt(instructions, ip + 1);
+					ip += 5;
+					initModule(method.getCode(), importIndex);
+					break;
+				case IMPORT:
+					importIndex = fetchInt(instructions, ip + 1);
+					ip += 5;
+					doImport(method.getCode(), importIndex);
+					break;
 				default:
 					throw new InvalidOpcodeChipmunk(op);
 				}
@@ -1100,6 +1069,44 @@ public class ChipmunkVM {
 
 	private byte fetchByte(byte[] instructions, int ip) {
 		return instructions[ip];
+	}
+
+	private void initModule(CMethodCode code, int importIndex){
+		CModule.Import im = code.getModule().getImports().get(importIndex);
+		if(!modules.containsKey(im.getName())){
+			CModule newModule = loadModule(im.getName());
+			if(newModule.hasInitializer()){
+				this.dispatch(newModule.getInitializer(), null);
+			}
+		}
+	}
+
+	private void doImport(CMethodCode code, int importIndex){
+		final CModule module = code.getModule();
+		final CModule.Import moduleImport = code.getModule().getImports().get(importIndex);
+		final Namespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
+
+		if(moduleImport.isImportAll()){
+
+			Set<String> importedNames = importedNamespace.names();
+
+			for(String name : importedNames){
+				module.getNamespace().setFinal(name, importedNamespace.get(name));
+			}
+		}else{
+
+			List<String> symbols = moduleImport.getSymbols();
+			List<String> aliases = moduleImport.getAliases();
+
+			for(int i = 0; i < symbols.size(); i++){
+
+				if(moduleImport.isAliased()){
+					module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
+				}else{
+					module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
+				}
+			}
+		}
 	}
 
 	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws Throwable {

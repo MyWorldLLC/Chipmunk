@@ -1,18 +1,15 @@
 package chipmunk.compiler.codegen;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.ImportNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.ModuleNode;
-import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.Token;
+import chipmunk.compiler.ast.*;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CMethod;
 import chipmunk.modules.runtime.CModule;
@@ -22,12 +19,15 @@ public class ModuleVisitor implements AstVisitor {
 	
 	protected CModule module;
 	protected Codegen initCodegen;
-	protected ChipmunkAssembler assembler;
+	protected ChipmunkAssembler initAssembler;
+
+	protected MethodNode initMethod;
+
 	protected List<Object> constantPool;
 	
 	public ModuleVisitor(){
 		constantPool = new ArrayList<>();
-		assembler = new ChipmunkAssembler(constantPool);
+		initAssembler = new ChipmunkAssembler(constantPool);
 	}
 
 	@Override
@@ -36,7 +36,8 @@ public class ModuleVisitor implements AstVisitor {
 			
 			ModuleNode moduleNode = (ModuleNode) node;
 			module = new CModule(moduleNode.getSymbol().getName(), constantPool);
-			initCodegen = new Codegen(assembler, moduleNode.getSymbolTable(), module);
+			initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
+			initMethod = new MethodNode("<module init>");
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
@@ -87,6 +88,21 @@ public class ModuleVisitor implements AstVisitor {
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
+
+			if(varDec.getAssignExpr() != null) {
+				// Move the assignment to the module initializer
+				AstNode expr = varDec.getAssignExpr();
+				IdNode id = new IdNode(varDec.getIDNode().getID());
+
+				OperatorNode assign = new OperatorNode(new Token("=", Token.Type.EQUALS));
+				assign.getChildren().add(id);
+				assign.getChildren().add(expr);
+
+				varDec.setAssignExpr(null);
+
+				initMethod.addToBody(assign);
+			}
+
 			visitor.visit(varDec);
 			
 			module.getNamespace().set(varDec.getVarName(), CNull.instance());
@@ -96,18 +112,31 @@ public class ModuleVisitor implements AstVisitor {
 	}
 	
 	public CModule getModule(){
-		
-		CMethod initializer = new CMethod();
-		
-		assembler.pushNull();
-		assembler._return();
 
-		initializer.getCode().setConstantPool(assembler.getConstantPool().toArray());
-		initializer.getCode().setCode(assembler.getCodeSegment());
+		MethodVisitor initVisitor = new MethodVisitor(initAssembler, module);
+
+		Set<String> importedModules = new HashSet<>();
+		for(int i = 0; i < module.getImports().size(); i++){
+			CModule.Import im = module.getImports().get(i);
+
+			if(!importedModules.contains(im.getName())){
+				importedModules.add(im.getName());
+				initAssembler.initModule(i);
+			}
+
+			initAssembler._import(i);
+		}
+
+		initVisitor.visit(initMethod);
+
+		CMethod initializer = initVisitor.getMethod();
+
+		/*initializer.getCode().setConstantPool(initAssembler.getConstantPool().toArray());
+		initializer.getCode().setCode(initAssembler.getCodeSegment());
 		initializer.getCode().setLocalCount(0);
 		initializer.getCode().setExceptionTable(initCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 		initializer.getCode().setDebugTable(initCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		initializer.getCode().setDebugSymbol(module.getName() + ".<module init>");
+		initializer.getCode().setDebugSymbol(module.getName() + ".<module init>");*/
 		
 		initializer.bind(module);
 		initializer.getCode().setModule(module);

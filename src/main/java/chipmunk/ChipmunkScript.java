@@ -42,7 +42,7 @@ public class ChipmunkScript {
 	}
 	public boolean isInitialized(){ return initialized; }
 
-	protected void initialized(){
+	protected void markInitialized(){
 		initialized = true;
 	}
 

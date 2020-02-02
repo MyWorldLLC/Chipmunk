@@ -1,11 +1,10 @@
 package chipmunk.compiler.codegen
 
-import chipmunk.ChipmunkDisassembler
+import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.runtime.CMethod
 import chipmunk.modules.runtime.CModule
 import spock.lang.Specification
 
