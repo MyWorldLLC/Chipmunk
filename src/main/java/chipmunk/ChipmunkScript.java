@@ -17,7 +17,6 @@ public class ChipmunkScript {
 	protected Map<String, CModule> modules;
 	protected List<Object> stack;
 	protected Deque<CallFrame> frozenCallStack;
-	protected Deque<CModule> initializationQueue;
 	private boolean initialized;
 
 	protected String entryModule;
@@ -33,7 +32,6 @@ public class ChipmunkScript {
 		modules = new HashMap<>();
 		stack = new ArrayList<>(initialStackDepth);
 		frozenCallStack = new ArrayDeque<>();
-		initializationQueue = new ArrayDeque<>();
 		initialized = false;
 	}
 	

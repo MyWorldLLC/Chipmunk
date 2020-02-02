@@ -323,57 +323,6 @@ public class ChipmunkVM {
 		loaders = script.getLoaders();
 		modules = script.getModules();
 		frozenCallStack = script.frozenCallStack;
-		initializationQueue = script.initializationQueue;
-		
-		/*if(!script.isFrozen() && !activeScript.isInitialized()){
-			loadModule(script.entryModule);
-		}
-		
-		if(hasNextFrame() && !initializationQueue.isEmpty()){
-			// if the frozen call stack contains anything and we're not done initializing modules,
-			// continue running initializers
-			this.dispatch(frozenCallStack.peek().method, null);
-		}*/
-		
-		/*while(!initializationQueue.isEmpty()){
-			// At this point, the module initializers of modules this
-			// module depends on have run, so we can safely import the
-			// symbols now.
-			
-			CModule module = initializationQueue.poll();
-			
-			for(CModule.Import moduleImport : module.getImports()){
-
-				Namespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
-				
-				if(moduleImport.isImportAll()){
-					
-					Set<String> importedNames = importedNamespace.names();
-					
-					for(String name : importedNames){
-						module.getNamespace().setFinal(name, importedNamespace.get(name));
-					}
-				}else{
-					
-					List<String> symbols = moduleImport.getSymbols();
-					List<String> aliases = moduleImport.getAliases();
-					
-					for(int i = 0; i < symbols.size(); i++){
-						
-						if(moduleImport.isAliased()){
-							module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
-						}else{
-							module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
-						}
-					}
-				}
-			}
-			
-			if(module.hasInitializer()){
-				this.dispatch(module.getInitializer(), null);
-			}
-		}*/
-		//activeScript.initialized();
 
 		if(!activeScript.isInitialized()){
 			loadModule(script.entryModule);
