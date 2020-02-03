@@ -206,8 +206,6 @@ public class ChipmunkVM {
 		voidCallTypes[10] = CallTenVoid.class;
 		
 		activeScript = new ChipmunkScript(128);
-		//stack = new Object[128]; //activeScript.stack;
-		//stackIndex = 0;
 		frozenCallStack = activeScript.frozenCallStack;
 		
 		initializationQueue = new ArrayDeque<CModule>();
