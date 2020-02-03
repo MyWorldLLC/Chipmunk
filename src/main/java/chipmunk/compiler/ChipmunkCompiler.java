@@ -59,15 +59,20 @@ public class ChipmunkCompiler {
 		return modules;
 	}
 	
-	public List<CModule> compile(InputStream src, String fileName) throws IOException, CompileChipmunk {
+	public List<CModule> compile(InputStream src, String fileName) throws CompileChipmunk {
 		StringBuilder builder = new StringBuilder();
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
-		int character = reader.read();
-		while(character != -1){
-			builder.append((char) character);
-			character = reader.read();
+
+		try{
+			BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
+			int character = reader.read();
+			while(character != -1){
+				builder.append((char) character);
+				character = reader.read();
+			}
+		}catch(IOException ex){
+			throw new CompileChipmunk("Failed to load source", ex);
 		}
+
 		
 		return compile(builder, fileName);
 	}
