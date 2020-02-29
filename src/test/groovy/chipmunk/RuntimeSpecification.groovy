@@ -2,6 +2,7 @@ package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.modules.runtime.ChipmunkModuleBuilder
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {
@@ -13,6 +14,7 @@ class RuntimeSpecification extends Specification {
 		List modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
 		
 		MemoryModuleLoader loader = new MemoryModuleLoader()
+		loader.addModule(ChipmunkModuleBuilder.buildLangModule())
 		loader.addModules(modules)
 		
 		ChipmunkScript script = new ChipmunkScript()
