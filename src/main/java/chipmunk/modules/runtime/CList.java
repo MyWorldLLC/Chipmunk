@@ -20,6 +20,10 @@ public class CList implements RuntimeObject {
 		this.list = list;
 	}
 
+	public List<Object> getBackingList(){
+		return list;
+	}
+
 	public void add(Object obj){ list.add(obj); }
 	
 	public void add(ChipmunkVM vm, Object obj){

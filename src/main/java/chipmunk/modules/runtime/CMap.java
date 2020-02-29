@@ -17,6 +17,10 @@ public class CMap implements RuntimeObject {
 	public CMap(Map<Object, Object> map){
 		this.map = map;
 	}
+
+	public Map<Object, Object> getBackingMap(){
+		return map;
+	}
 	
 	public void clear(){
 		map.clear();
