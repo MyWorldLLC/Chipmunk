@@ -143,7 +143,6 @@ public class ChipmunkVM {
 	//protected Object[] stack;
 	//private int stackIndex;
 	protected Deque<CallFrame> frozenCallStack;
-	protected Deque<CModule> initializationQueue;
 	
 	public volatile boolean interrupted;
 	//private volatile boolean resuming;
@@ -207,8 +206,6 @@ public class ChipmunkVM {
 		
 		activeScript = new ChipmunkScript(128);
 		frozenCallStack = activeScript.frozenCallStack;
-		
-		initializationQueue = new ArrayDeque<CModule>();
 		
 		memHigh = 0;
 
@@ -347,12 +344,13 @@ public class ChipmunkVM {
 
 			Object[] entryLocals = new Object[entryMethod.getLocalCount() + 1];
 			entryLocals[0] = entryMethod.getSelf();
+			for (int i = 0; activeScript.entryArgs != null && i < activeScript.entryArgs.length; i++) {
+				entryLocals[i + 1] = activeScript.entryArgs[i];
+			}
 
 			OperandStack entryStack = new OperandStack();
-			entryStack.pushArgs(activeScript.entryArgs);
 
 			freeze(entryMethod, 0, entryLocals, entryStack);
-
 
 			activeScript.markInitialized();
 		}
