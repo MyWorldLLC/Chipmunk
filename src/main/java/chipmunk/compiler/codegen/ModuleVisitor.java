@@ -38,6 +38,7 @@ public class ModuleVisitor implements AstVisitor {
 			module = new CModule(moduleNode.getSymbol().getName(), constantPool);
 			initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
 			initMethod = new MethodNode("<module init>");
+			module.getImports().add(module.new Import("chipmunk.lang", true));
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){

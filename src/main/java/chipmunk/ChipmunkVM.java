@@ -235,14 +235,9 @@ public class ChipmunkVM {
 			try {
 				CModule module = loader.loadModule(moduleName);
 				if(module != null){
-
 					// need to record the module *before* handling imports in case
 					// of a circular import
 					modules.put(module.getName(), module);
-					/*for(CModule.Import importedModule : module.getImports()){
-						loadModule(importedModule.getName());
-					}
-					initializationQueue.add(module);*/
 					
 					return module;
 				}
@@ -298,6 +293,7 @@ public class ChipmunkVM {
 		script.setEntryCall(mainModule.getName(), "main");
 
 		MemoryModuleLoader loader = new MemoryModuleLoader();
+		loader.addModule(ChipmunkLangModuleBuilder.build());
 		loader.addModules(modules);
 		script.getLoaders().add(loader);
 
