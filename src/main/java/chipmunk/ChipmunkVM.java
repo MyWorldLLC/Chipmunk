@@ -1201,7 +1201,10 @@ public class ChipmunkVM {
 
 		final boolean isInterceptor = target instanceof CallInterceptor;
 		// If sandboxed, force all calls to the RuntimeObject call signature
-		final boolean isRuntimeObject = securityMode == SecurityMode.SANDBOXED || target instanceof RuntimeObject;
+		final boolean isRuntimeObject = target instanceof RuntimeObject;
+		if(securityMode == SecurityMode.SANDBOXED && !isRuntimeObject) {
+			throw new AngryChipmunk(new IllegalAccessException("Cannot call to class " + target.getClass().getName() + " when running in sandboxed mode"));
+		}
 
 		// Assume that the target is not a call interceptor and that it
 		// is a runtime object
