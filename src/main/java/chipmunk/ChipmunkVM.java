@@ -272,10 +272,19 @@ public class ChipmunkVM {
 		return !frozenCallStack.isEmpty();
 	}
 
+	public static ChipmunkScript compile(CharSequence src, String scriptName) throws CompileChipmunk {
+		ChipmunkCompiler compiler = new ChipmunkCompiler();
+		List<CModule> modules = compiler.compile(src, scriptName);
+		return modulesToScript(modules, scriptName);
+	}
+
 	public static ChipmunkScript compile(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-
 		List<CModule> modules = compiler.compile(is, scriptName);
+		return modulesToScript(modules, scriptName);
+	}
+
+	private static ChipmunkScript modulesToScript(Collection<CModule> modules, String scriptName) {
 
 		CModule mainModule = null;
 		for (CModule module : modules) {
@@ -299,7 +308,7 @@ public class ChipmunkVM {
 
 		return script;
 	}
-	
+
 	public static Object run(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
 		
 		ChipmunkScript script = compile(is, scriptName);
