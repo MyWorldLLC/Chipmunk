@@ -45,6 +45,10 @@ import static chipmunk.Opcodes.*;
 
 public class ChipmunkVM {
 
+	public enum SecurityMode {
+		UNRESTRICTED, SANDBOXED
+	}
+
 	public class CallFrame {
 		public final CMethod method;
 		public final int ip;
@@ -136,9 +140,7 @@ public class ChipmunkVM {
 	
 	
 	protected List<ModuleLoader> loaders;
-	
 	protected ChipmunkScript activeScript;
-	
 	protected Map<String, CModule> modules;
 	//protected Object[] stack;
 	//private int stackIndex;
@@ -146,7 +148,8 @@ public class ChipmunkVM {
 	
 	public volatile boolean interrupted;
 	//private volatile boolean resuming;
-	
+
+	protected SecurityMode securityMode;
 	private int memHigh;
 
 	private final CBoolean trueValue;
@@ -203,7 +206,8 @@ public class ChipmunkVM {
 		voidCallTypes[8] = CallEightVoid.class;
 		voidCallTypes[9] = CallNineVoid.class;
 		voidCallTypes[10] = CallTenVoid.class;
-		
+
+		securityMode = SecurityMode.SANDBOXED;
 		activeScript = new ChipmunkScript(128);
 		frozenCallStack = activeScript.frozenCallStack;
 		
@@ -215,6 +219,10 @@ public class ChipmunkVM {
 		refLength = 8; // assume 64-bit references
 		
 		methodLookup = MethodHandles.lookup();
+	}
+
+	public SecurityMode getSecurityMode(){
+		return securityMode;
 	}
 	
 	public List<ModuleLoader> getLoaders(){
@@ -1192,7 +1200,8 @@ public class ChipmunkVM {
 	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount, Object[] callCache, int callCacheIndex) {
 
 		final boolean isInterceptor = target instanceof CallInterceptor;
-		final boolean isRuntimeObject = target instanceof RuntimeObject;
+		// If sandboxed, force all calls to the RuntimeObject call signature
+		final boolean isRuntimeObject = securityMode == SecurityMode.SANDBOXED || target instanceof RuntimeObject;
 
 		// Assume that the target is not a call interceptor and that it
 		// is a runtime object

@@ -1,4 +1,4 @@
-package chipmunk.modules.runtime;
+package chipmunk;
 
 public interface RuntimeObject {
 

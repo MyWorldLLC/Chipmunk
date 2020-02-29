@@ -2,6 +2,7 @@ package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
+import chipmunk.RuntimeObject;
 
 public class CClass implements RuntimeObject, Initializable, CallInterceptor, CCallable {
 

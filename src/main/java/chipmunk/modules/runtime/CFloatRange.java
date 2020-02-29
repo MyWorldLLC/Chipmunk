@@ -1,6 +1,7 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
 public class CFloatRange implements RuntimeObject {
 

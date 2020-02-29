@@ -1,6 +1,7 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
 public class CMethod implements RuntimeObject, CCallable {
 	

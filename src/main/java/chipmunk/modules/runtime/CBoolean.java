@@ -1,6 +1,7 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;

@@ -4,6 +4,7 @@ import java.util.List;
 
 import chipmunk.ChipmunkVM;
 import chipmunk.Namespace;
+import chipmunk.RuntimeObject;
 
 public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	

@@ -1,8 +1,9 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
-public class CIntegerRange implements RuntimeObject{
+public class CIntegerRange implements RuntimeObject {
 
 	private final int start;
 	private final int end;

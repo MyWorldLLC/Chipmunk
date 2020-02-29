@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
 public class CList implements RuntimeObject {
 	

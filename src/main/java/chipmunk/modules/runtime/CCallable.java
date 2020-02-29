@@ -1,6 +1,7 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
 public interface CCallable extends RuntimeObject {
 	

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM;
+import chipmunk.RuntimeObject;
 
 public class CMap implements RuntimeObject {
 	

@@ -1,5 +1,7 @@
 package chipmunk.modules.runtime;
 
+import chipmunk.RuntimeObject;
+
 public class CClosure implements RuntimeObject {
 	
 	protected boolean isFinal;
