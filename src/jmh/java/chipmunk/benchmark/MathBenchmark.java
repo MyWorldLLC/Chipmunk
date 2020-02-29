@@ -2,6 +2,7 @@ package chipmunk.benchmark;
 
 import java.io.InputStream;
 
+import chipmunk.modules.runtime.CMethod;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -19,22 +20,31 @@ import chipmunk.ChipmunkVM;
 
 public class MathBenchmark {
 	
-	public static ChipmunkScript compileBenchmark(InputStream is, String name) throws Exception {
+	public static ChipmunkScript compileBenchmark(InputStream is, String name) {
 		return ChipmunkVM.compile(is, name);
 	}
 	
 	@State(Scope.Thread)
 	public static class ChipmunkScripts {
 		
-		public ChipmunkScript countToAMillion;
-		public ChipmunkScript fibonacci;
+		public CMethod countToAMillion;
+		public CMethod fibonacci;
 		
 		public ChipmunkVM vm;
 		
 		@Setup(Level.Trial)
-		public void compileSources() throws Exception {
-			countToAMillion = compileBenchmark(MathBenchmark.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
-			fibonacci = compileBenchmark(MathBenchmark.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+		public void compileSources() {
+			// Run each script once to load/initialize modules, then retrieve the main methods for benchmarked execution
+			ChipmunkVM vm = new ChipmunkVM();
+			ChipmunkScript count = compileBenchmark(MathBenchmark.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+			vm.run(count);
+
+			countToAMillion = (CMethod) count.getModules().get("benchmark").getNamespace().get("main");
+
+			ChipmunkScript fib = compileBenchmark(MathBenchmark.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+			vm.run(fib);
+
+			fibonacci = (CMethod) fib.getModules().get("benchmark").getNamespace().get("main");
 		}
 		
 		@Setup(Level.Trial)
@@ -47,14 +57,14 @@ public class MathBenchmark {
 	@BenchmarkMode(Mode.SampleTime)
 	public Object fibonacci(ChipmunkScripts scripts) {
 		ChipmunkVM vm = scripts.vm;
-		return vm.run(scripts.fibonacci);
+		return vm.dispatch(scripts.fibonacci, null);
 	}
 	
 	@Benchmark
 	@BenchmarkMode(Mode.SampleTime)
 	public Object countToOneMillionCVM(ChipmunkScripts scripts) {
 		ChipmunkVM vm = scripts.vm;
-		return vm.run(scripts.countToAMillion);
+		return vm.dispatch(scripts.countToAMillion, null);
 	}
 	
 //	@Benchmark
