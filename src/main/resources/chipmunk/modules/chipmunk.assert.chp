@@ -1,0 +1,43 @@
+module chipmunk.assert
+
+class AssertFailedException {
+    trait Exception()
+}
+
+def assert(value){
+    if(!value){
+        throw AssertFailedException()
+    }
+}
+
+def assertFalse(value){
+    if(value){
+        throw AssertFailedException()
+    }
+}
+
+def assertNull(value){
+    if(value != null){
+        throw AssertFailedException()
+    }
+}
+
+def assertNotNull(value){
+    if(value == null){
+        throw AssertFailedException()
+    }
+}
+
+def assertEmpty(collectionValue){
+    assertNotNull(collectionValue)
+    if(collectionValue.size() != 0){
+        throw AssertFailedException()
+    }
+}
+
+def assertNotEmpty(collectionValue){
+    assertNotNull(collectionValue)
+    if(collectionValue.size() == 0){
+        throw AssertFailedException()
+    }
+}
