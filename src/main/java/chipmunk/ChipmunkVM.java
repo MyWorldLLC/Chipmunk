@@ -293,7 +293,7 @@ public class ChipmunkVM {
 		script.setEntryCall(mainModule.getName(), "main");
 
 		MemoryModuleLoader loader = new MemoryModuleLoader();
-		loader.addModule(ChipmunkLangModuleBuilder.build());
+		loader.addModule(ChipmunkModuleBuilder.buildLangModule());
 		loader.addModules(modules);
 		script.getLoaders().add(loader);
 
