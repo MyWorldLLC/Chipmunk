@@ -278,7 +278,7 @@ public class ChipmunkVM {
 		return modulesToScript(modules, scriptName);
 	}
 
-	public static ChipmunkScript compile(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
+	public static ChipmunkScript compile(InputStream is, String scriptName) throws CompileChipmunk {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		List<CModule> modules = compiler.compile(is, scriptName);
 		return modulesToScript(modules, scriptName);
