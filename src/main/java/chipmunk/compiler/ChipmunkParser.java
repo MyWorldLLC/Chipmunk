@@ -80,10 +80,11 @@ public class ChipmunkParser {
 		register(Token.Type.DOUBLEDOTLESS, new ShiftRangeOperatorParselet());
 		register(Token.Type.DOUBLEDOT, new ShiftRangeOperatorParselet());
 		
-		register(Token.Type.LESSTHAN, new LessGreaterOperatorParselet());
-		register(Token.Type.LESSEQUALS, new LessGreaterOperatorParselet());
-		register(Token.Type.MORETHAN, new LessGreaterOperatorParselet());
-		register(Token.Type.MOREEQUALS, new LessGreaterOperatorParselet());
+		register(Token.Type.LESSTHAN, new LesserGreaterInstanceOfOperatorParselet());
+		register(Token.Type.LESSEQUALS, new LesserGreaterInstanceOfOperatorParselet());
+		register(Token.Type.MORETHAN, new LesserGreaterInstanceOfOperatorParselet());
+		register(Token.Type.MOREEQUALS, new LesserGreaterInstanceOfOperatorParselet());
+		register(Token.Type.INSTANCEOF, new LesserGreaterInstanceOfOperatorParselet());
 		
 		register(Token.Type.DOUBLEEQUAlS, new EqualityOperatorParselet());
 		register(Token.Type.EXCLAMATIONEQUALS, new EqualityOperatorParselet());

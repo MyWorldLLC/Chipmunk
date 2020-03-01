@@ -9,7 +9,7 @@ public class OperatorPrecedence {
 	public static final int MULT_DIV_MOD = 11;
 	public static final int ADD_SUB = 10;
 	public static final int SHIFT_L_R_RANGE = 9;
-	public static final int LESS_GREATER_THAN = 8;
+	public static final int LESSER_GREATER_THAN_INSTANCE_OF = 8;
 	public static final int EQUAL_NEQUAL = 7;
 	public static final int BITAND = 6;
 	public static final int BITXOR = 5;
