@@ -283,6 +283,11 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.onLine(node.getLineNumber());
 				assembler.ge();
 				break;
+			case INSTANCEOF:
+				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
+				assembler._instanceof();
+				break;
 			default:
 				throw new SyntaxErrorChipmunk(
 						String.format("Unsupported operator %s at %d:%d",
