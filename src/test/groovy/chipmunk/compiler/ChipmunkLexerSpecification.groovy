@@ -155,4 +155,27 @@ class ChipmunkLexerSpecification extends Specification {
 		token3.getColumn() == 5
 	}
 
+	def "Tokenize some identifiers"(){
+		setup:
+		def lexer = new ChipmunkLexer()
+
+		when:
+		def tokens = lexer.lex("foo foo2 _foo3 _foo_4_")
+
+		def token1 = tokens.get()
+		def token2 = tokens.get()
+		def token3 = tokens.get()
+		def token4 = tokens.get()
+
+		then:
+		token1.getText() == "foo"
+		token1.getType() == Token.Type.IDENTIFIER
+		token2.getText() == "foo2"
+		token2.getType() == Token.Type.IDENTIFIER
+		token3.getText() == "_foo3"
+		token3.getType() == Token.Type.IDENTIFIER
+		token4.getText() == "_foo_4_"
+		token4.getType() == Token.Type.IDENTIFIER
+	}
+
 }

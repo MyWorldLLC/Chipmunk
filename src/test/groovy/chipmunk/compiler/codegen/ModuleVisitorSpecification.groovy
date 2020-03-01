@@ -1,14 +1,12 @@
 package chipmunk.compiler.codegen
 
 import chipmunk.ChipmunkScript
-import chipmunk.MemoryModuleLoader
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
 import chipmunk.modules.runtime.CModule
-import chipmunk.modules.runtime.ChipmunkModuleBuilder
 import spock.lang.Specification
 
 class ModuleVisitorSpecification extends Specification {

@@ -30,7 +30,7 @@ public class Token {
 		OCTLITERAL("(0o|0O)[0-7_]+", false, true),
 		HEXLITERAL("(0x|0X)[a-fA-F0-9_]+", false, true),
 		FLOATLITERAL("-?[0-9]*\\.[0-9]+((e|E)-?[0-9]+)?", false, true),
-		INTLITERAL("-?[0-9_]+", false, true),
+		INTLITERAL("-?[0-9][0-9_]*", false, true),
 		BOOLLITERAL("true|false", true, true),
 		STRINGLITERAL("\"(\\\\\"|[^\"])*\"|'(\\\\\'|[^\'])*'", false, true),
 		
@@ -61,7 +61,7 @@ public class Token {
 		VAR("var(?![a-zA-Z0-9_])", true, false), TRAIT("trait(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
-		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
+		IDENTIFIER("\\w+"),
 		// EOF goes last
 		EOF("");
 		

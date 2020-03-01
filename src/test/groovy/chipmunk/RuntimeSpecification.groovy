@@ -2,7 +2,7 @@ package chipmunk
 
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.modules.runtime.ChipmunkModuleBuilder
+import chipmunk.modules.ChipmunkModuleBuilder
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {
