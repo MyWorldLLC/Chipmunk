@@ -32,7 +32,21 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	public Namespace getInstanceAttributes(){
 		return instanceAttributes;
 	}
-	
+
+	public CString getName(ChipmunkVM vm){
+		vm.traceReference();
+		return new CString(name);
+	}
+
+	public CString getFullName(ChipmunkVM vm){
+		vm.traceReference();
+		return new CString(getFullName());
+	}
+
+	public String getFullName(){
+		return String.format("%s.%s", module.getName(), getName());
+	}
+
 	public String getName(){
 		return name;
 	}
@@ -45,10 +59,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		
 		// TODO - memory tracing
 		vm.traceReference();
-		CObject obj = new CObject(this, instanceAttributes.duplicate());
-		obj.setInitializer(instanceInitializer.duplicate(vm));
-		obj.getInitializer().bind(obj);
-		obj.getAttributes().set("class", this);
+		CObject obj = (CObject) this.instantiate();
 		
 		// Invoke constructor (compiler ensures that all classes have exactly one constructor).
 		// This is suspension/exception-safe because (a) any exceptions will seamlessly propagate
@@ -59,6 +70,14 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		// and the VM will have pushed the newly created object onto the stack when the constructor
 		// returns.
 		return vm.dispatch((CMethod)obj.getAttributes().get(name), params);
+	}
+
+	public Object instantiate(){
+		CObject obj = new CObject(this, instanceAttributes.duplicate());
+		obj.setInitializer(instanceInitializer.duplicate());
+		obj.getInitializer().bind(obj);
+		obj.getAttributes().set("class", this);
+		return obj;
 	}
 
 	public CMethod getSharedInitializer() {

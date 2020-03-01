@@ -44,4 +44,12 @@ public class Buffer implements RuntimeObject {
     public CClass getClass(ChipmunkVM vm){
         return cClass;
     }
+
+    public byte[] getData(){
+        return data;
+    }
+
+    public void setData(byte[] data){
+        this.data = data;
+    }
 }

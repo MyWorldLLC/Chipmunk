@@ -25,4 +25,12 @@ public class BufferCClass extends CClass {
         vm.traceMem(size);
         return new Buffer(this, size);
     }
+
+    public Buffer instantiate(){
+        return new Buffer(this, 0);
+    }
+
+    public Buffer create(int initialSize){
+        return new Buffer(this, initialSize);
+    }
 }

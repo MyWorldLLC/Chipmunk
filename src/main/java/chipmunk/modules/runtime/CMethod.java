@@ -103,16 +103,20 @@ public class CMethod implements RuntimeObject, CCallable {
 	public Object call(ChipmunkVM vm, Object[] params) {
 		return vm.dispatch(this, params);
 	}
-	
-	public CMethod duplicate(ChipmunkVM vm){
-		vm.traceMem(16); // references
-		
+
+	public CMethod duplicate(){
 		CMethod method = new CMethod();
 		method.bind(self);
 		method.setCode(code);
-		
+
 		return method;
 	}
+
+/*	public CMethod duplicate(ChipmunkVM vm){
+		vm.traceMem(16); // references
+		
+		return this.duplicate();
+	}*/
 	
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
