@@ -61,7 +61,7 @@ public class Token {
 		VAR("var(?![a-zA-Z0-9_])", true, false), TRAIT("trait(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
-		IDENTIFIER("\\w+"),
+		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
 		// EOF goes last
 		EOF("");
 		
