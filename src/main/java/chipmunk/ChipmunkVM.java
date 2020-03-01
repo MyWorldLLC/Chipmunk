@@ -39,6 +39,7 @@ import chipmunk.invoke.CallTwo;
 import chipmunk.invoke.CallTwoVoid;
 import chipmunk.invoke.CallVoid;
 import chipmunk.invoke.VoidMarker;
+import chipmunk.modules.ChipmunkModuleBuilder;
 import chipmunk.modules.runtime.*;
 
 import static chipmunk.Opcodes.*;
