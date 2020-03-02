@@ -182,4 +182,10 @@ public class CList implements RuntimeObject {
 	public String toString(){
 		return list.toString();
 	}
+
+	public CString toString(ChipmunkVM vm){
+		String str = list.toString();
+		vm.traceString(str);
+		return new CString(str);
+	}
 }
