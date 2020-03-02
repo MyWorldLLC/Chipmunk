@@ -1,4 +1,5 @@
 module chipmunk.uuid
+import chipmunk.buffer.Buffer
 
 var _randomUUID
 var _fromString
