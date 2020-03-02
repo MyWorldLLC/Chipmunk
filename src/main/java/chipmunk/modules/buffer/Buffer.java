@@ -2,6 +2,7 @@ package chipmunk.modules.buffer;
 
 import chipmunk.ChipmunkVM;
 import chipmunk.RuntimeObject;
+import chipmunk.modules.runtime.CBoolean;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CInteger;
 import chipmunk.modules.runtime.CNull;
@@ -51,5 +52,12 @@ public class Buffer implements RuntimeObject {
 
     public void setData(byte[] data){
         this.data = data;
+    }
+
+    public CBoolean equals(ChipmunkVM vm, Object other){
+        if(other instanceof Buffer){
+            return new CBoolean(Arrays.equals(data, ((Buffer) other).data));
+        }
+        return new CBoolean(false);
     }
 }

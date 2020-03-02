@@ -1,0 +1,30 @@
+module chipmunk.uuid
+
+var _randomUUID
+var _fromString
+var _toString
+
+class UUID {
+
+    var bytes = Buffer(16)
+
+    shared def randomUUID(){
+        return _randomUUID()
+    }
+
+    shared def fromString(value){
+        return _fromString()
+    }
+
+    def toString(){
+        return _toString()
+    }
+
+    def equals(other){
+        if(other instanceof UUID){
+            return bytes == other.bytes
+        }
+        return false
+    }
+
+}
