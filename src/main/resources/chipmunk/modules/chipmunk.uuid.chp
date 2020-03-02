@@ -1,9 +1,9 @@
 module chipmunk.uuid
 import chipmunk.buffer.Buffer
 
-var _randomUUID
-var _fromString
-var _toString
+#var _randomUUID
+#var _fromString
+#var _toString
 
 class UUID {
 
@@ -14,11 +14,11 @@ class UUID {
     }
 
     shared def fromString(value){
-        return _fromString()
+        return _fromString(value)
     }
 
     def toString(){
-        return _toString()
+        return _toString(self)
     }
 
     def equals(other){

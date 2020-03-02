@@ -23,6 +23,12 @@ public class CString {
 		return new CInteger(hashCode());
 	}
 
+	public CString plus(ChipmunkVM vm, Object other){
+		String newValue = value + other != null ? other.toString() : "null";
+		vm.traceString(newValue);
+		return new CString(newValue);
+	}
+
 	public CBoolean equals(ChipmunkVM vm, Object other){
 		vm.traceBoolean();
 		return new CBoolean(equals(other));
