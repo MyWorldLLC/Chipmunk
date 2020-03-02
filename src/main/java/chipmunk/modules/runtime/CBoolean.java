@@ -68,7 +68,12 @@ public class CBoolean implements RuntimeObject {
 		context.traceMem(stringValue.length() * 2);
 		return stringValue;
 	}
-	
+
+	public CString toString(ChipmunkVM vm){
+		String str = Boolean.toString(value);
+		vm.traceString(str);
+		return new CString(str);
+	}
 	public String toString(){
 		return Boolean.toString(value);
 	}
