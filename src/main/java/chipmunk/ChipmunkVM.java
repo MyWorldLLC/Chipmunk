@@ -229,6 +229,10 @@ public class ChipmunkVM {
 	public List<ModuleLoader> getLoaders(){
 		return activeScript.getLoaders();
 	}
+
+	public ChipmunkScript getActiveScript(){
+		return activeScript;
+	}
 	
 	public CModule loadModule(String moduleName) throws ModuleLoadChipmunk {
 		

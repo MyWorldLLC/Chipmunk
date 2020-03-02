@@ -1,11 +1,6 @@
 package chipmunk;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import chipmunk.ChipmunkVM.CallFrame;
 import chipmunk.modules.runtime.CModule;
@@ -13,8 +8,10 @@ import chipmunk.modules.runtime.CModule;
 public class ChipmunkScript {
 
 	protected List<ModuleLoader> loaders;
-	
 	protected Map<String, CModule> modules;
+
+	protected final List<Object> tags;
+
 	protected Deque<CallFrame> frozenCallStack;
 	private boolean initialized;
 
@@ -29,6 +26,7 @@ public class ChipmunkScript {
 	public ChipmunkScript(int initialStackDepth){
 		loaders = new ArrayList<>();
 		modules = new HashMap<>();
+		tags = new ArrayList<>();
 		frozenCallStack = new ArrayDeque<>();
 		initialized = false;
 	}
@@ -73,5 +71,24 @@ public class ChipmunkScript {
 
 	public void setLoaders(List<ModuleLoader> loaders){
 		this.loaders = loaders;
+	}
+
+	public synchronized void tag(Object tag){
+		tags.add(tag);
+	}
+
+	public synchronized void removeTag(Object tag){
+		tags.remove(tag);
+	}
+	public synchronized <T> T getTag(Class<?> tagType){
+		for(Object o : tags){
+			if(tagType.isInstance(o)){
+				return (T) o;
+			}
+		}
+		return null;
+	}
+	public synchronized List<Object> getTagsUnmodifiable(){
+		return Collections.unmodifiableList(tags);
 	}
 }
