@@ -1,7 +1,7 @@
 module chipmunk.assert
 
 class AssertFailedException {
-    trait Exception()
+    trait exception = Exception()
 }
 
 def assert(value){
