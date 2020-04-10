@@ -1,11 +1,6 @@
 package chipmunk.compiler.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.ChipmunkLexer;
-import chipmunk.compiler.CompileChipmunk;
-import chipmunk.compiler.SymbolTable;
-import chipmunk.compiler.SyntaxErrorChipmunk;
-import chipmunk.compiler.Token;
+import chipmunk.compiler.*;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ClassNode;
@@ -193,9 +188,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.bor();
 				return;
 			case DOUBLEBAR:
-				op.visitChildren(this);
-				assembler.onLine(node.getLineNumber());
-				assembler.or();
+				emitLogicalOr(op);
 				return;
 			case EXCLAMATION:
 				op.visitChildren(this);
@@ -238,9 +231,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.gt();
 				return;
 			case DOUBLEAMPERSAND:
-				op.visitChildren(this);
-				assembler.onLine(node.getLineNumber());
-				assembler.and();
+				emitLogicalAnd(op);
 				return;
 			case AMPERSAND:
 				op.visitChildren(this);
@@ -370,5 +361,60 @@ public class ExpressionVisitor implements AstVisitor {
 		op.getLeft().visit(this);
 		assembler.onLine(op.getLineNumber());
 		assembler.getattr();
+	}
+
+	private void emitLogicalOr(OperatorNode op){
+		// l | r | v
+		// T | T | T
+		// T | F | T
+		// F | T | T
+		// F | F | F
+		assembler.onLine(op.getLineNumber());
+		String caseTrue = assembler.nextLabelName();
+		String end = assembler.nextLabelName();
+
+		op.getLeft().visit(this); // 1
+		assembler.not(); // 1
+		assembler._if(caseTrue); // 0
+
+		// At this point, lhs had to be false, so test rhs
+		op.getRight().visit(this); // 1
+		// Since lhs was false, the overall expression value is the
+		// truth value of the rhs
+		assembler.truth(); // 1
+		assembler._goto(end);
+
+		// Expression is true - shortcircuit
+		assembler.setLabelTarget(caseTrue);
+		assembler.push(new CBoolean(true)); // 1
+
+		assembler.setLabelTarget(end);
+	}
+
+	private void emitLogicalAnd(OperatorNode op){
+		// l | r | v
+		// T | T | T
+		// T | F | F
+		// F | T | F
+		// F | F | F
+		assembler.onLine(op.getLineNumber());
+		String caseFalse = assembler.nextLabelName();
+		String end = assembler.nextLabelName();
+
+		op.getLeft().visit(this); // 1
+		assembler._if(caseFalse); // 0
+
+		op.getRight().visit(this); // 1
+		assembler._if(caseFalse); // 0
+
+		// Expression is true
+		assembler.push(new CBoolean(true)); // 1
+		assembler._goto(end);
+
+		// Expression is false
+		assembler.setLabelTarget(caseFalse);
+		assembler.push(new CBoolean(false)); // 1
+
+		assembler.setLabelTarget(end);
 	}
 }

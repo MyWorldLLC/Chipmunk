@@ -1,0 +1,61 @@
+module test
+
+class SetVars {
+
+    var s1 = 0
+    var s2 = 0
+
+    def set1(retVal){
+        s1 = 1
+        return retVal
+    }
+
+    def set2(retVal){
+        s2 = 1
+        return retVal
+    }
+
+}
+
+class Foo {
+
+    var s1 = 0
+    var s2 = 0
+
+    def set1(val){
+        s1 = 1
+        return val
+    }
+
+    def set2(val){
+        s2 = 1
+        return val
+    }
+}
+
+def main(){
+
+    var v1 = SetVars()
+    var v2 = Foo()
+
+    if(v1.set1(true) || v1.set2(true)){
+        # Shortcircuit - 1
+    }
+
+    if(v2.set1(false) || v2.set2(true)){
+        # No shortcircuit - 2
+    }
+
+    var v3 = SetVars()
+    var v4 = Foo()
+
+    if(v3.set1(false) && v3.set2(true)){
+        # Shortcircuit - 1
+    }
+
+    if(v4.set1(true) && v4.set2(true)){
+        # No shortcircuit - 2
+    }
+
+    return v1.s1 + v1.s2 == 1 && v2.s1 + v2.s2 == 2 && v3.s1 + v3.s2 == 1 && v4.s1 + v4.s2 == 2
+}

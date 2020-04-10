@@ -224,6 +224,33 @@ class ExpressionVisitorSpecification extends Specification {
 		result instanceof CBoolean
 		result.getValue() == false
 	}
+
+	def "Generate and run code for true || true"(){
+		when:
+		def result = parseAndCall("true || true")
+
+		then:
+		result instanceof CBoolean
+		result.getValue() == true
+	}
+
+	def "Generate and run code for true || false"(){
+		when:
+		def result = parseAndCall("true || false")
+
+		then:
+		result instanceof CBoolean
+		result.getValue() == true
+	}
+
+	def "Generate and run code for false || false"(){
+		when:
+		def result = parseAndCall("false || false")
+
+		then:
+		result instanceof CBoolean
+		result.getValue() == false
+	}
 	
 	def "Generate and run code for complex comparison"(){
 		when:

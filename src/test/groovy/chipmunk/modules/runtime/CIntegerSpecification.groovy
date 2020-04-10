@@ -61,7 +61,7 @@ class CIntegerSpecification extends Specification {
 		  lh  |  rh  |  sum   |     type
 		three | two  |  one   | CInteger.class
 	    three | fTwo |  fOne  |  CFloat.class
-	     two  |negOne| three  | CInteger.class
+		two  |negOne| three  | CInteger.class
 	}
 	
 	def "multiplication"(Object lh, Object rh, Object sum, Class<?> type){

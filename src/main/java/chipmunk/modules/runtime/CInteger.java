@@ -22,6 +22,10 @@ public class CInteger implements RuntimeObject {
 	public int getValue(){
 		return value;
 	}
+
+	//public boolean booleanValue() {
+	//	return value != 0;
+	//}
 	
 	public int intValue(){
 		return value;

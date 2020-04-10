@@ -59,7 +59,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		
 		// TODO - memory tracing
 		vm.traceReference();
-		CObject obj = (CObject) this.instantiate();
+		CObject obj = (CObject) instantiate();
 		
 		// Invoke constructor (compiler ensures that all classes have exactly one constructor).
 		// This is suspension/exception-safe because (a) any exceptions will seamlessly propagate
@@ -74,9 +74,13 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 
 	public Object instantiate(){
 		CObject obj = new CObject(this, instanceAttributes.duplicate());
-		obj.setInitializer(instanceInitializer.duplicate());
-		obj.getInitializer().bind(obj);
+
+		CMethod initializer = instanceInitializer.duplicate();
+		initializer.bind(obj);
+
+		obj.setInitializer(initializer);
 		obj.getAttributes().set("class", this);
+		System.out.println("Instantiating class " + name + ": " + obj);
 		return obj;
 	}
 

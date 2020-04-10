@@ -218,5 +218,14 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 5
 	}
+
+	def "Run ShortcircuitOperators.chp"(){
+		when:
+		def result = compileAndRun("ShortcircuitOperators.chp", true)
+
+		then:
+		result.booleanValue() == true
+
+	}
 	
 }

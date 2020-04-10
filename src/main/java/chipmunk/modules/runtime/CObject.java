@@ -23,6 +23,7 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 			Object attr = attributes.get(name);
 			
 			if(attr instanceof CMethod){
+				//System.out.println(this + " bound method " + name);
 				((CMethod) attr).bind(this);
 			}
 		}
@@ -54,6 +55,7 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	
 	public Object setAttr(ChipmunkVM vm, String name, Object value){
 		vm.traceReference();
+		System.out.println(this + " set attr " + name + " " + value);
 		attributes.set(name, value);
 		return value;
 	}
