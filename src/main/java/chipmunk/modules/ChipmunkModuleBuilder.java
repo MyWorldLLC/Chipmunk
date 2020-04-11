@@ -2,6 +2,8 @@ package chipmunk.modules;
 
 import chipmunk.ChipmunkUtil;
 import chipmunk.modules.buffer.BufferCClass;
+import chipmunk.modules.math.CMath;
+import chipmunk.modules.runtime.CFloat;
 import chipmunk.modules.runtime.CModule;
 import chipmunk.modules.uuid.UUIDSupport;
 
@@ -30,5 +32,16 @@ public class ChipmunkModuleBuilder {
         uuidModule.getNamespace().set("_toString", UUIDSupport.uuidToString());
 
         return uuidModule;
+    }
+
+    public static CModule buildMathModule(){
+        CModule math = new CModule("chipmunk.math");
+
+        math.getNamespace().set("E", new CFloat((float)Math.E));
+        math.getNamespace().set("PI", new CFloat((float)Math.PI));
+
+        math.getNamespace().set("Math", new CMath());
+
+        return math;
     }
 }
