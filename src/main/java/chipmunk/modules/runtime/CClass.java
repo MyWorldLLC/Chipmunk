@@ -80,7 +80,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 
 		obj.setInitializer(initializer);
 		obj.getAttributes().set("class", this);
-		System.out.println("Instantiating class " + name + ": " + obj);
+
 		return obj;
 	}
 

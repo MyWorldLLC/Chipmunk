@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import chipmunk.modules.runtime.CClass;
-import chipmunk.modules.runtime.CClosure;
-import chipmunk.modules.runtime.CNull;
-import chipmunk.modules.runtime.CObject;
+import chipmunk.modules.runtime.*;
 
 public class Namespace {
 
@@ -116,7 +113,7 @@ public class Namespace {
 	}
 	
 	public List<Object> traitAttributes(){
-		List<Object> traitAttributes = new ArrayList<Object>(traits.size());
+		List<Object> traitAttributes = new ArrayList<>(traits.size());
 		for(String trait : traits) {
 			traitAttributes.add(get(trait));
 		}
@@ -125,8 +122,17 @@ public class Namespace {
 	
 	public Namespace duplicate(){
 		Namespace dup = new Namespace();
-		
-		dup.attributes.putAll(attributes);
+
+		for(Map.Entry<String, Object> entry : attributes.entrySet()){
+			Object value = entry.getValue();
+
+			if(value instanceof CMethod){
+				value = ((CMethod) value).duplicate();
+			}
+
+			dup.attributes.put(entry.getKey(), value);
+		}
+
 		if(finalAttributes != null) {
 			dup.finalAttributes = new HashSet<String>();
 			dup.finalAttributes.addAll(finalAttributes);

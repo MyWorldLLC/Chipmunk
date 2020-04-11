@@ -17,26 +17,10 @@ class SetVars {
 
 }
 
-class Foo {
-
-    var s1 = 0
-    var s2 = 0
-
-    def set1(val){
-        s1 = 1
-        return val
-    }
-
-    def set2(val){
-        s2 = 1
-        return val
-    }
-}
-
 def main(){
 
     var v1 = SetVars()
-    var v2 = Foo()
+    var v2 = SetVars()
 
     if(v1.set1(true) || v1.set2(true)){
         # Shortcircuit - 1
@@ -47,7 +31,7 @@ def main(){
     }
 
     var v3 = SetVars()
-    var v4 = Foo()
+    var v4 = SetVars()
 
     if(v3.set1(false) && v3.set2(true)){
         # Shortcircuit - 1
