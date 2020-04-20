@@ -12,7 +12,6 @@ buildscript {
 plugins {
 	id 'me.champeau.gradle.jmh' version '0.4.8'
 	id 'net.ltgt.apt' version '0.18'
-	id 'net.ltgt.apt-eclipse' version '0.18'
 	id 'maven-publish'
 }
 
