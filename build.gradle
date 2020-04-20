@@ -18,7 +18,6 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'eclipse'
 apply plugin: 'org.asciidoctor.convert'
 
 sourceCompatibility = 1.9
