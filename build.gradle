@@ -24,8 +24,8 @@ apply plugin: 'org.asciidoctor.convert'
 sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
-group = 'MyWorld'
-version = '1.0.0-SNAPSHOT'
+group = 'myworld'
+version = '1.0.0-snapshot'
 
 repositories {
 	mavenCentral()
@@ -72,7 +72,7 @@ publishing {
 	publications {
 		gpr(MavenPublication) {
 			groupId = "${project.group}"
-			artifactId = 'Chipmunk'
+			artifactId = 'chipmunk'
 			version = "${project.version}"
 
 			from components.java
