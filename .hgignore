@@ -1,8 +1,0 @@
-# Tools love adding hidden directories and files into projects. This will keep all tool specific
-# files out of the repo.
-syntax: regexp
-(^|/)\.
-syntax: regexp
-^build$
-syntax: regexp
-^dist$
