@@ -25,7 +25,7 @@ sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
 group = 'MyWorld'
-version = '1.0'
+version = '1.0.0-SNAPSHOT'
 
 repositories {
 	mavenCentral()
@@ -70,7 +70,7 @@ jar {
 
 publishing {
 	publications {
-		maven(MavenPublication) {
+		gpr(MavenPublication) {
 			groupId = "${project.group}"
 			artifactId = 'Chipmunk'
 			version = "${project.version}"
@@ -82,8 +82,12 @@ publishing {
 	repositories {
 		mavenLocal()
 		maven {
-			name = 'Dist'
-			url = "file://${projectDir}/dist"
+			name = "GitHubPackages"
+			url = uri("https://maven.pkg.github.com/MyWorldLLC/Chipmunk")
+			credentials {
+				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+			}
 		}
 	}
 }
