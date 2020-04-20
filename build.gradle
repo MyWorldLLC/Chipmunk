@@ -25,7 +25,7 @@ sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
 group = 'myworld'
-version = '1.0.0-snapshot'
+version = '1.0.0-SNAPSHOT'
 
 repositories {
 	mavenCentral()
