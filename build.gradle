@@ -30,6 +30,10 @@ repositories {
 }
 
 dependencies {
+
+	compile 'org.graalvm.truffle:truffle-api:20.0.0'
+	compile 'org.graalvm.truffle:truffle-dsl-processor:20.0.0'
+
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     jmh 'org.openjdk.jmh:jmh-core:1.19'
 }
@@ -105,6 +109,7 @@ jmh {
 }
 
 task runProfiler(type:JavaExec) {
-   main = 'chipmunk.profiling.ChipmunkProfiler'
-   classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
+    main = 'chipmunk.profiling.ChipmunkProfiler'
+	jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler']
+    classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }
