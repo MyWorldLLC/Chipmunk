@@ -36,29 +36,7 @@ import java.util.*;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SyntaxErrorChipmunk;
-import chipmunk.invoke.Call;
-import chipmunk.invoke.CallEight;
-import chipmunk.invoke.CallEightVoid;
-import chipmunk.invoke.CallFive;
-import chipmunk.invoke.CallFiveVoid;
-import chipmunk.invoke.CallFour;
-import chipmunk.invoke.CallFourVoid;
-import chipmunk.invoke.CallNine;
-import chipmunk.invoke.CallNineVoid;
-import chipmunk.invoke.CallOne;
-import chipmunk.invoke.CallOneVoid;
-import chipmunk.invoke.CallSeven;
-import chipmunk.invoke.CallSevenVoid;
-import chipmunk.invoke.CallSix;
-import chipmunk.invoke.CallSixVoid;
-import chipmunk.invoke.CallTen;
-import chipmunk.invoke.CallTenVoid;
-import chipmunk.invoke.CallThree;
-import chipmunk.invoke.CallThreeVoid;
-import chipmunk.invoke.CallTwo;
-import chipmunk.invoke.CallTwoVoid;
-import chipmunk.invoke.CallVoid;
-import chipmunk.invoke.VoidMarker;
+import chipmunk.invoke.*;
 import chipmunk.modules.ChipmunkModuleBuilder;
 import chipmunk.modules.runtime.*;
 
@@ -179,6 +157,7 @@ public class ChipmunkVM {
 	private final int refLength;
 	
 	protected Map<Class<?>, Object[]> internalCallCache;
+	protected CallCache callCache;
 	protected Object[][] internalParams;
 	protected Class<?>[][] internalTypes;
 	protected Class<?>[] callTypes;
@@ -186,6 +165,7 @@ public class ChipmunkVM {
 	protected final MethodHandles.Lookup methodLookup;
 
 	public ChipmunkVM() {
+		callCache = new CallCache();
 		internalCallCache = new HashMap<Class<?>, Object[]>();
 
 		internalParams = new Object[5][];
@@ -1094,6 +1074,12 @@ public class ChipmunkVM {
 
 	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws Throwable {
 
+		CallSignature signature = new CallSignature(target.getClass(), opName, callTypes);
+		Object callTarget = callCache.getTarget(signature);
+		if(callTarget != null){
+			return callTarget;
+		}
+
 		Method[] methods = target.getClass().getMethods();
 		Method method = null;
 		for (int i = 0; i < methods.length; i++) {
@@ -1128,7 +1114,7 @@ public class ChipmunkVM {
 				MethodType interfaceType = MethodType.methodType(callTypeClass);
 				MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(callTypes);
 				
-				return LambdaMetafactory.metafactory(
+				callTarget = LambdaMetafactory.metafactory(
 						methodLookup,
 						"call",
 						interfaceType,
@@ -1145,11 +1131,14 @@ public class ChipmunkVM {
 		}else {
 			// non-statically bind method
 			try {
-				return methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
+				callTarget = methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
 			} catch (IllegalAccessException e) {
 				throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
 			}
 		}
+
+		callCache.cacheTarget(signature, callTarget);
+		return callTarget;
 	}
 
 	private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes) {
