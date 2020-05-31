@@ -39,8 +39,8 @@ public class CModule {
 		public Import(String name, boolean importAll){
 			this.name = name;
 			this.importAll = importAll;
-			symbols = new ArrayList<String>();
-			aliases = new ArrayList<String>();
+			symbols = new ArrayList<>();
+			aliases = new ArrayList<>();
 		}
 		
 		public String getName(){

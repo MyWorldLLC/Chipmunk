@@ -105,11 +105,11 @@ clean {
 
 jmh {
 	fork = 1
-	jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler'] // Ensure Graal is enabled
+	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler'] // Ensure Graal is enabled
 }
 
 task runProfiler(type:JavaExec) {
     main = 'chipmunk.profiling.ChipmunkProfiler'
-	jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler']
+	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler']
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }
