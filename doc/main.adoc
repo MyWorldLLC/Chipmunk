@@ -1,0 +1,9 @@
+= The Chipmunk Language
+Daniel Perano
+v1.0, 2020-10
+:doctype: book
+:toc:
+
+include::preface.adoc[]
+
+include::specification/chipmunkspec.adoc[]

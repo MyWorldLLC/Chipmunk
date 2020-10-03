@@ -1,0 +1,3 @@
+== Preface
+
+Chipmunk was created to provide a general purpose, dynamic, sandboxed scripting language and environment for the JVM. While it started as a subproject of the https://myworldvw.com[MyWorld] virtual world engine, it is now a fully standalone project.

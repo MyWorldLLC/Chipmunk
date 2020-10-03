@@ -1,0 +1,7 @@
+=== Builtin Data Types
+
+* int - 32-bit signed integers
+* float - 32-bit floats
+* boolean - true/false
+* String - text values
+* Method - executable code
