@@ -132,7 +132,7 @@ public class ClassVisitor implements AstVisitor {
 			
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;
-			
+			methodNode.addParam(0, new VarDecNode(new IdNode(new Token("self", Token.Type.IDENTIFIER))));
 			
 			MethodVisitor visitor = null;
 			
@@ -161,7 +161,6 @@ public class ClassVisitor implements AstVisitor {
 				visitor = new MethodVisitor(constantPool, module);
 				methodNode.visit(visitor);
 			}
-			
 				
 			CMethod method = visitor.getMethod();
 
@@ -214,7 +213,7 @@ public class ClassVisitor implements AstVisitor {
 	private void genInitCall(ChipmunkAssembler assembler){
 		assembler.getLocal(0);
 		assembler.init();
-		assembler.call((byte)0);
+		assembler.call((byte)1);
 		assembler.pop();
 	}
 

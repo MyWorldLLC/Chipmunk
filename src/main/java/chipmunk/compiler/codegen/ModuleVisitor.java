@@ -75,7 +75,7 @@ public class ModuleVisitor implements AstVisitor {
 				
 				initAssembler.getModule(cClass.getName());
 				initAssembler.init();
-				initAssembler.call((byte)0);
+				initAssembler.call((byte)1);
 				initAssembler.pop();
 			}
 			

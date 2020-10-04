@@ -67,9 +67,17 @@ public class MethodNode extends BlockNode implements SymbolNode {
 	}
 	
 	public void addParam(VarDecNode param){
+		addParam(paramCount, param);
+	}
+
+	public void addParam(int index, VarDecNode param){
+		if(index > paramCount){
+			throw new IllegalArgumentException(String.format("Parameter index %d greater than parameter count %d"));
+		}
+
 		children.add(paramCount, param);
 		paramCount++;
-		
+
 		if(param.getAssignExpr() != null){
 			defaultParamCount++;
 		}

@@ -83,6 +83,14 @@ public class OperandStack {
 	public int getStackDepth(){
 		return insertionIndex + 1;
 	}
+
+	public int mark() {
+		return insertionIndex;
+	}
+
+	public boolean verifyMark(int mark){
+		return mark == insertionIndex;
+	}
 	
 	@Override
 	public String toString() {

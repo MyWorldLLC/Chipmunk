@@ -534,6 +534,8 @@ public class ChipmunkVM {
 			}
 		}
 
+		int mark = stack.mark();
+
 		while (true) {
 
 			try {
@@ -810,6 +812,7 @@ public class ChipmunkVM {
 					throw new ExceptionChipmunk(ins);
 				case RETURN:
 					ins = stack.pop();
+					assert stack.verifyMark(mark);
 					return ins;
 				case POP:
 					ins = stack.pop();
@@ -908,11 +911,8 @@ public class ChipmunkVM {
 				case NEXT:
 					ins = stack.peek();
 					if (!((CIterator) ins).hasNext(this)) {
-						// pop the iterator
-						stack.pop();
 						ip = fetchInt(instructions, ip + 1);
 					} else {
-
 						stack.push(doInternal(InternalOp.NEXT, ins, 1, callCache, ip));
 						ip += 5;
 					}
@@ -950,7 +950,7 @@ public class ChipmunkVM {
 					ip += 5;
 					break;
 				case INIT:
-					ins = stack.pop();
+					ins = stack.peek();
 					stack.push(((Initializable) ins).getInitializer());
 					ip++;
 					break;
@@ -1038,7 +1038,7 @@ public class ChipmunkVM {
 		if(!modules.containsKey(im.getName())){
 			CModule newModule = loadModule(im.getName());
 			if(newModule.hasInitializer()){
-				this.dispatch(newModule.getInitializer(), null);
+				this.dispatch(newModule.getInitializer(), new Object[]{newModule});
 			}
 		}
 	}

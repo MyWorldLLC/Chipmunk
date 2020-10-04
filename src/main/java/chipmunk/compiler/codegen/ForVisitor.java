@@ -73,9 +73,12 @@ public class ForVisitor implements AstVisitor {
 			
 			// jump to iterator
 			assembler._goto(labels.getGuardLabel());
+			assembler.pop();
 			
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());
+			// pop the iterator
+			assembler.pop();
 			
 			codegen.exitLoop();
 		}
