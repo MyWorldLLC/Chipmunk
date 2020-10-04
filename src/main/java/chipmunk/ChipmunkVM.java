@@ -803,8 +803,7 @@ public class ChipmunkVM {
 					stack.push(callExternal(stack, ins, methodName, paramCount, callCache, ip));
 					break;
 				case GOTO:
-					int gotoIndex = fetchInt(instructions, ip + 1);
-					ip = gotoIndex;
+					ip = fetchInt(instructions, ip + 1);
 					break;
 				case THROW:
 					ins = stack.pop();
