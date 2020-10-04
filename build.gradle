@@ -19,8 +19,8 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'org.asciidoctor.convert'
 
-sourceCompatibility = 1.9
-targetCompatibility = 1.9
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
 
 group = 'myworld'
 version = '1.0.0-SNAPSHOT'
