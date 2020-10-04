@@ -59,7 +59,7 @@ public class ModuleVisitor implements AstVisitor {
 			module = new CModule(moduleNode.getSymbol().getName(), constantPool);
 			initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
 			initMethod = new MethodNode("<module init>");
-			module.getImports().add(module.new Import("chipmunk.lang", true));
+			module.getImports().add(new CModule.Import("chipmunk.lang", true));
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
@@ -96,7 +96,7 @@ public class ModuleVisitor implements AstVisitor {
 			ImportNode importNode = (ImportNode) node;
 			boolean importAll = importNode.isImportAll();
 			
-			CModule.Import im = module.new Import(importNode.getModule(), importAll);
+			CModule.Import im = new CModule.Import(importNode.getModule(), importAll);
 			
 			if(!importAll){
 				im.getSymbols().addAll(importNode.getSymbols());

@@ -30,7 +30,7 @@ public class CModule {
 	
 	public static final String DEFAULT = "";
 	
-	public class Import {
+	public static class Import {
 		private final String name;
 		private final boolean importAll;
 		private final List<String> symbols;
@@ -93,7 +93,11 @@ public class CModule {
 		namespace = new Namespace();
 		imports = new ArrayList<>();
 	}
-	
+
+	public List<Object> getConstants(){
+		return constants;
+	}
+
 	public List<Object> getConstantsUnmodifiable(){
 		return Collections.unmodifiableList(constants);
 	}

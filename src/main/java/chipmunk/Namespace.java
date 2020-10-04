@@ -94,31 +94,32 @@ public class Namespace {
 		if(value == null){
 			value = CNull.instance();
 		}
-		
-		if(finalAttributes == null){
-			finalAttributes = new HashSet<String>();
-		}
-		
-		finalAttributes.add(name);
+
+		markFinal(name);
 		attributes.put(name, value);
 	}
-	
-	public void setClosure(String name, CClosure closure) {
-		if(closures == null) {
-			closures = new HashSet<String>();
+
+	public void markFinal(String name){
+		if(finalAttributes == null){
+			finalAttributes = new HashSet<>();
 		}
-		
-		closures.add(name);
-		attributes.put(name, closure);
+
+		finalAttributes.add(name);
 	}
 	
 	public void setTrait(String name, Object value) {
-		if(traits == null) {
-			traits = new ArrayList<String>(1);
-		}
-		
-		traits.add(name);
+		markTrait(name);
 		attributes.put(name, value);
+	}
+
+	public void markTrait(String name){
+		if(traits == null) {
+			traits = new ArrayList<>(1);
+		}
+
+		if(!traits.contains(name)){
+			traits.add(name);
+		}
 	}
 	
 	public Set<String> names(){
@@ -130,6 +131,14 @@ public class Namespace {
 			return null;
 		}
 		return Collections.unmodifiableSet(finalAttributes);
+	}
+
+	public List<String> traitNames(){
+		if(traits == null){
+			return null;
+		}
+
+		return Collections.unmodifiableList(traits);
 	}
 	
 	public List<Object> traitAttributes(){
