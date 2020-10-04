@@ -922,7 +922,7 @@ public class ChipmunkVM {
 					rh = stack.pop();
 					lh = stack.pop();
 					internalParams[3][1] = rh;
-					internalParams[3][2] = fetchByte(instructions, ip + 1) == 0 ? false : true;
+					internalParams[3][2] = fetchByte(instructions, ip + 1) != 0;
 					stack.push(doInternal(InternalOp.RANGE, lh, 3, callCache, ip));
 					ip += 2;
 					break;
