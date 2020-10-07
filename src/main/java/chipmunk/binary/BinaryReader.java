@@ -90,7 +90,7 @@ public class BinaryReader {
             BinaryNamespace namespace = readNameSpace(dis, module);
 
             for(BinaryNamespace.Entry entry : namespace.getEntries()){
-                System.out.println("Setting: " + entry.getName());
+
                 moduleNamespace.set(entry.getName(), entry.getValue());
 
                 if(entry.getValue() instanceof CMethod){
