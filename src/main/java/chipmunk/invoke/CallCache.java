@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.invoke;
 
 import chipmunk.invoke.CallSignature;
 
@@ -41,7 +41,4 @@ public class CallCache {
         cache.put(signature, target);
     }
 
-    public boolean isCached(CallSignature signature){
-        return cache.containsKey(signature);
-    }
 }

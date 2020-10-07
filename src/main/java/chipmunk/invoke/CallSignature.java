@@ -35,6 +35,17 @@ public class CallSignature {
         this.paramTypes = paramTypes;
     }
 
+    public static CallSignature makeSignature(Object target, String methodName, Object[] params){
+        Class<?> targetType = target.getClass();
+        Class<?>[] paramTypes = new Class<?>[params != null ? params.length : 0];
+
+        for(int i = 0; i < paramTypes.length; i++){
+            paramTypes[i] = params[i] != null ? params[i].getClass() : null;
+        }
+
+        return new CallSignature(targetType, methodName, paramTypes);
+    }
+
     public Class<?> getTargetType() {
         return targetType;
     }

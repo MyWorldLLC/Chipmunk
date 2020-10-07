@@ -135,18 +135,14 @@ public class ChipmunkVM {
 			return opName;
 		}
 	}
-	
-	
-	
+
 	protected List<ModuleLoader> loaders;
 	protected ChipmunkScript activeScript;
 	protected Map<String, CModule> modules;
-	//protected Object[] stack;
-	//private int stackIndex;
+
 	protected Deque<CallFrame> frozenCallStack;
 	
 	public volatile boolean interrupted;
-	//private volatile boolean resuming;
 
 	protected SecurityMode securityMode;
 	private int memHigh;
@@ -160,13 +156,12 @@ public class ChipmunkVM {
 	protected CallCache callCache;
 	protected Object[][] internalParams;
 	protected Class<?>[][] internalTypes;
-	protected Class<?>[] callTypes;
-	protected Class<?>[] voidCallTypes;
-	protected final MethodHandles.Lookup methodLookup;
+
+	protected final Binder binder;
 
 	public ChipmunkVM() {
 		callCache = new CallCache();
-		internalCallCache = new HashMap<Class<?>, Object[]>();
+		internalCallCache = new HashMap<>();
 
 		internalParams = new Object[5][];
 		internalParams[0] = new Object[0];
@@ -181,32 +176,6 @@ public class ChipmunkVM {
 		internalTypes[2] = new Class<?>[2];
 		internalTypes[3] = new Class<?>[3];
 		internalTypes[4] = new Class<?>[4];
-		
-		callTypes = new Class<?>[11];
-		callTypes[0] = Call.class;
-		callTypes[1] = CallOne.class;
-		callTypes[2] = CallTwo.class;
-		callTypes[3] = CallThree.class;
-		callTypes[4] = CallFour.class;
-		callTypes[5] = CallFive.class;
-		callTypes[6] = CallSix.class;
-		callTypes[7] = CallSeven.class;
-		callTypes[8] = CallEight.class;
-		callTypes[9] = CallNine.class;
-		callTypes[10] = CallTen.class;
-		
-		voidCallTypes = new Class<?>[11];
-		voidCallTypes[0] = CallVoid.class;
-		voidCallTypes[1] = CallOneVoid.class;
-		voidCallTypes[2] = CallTwoVoid.class;
-		voidCallTypes[3] = CallThreeVoid.class;
-		voidCallTypes[4] = CallFourVoid.class;
-		voidCallTypes[5] = CallFiveVoid.class;
-		voidCallTypes[6] = CallSixVoid.class;
-		voidCallTypes[7] = CallSevenVoid.class;
-		voidCallTypes[8] = CallEightVoid.class;
-		voidCallTypes[9] = CallNineVoid.class;
-		voidCallTypes[10] = CallTenVoid.class;
 
 		securityMode = SecurityMode.SANDBOXED;
 		activeScript = new ChipmunkScript(128);
@@ -219,7 +188,7 @@ public class ChipmunkVM {
 		
 		refLength = 8; // assume 64-bit references
 		
-		methodLookup = MethodHandles.lookup();
+		binder = new Binder();
 	}
 
 	public SecurityMode getSecurityMode(){
@@ -1071,91 +1040,9 @@ public class ChipmunkVM {
 		}
 	}
 
-	public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws Throwable {
 
-		CallSignature signature = new CallSignature(target.getClass(), opName, callTypes);
-		Object callTarget = callCache.getTarget(signature);
-		if(callTarget != null){
-			return callTarget;
-		}
 
-		Method[] methods = target.getClass().getMethods();
-		Method method = null;
-		for (int i = 0; i < methods.length; i++) {
-			if (methods[i].getName().equals(opName)) {
-				// only call public methods
-				if (paramTypesMatch(methods[i].getParameterTypes(), callTypes)
-						&& ((methods[i].getModifiers() & Modifier.PUBLIC) != 0)) {
 
-					method = methods[i];
-					break;
-				}
-			}
-		}
-		
-		if(method == null) {
-			throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
-		}
-		
-		Class<?> callTypeClass = null;
-		if(callTypes.length < 11) {
-			// direct-bind method
-			
-			if(method.getReturnType().equals(void.class)) {
-				callTypeClass = this.voidCallTypes[callTypes.length];
-			}else {
-				callTypeClass = this.callTypes[callTypes.length];
-			}
-			
-			try {
-				MethodHandle implementationHandle = methodLookup.unreflect(method);
-				
-				MethodType interfaceType = MethodType.methodType(callTypeClass);
-				MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(callTypes);
-				
-				callTarget = LambdaMetafactory.metafactory(
-						methodLookup,
-						"call",
-						interfaceType,
-						implType.erase(),
-						implementationHandle,
-						implementationHandle.type())
-						.getTarget().invoke();
-			} catch (IllegalAccessException | LambdaConversionException e) {
-				throw e;
-			}catch(Throwable e) {
-				throw e;
-			}
-			
-		}else {
-			// non-statically bind method
-			try {
-				callTarget = methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
-			} catch (IllegalAccessException e) {
-				throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
-			}
-		}
-
-		callCache.cacheTarget(signature, callTarget);
-		return callTarget;
-	}
-
-	private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes) {
-
-		if (targetTypes.length != callTypes.length) {
-			return false;
-		}
-
-		for (int i = 0; i < targetTypes.length; i++) {
-			if (targetTypes[i] != callTypes[i]) {
-				if (!targetTypes[i].isAssignableFrom(callTypes[i])) {
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
 	
 	private void popParams(OperandStack stack, Object[] params) {
 		for(int i = params.length - 1; i >= 0; i--) {
@@ -1186,7 +1073,7 @@ public class ChipmunkVM {
 				for (int i = 0; i < paramCount; i++) {
 					paramTypes[i] = params[i].getClass();
 				}
-				Object method = lookupMethod(target, op.getOpName(), paramTypes);
+				Object method = binder.lookupMethod(target, op.getOpName(), paramTypes);
 				cacheInternal(op, targetType, method);
 				
 				//method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
@@ -1247,7 +1134,7 @@ public class ChipmunkVM {
 
 		try {
 			if(callCache[callCacheIndex] == null) {
-				Object invokeTarget = lookupMethod(target, methodName, paramTypes);
+				Object invokeTarget = binder.lookupMethod(target, methodName, paramTypes);
 				callCache[callCacheIndex] = invokeTarget;
 				Object retVal = invoke(invokeTarget, target, params);
 				
@@ -1380,7 +1267,7 @@ public class ChipmunkVM {
 			for (int i = 0; i < params.length; i++) {
 				paramTypes[i] = params[i].getClass();
 			}
-			method = lookupMethod(target, op.getOpName(), paramTypes);
+			method = binder.lookupMethod(target, op.getOpName(), paramTypes);
 			cacheInternal(op, targetType, method);
 		}
 		
@@ -1438,21 +1325,5 @@ public class ChipmunkVM {
 		return 0;
 	}
 
-	private String formatMissingMethodMessage(Class<?> targetType, String methodName, Class<?>[] paramTypes) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("No suitable method found: ");
-		sb.append(targetType.getName());
-		sb.append('.');
-		sb.append(methodName);
-		sb.append('(');
 
-		for (int i = 0; i < paramTypes.length; i++) {
-			sb.append(paramTypes[i].getName());
-			if (i < paramTypes.length - 1) {
-				sb.append(',');
-			}
-		}
-		sb.append(')');
-		return sb.toString();
-	}
 }

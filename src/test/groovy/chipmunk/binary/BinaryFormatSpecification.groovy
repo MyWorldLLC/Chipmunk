@@ -26,6 +26,7 @@ import chipmunk.MemoryModuleLoader
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.modules.ChipmunkModuleBuilder
 import chipmunk.modules.runtime.CModule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class BinaryFormatSpecification  extends Specification {
@@ -35,6 +36,7 @@ class BinaryFormatSpecification  extends Specification {
     BinaryWriter writer = new BinaryWriter()
     BinaryReader reader = new BinaryReader()
 
+    @Ignore
     def "Write/read binary and run"(){
         when:
         def module = compiler.compile(
