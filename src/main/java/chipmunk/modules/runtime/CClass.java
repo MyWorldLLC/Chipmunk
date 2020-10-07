@@ -30,7 +30,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	
 	private final Namespace instanceAttributes;
 	
-	private final String name;
+	private final CString name;
 	private final CModule module;
 	
 	private CMethod sharedInitializer;
@@ -41,7 +41,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		
 		instanceAttributes = new Namespace();
 		
-		this.name = name;
+		this.name = new CString(name);
 		this.module = module;
 	}
 	
@@ -54,8 +54,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 
 	public CString getName(ChipmunkVM vm){
-		vm.traceReference();
-		return new CString(name);
+		return name;
 	}
 
 	public CString getFullName(ChipmunkVM vm){
@@ -68,7 +67,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 
 	public String getName(){
-		return name;
+		return name.toString();
 	}
 	
 	public CModule getModule(){
@@ -89,7 +88,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		// is resumed this method will not be invoked, the constructor will resume where it left off,
 		// and the VM will have pushed the newly created object onto the stack when the constructor
 		// returns.
-		return vm.dispatch((CMethod)obj.getAttributes().get(name), params);
+		return vm.dispatch((CMethod)obj.getAttributes().get(name.toString()), params);
 	}
 
 	public Object instantiate(){
@@ -125,10 +124,18 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		sharedAttributes.set(name, value);
 		return value;
 	}
+
+	public Object setAttr(ChipmunkVM vm, CString name, Object value){
+		return setAttr(vm, name.toString(), value);
+	}
 	
 	public Object getAttr(ChipmunkVM vm, String name){
 		vm.traceMem(8);
 		return sharedAttributes.get(name);
+	}
+
+	public Object getAttr(ChipmunkVM vm, CString name){
+		return getAttr(vm, name.toString());
 	}
 	
 	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {

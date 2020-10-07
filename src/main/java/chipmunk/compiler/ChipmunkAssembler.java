@@ -26,8 +26,7 @@ import java.util.List;
 
 import chipmunk.DebugEntry;
 import chipmunk.Opcodes;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CNull;
+import chipmunk.modules.runtime.*;
 
 public class ChipmunkAssembler {
 	
@@ -373,6 +372,15 @@ public class ChipmunkAssembler {
 	}
 	
 	private int getConstantPoolEntry(Object value){
+		if(value instanceof Integer){
+			value = new CInteger((Integer) value);
+		}else if(value instanceof Boolean){
+			value = new CBoolean((Boolean) value);
+		}else if(value instanceof Float){
+			value = new CFloat((Float) value);
+		}else if(value instanceof String){
+			value = new CString((String) value);
+		}
 		int index = constantPool.indexOf(value);
 		
 		if(index == -1){

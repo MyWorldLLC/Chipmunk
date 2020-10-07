@@ -77,9 +77,17 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 		attributes.set(name, value);
 		return value;
 	}
+
+	public Object setAttr(ChipmunkVM vm, CString name, Object value){
+		return setAttr(vm, name.toString(), value);
+	}
 	
 	public Object getAttr(ChipmunkVM vm, String name){
 		return attributes.get(name);
+	}
+
+	public Object getAttr(ChipmunkVM vm, CString name) {
+		return getAttr(vm, name.toString());
 	}
 	
 	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {

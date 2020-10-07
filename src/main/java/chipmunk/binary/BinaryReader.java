@@ -34,7 +34,7 @@ import java.util.List;
 
 public class BinaryReader {
 
-    protected final int maxBufferSize;
+    protected int maxBufferSize;
 
     public BinaryReader(){
         maxBufferSize = Integer.MAX_VALUE;
@@ -42,6 +42,14 @@ public class BinaryReader {
 
     public BinaryReader(int maxBufferSize){
         this.maxBufferSize = maxBufferSize;
+    }
+
+    public void setMaxBufferSize(int maxBufferSize){
+        this.maxBufferSize = maxBufferSize;
+    }
+
+    public int getMaxBufferSize(){
+        return maxBufferSize;
     }
 
     public CModule readModule(InputStream is) throws IOException, BinaryFormatException {
@@ -73,10 +81,16 @@ public class BinaryReader {
             List<CModule.Import> imports = readImports(dis);
             module.getImports().addAll(imports);
 
+            Object initializer = readObject(dis, module);
+            if(initializer instanceof CMethod){
+                module.setInitializer((CMethod) initializer);
+            }
+
             Namespace moduleNamespace = module.getNamespace();
             BinaryNamespace namespace = readNameSpace(dis, module);
 
             for(BinaryNamespace.Entry entry : namespace.getEntries()){
+                System.out.println("Setting: " + entry.getName());
                 moduleNamespace.set(entry.getName(), entry.getValue());
 
                 if(entry.getValue() instanceof CMethod){
@@ -154,7 +168,7 @@ public class BinaryReader {
         for(int i = 0; i < count; i++){
             final String name = is.readUTF();
             final byte flags = is.readByte();
-
+            System.out.println(name);
             namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readObject(is, module)));
         }
 
@@ -203,6 +217,7 @@ public class BinaryReader {
         code.setDebugTable(readDebugTable(is));
 
         method.setCode(code);
+        method.setModule(module);
 
         return method;
     }
@@ -276,14 +291,14 @@ public class BinaryReader {
             final String symbolName = entry.getName();
             final int flags = entry.getFlags();
 
-            cls.getAttributes().set(symbolName, entry.getValue());
+            cls.getInstanceAttributes().set(symbolName, entry.getValue());
 
             if((flags & BinaryConstants.FINAL_FLAG) != 0){
-                cls.getAttributes().markFinal(symbolName);
+                cls.getInstanceAttributes().markFinal(symbolName);
             }
 
             if((flags & BinaryConstants.TRAIT_FLAG) != 0){
-                cls.getAttributes().markTrait(symbolName);
+                cls.getInstanceAttributes().markTrait(symbolName);
             }
         }
 

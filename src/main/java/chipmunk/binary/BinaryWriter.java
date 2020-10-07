@@ -43,6 +43,7 @@ public class BinaryWriter {
         dos.writeUTF(module.getName());
         writeConstants(dos, module.getConstants());
         writeImports(dos, module.getImports());
+        writeObject(dos, module.getInitializer());
         writeNamespace(dos, module.getNamespace());
     }
 
@@ -74,17 +75,18 @@ public class BinaryWriter {
         for(String symbol : namespace.names()){
             byte flags = 0;
 
-            if(namespace.finalNames().contains(symbol)){
+            if(namespace.finalNames() != null && namespace.finalNames().contains(symbol)){
                 flags |= BinaryConstants.FINAL_FLAG;
             }
 
-            if(namespace.traitNames().contains(symbol)){
+            if(namespace.traitNames() != null && namespace.traitNames().contains(symbol)){
                 flags |= BinaryConstants.TRAIT_FLAG;
             }
 
             binNamespace.getEntries().add(new BinaryNamespace.Entry(symbol, flags, namespace.get(symbol)));
         }
 
+        os.writeInt(binNamespace.getEntries().size());
         for(BinaryNamespace.Entry e : binNamespace.getEntries()){
             os.writeUTF(e.getName());
             os.writeByte(e.getFlags());
@@ -159,7 +161,7 @@ public class BinaryWriter {
     protected void writeObject(DataOutputStream os, Object obj) throws IOException, IllegalConstantTypeException {
 
         if(obj == null || obj instanceof CNull){
-            os.writeInt(NULL.ordinal());
+            os.writeByte(NULL.ordinal());
         }else if(obj instanceof Byte){
             os.writeByte(BYTE.ordinal());
             os.writeByte((Byte) obj);

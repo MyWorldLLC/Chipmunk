@@ -788,7 +788,7 @@ public class ChipmunkVM {
 				case CALLAT:
 					ins = stack.pop();
 
-					String methodName = (String) constantPool[fetchInt(instructions, ip + 2)];
+					CString methodName = (CString) constantPool[fetchInt(instructions, ip + 2)];
 
 
 					// TODO - this is not an internal operation, so we need
@@ -802,7 +802,7 @@ public class ChipmunkVM {
 					// method resumes after being suspended, it will try to
 					// re-run this call.
 					ip += 6;
-					stack.push(callExternal(stack, ins, methodName, paramCount, callCache, ip));
+					stack.push(callExternal(stack, ins, methodName.toString(), paramCount, callCache, ip));
 					break;
 				case GOTO:
 					ip = fetchInt(instructions, ip + 1);
@@ -956,7 +956,7 @@ public class ChipmunkVM {
 					break;
 				case GETMODULE:
 					ins = method.getCode().getModule().getNamespace()
-							.get((String)constantPool[fetchInt(instructions, ip + 1)]);
+							.get(constantPool[fetchInt(instructions, ip + 1)].toString());
 					if(ins == null) {
 						stack.push(CNull.instance());
 					}else {
