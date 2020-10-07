@@ -169,13 +169,13 @@ public class BinaryReader {
             return switch (type) {
                 case NULL -> CNull.instance();
                 case BYTE -> is.readByte();
-                case BOOLEAN -> is.readBoolean();
+                case BOOLEAN -> new CBoolean(is.readBoolean());
                 case SHORT -> is.readShort();
-                case INT -> is.readInt();
+                case INT -> new CInteger(is.readInt());
                 case LONG -> is.readLong();
-                case FLOAT -> is.readFloat();
+                case FLOAT -> new CFloat(is.readFloat());
                 case DOUBLE -> is.readDouble();
-                case STRING -> is.readUTF();
+                case STRING -> new CString(is.readUTF());
                 case METHOD -> readMethod(is, module);
                 case CLASS -> readClass(is, module);
             };
