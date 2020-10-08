@@ -23,6 +23,7 @@ package chipmunk
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.modules.ChipmunkModuleBuilder
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class RuntimeSpecification extends Specification {
@@ -189,7 +190,8 @@ class RuntimeSpecification extends Specification {
 		then:
 		result.intValue() == 21
 	}
-	
+
+	@Ignore
 	def "Run TryCatch.chp"(){
 		when:
 		def result = compileAndRun("TryCatch.chp")

@@ -22,15 +22,9 @@ package chipmunk;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.LambdaConversionException;
-import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.invoke.WrongMethodTypeException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 import chipmunk.compiler.ChipmunkCompiler;
@@ -118,7 +112,7 @@ public class ChipmunkVM {
 	}
 
 	private enum InternalOp {
-		ADD("plus"), SUB("minus"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC("inc"), DEC(
+		ADD("add"), SUB("sub"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC("inc"), DEC(
 				"dec"), POS("pos"), NEG("neg"), TRUTH("truth"), BXOR("bxor"), BAND("band"), BOR(
 						"bor"), BNEG("bneg"), LSHIFT("lshift"), RSHIFT("rshift"), URSHIFT("urshift"), SETATTR(
 								"setAttr"), GETATTR("getAttr"), SETAT("setAt"), GETAT("getAt"), AS("as"), NEWINSTANCE(
@@ -151,31 +145,10 @@ public class ChipmunkVM {
 	private final CBoolean falseValue;
 	
 	private final int refLength;
-	
-	protected Map<Class<?>, Object[]> internalCallCache;
-	protected CallCache callCache;
-	protected Object[][] internalParams;
-	protected Class<?>[][] internalTypes;
 
 	protected final Binder binder;
 
 	public ChipmunkVM() {
-		callCache = new CallCache();
-		internalCallCache = new HashMap<>();
-
-		internalParams = new Object[5][];
-		internalParams[0] = new Object[0];
-		internalParams[1] = new Object[1];
-		internalParams[2] = new Object[2];
-		internalParams[3] = new Object[3];
-		internalParams[4] = new Object[4];
-
-		internalTypes = new Class<?>[5][];
-		internalTypes[0] = new Class<?>[0];
-		internalTypes[1] = new Class<?>[1];
-		internalTypes[2] = new Class<?>[2];
-		internalTypes[3] = new Class<?>[3];
-		internalTypes[4] = new Class<?>[4];
 
 		securityMode = SecurityMode.SANDBOXED;
 		activeScript = new ChipmunkScript(128);
@@ -451,7 +424,6 @@ public class ChipmunkVM {
 		OperandStack stack;
 		
 		final byte[] instructions = method.getCode().getCode();
-		final Object[] callCache = method.getCode().getCallCache();
 		final int localCount = method.getCode().getLocalCount();
 		final Object[] constantPool = method.getCode().getConstantPool();
 
@@ -526,80 +498,52 @@ public class ChipmunkVM {
 				switch (op) {
 
 				case ADD:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.ADD, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "plus", 1));
 					ip++;
 					break;
 				case SUB:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.SUB, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "minus",1));
 					ip++;
 					break;
 				case MUL:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.MUL, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "mul", 1));
 					ip++;
 					break;
 				case DIV:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.DIV, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "div", 1));
 					ip++;
 					break;
 				case FDIV:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.FDIV, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "fdiv", 1));
 					ip++;
 					break;
 				case MOD:
-					rh = stack.pop();
-					lh = stack.pop();
-
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.MOD, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "mod", 1));
 					ip++;
 					break;
 				case POW:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.POW, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "pow", 1));
 					ip++;
 					break;
 				case INC:
-					lh = stack.pop();
-					stack.push(doInternal(InternalOp.INC, lh, 1, callCache, ip));
+					stack.push(invoke(stack, "inc", 0));
 					ip++;
 					break;
 				case DEC:
-					lh = stack.pop();
-					stack.push(doInternal(InternalOp.DEC, lh, 1, callCache, ip));
+					stack.push(invoke(stack, "dec", 0));
 					ip++;
 					break;
 				case POS:
-					lh = stack.pop();
-					stack.push(doInternal(InternalOp.POS, lh, 1, callCache, ip));
+					stack.push(invoke(stack, "pos", 0));
 					ip++;
 					break;
 				case NEG:
-					lh = stack.pop();
-					stack.push(doInternal(InternalOp.NEG, lh, 1, callCache, ip));
+					stack.push(invoke(stack, "neg", 0));
 					ip++;
 					break;
 				case AND:
-					rh = stack.pop();
-					lh = stack.pop();
-					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).getValue();
+					cond1 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
+					cond2 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
 					if (cond1 && cond2) {
 						stack.push(trueValue);
 					} else {
@@ -608,10 +552,8 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case OR:
-					rh = stack.pop();
-					lh = stack.pop();
-					cond1 = ((CBoolean) doInternal(InternalOp.TRUTH, lh, 1, callCache, ip)).getValue();
-					cond2 = ((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).getValue();
+					cond1 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
+					cond2 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
 					if (cond1 || cond2) {
 						stack.push(trueValue);
 					} else {
@@ -620,83 +562,47 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case BXOR:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.BXOR, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "bxor", 1));
 					ip++;
 					break;
 				case BAND:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.BAND, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "band", 1));
 					ip++;
 					break;
 				case BOR:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.BOR, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "bor", 1));
 					ip++;
 					break;
 				case BNEG:
-					lh = stack.pop();
-					stack.push(doInternal(InternalOp.BNEG, lh, 1, callCache, ip));
+					stack.push(invoke(stack, "bneg", 0));
 					ip++;
 					break;
 				case LSHIFT:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.LSHIFT, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "lshift", 1));
 					ip++;
 					break;
 				case RSHIFT:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.RSHIFT, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "rshift", 1));
 					ip++;
 					break;
 				case URSHIFT:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.URSHIFT, lh, 2, callCache, ip));
+					stack.push(invoke(stack, "urshift", 1));
 					ip++;
 					break;
 				case SETATTR:
-					ins = stack.pop();
-					lh = stack.pop();
-					rh = stack.pop();
-					internalParams[3][1] = lh;
-					internalParams[3][2] = rh;
-					doInternal(InternalOp.SETATTR, ins, 3, callCache, ip);
-					stack.push(ins);
+					invoke(stack, "setAttr", 2);
 					ip++;
 					break;
 				case GETATTR:
-					ins = stack.pop();
-					rh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.GETATTR, ins, 2, callCache, ip));
+					stack.push(invoke(stack, "getAttr", 1));
 					ip++;
 					break;
 				case GETAT:
-					lh = stack.pop();
-					ins = stack.pop();
-					internalParams[2][1] = lh;
-					stack.push(doInternal(InternalOp.GETAT, ins, 2, callCache, ip));
+					stack.push(invoke(stack, "getAt", 1));
 					ip++;
 					break;
 				case SETAT:
-					ins = stack.pop();
-					lh = stack.pop();
-					rh = stack.pop();
-					internalParams[3][1] = lh;
-					internalParams[3][2] = rh;
-					stack.push(doInternal(InternalOp.SETAT, ins, 3, callCache, ip));
+					stack.push(invoke(stack, "setAt", 2));
 					ip++;
 					break;
 				case GETLOCAL:
@@ -708,43 +614,26 @@ public class ChipmunkVM {
 					ip += 2;
 					break;
 				case TRUTH:
-					rh = stack.pop();
-					stack.push(doInternal(InternalOp.TRUTH, rh, 1, callCache, ip));
+					stack.push(invoke(stack, "truth", 0));
 					ip++;
 					break;
 				case NOT:
-					rh = stack.pop();
-					stack.push(new CBoolean(!((CBoolean) doInternal(InternalOp.TRUTH, rh, 1, callCache, ip)).booleanValue()));
+					stack.push(new CBoolean(!((CBoolean) invoke(stack, "truth", 0)).booleanValue()));
 					ip++;
 					break;
 				case AS:
-					lh = stack.pop();
-					ins = stack.pop();
-					internalParams[2][1] = lh;
-					stack.push(doInternal(InternalOp.AS, ins, 2, callCache, ip));
+					stack.push(invoke(stack, "as", 1));
 					ip++;
 					break;
 				case IF:
-					ins = stack.pop();
 					int target = fetchInt(instructions, ip + 1);
 					ip += 5;
-
-					if (!((CBoolean) doInternal(InternalOp.TRUTH, ins, 1, callCache, ip)).booleanValue()) {
+					// TODO - this is not suspension safe
+					if (!((CBoolean) invoke(stack, "truth", 0)).booleanValue()) {
 						ip = target;
 					}
 					break;
 				case CALL:
-					ins = stack.pop();
-
-					// TODO - probably should use the same mechanism used by
-					// CALLAT here, since this
-					// isn't really quite an internal operation
-
-					//internalParams[2][1] = fetchByte(instructions, ip + 1);
-					//stack.push(doInternal(InternalOp.CALL, ins, 2, callCache, ip));
-					Object[] params = new Object[fetchByte(instructions, ip + 1)];
-					this.popParams(stack, params);
-					stack.push(params);
 
 					// Need to bump ip BEFORE calling next method.
 					// Otherwise,
@@ -752,27 +641,22 @@ public class ChipmunkVM {
 					// method resumes after being suspended, it will try to
 					// re-run this call.
 					ip += 2;
-					stack.push(callExternal(stack, ins, "call", 1, callCache, ip));
+					stack.push(invoke(stack,"call", fetchByte(instructions, ip + 1)));
 					break;
-				case CALLAT:
-					ins = stack.pop();
-
+				case CALLAT: {
 					CString methodName = (CString) constantPool[fetchInt(instructions, ip + 2)];
-
-
-					// TODO - this is not an internal operation, so we need
-					// a different caching mechanism
-					// here
-					int paramCount = fetchByte(instructions, ip + 1);
 
 					// Need to bump ip BEFORE calling next method.
 					// Otherwise,
 					// the ip will be stored in its old state and when this
 					// method resumes after being suspended, it will try to
 					// re-run this call.
+
+					int paramCount = fetchByte(instructions, ip + 1);
 					ip += 6;
-					stack.push(callExternal(stack, ins, methodName.toString(), paramCount, callCache, ip));
+					stack.push(invoke(stack, methodName.toString(), paramCount));
 					break;
+				}
 				case GOTO:
 					ip = fetchInt(instructions, ip + 1);
 					break;
@@ -784,7 +668,7 @@ public class ChipmunkVM {
 					assert stack.verifyMark(mark);
 					return ins;
 				case POP:
-					ins = stack.pop();
+					stack.pop();
 					ip++;
 					break;
 				case DUP:
@@ -805,17 +689,11 @@ public class ChipmunkVM {
 					ip += 5;
 					break;
 				case EQ:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.EQUALS, lh, 2, callCache, ip));
+					stack.push(invoke(stack,"equals", 1));
 					ip++;
 					break;
 				case GT:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() > 0) {
+					if (((CInteger) invoke(stack,"compare", 1)).getValue() > 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -823,10 +701,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case LT:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() < 0) {
+					if (((CInteger) invoke(stack,"compare", 1)).getValue() < 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -834,10 +709,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case GE:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() >= 0) {
+					if (((CInteger) invoke(stack,"compare", 1)).getValue() >= 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -845,10 +717,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case LE:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					if (((CInteger) doInternal(InternalOp.COMPARE, lh, 2, callCache, ip)).getValue() <= 0) {
+					if (((CInteger) invoke(stack,"compare", 1)).getValue() <= 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -866,15 +735,12 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case INSTANCEOF:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[2][1] = rh;
-					stack.push(doInternal(InternalOp.INSTANCEOF, lh, 2, callCache, ip));
+					stack.push(invoke(stack,"instanceOf", 1));
 					ip++;
 					break;
 				case ITER:
 					ins = stack.pop();
-					stack.push(doInternal(InternalOp.ITERATOR, ins, 1, callCache, ip));
+					stack.push(invoke(stack,"iterator", 1));
 					ip++;
 					break;
 				case NEXT:
@@ -882,18 +748,20 @@ public class ChipmunkVM {
 					if (!((CIterator) ins).hasNext(this)) {
 						ip = fetchInt(instructions, ip + 1);
 					} else {
-						stack.push(doInternal(InternalOp.NEXT, ins, 1, callCache, ip));
+						stack.push(invoke(stack,"next", 1));
 						ip += 5;
 					}
 					break;
-				case RANGE:
-					rh = stack.pop();
-					lh = stack.pop();
-					internalParams[3][1] = rh;
-					internalParams[3][2] = fetchByte(instructions, ip + 1) != 0;
-					stack.push(doInternal(InternalOp.RANGE, lh, 3, callCache, ip));
+				case RANGE:{
+					// TODO
+					//rh = stack.pop();
+					//lh = stack.pop();
+					//internalParams[3][2] = fetchByte(instructions, ip + 1) != 0;
+					boolean inclusive = fetchByte(instructions, ip + 1) != 0;
+					stack.push(invoke(stack,"range", 2));
 					ip += 2;
 					break;
+				}
 				case LIST:
 					int elementCount = fetchInt(instructions, ip + 1);
 					CList list = new CList();
@@ -1040,64 +908,9 @@ public class ChipmunkVM {
 		}
 	}
 
+	private Object invoke(OperandStack stack, String methodName, int paramCount) {
 
-
-
-	
-	private void popParams(OperandStack stack, Object[] params) {
-		for(int i = params.length - 1; i >= 0; i--) {
-			params[i] = stack.pop();
-		}
-	}
-
-	private Object doInternal(InternalOp op, Object target, int paramCount, Object[] callCache, int callCacheIndex) {
-		Class<?> targetType = target.getClass();
-
-		Object[] params = internalParams[paramCount];
-		if(paramCount > 0) {
-			params[0] = this;
-		}
-		
-		try {
-
-			Object method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
-			Object retVal = invoke(method, target, params);
-		
-			// the following is helpful when weird bugs crop up - it nulls the parameter array after use
-			// Arrays.fill(params, null);
-			return retVal != null ? retVal : CNull.instance();
-		} catch (IllegalStateException | ClassCastException | WrongMethodTypeException e) {
-			// rebind the cached method and attempt to invoke again with the actual parameters we have now
-			try {
-				Class<?>[] paramTypes = internalTypes[paramCount];
-				for (int i = 0; i < paramCount; i++) {
-					paramTypes[i] = params[i].getClass();
-				}
-				Object method = binder.lookupMethod(target, op.getOpName(), paramTypes);
-				cacheInternal(op, targetType, method);
-				
-				//method = getOrCacheInternal(op, target, params, callCache, callCacheIndex);
-				Object retVal = invoke(method, target, params);
-				// the following is helpful when weird bugs crop up - it nulls the parameter array after use
-				// Arrays.fill(params, null);
-				return retVal != null ? retVal : CNull.instance();
-			}catch(NoSuchMethodException ex) {
-				throw new AngryChipmunk(ex);
-			}catch(AngryChipmunk ex) {
-				throw ex;
-			}catch(Throwable ex) {
-				throw new AngryChipmunk(ex);
-			}
-			
-		} catch (AngryChipmunk e) {
-			throw e;
-		} catch (Throwable e) {
-			throw new AngryChipmunk(e);
-		}
-		
-	}
-
-	private Object callExternal(OperandStack stack, Object target, String methodName, int paramCount, Object[] callCache, int callCacheIndex) {
+		Object target = stack.pop();
 
 		final boolean isInterceptor = target instanceof CallInterceptor;
 		// If sandboxed, force all calls to the RuntimeObject call signature
@@ -1133,19 +946,21 @@ public class ChipmunkVM {
 		}
 
 		try {
-			if(callCache[callCacheIndex] == null) {
-				Object invokeTarget = binder.lookupMethod(target, methodName, paramTypes);
-				callCache[callCacheIndex] = invokeTarget;
-				Object retVal = invoke(invokeTarget, target, params);
+			Object invokeTarget = binder.lookupMethod(target, methodName, paramTypes);
+			Object retVal = dispatchInvocation(invokeTarget, target, params);
+			//if(callCache[callCacheIndex] == null) {
+				//Object invokeTarget = binder.lookupMethod(target, methodName, paramTypes);
+			//	callCache[callCacheIndex] = invokeTarget;
+				//Object retVal = dispatchInvocation(invokeTarget, target, params);
 				
-				return retVal != null ? retVal : CNull.instance();
-			}else {
+			return retVal != null ? retVal : CNull.instance();
+			//}else {
 				// TODO - need to check parameter types, call target, etc. and verify that the call is valid
-				Object invokeTarget = callCache[callCacheIndex];
-				Object retVal = invoke(invokeTarget, target, params);
+				//Object invokeTarget = callCache[callCacheIndex];
+				//Object retVal = dispatchInvocation(invokeTarget, target, params);
 				
-				return retVal != null ? retVal : CNull.instance();
-			}
+				//return retVal != null ? retVal : CNull.instance();
+			//}
 			
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 			throw new AngryChipmunk(e);
@@ -1156,7 +971,7 @@ public class ChipmunkVM {
 		}
 	}
 	
-	public Object invoke(Object callTarget, Object target, Object[] params) throws Throwable {
+	public Object dispatchInvocation(Object callTarget, Object target, Object[] params) throws Throwable {
 
 		if(callTarget instanceof VoidMarker) {
 			switch (params.length) {
@@ -1253,48 +1068,6 @@ public class ChipmunkVM {
 		}
 	}
 	
-	private Object getOrCacheInternal(InternalOp op, Object target, Object[] params, Object[] callCache, int callCacheIndex) throws Throwable {
-		Class<?> targetType = target.getClass();
-		
-		Object method = callCache[callCacheIndex];
-		
-		if(method == null) {
-			method = getCachedInternalOpMethod(op, targetType);
-		}
-		
-		if (method == null) {
-			Class<?>[] paramTypes = internalTypes[params.length];
-			for (int i = 0; i < params.length; i++) {
-				paramTypes[i] = params[i].getClass();
-			}
-			method = binder.lookupMethod(target, op.getOpName(), paramTypes);
-			cacheInternal(op, targetType, method);
-		}
-		
-		callCache[callCacheIndex] = method;
-		
-		return method;
-	}
-	
-	private void cacheInternal(InternalOp op, Class<?> targetType, Object methodImpl) {
-		
-		Object[] records = internalCallCache.get(targetType);
-		if (records == null) {
-			records = new Object[InternalOp.values().length];
-			internalCallCache.put(targetType, records);
-		}
-		
-		records[op.ordinal()] = methodImpl;
-	}
-	
-	private Object getCachedInternalOpMethod(InternalOp op, Class<?> targetType) {
-		Object[] records = internalCallCache.get(targetType);
-		if(records == null) {
-			return null;
-		}
-		return records[op.ordinal()];
-	}
-	
 	private ExceptionBlock chooseExceptionHandler(int ip, ExceptionBlock[] eTable) {
 		ExceptionBlock lastCandidate = null;
 		
@@ -1324,6 +1097,5 @@ public class ChipmunkVM {
 		
 		return 0;
 	}
-
 
 }

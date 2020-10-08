@@ -102,8 +102,8 @@ class VMSpecification extends Specification {
 	
 	def "add"(){
 		when:
-		assembler.push(one)
 		assembler.push(two)
+		assembler.push(one)
 		assembler.add()
 		assembler._return()
 		def result = vmRun()
@@ -114,8 +114,8 @@ class VMSpecification extends Specification {
 	
 	def "sub"(){
 		when:
-		assembler.push(one)
 		assembler.push(two)
+		assembler.push(one)
 		assembler.sub()
 		assembler._return()
 		def result = vmRun()
@@ -138,8 +138,8 @@ class VMSpecification extends Specification {
 	
 	def "div"(){
 		when:
-		assembler.push(one)
 		assembler.push(two)
+		assembler.push(one)
 		assembler.div()
 		assembler._return()
 		def result = vmRun()
@@ -150,8 +150,8 @@ class VMSpecification extends Specification {
 	
 	def "fdiv"(){
 		when:
-		assembler.push(one)
 		assembler.push(two)
+		assembler.push(one)
 		assembler.fdiv()
 		assembler._return()
 		def result = vmRun()
@@ -162,8 +162,8 @@ class VMSpecification extends Specification {
 	
 	def "mod"(){
 		when:
-		assembler.push(three)
 		assembler.push(two)
+		assembler.push(three)
 		assembler.mod()
 		assembler._return()
 		def result = vmRun()
@@ -174,8 +174,8 @@ class VMSpecification extends Specification {
 	
 	def "pow"(){
 		when:
-		assembler.push(two)
 		assembler.push(three)
+		assembler.push(two)
 		assembler.pow()
 		assembler._return()
 		def result = vmRun()
@@ -277,8 +277,8 @@ class VMSpecification extends Specification {
 	
 	def "lshift"(){
 		when:
-		assembler.push(two)
 		assembler.push(one)
+		assembler.push(two)
 		assembler.lshift()
 		assembler._return()
 		def result = vmRun()
@@ -289,8 +289,8 @@ class VMSpecification extends Specification {
 	
 	def "rshift"(){
 		when:
-		assembler.push(two)
 		assembler.push(one)
+		assembler.push(two)
 		assembler.rshift()
 		assembler._return()
 		def result = vmRun()
@@ -301,8 +301,8 @@ class VMSpecification extends Specification {
 	
 	def "urshift"(){
 		when:
-		assembler.push(two)
 		assembler.push(one)
+		assembler.push(two)
 		assembler.urshift()
 		assembler._return()
 		def result = vmRun()
