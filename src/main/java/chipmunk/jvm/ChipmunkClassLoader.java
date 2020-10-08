@@ -18,29 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.lang;
+package chipmunk.jvm;
 
-import java.util.HashMap;
-import java.util.Map;
+public class ChipmunkClassLoader extends ClassLoader {
 
-public class CMap extends CObject {
-	
-	protected Map<CObject, CObject> contents;
-	
-	public CMap(){
-		super();
-		contents = new HashMap<CObject, CObject>();
-	}
-	
-	@Override
-	public CObject __getAt__(CObject index){
-		return contents.get(index);
-	}
-	
-	@Override
-	public CObject __setAt__(CObject index, CObject value){
-		CObject previous = contents.put(index, value);
-		return previous != null ? previous : CNullType.nullObject;
-	}
-
+    public Class<?> define(String name, byte[] bytes){
+        return super.defineClass(name, bytes, 0, bytes.length);
+    }
 }

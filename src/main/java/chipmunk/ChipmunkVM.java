@@ -418,6 +418,10 @@ public class ChipmunkVM {
 //		return stack.stackIndex;
 //	}
 
+	public Object dispatch(CMethodCode code, Object[] parameters){
+		return null;
+	}
+
 	public Object dispatch(CMethod method, Object[] parameters) {
 		int ip = 0;
 		Object[] locals;

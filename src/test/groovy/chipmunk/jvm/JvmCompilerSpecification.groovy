@@ -18,20 +18,26 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.lang;
+package chipmunk.jvm
 
+import chipmunk.ChipmunkVM
+import chipmunk.compiler.ChipmunkCompiler
+import spock.lang.Specification
 
-public class CNullType extends CType {
+class JvmCompilerSpecification extends Specification {
 
-	public static final CNull nullObject = new CNull();
-	
-	public CNullType(){
-		super("Null");
-	}
-	
-	public CObject instance() {
-		// shared instance of null object
-		return nullObject;
-	}
+    ChipmunkVM vm = new ChipmunkVM()
+    ChipmunkCompiler cc = new ChipmunkCompiler()
+    JvmCompiler jc = new JvmCompiler()
 
+    def "Load as Java code & run"(){
+        when:
+        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
+        def jModIns = jc.compile(module)
+
+        def result = jModIns.main(vm, new Object[0])
+
+        then:
+        result == 10
+    }
 }

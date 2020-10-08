@@ -65,9 +65,9 @@ public class Binder {
         methodLookup = MethodHandles.lookup();
     }
 
-    public Object lookupMethod(Object target, String opName, Class<?>[] callTypes) throws Throwable {
+    public Object lookupMethod(Object target, String opName, Class<?>[] paramTypes) throws Throwable {
 
-        CallSignature signature = new CallSignature(target.getClass(), opName, callTypes);
+        CallSignature signature = new CallSignature(target.getClass(), opName, paramTypes);
         Object callTarget = cache.getTarget(signature);
         if(callTarget != null){
             return callTarget;
@@ -78,7 +78,7 @@ public class Binder {
         for (int i = 0; i < methods.length; i++) {
             if (methods[i].getName().equals(opName)) {
                 // only call public methods
-                if (paramTypesMatch(methods[i].getParameterTypes(), callTypes)
+                if (paramTypesMatch(methods[i].getParameterTypes(), paramTypes)
                         && ((methods[i].getModifiers() & Modifier.PUBLIC) != 0)) {
 
                     method = methods[i];
@@ -88,24 +88,24 @@ public class Binder {
         }
 
         if(method == null) {
-            throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+            throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, paramTypes));
         }
 
         Class<?> callTypeClass = null;
-        if(callTypes.length < 11) {
+        if(paramTypes.length < 11) {
             // direct-bind method
 
             if(method.getReturnType().equals(void.class)) {
-                callTypeClass = this.voidCallTypes[callTypes.length];
+                callTypeClass = this.voidCallTypes[paramTypes.length];
             }else {
-                callTypeClass = this.callTypes[callTypes.length];
+                callTypeClass = this.callTypes[paramTypes.length];
             }
 
             try {
                 MethodHandle implementationHandle = methodLookup.unreflect(method);
 
                 MethodType interfaceType = MethodType.methodType(callTypeClass);
-                MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(callTypes);
+                MethodType implType = MethodType.methodType(method.getReturnType(), target.getClass()).appendParameterTypes(paramTypes);
 
                 callTarget = LambdaMetafactory.metafactory(
                         methodLookup,
@@ -117,16 +117,14 @@ public class Binder {
                         .getTarget().invoke();
             } catch (IllegalAccessException | LambdaConversionException e) {
                 throw e;
-            }catch(Throwable e) {
-                throw e;
             }
 
         }else {
             // non-statically bind method
             try {
-                callTarget = methodLookup.unreflect(method).asSpreader(1, Object[].class, callTypes.length);
+                callTarget = methodLookup.unreflect(method).asSpreader(1, Object[].class, paramTypes.length);
             } catch (IllegalAccessException e) {
-                throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, callTypes));
+                throw new NoSuchMethodException(formatMissingMethodMessage(target.getClass(), opName, paramTypes));
             }
         }
 

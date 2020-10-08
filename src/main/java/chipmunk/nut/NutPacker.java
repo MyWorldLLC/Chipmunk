@@ -31,14 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import chipmunk.modules.lang.CObject;
-import chipmunk.modules.lang.CType;
+import chipmunk.modules.runtime.CObject;
 
 public class NutPacker {
 	
 	public static final byte NUT_VERSION = (byte) 0x10;
 	
-	protected IdentityHashMap<CObject, Integer> identityMap;
+	/*protected IdentityHashMap<CObject, Integer> identityMap;
 	protected int identityCounter;
 	
 	protected Set<CType> types;
@@ -207,6 +206,6 @@ public class NutPacker {
 		
 		capsule.write(NutFormat.TABLE_MARKER);
 		
-	}
+	}*/
 
 }
