@@ -22,44 +22,41 @@ package chipmunk.binary;
 
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
-import chipmunk.Namespace;
-import chipmunk.modules.runtime.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 
-import static chipmunk.binary.BinaryConstants.ConstantType.*;
+import static chipmunk.binary.ConstantType.*;
 
 public class BinaryWriter {
 
-    public void writeModule(OutputStream os, CModule module) throws IOException, IllegalConstantTypeException {
+    public void writeModule(OutputStream os, BinaryModule module) throws IOException, IllegalConstantTypeException {
 
         DataOutputStream dos = new DataOutputStream(os);
         dos.writeUTF(BinaryConstants.CHIPMUNK_BINARY_IDENTIFIER);
         dos.writeShort(BinaryConstants.BINARY_VERSION);
 
         dos.writeUTF(module.getName());
-        writeConstants(dos, module.getConstants());
+        writeConstants(dos, module.getConstantPool());
         writeImports(dos, module.getImports());
         writeObject(dos, module.getInitializer());
         writeNamespace(dos, module.getNamespace());
     }
 
-    protected void writeConstants(DataOutputStream os, List<Object> objs) throws IOException, IllegalConstantTypeException {
+    protected void writeConstants(DataOutputStream os, Object[] objs) throws IOException, IllegalConstantTypeException {
 
-        os.writeInt(objs.size());
+        os.writeInt(objs.length);
         for(Object o : objs){
             writeObject(os, o);
         }
 
     }
 
-    protected void writeImports(DataOutputStream os, List<CModule.Import> imports) throws IOException {
+    protected void writeImports(DataOutputStream os, BinaryImport[] imports) throws IOException {
 
-        os.writeInt(imports.size());
-        for(CModule.Import i : imports){
+        os.writeInt(imports.length);
+        for(BinaryImport i : imports){
 
             os.writeUTF(i.getName());
             os.writeBoolean(i.isImportAll());
@@ -69,35 +66,21 @@ public class BinaryWriter {
         }
     }
 
-    protected void writeNamespace(DataOutputStream os, Namespace namespace) throws IOException, IllegalConstantTypeException {
+    protected void writeNamespace(DataOutputStream os, BinaryNamespace namespace) throws IOException, IllegalConstantTypeException {
 
-        BinaryNamespace binNamespace = new BinaryNamespace();
-        for(String symbol : namespace.names()){
-            byte flags = 0;
-
-            if(namespace.finalNames() != null && namespace.finalNames().contains(symbol)){
-                flags |= BinaryConstants.FINAL_FLAG;
-            }
-
-            if(namespace.traitNames() != null && namespace.traitNames().contains(symbol)){
-                flags |= BinaryConstants.TRAIT_FLAG;
-            }
-
-            binNamespace.getEntries().add(new BinaryNamespace.Entry(symbol, flags, namespace.get(symbol)));
-        }
-
-        os.writeInt(binNamespace.getEntries().size());
-        for(BinaryNamespace.Entry e : binNamespace.getEntries()){
+        os.writeInt(namespace.getEntries().size());
+        for(BinaryNamespace.Entry e : namespace.getEntries()){
             os.writeUTF(e.getName());
             os.writeByte(e.getFlags());
-            writeObject(os, e.getValue());
+            os.writeInt((byte)e.getType().ordinal());
+            writeMethod(os, e.getBinaryMethod());
         }
 
     }
 
-    protected void writeStrings(DataOutputStream os, List<String> strings) throws IOException {
+    protected void writeStrings(DataOutputStream os, String[] strings) throws IOException {
 
-        os.writeInt(strings.size());
+        os.writeInt(strings.length);
 
         for(String s : strings){
             os.writeUTF(s);
@@ -105,19 +88,19 @@ public class BinaryWriter {
 
     }
 
-    protected void writeMethod(DataOutputStream os, CMethod method) throws IOException, IllegalConstantTypeException {
+    protected void writeMethod(DataOutputStream os, BinaryMethod method) throws IOException, IllegalConstantTypeException {
 
-        os.writeUTF(method.getDebugSymbol());
+        os.writeUTF(method.getDeclarationSymbol());
         os.writeInt(method.getLocalCount());
         os.writeInt(method.getArgCount());
         os.writeInt(method.getDefaultArgCount());
 
-        byte[] instructions = method.getInstructions();
+        byte[] instructions = method.getCode();
         os.writeInt(instructions.length);
         os.write(instructions);
 
-        writeExceptionTable(os, method.getCode().getExceptionTable());
-        writeDebugTable(os, method.getCode().getDebugTable());
+        writeExceptionTable(os, method.getExceptionTable());
+        writeDebugTable(os, method.getDebugTable());
     }
 
     protected void writeExceptionTable(DataOutputStream os, ExceptionBlock[] table) throws IOException {
@@ -147,20 +130,20 @@ public class BinaryWriter {
         }
     }
 
-    protected void writeClass(DataOutputStream os, CClass cls) throws IOException, IllegalConstantTypeException {
+    protected void writeClass(DataOutputStream os, BinaryClass cls) throws IOException, IllegalConstantTypeException {
 
         os.writeUTF(cls.getName());
         writeMethod(os, cls.getSharedInitializer());
-        writeNamespace(os, cls.getAttributes());
+        writeNamespace(os, cls.getSharedFields());
 
         writeMethod(os, cls.getInstanceInitializer());
-        writeNamespace(os, cls.getInstanceAttributes());
+        writeNamespace(os, cls.getInstanceFields());
 
     }
 
     protected void writeObject(DataOutputStream os, Object obj) throws IOException, IllegalConstantTypeException {
 
-        if(obj == null || obj instanceof CNull){
+        if(obj == null){
             os.writeByte(NULL.ordinal());
         }else if(obj instanceof Byte){
             os.writeByte(BYTE.ordinal());
@@ -168,42 +151,30 @@ public class BinaryWriter {
         }else if(obj instanceof Boolean){
             os.writeByte(BOOLEAN.ordinal());
             os.writeBoolean((Boolean) obj);
-        }else if(obj instanceof CBoolean){
-            os.writeByte(BOOLEAN.ordinal());
-            os.writeBoolean(((CBoolean) obj).booleanValue());
         }else if(obj instanceof Short){
             os.writeByte(SHORT.ordinal());
             os.writeShort((Short) obj);
         }else if(obj instanceof Integer){
             os.writeByte(INT.ordinal());
             os.writeInt((Integer) obj);
-        }else if(obj instanceof CInteger){
-            os.writeByte(INT.ordinal());
-            os.writeInt(((CInteger) obj).intValue());
         }else if(obj instanceof Long){
             os.writeByte(LONG.ordinal());
             os.writeLong((Long) obj);
         }else if(obj instanceof Float){
             os.writeByte(FLOAT.ordinal());
             os.writeFloat((Float) obj);
-        }else if(obj instanceof CFloat){
-            os.writeByte(FLOAT.ordinal());
-            os.writeFloat(((CFloat) obj).floatValue());
         }else if(obj instanceof Double){
             os.writeByte(DOUBLE.ordinal());
             os.writeDouble((Double) obj);
         }else if(obj instanceof String){
             os.writeByte(STRING.ordinal());
             os.writeUTF((String) obj);
-        }else if(obj instanceof CString){
-            os.writeByte(STRING.ordinal());
-            os.writeUTF(((CString) obj).stringValue());
-        }else if(obj instanceof CMethod){
+        }else if(obj instanceof BinaryMethod){
             os.writeByte(METHOD.ordinal());
-            writeMethod(os, (CMethod) obj);
-        }else if(obj instanceof CClass){
+            writeMethod(os, (BinaryMethod) obj);
+        }else if(obj instanceof BinaryClass){
             os.writeByte(CLASS.ordinal());
-            writeClass(os, (CClass) obj);
+            writeClass(os, (BinaryClass) obj);
         }else{
             throw new IllegalConstantTypeException(String.format("%s is not a valid Chipmunk constant", obj.getClass().getName()));
         }
