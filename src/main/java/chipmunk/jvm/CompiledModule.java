@@ -18,12 +18,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.jvm;
 
-import chipmunk.binary.BinaryModule;
-
-public interface ModuleLoader {
-
-	BinaryModule loadModule(String moduleName) throws Exception;
-
+public interface CompiledModule {
+    void initializeCodeFields(CompiledMethods methods);
 }

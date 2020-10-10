@@ -178,7 +178,7 @@ class ClassVisitorSpecification extends Specification {
 		root.visit(visitor)
 		
 		
-		CClass cClass = visitor.getCClass()
+		CClass cClass = visitor.getBinaryClass()
 		
 		if(test != ""){
 			println()

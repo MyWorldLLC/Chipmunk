@@ -23,12 +23,13 @@ package chipmunk;
 import java.util.*;
 
 import chipmunk.ChipmunkVM.CallFrame;
+import chipmunk.binary.BinaryModule;
 import chipmunk.modules.runtime.CModule;
 
 public class ChipmunkScript {
 
 	protected List<ModuleLoader> loaders;
-	protected Map<String, CModule> modules;
+	protected Map<String, BinaryModule> modules;
 
 	protected final List<Object> tags;
 
@@ -78,10 +79,10 @@ public class ChipmunkScript {
 		return entryMethod;
 	}
 
-	public Map<String, CModule> getModules(){
+	public Map<String, BinaryModule> getModules(){
 		return modules;
 	}
-	public void setModule(CModule module){
+	public void setModule(BinaryModule module){
 		modules.put(module.getName(), module);
 	}
 

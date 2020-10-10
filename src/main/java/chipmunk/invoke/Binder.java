@@ -33,6 +33,11 @@ public class Binder {
 
     protected final MethodHandles.Lookup methodLookup;
 
+    public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType, Object... args){
+
+        return new ConstantCallSite(MethodHandles.zero(Integer.class));
+    }
+
     public Binder(){
         cache = new CallCache();
 

@@ -25,10 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.binary.BinaryMethod;
+import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.FlowControlNode;
+import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.InnerMethodRewriteVisitor;
 import chipmunk.compiler.codegen.ModuleVisitor;
@@ -53,37 +58,47 @@ public class ChipmunkCompiler {
 	public List<ModuleNode> getLastParsedModules(){
 		return parsedModules;
 	}
-	
-	public List<CModule> compile(CharSequence src, String fileName) throws CompileChipmunk {
-		
-		List<CModule> modules = new ArrayList<CModule>();
-		ChipmunkLexer lexer = new ChipmunkLexer();
-		TokenStream tokens = lexer.lex(src);
-		
-		ChipmunkParser parser = new ChipmunkParser(tokens);
-		parser.setFileName(fileName);
-		parser.parse();
-		parsedModules = parser.getModuleRoots();
-		
-		for(ModuleNode node : parsedModules){
-			
-			for(AstVisitor visitor : visitors){
-				node.visit(visitor);
-			}
-			
-			ModuleVisitor visitor = new ModuleVisitor();
+
+	public BinaryModule compileAst(ModuleNode node) throws CompileChipmunk {
+
+		for(AstVisitor visitor : visitors){
 			node.visit(visitor);
-			modules.add(visitor.getModule());
+		}
+
+		ModuleVisitor visitor = new ModuleVisitor();
+		node.visit(visitor);
+		return visitor.getModule();
+	}
+	
+	public BinaryModule[] compile(CharSequence src, String fileName) throws CompileChipmunk {
+
+		parsedModules = parse(lex(src), fileName);
+
+		BinaryModule[] modules = new BinaryModule[parsedModules.size()];
+		for(int i = 0; i < parsedModules.size(); i++){
+			modules[i] = compileAst(parsedModules.get(i));
 		}
 		
 		return modules;
 	}
+
+	public TokenStream lex(CharSequence src) throws CompileChipmunk {
+		ChipmunkLexer lexer = new ChipmunkLexer();
+		return lexer.lex(src);
+	}
+
+	public List<ModuleNode> parse(TokenStream tokens, String sourceName) throws CompileChipmunk {
+		ChipmunkParser parser = new ChipmunkParser(tokens);
+		parser.setFileName(sourceName);
+		parser.parse();
+		return parser.getModuleRoots();
+	}
 	
-	public List<CModule> compile(InputStream src, String fileName) throws CompileChipmunk {
+	public BinaryModule[] compile(InputStream src, String fileName) throws CompileChipmunk {
 		StringBuilder builder = new StringBuilder();
 
 		try{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(src, Charset.forName("UTF-8")));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(src, StandardCharsets.UTF_8));
 			int character = reader.read();
 			while(character != -1){
 				builder.append((char) character);
@@ -95,6 +110,25 @@ public class ChipmunkCompiler {
 
 		
 		return compile(builder, fileName);
+	}
+
+	public BinaryModule compileExpression(String exp) throws CompileChipmunk {
+		ModuleNode module = new ModuleNode();
+		module.setName("exp");
+
+		MethodNode method = new MethodNode("evaluate");
+		FlowControlNode ret = new FlowControlNode(new Token("return", Token.Type.RETURN));
+
+		TokenStream tokens = lex(exp);
+		ChipmunkParser parser = new ChipmunkParser(tokens);
+
+		ret.getChildren().add(parser.parseExpression());
+
+		method.addToBody(ret);
+
+		module.addMethodDef(method);
+
+		return compileAst(module);
 	}
 
 }

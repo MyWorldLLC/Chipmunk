@@ -18,12 +18,22 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.jvm;
 
-import chipmunk.binary.BinaryModule;
+import chipmunk.binary.BinaryMethod;
 
-public interface ModuleLoader {
+import java.util.ArrayList;
+import java.util.List;
 
-	BinaryModule loadModule(String moduleName) throws Exception;
+public class CompiledMethods {
 
+    protected final List<BinaryMethod> methods;
+
+    public CompiledMethods(){
+        methods = new ArrayList<>();
+    }
+
+    public List<BinaryMethod> getMethods(){
+        return methods;
+    }
 }

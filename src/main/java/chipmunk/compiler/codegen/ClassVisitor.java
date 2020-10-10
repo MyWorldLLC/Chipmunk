@@ -26,31 +26,31 @@ import java.util.List;
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
 import chipmunk.Namespace;
+import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.*;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CModule;
 import chipmunk.modules.runtime.CNull;
 
 public class ClassVisitor implements AstVisitor {
 
-	protected CClass cClass;
+	protected BinaryClass cls;
 	protected List<Object> constantPool;
 
 	protected MethodNode sharedInit;
 	protected MethodNode instanceInit;
 	
-	protected CModule module;
+	protected BinaryModule module;
 	
 	private boolean alreadyReachedConstructor;
 	
-	public ClassVisitor(CModule module){
+	public ClassVisitor(BinaryModule module){
 		this(new ArrayList<>(), module);
 	}
 	
-	public ClassVisitor(List<Object> constantPool, CModule module){
+	public ClassVisitor(List<Object> constantPool, BinaryModule module){
 		this.constantPool = constantPool;
 		this.module = module;
 		alreadyReachedConstructor = false;
@@ -63,8 +63,8 @@ public class ClassVisitor implements AstVisitor {
 		if(node instanceof ClassNode){
 			ClassNode classNode = (ClassNode) node;
 			
-			if(cClass == null) {
-				cClass = new CClass(classNode.getName(), module);
+			if(cls == null) {
+				cls = new BinaryClass(classNode.getName(), module);
 
 				sharedInit = new MethodNode("<class init>");
 				sharedInit.getSymbol().setShared(true);
@@ -81,23 +81,33 @@ public class ClassVisitor implements AstVisitor {
 				// visit nested class declarations
 				ClassVisitor visitor = new ClassVisitor(constantPool, module);
 				classNode.visit(visitor);
-				CClass inner = visitor.getCClass();
-				
+				BinaryClass inner = visitor.getBinaryClass();
+				BinaryNamespace.Entry innerEntry = BinaryNamespace.Entry.makeClass(inner.getName(), (byte)0, inner);
+
 				if(classNode.getSymbol().isShared()) {
-					cClass.getAttributes().set(inner.getName(), inner);
+					cls.getSharedFields().addEntry(innerEntry);
 				}else {
-					cClass.getInstanceAttributes().set(inner.getName(), inner);
+					cls.getInstanceFields().addEntry(innerEntry);
 				}
 			}
 			
 		}else if(node instanceof VarDecNode){
-			// TODO - final variables
+
 			VarDecNode varDec = (VarDecNode) node;
 			
 			VarDecVisitor visitor = null;
 			final boolean isShared = varDec.getSymbol().isShared();
 			final boolean isFinal = varDec.getSymbol().isFinal();
 			final boolean isTrait = varDec.getSymbol().isTrait();
+
+			byte flags = 0;
+			if(isFinal){
+				flags |= BinaryConstants.FINAL_FLAG;
+			}
+
+			if(isTrait){
+				flags |= BinaryConstants.TRAIT_FLAG;
+			}
 
 			if(varDec.getAssignExpr() != null){
 				// Move the assignment to the relevant initializer
@@ -117,18 +127,14 @@ public class ClassVisitor implements AstVisitor {
 				}
 			}
 
-			Namespace clsNamespace;
+			BinaryNamespace clsNamespace;
 			if(isShared){
-				clsNamespace = cClass.getAttributes();
+				clsNamespace = cls.getSharedFields();
 			}else{
-				clsNamespace = cClass.getInstanceAttributes();
+				clsNamespace = cls.getInstanceFields();
 			}
-			
-			if(isTrait) {
-				clsNamespace.setTrait(varDec.getVarName(), CNull.instance());
-			}else {
-				clsNamespace.set(varDec.getVarName(), CNull.instance());
-			}
+
+			clsNamespace.getEntries().add(new BinaryNamespace.Entry(varDec.getVarName(), flags));
 			
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;
@@ -137,7 +143,7 @@ public class ClassVisitor implements AstVisitor {
 			MethodVisitor visitor = null;
 			
 			// this is the constructor
-			if(methodNode.getSymbol().getName().equals(cClass.getName())){
+			if(methodNode.getSymbol().getName().equals(cls.getName())){
 				if(alreadyReachedConstructor){
 					// TODO - throw error until we have support for multi-methods
 					throw new IllegalStateException("Only one constructor per class allowed");
@@ -162,29 +168,28 @@ public class ClassVisitor implements AstVisitor {
 				methodNode.visit(visitor);
 			}
 				
-			CMethod method = visitor.getMethod();
+			BinaryMethod method = visitor.getMethod();
+			BinaryNamespace.Entry methodEntry = BinaryNamespace.Entry.makeMethod(methodNode.getName(), (byte)0, method);
 
 			if(methodNode == sharedInit){
 				// Shared initializer
-				method.bind(cClass);
-				cClass.setSharedInitializer(method);
+				cls.setSharedInitializer(method);
 			}else if(methodNode == instanceInit){
 				// Instance initializer
-				cClass.setInstanceInitializer(method);
+				cls.setInstanceInitializer(method);
 			}else if(methodNode.getSymbol().isShared()){
 				// Plain shared method
-				method.bind(cClass);
-				cClass.getAttributes().set(methodNode.getName(), method);
+				cls.getSharedFields().addEntry(methodEntry);
 			}else{
 				// Plain instance method
-				cClass.getInstanceAttributes().set(methodNode.getName(), method);
+				cls.getInstanceFields().addEntry(methodEntry);
 			}
 		}
 		
 		return;
 	}
 	
-	public CClass getCClass(){
+	public BinaryClass getBinaryClass(){
 		
 		// generate default constructor if no constructor was specified
 		if(!alreadyReachedConstructor){
@@ -194,20 +199,20 @@ public class ClassVisitor implements AstVisitor {
 			assembler.getLocal(0);
 			assembler._return();
 			
-			CMethod constructor = new CMethod();
+			BinaryMethod constructor = new BinaryMethod();
 			constructor.setArgCount(0);
 			constructor.setLocalCount(1);
 			constructor.setConstantPool(constantPool.toArray());
 			constructor.setModule(module);
-			constructor.setInstructions(assembler.getCodeSegment());
-			constructor.getCode().setExceptionTable(new ExceptionBlock[]{});
-			constructor.getCode().setDebugTable(new DebugEntry[]{});
-			constructor.getCode().setDebugSymbol(cClass.getName() + "." + cClass.getName());
+			constructor.setCode(assembler.getCodeSegment());
+			constructor.setExceptionTable(new ExceptionBlock[]{});
+			constructor.setDebugTable(new DebugEntry[]{});
+			constructor.setDeclarationSymbol(cls.getName() + "." + cls.getName());
 			
-			cClass.getInstanceAttributes().set(cClass.getName(), constructor);
+			cls.getInstanceFields().getEntries().add(BinaryNamespace.Entry.makeMethod(cls.getName(), (byte)0, constructor));
 		}
 		
-		return cClass;
+		return cls;
 	}
 	
 	private void genInitCall(ChipmunkAssembler assembler){

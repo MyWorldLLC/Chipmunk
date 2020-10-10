@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.ExceptionBlock;
+import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -42,7 +43,7 @@ public class Codegen implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	protected CModule module;
+	protected BinaryModule module;
 	
 	protected List<LoopLabels> loopStack;
 	protected List<IfElseLabels> ifElseStack;
@@ -51,29 +52,29 @@ public class Codegen implements AstVisitor {
 	protected List<ExceptionBlock> exceptions;
 	
 	
-	public Codegen(CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		ifElseStack = new ArrayList<IfElseLabels>();
-		tryCatchStack = new ArrayList<TryCatchLabels>();
-		exceptions = new ArrayList<ExceptionBlock>();
+	public Codegen(BinaryModule module){
+		visitors = new HashMap<>();
+		loopStack = new ArrayList<>();
+		ifElseStack = new ArrayList<>();
+		tryCatchStack = new ArrayList<>();
+		exceptions = new ArrayList<>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
 	}
 	
-	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		ifElseStack = new ArrayList<IfElseLabels>();
-		tryCatchStack = new ArrayList<TryCatchLabels>();
-		exceptions = new ArrayList<ExceptionBlock>();
+	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, BinaryModule module){
+		visitors = new HashMap<>();
+		loopStack = new ArrayList<>();
+		ifElseStack = new ArrayList<>();
+		tryCatchStack = new ArrayList<>();
+		exceptions = new ArrayList<>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
 	}
 	
-	public CModule getModule() {
+	public BinaryModule getModule() {
 		return module;
 	}
 	

@@ -23,15 +23,18 @@ package chipmunk;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.WrongMethodTypeException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import chipmunk.binary.BinaryMethod;
+import chipmunk.binary.BinaryModule;
+import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.compiler.SyntaxErrorChipmunk;
 import chipmunk.invoke.*;
-import chipmunk.modules.ChipmunkModuleBuilder;
+import chipmunk.jvm.CompiledModule;
+import chipmunk.jvm.JvmCompiler;
 import chipmunk.modules.runtime.*;
 
 import static chipmunk.Opcodes.*;
@@ -43,96 +46,22 @@ public class ChipmunkVM {
 	}
 
 	public class CallFrame {
-		public final CMethod method;
+		public final BinaryMethod method;
 		public final int ip;
 		public final Object[] locals;
 		public final OperandStack stack;
 
-		public CallFrame(CMethod method, int ip, Object[] locals, OperandStack stack) {
+		public CallFrame(BinaryMethod method, int ip, Object[] locals, OperandStack stack) {
 			this.method = method;
 			this.ip = ip;
 			this.locals = locals;
 			this.stack = stack;
 		}
 	}
-	
-	public class QueuedInvocation {
-		
-		public QueuedInvocation(CMethod method, Object[] params, ChipmunkScript state){
-			this.method = method;
-			this.params = params;
-			this.state = state;
-		}
-		
-		public CMethod method;
-		public Object[] params;
-		public ChipmunkScript state;
-	}
-	
-	private class CallRecord {
-		public Class<?>[] callTypes;
-		public MethodHandle method;
-	}
-
-	private class CallArrays {
-		private int paramIndex;
-		private Object[] params;
-		private Class<?>[] paramTypes;
-
-		public CallArrays() {
-			params = new Object[0];
-			paramTypes = new Class<?>[0];
-		}
-
-		public Object[] getParams() {
-			return params;
-		}
-
-		public Class<?>[] getParamTypes() {
-			return paramTypes;
-		}
-
-		public void startParamFill(Object param, int length) {
-
-			if (params == null || params.length != length) {
-				params = new Object[length];
-				paramTypes = new Class<?>[length];
-			}
-
-			params[0] = param;
-			paramTypes[0] = param.getClass();
-			paramIndex = 1;
-		}
-
-		public void addParam(Object param) {
-			params[paramIndex] = param;
-			paramTypes[paramIndex] = param.getClass();
-			paramIndex++;
-		}
-	}
-
-	private enum InternalOp {
-		ADD("add"), SUB("sub"), MUL("mul"), DIV("div"), FDIV("fdiv"), MOD("mod"), POW("pow"), INC("inc"), DEC(
-				"dec"), POS("pos"), NEG("neg"), TRUTH("truth"), BXOR("bxor"), BAND("band"), BOR(
-						"bor"), BNEG("bneg"), LSHIFT("lshift"), RSHIFT("rshift"), URSHIFT("urshift"), SETATTR(
-								"setAttr"), GETATTR("getAttr"), SETAT("setAt"), GETAT("getAt"), AS("as"), NEWINSTANCE(
-										"newInstance"), CALL("call"), EQUALS("equals"), COMPARE("compare"), INSTANCEOF(
-												"instanceOf"), ITERATOR("iterator"), RANGE("range"), NEXT("next");
-
-		private final String opName;
-
-		private InternalOp(String op) {
-			opName = op;
-		}
-
-		public String getOpName() {
-			return opName;
-		}
-	}
 
 	protected List<ModuleLoader> loaders;
 	protected ChipmunkScript activeScript;
-	protected Map<String, CModule> modules;
+	protected Map<String, BinaryModule> modules;
 
 	protected Deque<CallFrame> frozenCallStack;
 	
@@ -147,6 +76,7 @@ public class ChipmunkVM {
 	private final int refLength;
 
 	protected final Binder binder;
+	protected final JvmCompiler jvmCompiler;
 
 	public ChipmunkVM() {
 
@@ -162,6 +92,7 @@ public class ChipmunkVM {
 		refLength = 8; // assume 64-bit references
 		
 		binder = new Binder();
+		jvmCompiler = new JvmCompiler();
 	}
 
 	public SecurityMode getSecurityMode(){
@@ -176,7 +107,7 @@ public class ChipmunkVM {
 		return activeScript;
 	}
 	
-	public CModule loadModule(String moduleName) throws ModuleLoadChipmunk {
+	public BinaryModule loadModule(String moduleName) throws ModuleLoadChipmunk {
 		
 		if(modules.containsKey(moduleName)){
 			// this module is already loaded - skip
@@ -185,7 +116,7 @@ public class ChipmunkVM {
 		
 		for(ModuleLoader loader : loaders){
 			try {
-				CModule module = loader.loadModule(moduleName);
+				BinaryModule module = loader.loadModule(moduleName);
 				if(module != null){
 					// need to record the module *before* handling imports in case
 					// of a circular import
@@ -201,18 +132,18 @@ public class ChipmunkVM {
 		throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
 	}
 
-	public CModule getModule(String name) {
+	public BinaryModule getModule(String name) {
 		return modules.get(name);
 	}
 
-	public CModule resolveModule(String name) throws ModuleLoadChipmunk {
+	public BinaryModule resolveModule(String name) throws ModuleLoadChipmunk {
 		if(!modules.containsKey(name)){
 			loadModule(name);
 		}
 		return modules.get(name);
 	}
 	
-	public void freeze(CMethod method, int ip, Object[] locals, OperandStack stack) {
+	public void freeze(BinaryMethod method, int ip, Object[] locals, OperandStack stack) {
 		frozenCallStack.push(new CallFrame(method, ip, locals, stack));
 	}
 
@@ -226,20 +157,20 @@ public class ChipmunkVM {
 
 	public static ChipmunkScript compile(CharSequence src, String scriptName) throws CompileChipmunk {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		List<CModule> modules = compiler.compile(src, scriptName);
+		BinaryModule[] modules = compiler.compile(src, scriptName);
 		return modulesToScript(modules, scriptName);
 	}
 
 	public static ChipmunkScript compile(InputStream is, String scriptName) throws CompileChipmunk {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		List<CModule> modules = compiler.compile(is, scriptName);
+		BinaryModule[] modules = compiler.compile(is, scriptName);
 		return modulesToScript(modules, scriptName);
 	}
 
-	private static ChipmunkScript modulesToScript(Collection<CModule> modules, String scriptName) {
+	private static ChipmunkScript modulesToScript(BinaryModule[] modules, String scriptName) {
 
-		CModule mainModule = null;
-		for (CModule module : modules) {
+		BinaryModule mainModule = null;
+		for (BinaryModule module : modules) {
 			if (module.getNamespace().has("main")) {
 				mainModule = module;
 				break;
@@ -254,14 +185,14 @@ public class ChipmunkVM {
 		script.setEntryCall(mainModule.getName(), "main");
 
 		MemoryModuleLoader loader = new MemoryModuleLoader();
-		loader.addModule(ChipmunkModuleBuilder.buildLangModule());
-		loader.addModules(modules);
+		//loader.addModule(ChipmunkModuleBuilder.buildLangModule());
+		loader.addModules(Arrays.asList(modules));
 		script.getLoaders().add(loader);
 
 		return script;
 	}
 
-	public static Object run(InputStream is, String scriptName) throws SyntaxErrorChipmunk, CompileChipmunk, IOException {
+	public static Object run(InputStream is, String scriptName) throws CompileChipmunk {
 		
 		ChipmunkScript script = compile(is, scriptName);
 		ChipmunkVM vm = new ChipmunkVM();
@@ -282,23 +213,23 @@ public class ChipmunkVM {
 		if(!activeScript.isInitialized()){
 			loadModule(script.entryModule);
 
-			CModule entryModule = activeScript.modules.get(activeScript.entryModule);
-			if(entryModule.hasInitializer()){
+			BinaryModule entryModule = activeScript.modules.get(activeScript.entryModule);
+			//if(entryModule.hasInitializer()){
 				// The entry module has an initializer that must run before the entry method.
 				// Push a frozen call frame to invoke it.
 
-				CMethod initializer = entryModule.getInitializer();
+				BinaryMethod initializer = entryModule.getInitializer();
 				Object[] initLocals = new Object[initializer.getLocalCount() + 1];
-				initLocals[0] = initializer.getSelf();
+				//initLocals[0] = initializer.getSelf();
 
 				OperandStack initStack = new OperandStack();
 				freeze(initializer, 0, initLocals, initStack);
-			}
+			//}
 
-			CMethod entryMethod = (CMethod) entryModule.getNamespace().get(activeScript.entryMethod);
+			BinaryMethod entryMethod = (BinaryMethod) entryModule.getNamespace().get(activeScript.entryMethod);
 
 			Object[] entryLocals = new Object[entryMethod.getLocalCount() + 1];
-			entryLocals[0] = entryMethod.getSelf();
+			//entryLocals[0] = entryMethod.getSelf();
 			for (int i = 0; activeScript.entryArgs != null && i < activeScript.entryArgs.length; i++) {
 				entryLocals[i + 1] = activeScript.entryArgs[i];
 			}
@@ -418,11 +349,17 @@ public class ChipmunkVM {
 //		return stack.stackIndex;
 //	}
 
-	public Object dispatch(CMethodCode code, Object[] parameters){
+	public Object dispatch(BinaryMethod code, Object[] parameters){
+		// Receiverless dispatch - static methods
+		return null;
+	}
+
+	public Object dispatch(Object receiver, BinaryMethod code, Object[] parameters){
 		return null;
 	}
 
 	public Object dispatch(CMethod method, Object[] parameters) {
+
 		int ip = 0;
 		Object[] locals;
 		OperandStack stack;
@@ -834,7 +771,7 @@ public class ChipmunkVM {
 				// allow exception handlers to run or they will
 				// block suspension
 				if (e instanceof SuspendedChipmunk) {
-					this.freeze(method, ip, locals, stack);
+					//this.freeze(method, ip, locals, stack);
 					throw e;
 				}
 
@@ -877,8 +814,8 @@ public class ChipmunkVM {
 	private void initModule(CMethodCode code, int importIndex){
 		CModule.Import im = code.getModule().getImports().get(importIndex);
 		if(!modules.containsKey(im.getName())){
-			CModule newModule = loadModule(im.getName());
-			if(newModule.hasInitializer()){
+			BinaryModule newModule = loadModule(im.getName());
+			if(newModule.getInitializer() != null){
 				this.dispatch(newModule.getInitializer(), new Object[]{newModule});
 			}
 		}
@@ -887,15 +824,15 @@ public class ChipmunkVM {
 	private void doImport(CMethodCode code, int importIndex){
 		final CModule module = code.getModule();
 		final CModule.Import moduleImport = code.getModule().getImports().get(importIndex);
-		final Namespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
+		final BinaryNamespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
 
 		if(moduleImport.isImportAll()){
 
-			Set<String> importedNames = importedNamespace.names();
+			//Set<String> importedNames = importedNamespace.names();
 
-			for(String name : importedNames){
-				module.getNamespace().setFinal(name, importedNamespace.get(name));
-			}
+			//for(String name : importedNames){
+			//	module.getNamespace().setFinal(name, importedNamespace.get(name));
+			//}
 		}else{
 
 			List<String> symbols = moduleImport.getSymbols();
@@ -910,6 +847,30 @@ public class ChipmunkVM {
 				}
 			}
 		}
+	}
+
+	public Object eval(String exp) {
+		ChipmunkCompiler compiler = new ChipmunkCompiler();
+		BinaryModule expModule = compiler.compileExpression(exp);
+
+		CompiledModule compiled = jvmCompiler.compile(expModule);
+		return invoke(compiled, "evaluate");
+	}
+
+	public Object invoke(Object target, String methodName){
+		return invoke(target, methodName, null);
+	}
+
+	public Object invoke(Object target, String methodName, Object[] params){
+		OperandStack stack = new OperandStack();
+
+		if(params != null){
+			stack.pushArgs(params);
+		}
+
+		stack.push(target);
+
+		return invoke(stack, methodName, params != null ? params.length : 0);
 	}
 
 	private Object invoke(OperandStack stack, String methodName, int paramCount) {

@@ -21,9 +21,8 @@
 package chipmunk.jvm;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CMethodCode;
-import chipmunk.modules.runtime.CModule;
+import chipmunk.binary.*;
+import chipmunk.invoke.Binder;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -33,16 +32,19 @@ public class JvmCompiler {
 
     private final ChipmunkClassLoader loader;
 
+    protected final CompiledMethods methods;
+
     public JvmCompiler(){
         loader = new ChipmunkClassLoader();
+        methods = new CompiledMethods();
     }
 
-    public Object compile(CModule module){
+    public CompiledModule compile(BinaryModule module){
 
         Type objType = Type.getType(Object.class);
 
         ClassWriter cw = new ClassWriter(0);
-        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(), null);
+        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(), new String[]{Type.getType(CompiledModule.class).getInternalName()});
 
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         mv.visitCode();
@@ -54,22 +56,20 @@ public class JvmCompiler {
 
         cw.visitEnd();
 
-        // TODO - generate field & methods in bytecode
-        for(String symbol : module.getNamespace().names()){
+        for(BinaryNamespace.Entry entry : module.getNamespace()){
             int flags = Opcodes.ACC_PUBLIC;
-            if(module.getNamespace().finalNames() != null && module.getNamespace().finalNames().contains(symbol)){
+            if(BinaryConstants.isFlagSet(entry.getFlags(), BinaryConstants.FINAL_FLAG)){
                 flags |= Opcodes.ACC_FINAL;
             }
 
-            Object value = module.getNamespace().get(symbol);
-            if(value instanceof CMethod){
-                visitMethod(cw, flags, module.getName(), symbol, (CMethod) value);
+            if(entry.getType() == FieldType.METHOD){
+                visitMethod(cw, flags, module.getName(), entry.getName(), entry.getBinaryMethod());
             }else{
-                visitVar(cw, flags, symbol);
+                visitVar(cw, flags, entry.getName());
             }
         }
 
-        // TODO - generate module bytecode initializer method
+        // TODO - generate module bytecode initializer method & make class implement the CompiledModule interface
         // The module initializer must run before anything else because it sets all Chipmunk bytecode fields
 
         // TODO - generate the normal module initializer method
@@ -78,7 +78,10 @@ public class JvmCompiler {
 
         byte[] bytes = cw.toByteArray();
 
-        return instantiate(loadClass(module.getName(), bytes));
+        CompiledModule loadedModule = (CompiledModule) instantiate(loadClass(module.getName(), bytes));
+        loadedModule.initializeCodeFields(methods);
+
+        return loadedModule;
     }
 
     protected Class<?> loadClass(String name, byte[] bytes){
@@ -102,26 +105,26 @@ public class JvmCompiler {
         cw.visitField(flags, name, type.getDescriptor(), null, null);
     }
 
-    protected void visitMethod(ClassWriter cw, int flags, String className, String name, CMethod method){
+    protected void visitMethod(ClassWriter cw, int flags, String className, String name, BinaryMethod method){
         // Create a field to hold the bytecode
-        visitVar(cw, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL, "cm$" + name, Type.getType(CMethodCode.class));
+        visitVar(cw, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL, "cm$" + name, Type.getType(BinaryMethod.class));
 
         Type methodType = Type.getMethodType(Type.getType(Object.class), Type.getType(ChipmunkVM.class), Type.getType(Object[].class));
 
         // Generate a method of the form name(vm, params) that contains the bytecode for the expression
-        // return vm.dispatch(Class.cm$name, params);
+        // return vm.dispatch(receiver, Class.cm$name, params);
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC | flags, name, methodType.getDescriptor(), null, null);
         mv.visitCode();
 
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitVarInsn(Opcodes.ALOAD, 1);
-        mv.visitFieldInsn(Opcodes.GETSTATIC, className, "cm$" + name, Type.getType(CMethodCode.class).getDescriptor());
+        mv.visitFieldInsn(Opcodes.GETSTATIC, className, "cm$" + name, Type.getType(BinaryMethod.class).getDescriptor());
         mv.visitVarInsn(Opcodes.ALOAD, 2);
 
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                 Type.getType(ChipmunkVM.class).getInternalName(),
                 "dispatch",
-                Type.getMethodType(Type.getType(Object.class), Type.getType(CMethodCode.class), Type.getType(Object[].class)).getDescriptor(),
+                Type.getMethodType(Type.getType(Object.class), Type.getType(Object.class), Type.getType(BinaryMethod.class), Type.getType(Object[].class)).getDescriptor(),
                 false);
 
         mv.visitInsn(Opcodes.ARETURN);
@@ -129,5 +132,22 @@ public class JvmCompiler {
 
         mv.visitEnd();
 
+    }
+
+    protected void generateDynamicInvocation(ClassWriter cw, MethodVisitor mv, String method, int paramCount) {
+        final Type objType = Type.getType(Object.class);
+
+        Type[] pTypes = new Type[paramCount];
+        for(int i = 0; i < pTypes.length; i++){
+            pTypes[i] = objType;
+        }
+
+        Type callType = Type.getMethodType(objType, pTypes);
+
+        mv.visitMethodInsn(Opcodes.INVOKEDYNAMIC,
+                Type.getType(Binder.class).getInternalName(),
+                "bootstrapCallsite",
+                callType.getDescriptor(),
+                false);
     }
 }

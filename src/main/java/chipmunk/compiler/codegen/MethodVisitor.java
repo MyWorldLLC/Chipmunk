@@ -24,6 +24,8 @@ import java.util.List;
 
 import chipmunk.DebugEntry;
 import chipmunk.ExceptionBlock;
+import chipmunk.binary.BinaryMethod;
+import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -43,35 +45,35 @@ import chipmunk.modules.runtime.CModule;
 
 public class MethodVisitor implements AstVisitor {
 
-	protected CMethod method;
+	protected BinaryMethod method;
 	protected ChipmunkAssembler assembler;
 	protected Codegen outerCodegen;
 	protected SymbolTable symbols;
 	protected Codegen codegen;
 	protected MethodNode methodNode;
 	
-	protected CModule module;
+	protected BinaryModule module;
 	
 	protected boolean defaultReturn;
 	
 	protected boolean isInner;
 	
 	
-	public MethodVisitor(ChipmunkAssembler assembler, CModule module){
+	public MethodVisitor(ChipmunkAssembler assembler, BinaryModule module){
 		this.assembler = assembler;
 		defaultReturn = true;
 		isInner = false;
 		this.module = module;
 	}
 	
-	public MethodVisitor(List<Object> constantPool, CModule module){
+	public MethodVisitor(List<Object> constantPool, BinaryModule module){
 		assembler = new ChipmunkAssembler(constantPool);
 		defaultReturn = true;
 		isInner = false;
 		this.module = module;
 	}
 	
-	public MethodVisitor(Codegen outerCodegen, List<Object> constantPool, CModule module){
+	public MethodVisitor(Codegen outerCodegen, List<Object> constantPool, BinaryModule module){
 		assembler = new ChipmunkAssembler(constantPool);
 		this.outerCodegen = outerCodegen;
 		defaultReturn = true;
@@ -82,16 +84,16 @@ public class MethodVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 		
-		method = new CMethod();
+		method = new BinaryMethod();
 		
 		if(node instanceof MethodNode){
 			methodNode = (MethodNode) node;
 			
-			method.getCode().setArgCount(methodNode.getParamCount());
-			method.getCode().setDefaultArgCount(methodNode.getDefaultParamCount());
+			method.setArgCount(methodNode.getParamCount());
+			method.setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
-			method.getCode().setDebugSymbol(symbols.getDebugSymbol());
+			method.setDeclarationSymbol(symbols.getDebugSymbol());
 			
 			codegen = new Codegen(assembler, symbols, module);
 			
@@ -165,15 +167,14 @@ public class MethodVisitor implements AstVisitor {
 		this.defaultReturn = defaultReturn;
 	}
 	
-	public CMethod getMethod(){
-		CMethodCode code = method.getCode();
+	public BinaryMethod getMethod(){
 		
-		code.setConstantPool(assembler.getConstantPool().toArray());
-		code.setCode(assembler.getCodeSegment());
-		code.setLocalCount(symbols.getLocalMax());
-		code.setModule(module);
-		code.setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
-		code.setDebugTable(codegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
+		method.setConstantPool(assembler.getConstantPool().toArray());
+		method.setCode(assembler.getCodeSegment());
+		method.setLocalCount(symbols.getLocalMax());
+		method.setModule(module);
+		method.setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
+		method.setDebugTable(codegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
 		
 		return method;
 	}

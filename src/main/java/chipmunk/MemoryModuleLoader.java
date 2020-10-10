@@ -24,33 +24,34 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import chipmunk.binary.BinaryModule;
 import chipmunk.modules.runtime.CModule;
 
 public class MemoryModuleLoader implements ModuleLoader {
 
-	private final Map<String, CModule> modules;
+	private final Map<String, BinaryModule> modules;
 	
 	public MemoryModuleLoader(){
-		modules = new HashMap<String, CModule>();
+		modules = new HashMap<>();
 	}
 
-	public MemoryModuleLoader(Collection<CModule> modules){
+	public MemoryModuleLoader(Collection<BinaryModule> modules){
 		this();
 		addModules(modules);
 	}
 	
 	@Override
-	public CModule loadModule(String moduleName) {
+	public BinaryModule loadModule(String moduleName) {
 		// TODO - module duplication
 		return modules.get(moduleName);
 	}
 	
-	public void addModule(CModule module){
+	public void addModule(BinaryModule module){
 		modules.put(module.getName(), module);
 	}
 	
-	public void addModules(Collection<CModule> modules){
-		for(CModule module : modules){
+	public void addModules(Collection<BinaryModule> modules){
+		for(BinaryModule module : modules){
 			this.modules.put(module.getName(), module);
 		}
 	}

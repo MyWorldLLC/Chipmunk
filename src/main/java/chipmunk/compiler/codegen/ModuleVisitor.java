@@ -25,28 +25,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
+import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.*;
-import chipmunk.modules.runtime.CClass;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CModule;
-import chipmunk.modules.runtime.CNull;
 
 public class ModuleVisitor implements AstVisitor {
 	
-	protected CModule module;
+	protected BinaryModule module;
 	protected Codegen initCodegen;
 	protected ChipmunkAssembler initAssembler;
 
 	protected MethodNode initMethod;
 
 	protected List<Object> constantPool;
+	protected List<BinaryImport> imports;
+	protected BinaryNamespace namespace;
 	
 	public ModuleVisitor(){
 		constantPool = new ArrayList<>();
+		imports = new ArrayList<>();
+		namespace = new BinaryNamespace();
+
 		initAssembler = new ChipmunkAssembler(constantPool);
 	}
 
@@ -56,10 +56,14 @@ public class ModuleVisitor implements AstVisitor {
 			
 			ModuleNode moduleNode = (ModuleNode) node;
 			moduleNode.getSymbolTable().setDebugSymbol(moduleNode.getName());
-			module = new CModule(moduleNode.getSymbol().getName(), constantPool);
+
+			module = new BinaryModule(moduleNode.getSymbol().getName());
+
 			initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
 			initMethod = new MethodNode("<module init>");
-			module.getImports().add(new CModule.Import("chipmunk.lang", true));
+
+			imports.add(new BinaryImport("chipmunk.lang", true));
+
 			moduleNode.visitChildren(this);
 			
 		}else if(node instanceof ClassNode){
@@ -67,48 +71,50 @@ public class ModuleVisitor implements AstVisitor {
 			ClassVisitor visitor = new ClassVisitor(constantPool, module);
 			node.visit(visitor);
 			
-			CClass cClass = visitor.getCClass();
+			BinaryClass cls = visitor.getBinaryClass();
 			
 			// generate initialization code to run class initializer
-			if(cClass.getSharedInitializer() != null){
+			if(cls.getSharedInitializer() != null){
 				ChipmunkAssembler initAssembler = initCodegen.getAssembler();
 				
-				initAssembler.getModule(cClass.getName());
+				initAssembler.getModule(cls.getName());
 				initAssembler.init();
 				initAssembler.call((byte)1);
 				initAssembler.pop();
 			}
-			
-			module.getNamespace().set(cClass.getName(), cClass);
+
+			module.getNamespace().addEntry(BinaryNamespace.Entry.makeClass(cls.getName(), (byte)0, cls));
 			
 		}else if(node instanceof MethodNode){
 			
 			MethodVisitor visitor = new MethodVisitor(constantPool, module);
 			node.visit(visitor);
-			CMethod method = visitor.getMethod();
-			
-			method.bind(module);
-			
-			module.getNamespace().set(visitor.getMethodSymbol().getName(), method);
+			BinaryMethod method = visitor.getMethod();
+
+			module.getNamespace().addEntry(
+					BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, method));
 			
 		}else if(node instanceof ImportNode){
 			
 			ImportNode importNode = (ImportNode) node;
 			boolean importAll = importNode.isImportAll();
 			
-			CModule.Import im = new CModule.Import(importNode.getModule(), importAll);
+			BinaryImport im = new BinaryImport(importNode.getModule(), importAll);
 			
 			if(!importAll){
-				im.getSymbols().addAll(importNode.getSymbols());
-				im.getAliases().addAll(importNode.getAliases());
+				im.setSymbols(importNode.getSymbols().toArray(new String[]{}));
+				im.setAliases(importNode.getAliases().toArray(new String[]{}));
 			}
-			
-			module.getImports().add(im);
+
 		}else if(node instanceof VarDecNode){
-			
-			// TODO - final variables
+
 			VarDecNode varDec = (VarDecNode) node;
-			
+
+			byte flags = 0;
+			if(varDec.getSymbol().isFinal()){
+				flags |= BinaryConstants.FINAL_FLAG;
+			}
+
 			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
 
 			if(varDec.getAssignExpr() != null) {
@@ -127,19 +133,22 @@ public class ModuleVisitor implements AstVisitor {
 
 			visitor.visit(varDec);
 			
-			module.getNamespace().set(varDec.getVarName(), CNull.instance());
+			module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(varDec.getVarName(), flags));
 		}else{
 			throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
 		}
 	}
 	
-	public CModule getModule(){
+	public BinaryModule getModule(){
+
+		module.setConstantPool(constantPool.toArray());
+		module.setImports(imports.toArray(new BinaryImport[]{}));
 
 		MethodVisitor initVisitor = new MethodVisitor(initAssembler, module);
 
 		Set<String> importedModules = new HashSet<>();
-		for(int i = 0; i < module.getImports().size(); i++){
-			CModule.Import im = module.getImports().get(i);
+		for(int i = 0; i < module.getImports().length; i++){
+			BinaryImport im = module.getImports()[i];
 
 			if(!importedModules.contains(im.getName())){
 				importedModules.add(im.getName());
@@ -150,19 +159,7 @@ public class ModuleVisitor implements AstVisitor {
 		}
 
 		initVisitor.visit(initMethod);
-
-		CMethod initializer = initVisitor.getMethod();
-
-		/*initializer.getCode().setConstantPool(initAssembler.getConstantPool().toArray());
-		initializer.getCode().setCode(initAssembler.getCodeSegment());
-		initializer.getCode().setLocalCount(0);
-		initializer.getCode().setExceptionTable(initCodegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
-		initializer.getCode().setDebugTable(initCodegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));
-		initializer.getCode().setDebugSymbol(module.getName() + ".<module init>");*/
-		
-		initializer.bind(module);
-		initializer.getCode().setModule(module);
-		module.setInitializer(initializer);
+		module.setInitializer(initVisitor.getMethod());
 		
 		return module;
 	}
