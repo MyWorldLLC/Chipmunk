@@ -135,7 +135,7 @@ public class MethodVisitor implements AstVisitor {
 			
 			if(defaultReturn){
 				// return null in case a return has not yet been hit
-				genDefaultReturn();
+				//genDefaultReturn();
 			}
 			
 			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an
@@ -168,8 +168,7 @@ public class MethodVisitor implements AstVisitor {
 	}
 	
 	public BinaryMethod getMethod(){
-		
-		method.setConstantPool(assembler.getConstantPool().toArray());
+
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
 		method.setModule(module);

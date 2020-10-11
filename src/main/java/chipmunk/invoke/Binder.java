@@ -26,6 +26,8 @@ import java.lang.reflect.Modifier;
 
 public class Binder {
 
+    public static final String INDY_BOOTSTRAP_METHOD = "bootstrapCallsite";
+
     protected final Class<?>[] callTypes;
     protected final Class<?>[] voidCallTypes;
 
@@ -33,8 +35,15 @@ public class Binder {
 
     protected final MethodHandles.Lookup methodLookup;
 
-    public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType, Object... args){
+    public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType){
+        return new ConstantCallSite(MethodHandles.zero(Integer.class));
+    }
 
+    public static MethodType bootstrapCallsiteType(){
+        return MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class);
+    }
+
+    public static CallSite bootstrapFieldOp(MethodHandles.Lookup lookup, String name, MethodType callType, Object... args){
         return new ConstantCallSite(MethodHandles.zero(Integer.class));
     }
 

@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.codegen
 
+import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkAssembler
@@ -40,9 +41,9 @@ class ExpressionVisitorSpecification extends Specification {
 
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
-	Codegen codegen = new Codegen(new CModule())
+	Codegen codegen = new Codegen(new BinaryModule("test"))
 	ChipmunkAssembler assembler = codegen.getAssembler()
-	ChipmunkVM context = new ChipmunkVM()
+	ChipmunkVM vm = new ChipmunkVM()
 	ExpressionVisitor visitor = new ExpressionVisitor(codegen)
 	
 	def "Evaluate boolean literal true"(){
@@ -148,11 +149,11 @@ class ExpressionVisitorSpecification extends Specification {
 
 	def "Generate and run code for 1 + 2"(){
 		when:
-		def result = parseAndCall("1 + 2")
+		def result = parseAndCall("1 + 2", "1 + 2")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "Generate and run code for +1"(){
@@ -378,6 +379,6 @@ class ExpressionVisitorSpecification extends Specification {
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
 		}
 
-		return context.dispatch(method, 0)
+		return vm.eval(expression)
 	}
 }

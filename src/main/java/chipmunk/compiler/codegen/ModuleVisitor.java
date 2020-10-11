@@ -140,7 +140,6 @@ public class ModuleVisitor implements AstVisitor {
 	}
 	
 	public BinaryModule getModule(){
-
 		module.setConstantPool(constantPool.toArray());
 		module.setImports(imports.toArray(new BinaryImport[]{}));
 

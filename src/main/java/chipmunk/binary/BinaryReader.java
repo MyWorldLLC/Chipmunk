@@ -198,7 +198,6 @@ public class BinaryReader {
         method.setExceptionTable(readExceptionTable(is));
         method.setDebugTable(readDebugTable(is));
 
-        method.setConstantPool(module.getConstantPool());
         method.setCode(is.readNBytes(codeSize));
         method.setModule(module);
 

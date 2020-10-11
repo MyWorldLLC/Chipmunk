@@ -30,7 +30,6 @@ public class BinaryMethod {
     protected int localCount;
 
     protected byte[] instructions;
-    protected Object[] constantPool;
     protected ExceptionBlock[] exceptionTable;
     protected DebugEntry[] debugTable;
     protected String declarationSymbol;
@@ -65,12 +64,8 @@ public class BinaryMethod {
         localCount = count + 1; // + 1 for self reference
     }
 
-    public void setConstantPool(Object[] constantPool){
-        this.constantPool = constantPool;
-    }
-
     public Object[] getConstantPool(){
-        return constantPool;
+        return module.getConstantPool();
     }
 
     public void setExceptionTable(ExceptionBlock[] table) {
@@ -111,8 +106,5 @@ public class BinaryMethod {
 
     public void setModule(BinaryModule module){
         this.module = module;
-        if(module != null){
-            setConstantPool(module.getConstantPool());
-        }
     }
 }

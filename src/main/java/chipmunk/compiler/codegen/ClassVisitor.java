@@ -202,7 +202,6 @@ public class ClassVisitor implements AstVisitor {
 			BinaryMethod constructor = new BinaryMethod();
 			constructor.setArgCount(0);
 			constructor.setLocalCount(1);
-			constructor.setConstantPool(constantPool.toArray());
 			constructor.setModule(module);
 			constructor.setCode(assembler.getCodeSegment());
 			constructor.setExceptionTable(new ExceptionBlock[]{});

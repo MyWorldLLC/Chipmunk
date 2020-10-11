@@ -66,30 +66,30 @@ public class ExpressionVisitor implements AstVisitor {
 			assembler.onLine(node.getLineNumber());
 			switch (literal.getType()) {
 				case BOOLLITERAL:
-					assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
+					assembler.push(Boolean.parseBoolean(literal.getText()));
 					return;
 				case INTLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
+					assembler.push(Integer.parseInt(literal.getText(), 10));
 					return;
 				case HEXLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 16));
 					return;
 				case OCTLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 8));
 					return;
 				case BINARYLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 2));
 					return;
 				case FLOATLITERAL:
-					assembler.push(new CFloat(Float.parseFloat(literal.getText())));
+					assembler.push(Float.parseFloat(literal.getText()));
 					return;
 				case STRINGLITERAL:
 					// strip quotes
 					String value = literal.getText().substring(1, literal.getText().length() - 1);
-					assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
+					assembler.push(ChipmunkLexer.unescapeString(value));
 					return;
 				case NULL:
-					assembler.push(CNull.instance());
+					assembler.push(null);
 					return;
 				
 				default:
@@ -406,7 +406,7 @@ public class ExpressionVisitor implements AstVisitor {
 
 		// Expression is true - shortcircuit
 		assembler.setLabelTarget(caseTrue);
-		assembler.push(new CBoolean(true)); // 1
+		assembler.push(true); // 1
 
 		assembler.setLabelTarget(end);
 	}
@@ -428,12 +428,12 @@ public class ExpressionVisitor implements AstVisitor {
 		assembler._if(caseFalse); // 0
 
 		// Expression is true
-		assembler.push(new CBoolean(true)); // 1
+		assembler.push(true); // 1
 		assembler._goto(end);
 
 		// Expression is false
 		assembler.setLabelTarget(caseFalse);
-		assembler.push(new CBoolean(false)); // 1
+		assembler.push(false); // 1
 
 		assembler.setLabelTarget(end);
 	}
