@@ -33,7 +33,6 @@ import chipmunk.modules.runtime.CInteger
 import chipmunk.modules.runtime.CList
 import chipmunk.modules.runtime.CMap
 import chipmunk.modules.runtime.CMethod
-import chipmunk.modules.runtime.CModule
 import chipmunk.modules.runtime.CString
 import spock.lang.Specification
 
@@ -43,7 +42,7 @@ class ExpressionVisitorSpecification extends Specification {
 	ChipmunkParser parser
 	Codegen codegen = new Codegen(new BinaryModule("test"))
 	ChipmunkAssembler assembler = codegen.getAssembler()
-	ChipmunkVM vm = new ChipmunkVM()
+	ChipmunkVM vm = new ChipmunkVM(ChipmunkVM.SecurityMode.UNRESTRICTED)
 	ExpressionVisitor visitor = new ExpressionVisitor(codegen)
 	
 	def "Evaluate boolean literal true"(){
@@ -51,8 +50,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true")
 		
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 	
 	def "Evaluate boolean literal false"(){
@@ -60,8 +59,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false")
 		
 		then:
-		result instanceof CBoolean
-		result.getValue() == false
+		result instanceof Boolean
+		result == false
 	}
 	
 	def "Evaluate int literal 0"(){
@@ -69,8 +68,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 0
+		result instanceof Integer
+		result == 0
 	}
 	
 	def "Evaluate int literal -1"(){
@@ -78,8 +77,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == -1
+		result instanceof Integer
+		result == -1
 	}
 	
 	def "Evaluate float literal 0.0"(){
@@ -87,8 +86,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0.0")
 		
 		then:
-		result instanceof CFloat
-		result.getValue() == 0.0
+		result instanceof Float
+		result == 0.0
 	}
 	
 	def "Evaluate float literal -1.0"(){
@@ -96,8 +95,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1.0")
 		
 		then:
-		result instanceof CFloat
-		result.getValue() == -1.0
+		result instanceof Float
+		result == -1.0
 	}
 	
 	def "Evaluate hex literal 0xA6"(){
@@ -105,8 +104,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0xA6")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 0xA6
+		result instanceof Integer
+		result == 0xA6
 	}
 	
 	def "Evaluate oct literal 0o12"(){
@@ -114,8 +113,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0o12")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 012
+		result instanceof Integer
+		result == 012
 	}
 	
 	def "Evaluate binary literal 0b101"(){
@@ -123,8 +122,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0b101")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 0b101
+		result instanceof Integer
+		result == 0b101
 	}
 	
 	def "Test escaped and unescaped strings"(def source, def expected){
@@ -132,8 +131,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall(source)
 		
 		then:
-		result instanceof CString
-		result.stringValue() == expected
+		result instanceof String
+		result == expected
 		
 		where:
 		source              		 	| 	expected
@@ -161,8 +160,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+1")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	def "Generate and run code for -1"(){
@@ -170,8 +169,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == -1
+		result instanceof Integer
+		result == -1
 	}
 
 	def "Generate and run code for +-1"(){
@@ -179,8 +178,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+-1")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	def "Generate and run code for 1 * 2"(){
@@ -188,8 +187,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 * 2")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 
 	def "Generate and run code for 1 / 2"(){
@@ -197,8 +196,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 / 2")
 
 		then:
-		result instanceof CFloat
-		result.getValue() == 0.5
+		result instanceof Float
+		result == 0.5
 	}
 
 	def "Generate and run code for 1 // 2"(){
@@ -206,8 +205,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 // 2")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 0
+		result instanceof Integer
+		result == 0
 	}
 
 	def "Generate and run code for 3 % 2"(){
@@ -215,8 +214,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("3 % 2")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	def "Generate and run code for 2**1**2"(){
@@ -224,8 +223,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2**1**2")
 
 		then:
-		result instanceof CInteger
-		result.getValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 	
 	def "Generate and run code for true && true"(){
@@ -233,8 +232,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && true")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 	
 	def "Generate and run code for true && false"(){
@@ -242,8 +241,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && false")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == false
+		result instanceof Boolean
+		result == false
 	}
 
 	def "Generate and run code for true || true"(){
@@ -251,8 +250,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || true")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 
 	def "Generate and run code for true || false"(){
@@ -260,8 +259,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || false")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 
 	def "Generate and run code for false || false"(){
@@ -269,8 +268,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false || false")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == false
+		result instanceof Boolean
+		result == false
 	}
 	
 	def "Generate and run code for complex comparison"(){
@@ -278,8 +277,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5")
 
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 	
 	def "Evaluate []"(){
@@ -287,8 +286,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("[]")
 		
 		then:
-		result instanceof CList
-		result.size() == 0
+		result instanceof List
+		result == 0
 	}
 	
 	def "Evaluate {}"(){
@@ -296,8 +295,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("{}")
 		
 		then:
-		result instanceof CMap
-		result.size() == 0
+		result instanceof Map
+		result == 0
 	}
 	
 	def "Evaluate [1, 2, 3]"(){
@@ -305,11 +304,11 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("[1, 2, 3]")
 		
 		then:
-		result instanceof CList
-		result.size().intValue() == 3
-		result.get(0).intValue() == 1
-		result.get(1).intValue() == 2
-		result.get(2).intValue() == 3
+		result instanceof List
+		result.size() == 3
+		result.get(0) == 1
+		result.get(1) == 2
+		result.get(2) == 3
 	}
 	
 	def "Evaluate {1:2, 3:4, \"foo\":'bar'}"(){
@@ -317,11 +316,11 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""")
 		
 		then:
-		result instanceof CMap
-		result.size().intValue() == 3
-		result.get(new CInteger(1)).intValue() == 2
-		result.get(new CInteger(3)).intValue() == 4
-		result.get(new CString("foo")).stringValue() == "bar"
+		result instanceof Map
+		result.size() == 3
+		result.get(1) == 2
+		result.get(3) == 4
+		result.get("foo") == "bar"
 	}
 	
 	def "Evaluate {1:2, 3:4}[3]"(){
@@ -329,8 +328,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[3]""")
 		
 		then:
-		result instanceof CInteger
-		result.intValue() == 4
+		result instanceof Integer
+		result == 4
 	}
 	
 	def "Evaluate [1, 2, 3][1]"(){
@@ -338,8 +337,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1]""")
 		
 		then:
-		result instanceof CInteger
-		result.intValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 	
 	def "Evaluate [1, 2, 3][1] = 0"(){
@@ -347,8 +346,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1] = 0""")
 		
 		then:
-		result instanceof CInteger
-		result.intValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 	
 	def "Evaluate {1:2, 3:4}[1] = 0"(){
@@ -356,8 +355,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[1] = 0""")
 		
 		then:
-		result instanceof CInteger
-		result.intValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 	
 	def parseAndCall(String expression, String test = ""){

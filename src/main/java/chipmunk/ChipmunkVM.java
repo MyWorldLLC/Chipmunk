@@ -22,7 +22,10 @@ package chipmunk;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -31,7 +34,6 @@ import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
-import chipmunk.compiler.SyntaxErrorChipmunk;
 import chipmunk.invoke.*;
 import chipmunk.jvm.CompiledModule;
 import chipmunk.jvm.JvmCompiler;
@@ -79,24 +81,32 @@ public class ChipmunkVM {
 	protected final JvmCompiler jvmCompiler;
 
 	public ChipmunkVM() {
+		this(SecurityMode.SANDBOXED);
+	}
 
-		securityMode = SecurityMode.SANDBOXED;
+	public ChipmunkVM(SecurityMode securityMode) {
+
+		this.securityMode = securityMode;
 		activeScript = new ChipmunkScript(128);
 		frozenCallStack = activeScript.frozenCallStack;
-		
+
 		memHigh = 0;
 
 		trueValue = new CBoolean(true);
 		falseValue = new CBoolean(false);
-		
+
 		refLength = 8; // assume 64-bit references
-		
+
 		binder = new Binder();
 		jvmCompiler = new JvmCompiler();
 	}
 
 	public SecurityMode getSecurityMode(){
 		return securityMode;
+	}
+
+	public void setSecurityMode(SecurityMode mode){
+		securityMode = mode;
 	}
 	
 	public List<ModuleLoader> getLoaders(){
@@ -862,15 +872,27 @@ public class ChipmunkVM {
 	}
 
 	public Object invoke(Object target, String methodName, Object[] params){
-		OperandStack stack = new OperandStack();
 
-		if(params != null){
-			stack.pushArgs(params);
+		final int pCount = params != null ? params.length : 0;
+
+		MethodType methodType = MethodType.methodType(Object.class);
+		for(int i = 0; params != null && i < params.length; i++){
+			methodType = methodType.appendParameterTypes(params[i] != null ? params[i].getClass() : Void.class);
 		}
 
-		stack.push(target);
+		try {
+			MethodHandle invoker = MethodHandles.lookup()
+					.bind(target, methodName, methodType);
 
-		return invoke(stack, methodName, params != null ? params.length : 0);
+			if(pCount > 0){
+				return invoker.asSpreader(Object[].class, pCount).invokeWithArguments(params);
+			}else{
+				return invoker.invoke();
+			}
+		}catch (Throwable t){
+			throw new AngryChipmunk(t);
+		}
+
 	}
 
 	private Object invoke(OperandStack stack, String methodName, int paramCount) {

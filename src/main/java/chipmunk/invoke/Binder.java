@@ -20,6 +20,10 @@
 
 package chipmunk.invoke;
 
+import chipmunk.NativeTypeLib;
+import jdk.dynalink.*;
+import jdk.dynalink.support.SimpleRelinkableCallSite;
+
 import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -28,6 +32,9 @@ public class Binder {
 
     public static final String INDY_BOOTSTRAP_METHOD = "bootstrapCallsite";
 
+    protected static final ChipmunkLinker chipmunkLinker = new ChipmunkLinker();
+    protected static final DynamicLinker dynaLink = createDynamicLinker();
+
     protected final Class<?>[] callTypes;
     protected final Class<?>[] voidCallTypes;
 
@@ -35,8 +42,14 @@ public class Binder {
 
     protected final MethodHandles.Lookup methodLookup;
 
-    public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType){
-        return new ConstantCallSite(MethodHandles.zero(Integer.class));
+    public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType) throws NoSuchMethodException, IllegalAccessException {
+        return dynaLink.link(new SimpleRelinkableCallSite(
+                new CallSiteDescriptor(lookup, chipmunkOp(name), callType)
+        ));
+    }
+
+    protected static Operation chipmunkOp(String name){
+        return StandardOperation.CALL.named(name);
     }
 
     public static MethodType bootstrapCallsiteType(){
@@ -45,6 +58,15 @@ public class Binder {
 
     public static CallSite bootstrapFieldOp(MethodHandles.Lookup lookup, String name, MethodType callType, Object... args){
         return new ConstantCallSite(MethodHandles.zero(Integer.class));
+    }
+
+    protected static DynamicLinker createDynamicLinker(){
+        DynamicLinkerFactory factory = new DynamicLinkerFactory();
+        factory.setPrioritizedLinker(chipmunkLinker);
+
+        chipmunkLinker.getLibraries().registerLibrary(new NativeTypeLib());
+
+        return factory.createLinker();
     }
 
     public Binder(){

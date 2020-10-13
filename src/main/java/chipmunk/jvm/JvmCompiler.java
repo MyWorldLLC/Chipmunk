@@ -124,6 +124,10 @@ public class JvmCompiler {
         // return vm.dispatch(receiver, Class.cm$name, params);
         MethodVisitor mv = cw.visitMethod(flags, name, methodType.getDescriptor(), null, null);
         mv.visitCode();
+        //generatePush(mv, 1);
+        //generatePush(mv, 2);
+        //generateDynamicInvocation(mv, "plus", 1);
+        //mv.visitInsn(Opcodes.ARETURN);
         //mv.visitVarInsn(Opcodes.ALOAD, 0);
         //mv.visitInsn(Opcodes.ARETURN);
 
@@ -142,91 +146,90 @@ public class JvmCompiler {
         for(int ip = 0; ip < instructions.length;) {
 
             final byte op = instructions[ip];
-            System.out.println(String.format("Op: %X", op));
 
             switch (op) {
                 case ADD -> {
-                    generateDynamicInvocation(mv, "plus", 1);
+                    generateDynamicInvocation(mv, "plus", 2);
                     ip++;
                 }
                 case SUB -> {
-                    generateDynamicInvocation(mv, "minus", 1);
+                    generateDynamicInvocation(mv, "minus", 2);
                     ip++;
                 }
                 case MUL -> {
-                    generateDynamicInvocation(mv, "mul", 1);
+                    generateDynamicInvocation(mv, "mul", 2);
                     ip++;
                 }
                 case DIV -> {
-                    generateDynamicInvocation(mv, "div", 1);
+                    generateDynamicInvocation(mv, "div", 2);
                     ip++;
                 }
                 case FDIV -> {
-                    generateDynamicInvocation(mv, "fdiv", 1);
+                    generateDynamicInvocation(mv, "fdiv", 2);
                     ip++;
                 }
                 case MOD -> {
-                    generateDynamicInvocation(mv, "mod", 1);
+                    generateDynamicInvocation(mv, "mod", 2);
                     ip++;
                 }
                 case POW -> {
-                    generateDynamicInvocation(mv, "pow", 1);
+                    generateDynamicInvocation(mv, "pow", 2);
                     ip++;
                 }
                 case INC -> {
-                    generateDynamicInvocation(mv, "inc", 0);
+                    generateDynamicInvocation(mv, "inc", 1);
                     ip++;
                 }
                 case DEC -> {
-                    generateDynamicInvocation(mv, "dec", 0);
+                    generateDynamicInvocation(mv, "dec", 1);
                     ip++;
                 }
                 case POS -> {
-                    generateDynamicInvocation(mv, "pos", 0);
+                    generateDynamicInvocation(mv, "pos", 1);
                     ip++;
                 }
                 case NEG -> {
-                    generateDynamicInvocation(mv, "neg", 0);
+                    generateDynamicInvocation(mv, "neg", 1);
                     ip++;
                 }
                 case AND -> {
-                    generateDynamicInvocation(mv, "truth", 0);
-                    generateDynamicInvocation(mv, "truth", 0);
+                    generateDynamicInvocation(mv, "truth", 1);
+                    generateDynamicInvocation(mv, "truth", 1);
                     generateBoxedAnd(cw, mv);
                     ip++;
                 }
                 case OR -> {
-                    generateDynamicInvocation(mv, "truth", 0);
-                    generateDynamicInvocation(mv, "truth", 0);
+                    generateDynamicInvocation(mv, "truth", 1);
+                    generateDynamicInvocation(mv, "truth", 1);
                     generateBoxedOr(cw, mv);
                     ip++;
                 }
                 case BXOR -> {
-                    generateDynamicInvocation(mv, "binaryXor", 1);
+                    generateDynamicInvocation(mv, "binaryXor", 2);
                     ip++;
                 }
                 case BAND -> {
-                    generateDynamicInvocation(mv, "binaryAnd", 1);
+                    generateDynamicInvocation(mv, "binaryAnd", 2);
                     ip++;
                 }
                 case BOR -> {
-                    generateDynamicInvocation(mv, "binaryOr", 1);
+                    generateDynamicInvocation(mv, "binaryOr", 2);
                     ip++;
                 }
                 case BNEG -> {
-                    generateDynamicInvocation(mv, "binaryNeg", 1);
+                    generateDynamicInvocation(mv, "binaryNeg", 2);
                     ip++;
                 }
                 case LSHIFT -> {
-                    generateDynamicInvocation(mv, "lShift", 1);
+                    generateDynamicInvocation(mv, "lShift", 2);
                     ip++;
                 }
                 case RSHIFT -> {
-                    generateDynamicInvocation(mv, "rShift", 1);
+                    generateDynamicInvocation(mv, "rShift", 2);
                     ip++;
                 }
                 case URSHIFT -> {
-                    generateDynamicInvocation(mv, "unsignedRShift", 1);
+                    generateDynamicInvocation(mv, "unsignedRShift", 2);
                     ip++;
                 }
                 case SETATTR -> {
@@ -238,11 +241,11 @@ public class JvmCompiler {
                     ip++;
                 }
                 case GETAT -> {
-                    generateDynamicInvocation(mv, "getAt", 1);
+                    generateDynamicInvocation(mv, "getAt", 2);
                     ip++;
                 }
                 case SETAT -> {
-                    generateDynamicInvocation(mv, "setAt", 1);
+                    generateDynamicInvocation(mv, "setAt", 2);
                     ip++;
                 }
                 case GETLOCAL -> {
@@ -254,30 +257,30 @@ public class JvmCompiler {
                     ip += 2;
                 }
                 case TRUTH -> {
-                    generateDynamicInvocation(mv, "truth", 0);
+                    generateDynamicInvocation(mv, "truth", 1);
                     ip++;
                 }
                 case NOT -> {
-                    generateDynamicInvocation(mv, "truth", 0);
+                    generateDynamicInvocation(mv, "truth", 1);
                     generateBoxedBooleanNegation(cw, mv);
                     ip++;
                 }
                 case AS -> {
-                    generateDynamicInvocation(mv, "as", 1);
+                    generateDynamicInvocation(mv, "as", 2);
                     ip++;
                 }
                 case IF -> {
-                    generateDynamicInvocation(mv, "truth", 0);
+                    generateDynamicInvocation(mv, "truth", 1);
                     generateIfJump(cw, mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
                 case CALL -> {
-                    generateDynamicInvocation(mv, "call", instructions[ip + 1]);
+                    generateDynamicInvocation(mv, "call", (byte) (instructions[ip + 1]));
                     ip += 2;
                 }
                 case CALLAT -> {
 
-                    byte pCount = instructions[ip + 1];
+                    byte pCount = (byte) (instructions[ip + 1] + 1);
                     String methodName = (String) method.getConstantPool()[fetchInt(instructions, ip + 2)];
 
                     generateDynamicInvocation(mv, methodName, pCount);
@@ -313,26 +316,26 @@ public class JvmCompiler {
                     ip += 5;
                 }
                 case EQ -> {
-                    generateDynamicInvocation(mv, "equals", 1);
+                    generateDynamicInvocation(mv, "equals", 2);
                     ip++;
                 }
                 case GT -> {
-                    generateDynamicInvocation(mv, "compare", 1);
+                    generateDynamicInvocation(mv, "compare", 2);
                     generateGreaterThan(cw, mv);
                     ip++;
                 }
                 case LT -> {
-                    generateDynamicInvocation(mv, "compare", 1);
+                    generateDynamicInvocation(mv, "compare", 2);
                     generateLessThan(cw, mv);
                     ip++;
                 }
                 case GE -> {
-                    generateDynamicInvocation(mv, "compare", 1);
+                    generateDynamicInvocation(mv, "compare", 2);
                     generateGreaterThanOrEqual(cw, mv);
                     ip++;
                 }
                 case LE -> {
-                    generateDynamicInvocation(mv, "compare", 1);
+                    generateDynamicInvocation(mv, "compare", 2);
                     generateLessThanOrEqual(cw, mv);
                     ip++;
                 }
@@ -341,11 +344,11 @@ public class JvmCompiler {
                     ip++;
                 }
                 case INSTANCEOF -> {
-                    generateDynamicInvocation(mv, "instanceOf", 1);
+                    generateDynamicInvocation(mv, "instanceOf", 2);
                     ip++;
                 }
                 case ITER -> {
-                    generateDynamicInvocation(mv, "instanceOf", 1);
+                    generateDynamicInvocation(mv, "instanceOf", 2);
                     ip++;
                 }
                 case NEXT -> {
@@ -355,7 +358,7 @@ public class JvmCompiler {
                 }
                 case RANGE -> {
                     generatePush(mv, instructions[ip + 1] != 0);
-                    generateDynamicInvocation(mv, "range", 2);
+                    generateDynamicInvocation(mv, "range", 3);
                     ip += 2;
                 }
                 case LIST -> {
@@ -366,7 +369,7 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
-                /* TODO - this probably is not needed anymore
+                /*//TODO - this probably is not needed anymore
                 case INIT:
                     ins = stack.peek();
                     stack.push(((Initializable) ins).getInitializer());
@@ -385,11 +388,10 @@ public class JvmCompiler {
                 default -> throw new InvalidOpcodeChipmunk(op);
             }
 
-            //mv.visitInsn(Opcodes.ACONST_NULL);
-            //mv.visitInsn(Opcodes.ARETURN);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
         }
+
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
     }
 
     private int fetchInt(byte[] instructions, int ip) {
@@ -487,12 +489,14 @@ public class JvmCompiler {
     }
 
     protected void generatePush(MethodVisitor mv, Object constant){
+        // TODO - box primitives
         if(constant != null){
             if(constant instanceof Boolean){
                 mv.visitLdcInsn(((Boolean) constant) ? (byte)1 : (byte)0); // TODO - new boxed boolean
             }else{
                 mv.visitLdcInsn(constant);
             }
+            generateBoxing(mv, constant);
         }else{
             mv.visitInsn(Opcodes.ACONST_NULL);
         }
@@ -558,5 +562,51 @@ public class JvmCompiler {
 
     protected void generateSetModule(ClassWriter cw, MethodVisitor mv, String varName){
         // TODO
+    }
+
+    protected void generateBoxing(MethodVisitor mv, Object o){
+        if(o instanceof Byte){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Byte.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Byte.class), Type.BYTE_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Short){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Short.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Short.class), Type.SHORT_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Integer){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Integer.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Integer.class), Type.INT_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Long){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Long.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Long.class), Type.LONG_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Boolean){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Boolean.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Float){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Float.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Float.class), Type.FLOAT_TYPE).getDescriptor(),
+                    false);
+        }else if(o instanceof Double){
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Double.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Double.class), Type.DOUBLE_TYPE).getDescriptor(),
+                    false);
+        }
     }
 }
