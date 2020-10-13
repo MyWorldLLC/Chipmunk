@@ -29,13 +29,17 @@ public class BinaryClass {
     protected BinaryNamespace instanceFields;
     protected BinaryNamespace sharedFields;
 
-    public BinaryClass(){}
+    public BinaryClass(){
+        instanceFields = new BinaryNamespace();
+        sharedFields = new BinaryNamespace();
+    }
 
     public BinaryClass(String name){
         this(name, null);
     }
 
     public BinaryClass(String name, BinaryModule module){
+        this();
         this.name = name;
         this.module = module;
     }

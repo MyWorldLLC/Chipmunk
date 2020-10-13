@@ -321,7 +321,7 @@ public class JvmCompiler {
                 }
                 case GT -> {
                     generateDynamicInvocation(mv, "compare", 2);
-                    generateGreaterThan(cw, mv);
+                    generateGreaterThan(mv);
                     ip++;
                 }
                 case LT -> {
@@ -432,7 +432,7 @@ public class JvmCompiler {
         // TODO - get boxed boolean off the stack, negate, and push the boxed result
     }
 
-    protected void generateGreaterThan(ClassWriter cw, MethodVisitor mv){
+    protected void generateGreaterThan(MethodVisitor mv){
         // TODO - get boxed int, push boxed boolean
     }
 
@@ -489,7 +489,6 @@ public class JvmCompiler {
     }
 
     protected void generatePush(MethodVisitor mv, Object constant){
-        // TODO - box primitives
         if(constant != null){
             if(constant instanceof Boolean){
                 mv.visitLdcInsn(((Boolean) constant) ? (byte)1 : (byte)0); // TODO - new boxed boolean
@@ -606,6 +605,52 @@ public class JvmCompiler {
                     Type.getType(Double.class).getInternalName(),
                     "valueOf",
                     Type.getMethodType(Type.getType(Double.class), Type.DOUBLE_TYPE).getDescriptor(),
+                    false);
+        }
+    }
+
+    protected void generateUnboxing(MethodVisitor mv, Class<?> cls) {
+        if (Byte.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Byte.class).getInternalName(),
+                    "byteValue",
+                    Type.getMethodType(Type.BYTE_TYPE).getDescriptor(),
+                    false);
+        } else if (Short.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Short.class).getInternalName(),
+                    "shortValue",
+                    Type.getMethodType(Type.SHORT_TYPE).getDescriptor(),
+                    false);
+        } else if (Integer.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Integer.class).getInternalName(),
+                    "intValue",
+                    Type.getMethodType(Type.INT_TYPE).getDescriptor(),
+                    false);
+        } else if (Long.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Long.class).getInternalName(),
+                    "longValue",
+                    Type.getMethodType(Type.LONG_TYPE).getDescriptor(),
+                    false);
+        } else if (Boolean.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Boolean.class).getInternalName(),
+                    "booleanValue",
+                    Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
+                    false);
+        } else if (Float.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Float.class).getInternalName(),
+                    "floatValue",
+                    Type.getMethodType(Type.FLOAT_TYPE).getDescriptor(),
+                    false);
+        } else if (Double.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Double.class).getInternalName(),
+                    "doubleValue",
+                    Type.getMethodType(Type.DOUBLE_TYPE).getDescriptor(),
                     false);
         }
     }

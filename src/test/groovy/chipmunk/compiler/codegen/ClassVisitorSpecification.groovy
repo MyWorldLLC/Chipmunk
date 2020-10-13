@@ -22,6 +22,7 @@ package chipmunk.compiler.codegen
 
 
 import chipmunk.ChipmunkVM
+import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
@@ -35,7 +36,7 @@ class ClassVisitorSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkLexer lexer = new ChipmunkLexer()
 	ChipmunkParser parser
-	ClassVisitor visitor = new ClassVisitor(new CModule(""))
+	ClassVisitor visitor = new ClassVisitor(new BinaryModule("test"))
 	
 	def "Parse empty class"(){
 		when:
