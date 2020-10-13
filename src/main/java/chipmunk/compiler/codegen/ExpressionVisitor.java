@@ -136,13 +136,10 @@ public class ExpressionVisitor implements AstVisitor {
 			
 			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
-			
-			// TODO - need to detect unary inc/dec/etc operators that re-assign variables
-			// and emit correct code
 
 			switch (operator.getType()) {
 			case PLUS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.pos();
@@ -151,12 +148,12 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 				return;
 			case DOUBLEPLUS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.inc();
 				return;
 			case MINUS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.neg();
@@ -165,45 +162,45 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 				return;
 			case DOUBLEMINUS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.dec();
 			case STAR:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mul();
 				return;
 			case DOUBLESTAR:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.pow();
 				return;
 			case FSLASH:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.div();
 				return;
 			case DOUBLEFSLASH:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.fdiv();
 				return;
 			case PERCENT:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mod();
 				return;
 			case DOUBLEDOTLESS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(false);
 				return;
 			case DOUBLEDOT:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(true);
 				return;
 			case BAR:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bor();
 				return;
@@ -211,42 +208,42 @@ public class ExpressionVisitor implements AstVisitor {
 				emitLogicalOr(op);
 				return;
 			case EXCLAMATION:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.not();
 				return;
 			case TILDE:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bneg();
 				return;
 			case CARET:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bxor();
 				return;
 			case DOUBLELESSTHAN:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lshift();
 				return;
 			case LESSTHAN:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lt();
 				return;
 			case TRIPLEMORETHAN:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.urshift();
 				return;
 			case DOUBLEMORETHAN:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.rshift();
 				return;
 			case MORETHAN:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.gt();
 				return;
@@ -254,12 +251,12 @@ public class ExpressionVisitor implements AstVisitor {
 				emitLogicalAnd(op);
 				return;
 			case AMPERSAND:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.band();
 				return;
 			case LBRACKET:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.getat();
 				return;
@@ -274,28 +271,28 @@ public class ExpressionVisitor implements AstVisitor {
 				emitAssignment(lhs);
 				return;
 			case DOUBLEEQUAlS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				break;
 			case EXCLAMATIONEQUALS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				assembler.not();
 				break;
 			case LESSEQUALS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.le();
 				break;
 			case MOREEQUALS:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.ge();
 				break;
 			case INSTANCEOF:
-				op.visitChildrenRightLeft(this);
+				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler._instanceof();
 				break;
