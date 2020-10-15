@@ -319,6 +319,7 @@ public class ExpressionVisitor implements AstVisitor {
 		if(lhs instanceof OperatorNode){
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
+				op.getRight().visit(this);
 				if(lOp.getRight() instanceof IdNode){
 					assembler.onLine(lhs.getLineNumber());
 					assembler.push(((IdNode) lOp.getRight()).getID().getText());

@@ -21,6 +21,7 @@
 package chipmunk;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class NativeTypeLib implements ChipmunkLibrary {
 
@@ -78,5 +79,13 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Object setAt(ArrayList<Object> a, Integer index, Object element){
         return a.set(index, element);
+    }
+
+    public static Object getAt(HashMap<Object, Object> a, Object key){
+        return a.get(key);
+    }
+
+    public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
+        return a.put(key, value);
     }
 }

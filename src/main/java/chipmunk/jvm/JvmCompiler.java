@@ -537,17 +537,6 @@ public class JvmCompiler {
                 "<init>",
                 Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
-
-        // TODO - stack format is wrong - elements to add are *above* the array list instance
-        /*for(int i = 0; i < elementCount; i++){
-            mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                    Type.getType(ArrayList.class).getInternalName(),
-                    "add",
-                    Type.getMethodType(Type.getType(Boolean.class), Type.getType(Object.class)).getDescriptor(),
-                    true);
-            mv.visitInsn(Opcodes.POP);
-        }*/
     }
 
     protected void generateMap(MethodVisitor mv, int elementCount){
@@ -559,17 +548,6 @@ public class JvmCompiler {
                 "<init>",
                 Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
-
-        // TODO - stack format is wrong - elements to add are *above* the hash map instance
-        for(int i = 0; i < elementCount; i++){
-            mv.visitInsn(Opcodes.DUP);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                    Type.getType(HashMap.class).getInternalName(),
-                    "put",
-                    Type.getMethodType(Type.getType(Boolean.class), Type.getType(Object.class)).getDescriptor(),
-                    true);
-            mv.visitInsn(Opcodes.POP);
-        }
     }
 
     protected void generateGetModule(ClassWriter cw, MethodVisitor mv, String varName){
