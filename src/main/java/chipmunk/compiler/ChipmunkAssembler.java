@@ -202,14 +202,6 @@ public class ChipmunkAssembler {
 		writeByte(Opcodes.NEG);
 	}
 	
-	public void and(){
-		writeByte(Opcodes.AND);
-	}
-	
-	public void or(){
-		writeByte(Opcodes.OR);
-	}
-	
 	public void not(){
 		writeByte(Opcodes.NOT);
 	}
@@ -359,16 +351,9 @@ public class ChipmunkAssembler {
 	public void pop(){
 		writeByte(Opcodes.POP);
 	}
-	
-	public void dup(int index){
+
+	public void dup() {
 		writeByte(Opcodes.DUP);
-		writeInt(index);
-	}
-	
-	public void swap(int index1, int index2){
-		writeByte(Opcodes.SWAP);
-		writeInt(index1);
-		writeInt(index2);
 	}
 	
 	private int getConstantPoolEntry(Object value){

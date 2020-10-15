@@ -192,18 +192,6 @@ public class JvmCompiler {
                     generateDynamicInvocation(mv, "neg", 1);
                     ip++;
                 }
-                case AND -> {
-                    generateDynamicInvocation(mv, "truth", 1);
-                    generateDynamicInvocation(mv, "truth", 1);
-                    generateBoxedAnd(cw, mv);
-                    ip++;
-                }
-                case OR -> {
-                    generateDynamicInvocation(mv, "truth", 1);
-                    generateDynamicInvocation(mv, "truth", 1);
-                    generateBoxedOr(cw, mv);
-                    ip++;
-                }
                 case BXOR -> {
                     generateDynamicInvocation(mv, "binaryXor", 2);
                     ip++;
@@ -245,7 +233,7 @@ public class JvmCompiler {
                     ip++;
                 }
                 case SETAT -> {
-                    generateDynamicInvocation(mv, "setAt", 2);
+                    generateDynamicInvocation(mv, "setAt", 3);
                     ip++;
                 }
                 case GETLOCAL -> {
@@ -262,7 +250,7 @@ public class JvmCompiler {
                 }
                 case NOT -> {
                     generateDynamicInvocation(mv, "truth", 1);
-                    generateBoxedBooleanNegation(cw, mv);
+                    generateBoxedBooleanNegation(mv);
                     ip++;
                 }
                 case AS -> {
@@ -304,12 +292,8 @@ public class JvmCompiler {
                     ip++;
                 }
                 case DUP -> {
-                    generateDup(mv, fetchInt(instructions, ip + 1));
-                    ip += 5;
-                }
-                case SWAP -> {
-                    generateSwap(mv, fetchInt(instructions, ip + 1), fetchInt(instructions, ip + 5));
-                    ip += 9;
+                    generateDup(mv);
+                    ip++;
                 }
                 case PUSH -> {
                     generatePush(mv, method.getConstantPool()[fetchInt(instructions, ip + 1)]);
@@ -340,7 +324,7 @@ public class JvmCompiler {
                     ip++;
                 }
                 case IS -> {
-                    generateReferentialEqualityCheck(cw, mv);
+                    generateReferentialEqualityCheck(mv);
                     ip++;
                 }
                 case INSTANCEOF -> {
@@ -352,7 +336,7 @@ public class JvmCompiler {
                     ip++;
                 }
                 case NEXT -> {
-                    generateDup(mv, 0);
+                    generateDup(mv);
                     generateIteratorNext(cw, mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
@@ -420,16 +404,51 @@ public class JvmCompiler {
 
     }
 
-    protected void generateBoxedAnd(ClassWriter cw, MethodVisitor mv){
-        // TODO - get two boxed booleans off the stack, calculate &&, and push the boxed result
+    protected void generateBoxedAnd(MethodVisitor mv){
+
+        // Get two boxed booleans off the stack, calculate &&, and push the boxed result
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(Boolean.class).getInternalName(),
+                "booleanValue",
+                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
+
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(Boolean.class).getInternalName(),
+                "booleanValue",
+                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(Boolean.class).getInternalName(),
+                "logicalAnd",
+                Type.getMethodType(Type.BOOLEAN_TYPE, Type.BOOLEAN_TYPE, Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
+
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(Boolean.class).getInternalName(),
+                "valueOf",
+                Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
     }
 
-    protected void generateBoxedOr(ClassWriter cw, MethodVisitor mv){
-        // TODO - get two boxed booleans off the stack, calculate ||, and push the boxed result
-    }
+    protected void generateBoxedBooleanNegation(MethodVisitor mv){
+        // Get boxed boolean off the stack, negate, and push the boxed result
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Boolean.class).getInternalName());
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(Boolean.class).getInternalName(),
+                "booleanValue",
+                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
 
-    protected void generateBoxedBooleanNegation(ClassWriter cw, MethodVisitor mv){
-        // TODO - get boxed boolean off the stack, negate, and push the boxed result
+        // TODO - generate negation
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(Boolean.class).getInternalName(),
+                "valueOf",
+                Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
     }
 
     protected void generateGreaterThan(MethodVisitor mv){
@@ -448,8 +467,8 @@ public class JvmCompiler {
         // TODO - get boxed int, push boxed boolean
     }
 
-    protected void generateReferentialEqualityCheck(ClassWriter cw, MethodVisitor mv){
-        // TODO - reference equals
+    protected void generateReferentialEqualityCheck(MethodVisitor mv){
+        // Reference equals
     }
 
     protected void generateFieldSet(ClassWriter cw, MethodVisitor mv){
@@ -491,7 +510,7 @@ public class JvmCompiler {
     protected void generatePush(MethodVisitor mv, Object constant){
         if(constant != null){
             if(constant instanceof Boolean){
-                mv.visitLdcInsn(((Boolean) constant) ? (byte)1 : (byte)0); // TODO - new boxed boolean
+                mv.visitLdcInsn(((Boolean) constant) ? (byte)1 : (byte)0);
             }else{
                 mv.visitLdcInsn(constant);
             }
@@ -501,12 +520,8 @@ public class JvmCompiler {
         }
     }
 
-    protected void generateDup(MethodVisitor mv, int stackIndex){
-        // TODO
-    }
-
-    protected void generateSwap(MethodVisitor mv, int index1, int index2){
-        // TODO
+    protected void generateDup(MethodVisitor mv){
+        mv.visitInsn(Opcodes.DUP);
     }
 
     protected void generateIteratorNext(ClassWriter cw, MethodVisitor mv, int jumpTarget){
@@ -514,15 +529,17 @@ public class JvmCompiler {
     }
 
     protected void generateList(MethodVisitor mv, int elementCount){
-        generatePush(mv, elementCount);
+        mv.visitTypeInsn(Opcodes.NEW, Type.getType(ArrayList.class).getInternalName());
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitLdcInsn(elementCount);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                 Type.getType(ArrayList.class).getInternalName(),
                 "<init>",
-                Type.getMethodType(Type.VOID_TYPE, Type.getType(Integer.class)).getDescriptor(),
+                Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
 
         // TODO - stack format is wrong - elements to add are *above* the array list instance
-        for(int i = 0; i < elementCount; i++){
+        /*for(int i = 0; i < elementCount; i++){
             mv.visitInsn(Opcodes.DUP);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(ArrayList.class).getInternalName(),
@@ -530,16 +547,17 @@ public class JvmCompiler {
                     Type.getMethodType(Type.getType(Boolean.class), Type.getType(Object.class)).getDescriptor(),
                     true);
             mv.visitInsn(Opcodes.POP);
-        }
-        mv.visitInsn(Opcodes.POP);
+        }*/
     }
 
     protected void generateMap(MethodVisitor mv, int elementCount){
-        generatePush(mv, elementCount);
+        mv.visitTypeInsn(Opcodes.NEW, Type.getType(HashMap.class).getInternalName());
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitLdcInsn(elementCount);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                 Type.getType(HashMap.class).getInternalName(),
                 "<init>",
-                Type.getMethodType(Type.VOID_TYPE, Type.getType(Integer.class)).getDescriptor(),
+                Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
 
         // TODO - stack format is wrong - elements to add are *above* the hash map instance
@@ -552,7 +570,6 @@ public class JvmCompiler {
                     true);
             mv.visitInsn(Opcodes.POP);
         }
-        mv.visitInsn(Opcodes.POP);
     }
 
     protected void generateGetModule(ClassWriter cw, MethodVisitor mv, String varName){

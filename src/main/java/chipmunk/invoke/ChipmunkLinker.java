@@ -32,8 +32,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChipmunkLinker implements GuardingDynamicLinker {
 
@@ -59,7 +61,12 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     @Override
     public GuardedInvocation getGuardedInvocation(LinkRequest linkRequest, LinkerServices linkerServices) throws Exception {
 
-        Class<?> receiverType = linkRequest.getReceiver().getClass();
+        Object receiver = linkRequest.getReceiver();
+        if(receiver == null){
+            throw new NullPointerException("Invocation target is null");
+        }
+
+        Class<?> receiverType = receiver.getClass();
 
         NamedOperation op = (NamedOperation) linkRequest.getCallSiteDescriptor().getOperation();
         MethodType callType = linkRequest.getCallSiteDescriptor().getMethodType();
@@ -79,7 +86,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             for (Method m : receiverType.getMethods()) {
                 Class<?>[] candidatePTypes = m.getParameterTypes();
 
-                if (candidatePTypes.length != pTypes.length) {
+                if (candidatePTypes.length != pTypes.length - 1) {
                     continue;
                 }
 
@@ -91,26 +98,31 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 if (retType.equals(void.class) || callType.returnType().isAssignableFrom(retType)) {
 
+                    boolean paramsMatch = true;
                     for (int i = 0; i < candidatePTypes.length; i++) {
 
                         Class<?> callPType = pTypes[i];
                         Class<?> candidatePType = candidatePTypes[i];
 
                         if (!candidatePType.isAssignableFrom(callPType)) {
+                            paramsMatch = false;
                             break;
                         }
                     }
 
-                    // TODO - check security policy
-                    // We have a match!
-                    callTarget = lookup.unreflect(m);
-                    break;
+                    if(paramsMatch) {
+                        // TODO - check security policy
+                        // We have a match!
+                        callTarget = lookup.unreflect(m);
+                        break;
+                    }
                 }
             }
         }
 
         if(callTarget == null){
-            return null;
+            throw new NoSuchMethodException(
+                    receiverType.getName() + "." + op.getName() + "(" + Arrays.stream(pTypes).map(c -> c != null ? c.getName() : "null").collect(Collectors.toList()) + ")");
         }
 
         MethodHandle handle = callTarget;

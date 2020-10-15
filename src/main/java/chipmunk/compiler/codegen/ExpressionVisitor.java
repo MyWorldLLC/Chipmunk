@@ -97,27 +97,35 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 		}else if(node instanceof ListNode){
 			ListNode listNode = (ListNode) node;
-			
-			for(int i = 0; i < listNode.getChildren().size(); i++){
-				// visit expression
-				this.visit(listNode.getChildren().get(i));
-			}
+
 			assembler.onLine(node.getLineNumber());
 			assembler.list(listNode.getChildren().size());
+
+			for(int i = 0; i < listNode.getChildren().size(); i++){
+				// visit expression
+				assembler.dup();
+				this.visit(listNode.getChildren().get(i));
+				assembler.callAt("add", (byte)1);
+				assembler.pop();
+			}
+
 		}else if(node instanceof MapNode){
 			MapNode mapNode = (MapNode) node;
-			mapNode.visitChildren(this);
-			
+
+			assembler.onLine(node.getLineNumber());
+			assembler.map(mapNode.getChildren().size());
+
 			for(int i = 0; i < mapNode.getChildren().size(); i++){
+				assembler.dup();
 				// visit key & value expressions
 				AstNode keyValue = mapNode.getChildren().get(i);
 				// key
 				this.visit(keyValue.getChildren().get(0));
 				// value
 				this.visit(keyValue.getChildren().get(1));
+				assembler.callAt("put", (byte)2);
+				assembler.pop();
 			}
-			assembler.onLine(node.getLineNumber());
-			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
@@ -267,8 +275,7 @@ public class ExpressionVisitor implements AstVisitor {
 				emitDotGet(op);
 				return;
 			case EQUALS:
-				rhs.visit(this);
-				emitAssignment(lhs);
+				emitAssignment(op);
 				return;
 			case DOUBLEEQUAlS:
 				op.visitChildren(this);
@@ -307,7 +314,8 @@ public class ExpressionVisitor implements AstVisitor {
 
 	}
 	
-	private void emitAssignment(AstNode lhs){
+	private void emitAssignment(OperatorNode op){
+		AstNode lhs = op.getLeft();
 		if(lhs instanceof OperatorNode){
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
@@ -321,8 +329,9 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.onLine(lhs.getLineNumber());
 				assembler.setattr();
 			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
-				lOp.getRight().visit(this);
 				lOp.getLeft().visit(this);
+				lOp.getRight().visit(this);
+				op.getRight().visit(this);
 				assembler.onLine(lOp.getLineNumber());
 				assembler.setat();
 			}else{
@@ -336,6 +345,7 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 		}else if(lhs instanceof IdNode){
 			assembler.onLine(lhs.getLineNumber());
+			op.getRight().visit(this);
 			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
 		}
 	}

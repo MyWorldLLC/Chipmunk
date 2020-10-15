@@ -220,14 +220,6 @@ public class ChipmunkDisassembler {
 					builder.append("neg");
 					ip++;
 					break;
-				case AND:
-					builder.append("and");
-					ip++;
-					break;
-				case OR:
-					builder.append("or");
-					ip++;
-					break;
 				case BXOR:
 					builder.append("bxor");
 					ip++;
@@ -329,16 +321,8 @@ public class ChipmunkDisassembler {
 					ip++;
 					break;
 				case DUP:
-					builder.append("dup ");
-					builder.append(fetchInt(codeSegment.getCode(), ip + 1));
-					ip += 5;
-					break;
-				case SWAP:
-					builder.append("swap ");
-					builder.append(fetchInt(codeSegment.getCode(), ip + 1));
-					builder.append(' ');
-					builder.append(fetchInt(codeSegment.getCode(), ip + 5));
-					ip += 9;
+					builder.append("dup");
+					ip++;
 					break;
 				case PUSH:
 					builder.append("push ");
@@ -520,14 +504,6 @@ public class ChipmunkDisassembler {
 				builder.append("neg");
 				ip++;
 				break;
-			case AND:
-				builder.append("and");
-				ip++;
-				break;
-			case OR:
-				builder.append("or");
-				ip++;
-				break;
 			case BXOR:
 				builder.append("bxor");
 				ip++;
@@ -627,18 +603,6 @@ public class ChipmunkDisassembler {
 			case POP:
 				builder.append("pop");
 				ip++;
-				break;
-			case DUP:
-				builder.append("dup ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
-				ip += 5;
-				break;
-			case SWAP:
-				builder.append("swap ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
-				builder.append(' ');
-				builder.append(fetchInt(codeSegment.getCode(), ip + 5));
-				ip += 9;
 				break;
 			case PUSH:
 				builder.append("push ");

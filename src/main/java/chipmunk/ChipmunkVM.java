@@ -492,26 +492,6 @@ public class ChipmunkVM {
 					stack.push(invoke(stack, "neg", 0));
 					ip++;
 					break;
-				case AND:
-					cond1 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
-					cond2 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
-					if (cond1 && cond2) {
-						stack.push(trueValue);
-					} else {
-						stack.push(falseValue);
-					}
-					ip++;
-					break;
-				case OR:
-					cond1 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
-					cond2 = ((CBoolean) invoke(stack, "truth", 0)).getValue();
-					if (cond1 || cond2) {
-						stack.push(trueValue);
-					} else {
-						stack.push(falseValue);
-					}
-					ip++;
-					break;
 				case BXOR:
 					stack.push(invoke(stack, "bxor", 1));
 					ip++;
@@ -621,17 +601,6 @@ public class ChipmunkVM {
 				case POP:
 					stack.pop();
 					ip++;
-					break;
-				case DUP:
-					int dupIndex = fetchInt(instructions, ip + 1);
-					stack.dup(dupIndex);
-					ip += 5;
-					break;
-				case SWAP:
-					int swapIndex1 = fetchInt(instructions, ip + 1);
-					int swapIndex2 = fetchInt(instructions, ip + 5);
-					stack.swap(swapIndex1, swapIndex2);
-					ip += 9;
 					break;
 				case PUSH:
 					int constIndex = fetchInt(instructions, ip + 1);

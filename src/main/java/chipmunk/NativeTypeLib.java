@@ -20,6 +20,8 @@
 
 package chipmunk;
 
+import java.util.ArrayList;
+
 public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Integer plus(Integer a, Integer b){
@@ -64,5 +66,17 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Boolean truth(Boolean a){
         return a;
+    }
+
+    public static void add(ArrayList<Object> a, Object element){
+        a.add(element);
+    }
+
+    public static Object getAt(ArrayList<Object> a, Integer element){
+        return a.get(element);
+    }
+
+    public static Object setAt(ArrayList<Object> a, Integer index, Object element){
+        return a.set(index, element);
     }
 }

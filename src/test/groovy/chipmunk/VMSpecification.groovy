@@ -332,33 +332,7 @@ class VMSpecification extends Specification {
 		then:
 		result.getValue() == 2
 	}
-	
-	def "dup"(){
-		when:
-		assembler.push(two)
-		assembler.dup(0)
-		assembler.pop()
-		assembler._return()
-		def result = vmRun()
-		
-		then:
-		result.getValue() == 2
-	}
 
-	def "swap"(){
-		when:
-		assembler.push(two)
-		assembler.push(three)
-		assembler.swap(0, 1)
-		assembler.swap(0, 1)
-		assembler.pop()
-		assembler._return()
-		def result = vmRun()
-
-		then:
-		result.getValue() == 2
-	}
-	
 	def "get/setlocal"(){
 		when:
 		assembler.push(two)

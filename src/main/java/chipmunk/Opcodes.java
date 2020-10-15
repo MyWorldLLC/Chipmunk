@@ -45,7 +45,6 @@ public class Opcodes {
 	// Stack operations
 	public static final byte POP = 0x12;
 	public static final byte DUP = 0x13;
-	public static final byte SWAP = 0x14;
 	public static final byte PUSH = 0x15;
 
 	// Local operations
@@ -61,8 +60,6 @@ public class Opcodes {
 	public static final byte RETURN = 0x1E;
 
 	// Comparison/Boolean operations
-	public static final byte AND = 0x1F;
-	public static final byte OR = 0x20;
 	public static final byte NOT = 0x21;
 	public static final byte EQ = 0x22;
 	public static final byte GT = 0x23;

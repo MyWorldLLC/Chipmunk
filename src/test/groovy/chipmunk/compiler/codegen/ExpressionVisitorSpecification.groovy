@@ -148,7 +148,7 @@ class ExpressionVisitorSpecification extends Specification {
 
 	def "Generate and run code for 1 + 2"(){
 		when:
-		def result = parseAndCall("1 + 2", "1 + 2")
+		def result = parseAndCall("1 + 2")
 
 		then:
 		result instanceof Integer
@@ -229,7 +229,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Generate and run code for true && true"(){
 		when:
-		def result = parseAndCall("true && true")
+		def result = parseAndCall("true && true", "true && true")
 
 		then:
 		result instanceof Boolean
@@ -287,7 +287,7 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		then:
 		result instanceof List
-		result == 0
+		result.size() == 0
 	}
 	
 	def "Evaluate {}"(){
@@ -296,7 +296,7 @@ class ExpressionVisitorSpecification extends Specification {
 		
 		then:
 		result instanceof Map
-		result == 0
+		result.size() == 0
 	}
 	
 	def "Evaluate [1, 2, 3]"(){
