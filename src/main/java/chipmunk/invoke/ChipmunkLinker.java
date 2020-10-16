@@ -62,74 +62,89 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     public GuardedInvocation getGuardedInvocation(LinkRequest linkRequest, LinkerServices linkerServices) throws Exception {
 
         Object receiver = linkRequest.getReceiver();
+        NamedOperation op = (NamedOperation) linkRequest.getCallSiteDescriptor().getOperation();
+        MethodType callType = linkRequest.getCallSiteDescriptor().getMethodType();
+
+
+        Object[] params = linkRequest.getArguments();
+
+        MethodHandle handle = getInvocationHandle(lookup, receiver, callType.returnType(), (String)op.getName(), params);
+
+        // TODO - guard by parameter types
+
+        return new GuardedInvocation(handle, guard);
+    }
+
+    public MethodHandle getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, Class<?> expectedReturnType, String methodName, Object[] params) throws Exception {
+
         if(receiver == null){
             throw new NullPointerException("Invocation target is null");
         }
 
         Class<?> receiverType = receiver.getClass();
 
-        NamedOperation op = (NamedOperation) linkRequest.getCallSiteDescriptor().getOperation();
-        MethodType callType = linkRequest.getCallSiteDescriptor().getMethodType();
-
-        // Library methods should override type methods, so check them first
-
-        Object[] params = linkRequest.getArguments();
         Class<?>[] pTypes = new Class<?>[params.length];
         for(int i = 0; i < params.length; i++){
             pTypes[i] = params[i] != null ? params[i].getClass() : void.class;
         }
 
-        MethodHandle callTarget = getLibraries().getMethod(lookup, callType.returnType(), (String)op.getName(), pTypes);
+        // Library methods should override type methods, so check them first
+        MethodHandle callTarget = getLibraries().getMethod(lookup, expectedReturnType, methodName, pTypes);
 
         if(callTarget == null) {
 
-            for (Method m : receiverType.getMethods()) {
-                Class<?>[] candidatePTypes = m.getParameterTypes();
-
-                if (candidatePTypes.length != pTypes.length - 1) {
-                    continue;
-                }
-
-                if (!m.getName().equals(op.getName())) {
-                    continue;
-                }
-
-                Class<?> retType = m.getReturnType();
-
-                if (retType.equals(void.class) || callType.returnType().isAssignableFrom(retType)) {
-
-                    boolean paramsMatch = true;
-                    for (int i = 0; i < candidatePTypes.length; i++) {
-
-                        Class<?> callPType = pTypes[i];
-                        Class<?> candidatePType = candidatePTypes[i];
-
-                        if (!candidatePType.isAssignableFrom(callPType)) {
-                            paramsMatch = false;
-                            break;
-                        }
-                    }
-
-                    if(paramsMatch) {
-                        // TODO - check security policy
-                        // We have a match!
-                        callTarget = lookup.unreflect(m);
-                        break;
-                    }
-                }
+            Method instanceMethod = getMethod(receiverType, expectedReturnType, methodName, pTypes);
+            if(instanceMethod != null){
+                callTarget = lookup.unreflect(instanceMethod);
             }
+
         }
 
         if(callTarget == null){
             throw new NoSuchMethodException(
-                    receiverType.getName() + "." + op.getName() + "(" + Arrays.stream(pTypes).map(c -> c != null ? c.getName() : "null").collect(Collectors.toList()) + ")");
+                    receiverType.getName() + "." + methodName + "(" + Arrays.stream(pTypes).map(c -> c != null ? c.getName() : "null").collect(Collectors.toList()) + ")");
         }
 
-        MethodHandle handle = callTarget;
+        return callTarget;
+    }
 
-        // TODO - guard by parameter types
+    public Method getMethod(Class<?> receiverType, Class<?> expectedReturnType, String methodName, Class<?>[] pTypes){
+        for (Method m : receiverType.getMethods()) {
+            Class<?>[] candidatePTypes = m.getParameterTypes();
 
-        return new GuardedInvocation(handle, guard);
+            if (candidatePTypes.length != pTypes.length - 1) {
+                continue;
+            }
+
+            if (!m.getName().equals(methodName)) {
+                continue;
+            }
+
+            Class<?> retType = m.getReturnType();
+
+            if (retType.equals(void.class) || expectedReturnType.isAssignableFrom(retType)) {
+
+                boolean paramsMatch = true;
+                for (int i = 0; i < candidatePTypes.length; i++) {
+
+                    Class<?> callPType = pTypes[i];
+                    Class<?> candidatePType = candidatePTypes[i];
+
+                    if (!candidatePType.isAssignableFrom(callPType)) {
+                        paramsMatch = false;
+                        break;
+                    }
+                }
+
+                if (paramsMatch) {
+                    // TODO - check security policy
+                    // We have a match!
+                    return m;
+                }
+
+            }
+        }
+        return null;
     }
 
     protected Boolean validateCall(Object[] args){

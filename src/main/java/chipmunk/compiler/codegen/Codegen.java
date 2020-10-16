@@ -144,6 +144,7 @@ public class Codegen implements AstVisitor {
 			// local scope
 			// TODO - closure support
 			if(assign){
+				assembler.dup();
 				assembler.setLocal(table.getLocalIndex(name));
 			}else{
 				assembler.getLocal(table.getLocalIndex(name));

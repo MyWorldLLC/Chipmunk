@@ -61,6 +61,10 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return Integer.compare(a, b);
     }
 
+    public static Boolean equals(Integer a, Integer b){
+        return a.equals(b);
+    }
+
     public static Boolean truth(Integer a){
         return a != 0;
     }

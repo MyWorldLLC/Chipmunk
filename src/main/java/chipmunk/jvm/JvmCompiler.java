@@ -20,21 +20,19 @@
 
 package chipmunk.jvm;
 
+import chipmunk.DebugEntry;
 import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.invoke.Binder;
 import org.objectweb.asm.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
 import static chipmunk.Opcodes.*;
 
 public class JvmCompiler {
 
     private final ChipmunkClassLoader loader;
-
     protected final CompiledMethods methods;
 
     public JvmCompiler(){
@@ -48,6 +46,7 @@ public class JvmCompiler {
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(), new String[]{Type.getType(CompiledModule.class).getInternalName()});
+        cw.visitSource(module.getName() + ".chp", null);
 
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         mv.visitCode();
@@ -120,30 +119,29 @@ public class JvmCompiler {
 
         Type methodType = Type.getMethodType(objType, pTypes);
 
-        // Generate a method of the form name(vm, params) that contains the bytecode for the expression
-        // return vm.dispatch(receiver, Class.cm$name, params);
         MethodVisitor mv = cw.visitMethod(flags, name, methodType.getDescriptor(), null, null);
         mv.visitCode();
-        //generatePush(mv, 1);
-        //generatePush(mv, 2);
-        //generateDynamicInvocation(mv, "plus", 1);
-        //mv.visitInsn(Opcodes.ARETURN);
-        //mv.visitVarInsn(Opcodes.ALOAD, 0);
-        //mv.visitInsn(Opcodes.ARETURN);
 
-        /*mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitVarInsn(Opcodes.ALOAD, 1);
-        mv.visitFieldInsn(Opcodes.GETSTATIC, className, "cm$" + name, Type.getType(BinaryMethod.class).getDescriptor());
-        mv.visitVarInsn(Opcodes.ALOAD, 2);
-
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                Type.getType(ChipmunkVM.class).getInternalName(),
-                "dispatch",
-                Type.getMethodType(Type.getType(Object.class), Type.getType(Object.class), Type.getType(BinaryMethod.class), Type.getType(Object[].class)).getDescriptor(),
-                false);*/
+        Map<Integer, Label> labelMappings = new HashMap<>();
+        DebugEntry[] debugTable = method.getDebugTable();
+        int debugIndex = 0;
 
         byte[] instructions = method.getCode();
         for(int ip = 0; ip < instructions.length;) {
+
+            // Visit labels before generating bytecode
+            Label label = markLabel(ip, labelMappings);
+            mv.visitLabel(label);
+
+            if(debugTable != null && debugIndex < debugTable.length){
+                DebugEntry entry = debugTable[debugIndex];
+                // This isn't technically correct but it prevents crashes if the debug table is malformed
+                if(entry.endIndex <= ip && debugIndex + 1 < debugTable.length){
+                    debugIndex++;
+                    entry = debugTable[debugIndex];
+                }
+                mv.visitLineNumber(entry.lineNumber, label);
+            }
 
             final byte op = instructions[ip];
 
@@ -259,11 +257,11 @@ public class JvmCompiler {
                 }
                 case IF -> {
                     generateDynamicInvocation(mv, "truth", 1);
-                    generateIfJump(cw, mv, fetchInt(instructions, ip + 1));
+                    generateIfJump(mv, labelMappings, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
                 case CALL -> {
-                    generateDynamicInvocation(mv, "call", (byte) (instructions[ip + 1]));
+                    generateDynamicInvocation(mv, "call", (byte) (instructions[ip + 1] + 1));
                     ip += 2;
                 }
                 case CALLAT -> {
@@ -276,11 +274,11 @@ public class JvmCompiler {
                     ip += 6;
                 }
                 case GOTO -> {
-                    generateGoto(cw, mv, fetchInt(instructions, ip + 1));
+                    generateGoto(mv, fetchInt(instructions, ip + 1), labelMappings);
                     ip += 5;
                 }
                 case THROW -> {
-                    generateThrow(cw, mv);
+                    generateThrow(mv);
                     ip++;
                 }
                 case RETURN -> {
@@ -310,17 +308,17 @@ public class JvmCompiler {
                 }
                 case LT -> {
                     generateDynamicInvocation(mv, "compare", 2);
-                    generateLessThan(cw, mv);
+                    generateLessThan(mv);
                     ip++;
                 }
                 case GE -> {
                     generateDynamicInvocation(mv, "compare", 2);
-                    generateGreaterThanOrEqual(cw, mv);
+                    generateGreaterThanOrEqual(mv);
                     ip++;
                 }
                 case LE -> {
                     generateDynamicInvocation(mv, "compare", 2);
-                    generateLessThanOrEqual(cw, mv);
+                    generateLessThanOrEqual(mv);
                     ip++;
                 }
                 case IS -> {
@@ -404,71 +402,72 @@ public class JvmCompiler {
 
     }
 
-    protected void generateBoxedAnd(MethodVisitor mv){
-
-        // Get two boxed booleans off the stack, calculate &&, and push the boxed result
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                Type.getType(Boolean.class).getInternalName(),
-                "booleanValue",
-                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
-
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                Type.getType(Boolean.class).getInternalName(),
-                "booleanValue",
-                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
-
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getType(Boolean.class).getInternalName(),
-                "logicalAnd",
-                Type.getMethodType(Type.BOOLEAN_TYPE, Type.BOOLEAN_TYPE, Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
-
-
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getType(Boolean.class).getInternalName(),
-                "valueOf",
-                Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
-    }
-
     protected void generateBoxedBooleanNegation(MethodVisitor mv){
-        // Get boxed boolean off the stack, negate, and push the boxed result
-        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Boolean.class).getInternalName());
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                Type.getType(Boolean.class).getInternalName(),
-                "booleanValue",
-                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
 
-        // TODO - generate negation
+        generateUnboxing(mv, Boolean.class);
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getType(Boolean.class).getInternalName(),
-                "valueOf",
-                Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
+        mv.visitLdcInsn(1);
+        mv.visitInsn(Opcodes.IXOR);
+
+        generateBoxing(mv, true); // Just need a boolean value here - false is also fine
+
     }
 
     protected void generateGreaterThan(MethodVisitor mv){
-        // TODO - get boxed int, push boxed boolean
+        generateUnboxing(mv, Integer.class);
+        // Need to use the opposite operation in JVM bytecode because Java has the
+        // stack backwards from how we have it
+        generateTest(mv, Opcodes.IF_ICMPLT);
     }
 
-    protected void generateLessThan(ClassWriter cw, MethodVisitor mv){
-        // TODO - get boxed int, push boxed boolean
+    protected void generateLessThan(MethodVisitor mv){
+        generateUnboxing(mv, Integer.class);
+        // Need to use the opposite operation in JVM bytecode because Java has the
+        // stack backwards from how we have it
+        generateTest(mv, Opcodes.IF_ICMPGT);
     }
 
-    protected void generateGreaterThanOrEqual(ClassWriter cw, MethodVisitor mv){
-        // TODO - get boxed int, push boxed boolean
+    protected void generateGreaterThanOrEqual(MethodVisitor mv){
+        generateUnboxing(mv, Integer.class);
+        // Need to use the opposite operation in JVM bytecode because Java has the
+        // stack backwards from how we have it
+        generateTest(mv, Opcodes.IF_ICMPLE);
     }
 
-    protected void generateLessThanOrEqual(ClassWriter cw, MethodVisitor mv){
-        // TODO - get boxed int, push boxed boolean
+    protected void generateLessThanOrEqual(MethodVisitor mv){
+        generateUnboxing(mv, Integer.class);
+        // Need to use the opposite operation in JVM bytecode because Java has the
+        // stack backwards from how we have it
+        generateTest(mv, Opcodes.IF_ICMPGE);
     }
 
     protected void generateReferentialEqualityCheck(MethodVisitor mv){
         // Reference equals
+        generateTest(mv, Opcodes.IF_ACMPNE);
+    }
+
+    protected void generateTest(MethodVisitor mv, int ifOpCode){
+        Label endLabel = new Label();
+        Label falseLabel = new Label();
+
+        mv.visitLdcInsn(1);
+        mv.visitJumpInsn(ifOpCode, falseLabel);
+
+        // The value was true
+        mv.visitLdcInsn(1);
+        mv.visitJumpInsn(Opcodes.GOTO, endLabel);
+
+        // The value was false
+        mv.visitLabel(falseLabel);
+        mv.visitLdcInsn(0);
+
+        mv.visitLabel(endLabel);
+
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(Boolean.class).getInternalName(),
+                "valueOf",
+                Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
     }
 
     protected void generateFieldSet(ClassWriter cw, MethodVisitor mv){
@@ -487,19 +486,25 @@ public class JvmCompiler {
         mv.visitVarInsn(Opcodes.ALOAD, index);
     }
 
-    protected void generateIfJump(ClassWriter cw, MethodVisitor mv, int jumpTarget){
-        // TODO
+    protected void generateIfJump(MethodVisitor mv, Map<Integer, Label> labels, int jumpTarget){
+        Label target = markLabel(jumpTarget, labels);
+
+        generateUnboxing(mv, Boolean.class);
+        mv.visitLdcInsn(1);
+
+        mv.visitJumpInsn(Opcodes.IF_ICMPNE, target);
     }
 
-    protected void generateGoto(ClassWriter cw, MethodVisitor mv, int jumpTarget){
-        // TODO
+    protected void generateGoto(MethodVisitor mv, int jumpTarget, Map<Integer, Label> labelMappings){
+        mv.visitJumpInsn(Opcodes.GOTO, markLabel(jumpTarget, labelMappings));
     }
 
-    protected void generateThrow(ClassWriter cw, MethodVisitor mv){
+    protected void generateThrow(MethodVisitor mv){
         // TODO
     }
 
     protected void generateReturn(MethodVisitor mv){
+        //mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Object.class).getInternalName());
         mv.visitInsn(Opcodes.ARETURN);
     }
 
@@ -510,7 +515,7 @@ public class JvmCompiler {
     protected void generatePush(MethodVisitor mv, Object constant){
         if(constant != null){
             if(constant instanceof Boolean){
-                mv.visitLdcInsn(((Boolean) constant) ? (byte)1 : (byte)0);
+                mv.visitLdcInsn(((Boolean) constant) ? 1 : 0);
             }else{
                 mv.visitLdcInsn(constant);
             }
@@ -606,47 +611,61 @@ public class JvmCompiler {
 
     protected void generateUnboxing(MethodVisitor mv, Class<?> cls) {
         if (Byte.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Byte.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Byte.class).getInternalName(),
                     "byteValue",
                     Type.getMethodType(Type.BYTE_TYPE).getDescriptor(),
                     false);
         } else if (Short.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Short.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Short.class).getInternalName(),
                     "shortValue",
                     Type.getMethodType(Type.SHORT_TYPE).getDescriptor(),
                     false);
         } else if (Integer.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Integer.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Integer.class).getInternalName(),
                     "intValue",
                     Type.getMethodType(Type.INT_TYPE).getDescriptor(),
                     false);
         } else if (Long.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Long.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Long.class).getInternalName(),
                     "longValue",
                     Type.getMethodType(Type.LONG_TYPE).getDescriptor(),
                     false);
         } else if (Boolean.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Boolean.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Boolean.class).getInternalName(),
                     "booleanValue",
                     Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
                     false);
         } else if (Float.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Float.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Float.class).getInternalName(),
                     "floatValue",
                     Type.getMethodType(Type.FLOAT_TYPE).getDescriptor(),
                     false);
         } else if (Double.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Double.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Double.class).getInternalName(),
                     "doubleValue",
                     Type.getMethodType(Type.DOUBLE_TYPE).getDescriptor(),
                     false);
         }
+    }
+
+    protected Label markLabel(int chpTarget, Map<Integer, Label> unresolved){
+        if(!unresolved.containsKey(chpTarget)){
+            unresolved.put(chpTarget, new Label());
+        }
+        return unresolved.get(chpTarget);
     }
 }

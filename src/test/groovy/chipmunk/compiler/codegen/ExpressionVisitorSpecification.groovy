@@ -229,7 +229,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Generate and run code for true && true"(){
 		when:
-		def result = parseAndCall("true && true", "true && true")
+		def result = parseAndCall("true && true")
 
 		then:
 		result instanceof Boolean
@@ -360,19 +360,9 @@ class ExpressionVisitorSpecification extends Specification {
 	}
 	
 	def parseAndCall(String expression, String test = ""){
-		parser = new ChipmunkParser(lexer.lex(expression))
-		AstNode root = parser.parseExpression()
-		root.visit(visitor)
-		assembler._return()
-		
-		CMethod method = assembler.makeMethod()
-		method.setInstructions(assembler.getCodeSegment())
-		method.setConstantPool(assembler.getConstantPool().toArray())
-		method.setLocalCount(0)
 		
 		if(test != ""){
 			println()
-			println(root.toString())
 			println("============= ${test} =============")
 			println("Local Count: ${method.getLocalCount()}")
 			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))

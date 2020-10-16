@@ -135,7 +135,7 @@ public class MethodVisitor implements AstVisitor {
 			
 			if(defaultReturn){
 				// return null in case a return has not yet been hit
-				//genDefaultReturn();
+				genDefaultReturn();
 			}
 			
 			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an

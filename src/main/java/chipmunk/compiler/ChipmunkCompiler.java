@@ -131,4 +131,18 @@ public class ChipmunkCompiler {
 		return compileAst(module);
 	}
 
+	public BinaryModule compileMethod(String methodDef) throws CompileChipmunk {
+		ModuleNode module = new ModuleNode();
+		module.setName("exp");
+
+		TokenStream tokens = lex(methodDef);
+		ChipmunkParser parser = new ChipmunkParser(tokens);
+
+		MethodNode method = parser.parseMethodDef();
+
+		module.addMethodDef(method);
+
+		return compileAst(module);
+	}
+
 }

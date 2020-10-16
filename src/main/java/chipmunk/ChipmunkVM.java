@@ -20,13 +20,11 @@
 
 package chipmunk;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import chipmunk.binary.BinaryMethod;
@@ -449,91 +447,91 @@ public class ChipmunkVM {
 				switch (op) {
 
 				case ADD:
-					stack.push(invoke(stack, "plus", 1));
+					stack.push(invokeOld(stack, "plus", 1));
 					ip++;
 					break;
 				case SUB:
-					stack.push(invoke(stack, "minus",1));
+					stack.push(invokeOld(stack, "minus",1));
 					ip++;
 					break;
 				case MUL:
-					stack.push(invoke(stack, "mul", 1));
+					stack.push(invokeOld(stack, "mul", 1));
 					ip++;
 					break;
 				case DIV:
-					stack.push(invoke(stack, "div", 1));
+					stack.push(invokeOld(stack, "div", 1));
 					ip++;
 					break;
 				case FDIV:
-					stack.push(invoke(stack, "fdiv", 1));
+					stack.push(invokeOld(stack, "fdiv", 1));
 					ip++;
 					break;
 				case MOD:
-					stack.push(invoke(stack, "mod", 1));
+					stack.push(invokeOld(stack, "mod", 1));
 					ip++;
 					break;
 				case POW:
-					stack.push(invoke(stack, "pow", 1));
+					stack.push(invokeOld(stack, "pow", 1));
 					ip++;
 					break;
 				case INC:
-					stack.push(invoke(stack, "inc", 0));
+					stack.push(invokeOld(stack, "inc", 0));
 					ip++;
 					break;
 				case DEC:
-					stack.push(invoke(stack, "dec", 0));
+					stack.push(invokeOld(stack, "dec", 0));
 					ip++;
 					break;
 				case POS:
-					stack.push(invoke(stack, "pos", 0));
+					stack.push(invokeOld(stack, "pos", 0));
 					ip++;
 					break;
 				case NEG:
-					stack.push(invoke(stack, "neg", 0));
+					stack.push(invokeOld(stack, "neg", 0));
 					ip++;
 					break;
 				case BXOR:
-					stack.push(invoke(stack, "bxor", 1));
+					stack.push(invokeOld(stack, "bxor", 1));
 					ip++;
 					break;
 				case BAND:
-					stack.push(invoke(stack, "band", 1));
+					stack.push(invokeOld(stack, "band", 1));
 					ip++;
 					break;
 				case BOR:
-					stack.push(invoke(stack, "bor", 1));
+					stack.push(invokeOld(stack, "bor", 1));
 					ip++;
 					break;
 				case BNEG:
-					stack.push(invoke(stack, "bneg", 0));
+					stack.push(invokeOld(stack, "bneg", 0));
 					ip++;
 					break;
 				case LSHIFT:
-					stack.push(invoke(stack, "lshift", 1));
+					stack.push(invokeOld(stack, "lshift", 1));
 					ip++;
 					break;
 				case RSHIFT:
-					stack.push(invoke(stack, "rshift", 1));
+					stack.push(invokeOld(stack, "rshift", 1));
 					ip++;
 					break;
 				case URSHIFT:
-					stack.push(invoke(stack, "urshift", 1));
+					stack.push(invokeOld(stack, "urshift", 1));
 					ip++;
 					break;
 				case SETATTR:
-					invoke(stack, "setAttr", 2);
+					invokeOld(stack, "setAttr", 2);
 					ip++;
 					break;
 				case GETATTR:
-					stack.push(invoke(stack, "getAttr", 1));
+					stack.push(invokeOld(stack, "getAttr", 1));
 					ip++;
 					break;
 				case GETAT:
-					stack.push(invoke(stack, "getAt", 1));
+					stack.push(invokeOld(stack, "getAt", 1));
 					ip++;
 					break;
 				case SETAT:
-					stack.push(invoke(stack, "setAt", 2));
+					stack.push(invokeOld(stack, "setAt", 2));
 					ip++;
 					break;
 				case GETLOCAL:
@@ -545,22 +543,22 @@ public class ChipmunkVM {
 					ip += 2;
 					break;
 				case TRUTH:
-					stack.push(invoke(stack, "truth", 0));
+					stack.push(invokeOld(stack, "truth", 0));
 					ip++;
 					break;
 				case NOT:
-					stack.push(new CBoolean(!((CBoolean) invoke(stack, "truth", 0)).booleanValue()));
+					stack.push(new CBoolean(!((CBoolean) invokeOld(stack, "truth", 0)).booleanValue()));
 					ip++;
 					break;
 				case AS:
-					stack.push(invoke(stack, "as", 1));
+					stack.push(invokeOld(stack, "as", 1));
 					ip++;
 					break;
 				case IF:
 					int target = fetchInt(instructions, ip + 1);
 					ip += 5;
 					// TODO - this is not suspension safe
-					if (!((CBoolean) invoke(stack, "truth", 0)).booleanValue()) {
+					if (!((CBoolean) invokeOld(stack, "truth", 0)).booleanValue()) {
 						ip = target;
 					}
 					break;
@@ -572,7 +570,7 @@ public class ChipmunkVM {
 					// method resumes after being suspended, it will try to
 					// re-run this call.
 					ip += 2;
-					stack.push(invoke(stack,"call", fetchByte(instructions, ip + 1)));
+					stack.push(invokeOld(stack,"call", fetchByte(instructions, ip + 1)));
 					break;
 				case CALLAT: {
 					CString methodName = (CString) constantPool[fetchInt(instructions, ip + 2)];
@@ -585,7 +583,7 @@ public class ChipmunkVM {
 
 					int paramCount = fetchByte(instructions, ip + 1);
 					ip += 6;
-					stack.push(invoke(stack, methodName.toString(), paramCount));
+					stack.push(invokeOld(stack, methodName.toString(), paramCount));
 					break;
 				}
 				case GOTO:
@@ -609,11 +607,11 @@ public class ChipmunkVM {
 					ip += 5;
 					break;
 				case EQ:
-					stack.push(invoke(stack,"equals", 1));
+					stack.push(invokeOld(stack,"equals", 1));
 					ip++;
 					break;
 				case GT:
-					if (((CInteger) invoke(stack,"compare", 1)).getValue() > 0) {
+					if (((CInteger) invokeOld(stack,"compare", 1)).getValue() > 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -621,7 +619,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case LT:
-					if (((CInteger) invoke(stack,"compare", 1)).getValue() < 0) {
+					if (((CInteger) invokeOld(stack,"compare", 1)).getValue() < 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -629,7 +627,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case GE:
-					if (((CInteger) invoke(stack,"compare", 1)).getValue() >= 0) {
+					if (((CInteger) invokeOld(stack,"compare", 1)).getValue() >= 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -637,7 +635,7 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case LE:
-					if (((CInteger) invoke(stack,"compare", 1)).getValue() <= 0) {
+					if (((CInteger) invokeOld(stack,"compare", 1)).getValue() <= 0) {
 						stack.push(trueValue);
 					} else {
 						stack.push(falseValue);
@@ -655,12 +653,12 @@ public class ChipmunkVM {
 					ip++;
 					break;
 				case INSTANCEOF:
-					stack.push(invoke(stack,"instanceOf", 1));
+					stack.push(invokeOld(stack,"instanceOf", 1));
 					ip++;
 					break;
 				case ITER:
 					ins = stack.pop();
-					stack.push(invoke(stack,"iterator", 1));
+					stack.push(invokeOld(stack,"iterator", 1));
 					ip++;
 					break;
 				case NEXT:
@@ -668,7 +666,7 @@ public class ChipmunkVM {
 					if (!((CIterator) ins).hasNext(this)) {
 						ip = fetchInt(instructions, ip + 1);
 					} else {
-						stack.push(invoke(stack,"next", 1));
+						stack.push(invokeOld(stack,"next", 1));
 						ip += 5;
 					}
 					break;
@@ -678,7 +676,7 @@ public class ChipmunkVM {
 					//lh = stack.pop();
 					//internalParams[3][2] = fetchByte(instructions, ip + 1) != 0;
 					boolean inclusive = fetchByte(instructions, ip + 1) != 0;
-					stack.push(invoke(stack,"range", 2));
+					stack.push(invokeOld(stack,"range", 2));
 					ip += 2;
 					break;
 				}
@@ -828,7 +826,7 @@ public class ChipmunkVM {
 		}
 	}
 
-	public Object eval(String exp) {
+	public Object eval(String exp) throws Throwable {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
@@ -836,35 +834,36 @@ public class ChipmunkVM {
 		return invoke(compiled, "evaluate");
 	}
 
-	public Object invoke(Object target, String methodName){
+	public CompiledModule load(BinaryModule module) throws Throwable {
+		return jvmCompiler.compile(module);
+	}
+
+	public Object invoke(Object target, String methodName) throws Throwable {
 		return invoke(target, methodName, null);
 	}
 
-	public Object invoke(Object target, String methodName, Object[] params){
+	public Object invoke(Object target, String methodName, Object[] params) throws Throwable {
+
+		ChipmunkLinker linker = new ChipmunkLinker();
+		ChipmunkLibraries libs = new ChipmunkLibraries();
+		libs.registerLibrary(new NativeTypeLib());
+		linker.setLibraries(libs);
 
 		final int pCount = params != null ? params.length : 0;
+		Object[] callParams = new Object[pCount + 1];
+		callParams[0] = target;
 
-		MethodType methodType = MethodType.methodType(Object.class);
-		for(int i = 0; params != null && i < params.length; i++){
-			methodType = methodType.appendParameterTypes(params[i] != null ? params[i].getClass() : Void.class);
+		if(pCount > 0) {
+			System.arraycopy(params, 0, callParams, 1, pCount);
 		}
 
-		try {
-			MethodHandle invoker = MethodHandles.lookup()
-					.bind(target, methodName, methodType);
+		MethodHandle invoker = linker
+				.getInvocationHandle(MethodHandles.lookup(), target, Object.class, methodName, callParams);
 
-			if(pCount > 0){
-				return invoker.asSpreader(Object[].class, pCount).invokeWithArguments(params);
-			}else{
-				return invoker.invoke();
-			}
-		}catch (Throwable t){
-			throw new AngryChipmunk(t);
-		}
-
+		return invoker.invokeWithArguments(callParams);
 	}
 
-	private Object invoke(OperandStack stack, String methodName, int paramCount) {
+	private Object invokeOld(OperandStack stack, String methodName, int paramCount) {
 
 		Object target = stack.pop();
 

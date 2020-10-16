@@ -20,30 +20,23 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.binary.BinaryMethod
+import chipmunk.binary.BinaryModule
+import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.ChipmunkVM
-import chipmunk.compiler.ChipmunkLexer
-import chipmunk.compiler.ChipmunkParser
-import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.runtime.CBoolean
-import chipmunk.modules.runtime.CInteger
-import chipmunk.modules.runtime.CMethod
-import chipmunk.modules.runtime.CModule
-import chipmunk.modules.runtime.CNull
+import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.jvm.CompiledModule
+import chipmunk.modules.runtime.CMethodCode
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
-	
-	ChipmunkLexer lexer = new ChipmunkLexer()
-	ChipmunkParser parser
-	List constantPool = []
-	ChipmunkVM context = new ChipmunkVM()
-	CModule module = new CModule()
-	MethodVisitor visitor = new MethodVisitor(constantPool, module)
+
+	ChipmunkCompiler compiler = new ChipmunkCompiler()
+	ChipmunkVM vm = new ChipmunkVM()
 	
 	def "Parse, generate, and run empty method def"(){
 		expect:
-		parseAndCall("def method(){}") instanceof CNull
+		parseAndCall("def method(){}") == null
 	}
 	
 	def "Parse, generate, and run return expression method def"(){
@@ -55,8 +48,8 @@ class MethodVisitorSpecification extends Specification {
 		""")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "Parse, generate, and run method def with var dec and return"(){
@@ -68,8 +61,8 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "Parse, generate, and run method def with undefined var dec and return"(){
@@ -81,7 +74,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CNull
+		result == null
 	}
 	
 	def "Parse, generate, and run method def with multiple var decs and return"(){
@@ -94,8 +87,8 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 4
+		result instanceof Integer
+		result == 4
 	}
 	
 	def "Parse, generate, and run method def with local variable assignment"(){
@@ -109,8 +102,8 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 5
+		result instanceof Integer
+		result == 5
 	}
 	
 	def "Parse, generate, and run method def with multiple local variable assignments"(){
@@ -127,8 +120,8 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof CInteger
-		result.getValue() == 6
+		result instanceof Integer
+		result == 6
 	}
 	
 	def "Basic if - return in if"(){
@@ -143,8 +136,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 	
 	def "Basic if - return after if"(){
@@ -160,8 +153,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CBoolean
-		result.getValue() == true
+		result instanceof Boolean
+		result == true
 	}
 	
 	def "Multibranch if"(){
@@ -181,8 +174,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	def "Multibranch if - return in second branch"(){
@@ -202,8 +195,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 2
+		result instanceof Integer
+		result == 2
 	}
 	
 	def "Multibranch if - return in else"(){
@@ -223,8 +216,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "Multibranch if - return after else"(){
@@ -244,8 +237,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 125
+		result instanceof Integer
+		result == 125
 	}
 	
 	def "While loop - no iterations"(){
@@ -261,8 +254,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 0
+		result instanceof Integer
+		result == 0
 	}
 	
 	def "While loop - 5 iterations"(){
@@ -275,17 +268,17 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""")
+			""", "While loop - 5 iterations")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 5
+		result instanceof Integer
+		result == 5
 	}
 	
 	def "For loop over range - 5 iterations"(){
 		when:
 		def result = parseAndCall("""
-			def forMethod(){
+			def method(){
 				var v1 = 0
 				for(i in 0..<5){
 					v1 = v1 + 1
@@ -295,14 +288,14 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 5
+		result instanceof Integer
+		result == 5
 	}
 	
 	def "For loop - break"(){
 		when:
 		def result = parseAndCall("""
-			def forMethod(){
+			def method(){
 				var v1 = 0
 				for(i in 0..<5){
 					if(i == 3){
@@ -315,14 +308,14 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "For loop - continue"(){
 		when:
 		def result = parseAndCall("""
-			def forMethod(){
+			def method(){
 				var v1 = 0
 				for(i in 0..<5){
 					if(i == 3){
@@ -336,8 +329,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 4
+		result instanceof Integer
+		result == 4
 	}
 	
 	def "While loop - break"(){
@@ -356,8 +349,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
 	def "While loop - continue"(){
@@ -377,8 +370,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 5
+		result instanceof Integer
+		result == 5
 	}
 	
 	def "Lambda call"(){
@@ -391,8 +384,8 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	
@@ -407,8 +400,8 @@ class MethodVisitorSpecification extends Specification {
 			""", "")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 1
+		result instanceof Integer
+		result == 1
 	}
 	
 	def "Lambda call - two parameters"(){
@@ -421,27 +414,24 @@ class MethodVisitorSpecification extends Specification {
 			""", "")
 			
 		then:
-		result instanceof CInteger
-		result.getValue() == 3
+		result instanceof Integer
+		result == 3
 	}
 	
-	def parseAndCall(String expression, String test = ""){
+	def parseAndCall(String methodBody, String test = ""){
+
+		BinaryModule binary = compiler.compileMethod(methodBody)
+		CompiledModule runnable = vm.load(binary)
 		
-		parser = new ChipmunkParser(lexer.lex(expression))
-		AstNode root = parser.parseMethodDef()
-		root.visit(new SymbolTableBuilderVisitor())
-		root.visit(visitor)
-		
-		CMethod method = visitor.getMethod()
-		
-		if(test != ""){
+		/*if(test != ""){
+			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
 			println()
 			println("============= ${test} =============")
 			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(method.getCode(), method.getConstantPool()))
-		}
+			println(ChipmunkDisassembler.disassemble(code, code.getConstantPool()))
+		}*/
 		
-		return context.dispatch(method, method.getArgCount())
+		return vm.invoke(runnable, "method")
 	}
 
 }
