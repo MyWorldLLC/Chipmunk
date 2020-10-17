@@ -74,6 +74,7 @@ public class JvmCompiler {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "initializeCodeFields", Type.getMethodType(Type.VOID_TYPE, Type.getType(CompiledMethods.class)).getDescriptor(), null, null);
         mv.visitCode();
         mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
         mv.visitEnd();
 
         // TODO - generate the normal module initializer method
@@ -359,12 +360,12 @@ public class JvmCompiler {
                     break;*/
                 case GETMODULE -> {
                     String varName = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
-                    generateGetModule(cw, mv, varName);
+                    generateGetModule(mv, varName);
                     ip += 5;
                 }
                 case SETMODULE -> {
                     String varName = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
-                    generateSetModule(cw, mv, varName);
+                    generateSetModule(mv, varName);
                     ip += 5;
                 }
                 default -> throw new InvalidOpcodeChipmunk(op);
@@ -554,12 +555,15 @@ public class JvmCompiler {
                 false);
     }
 
-    protected void generateGetModule(ClassWriter cw, MethodVisitor mv, String varName){
+    protected void generateGetModule(MethodVisitor mv, String varName){
         // TODO
+        mv.visitLdcInsn(1);
+        generateBoxing(mv, 1);
     }
 
-    protected void generateSetModule(ClassWriter cw, MethodVisitor mv, String varName){
+    protected void generateSetModule(MethodVisitor mv, String varName){
         // TODO
+        mv.visitInsn(Opcodes.POP);
     }
 
     protected void generateBoxing(MethodVisitor mv, Object o){
