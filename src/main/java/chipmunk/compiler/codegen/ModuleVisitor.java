@@ -106,6 +106,8 @@ public class ModuleVisitor implements AstVisitor {
 				im.setAliases(importNode.getAliases().toArray(new String[]{}));
 			}
 
+			imports.add(im);
+
 		}else if(node instanceof VarDecNode){
 
 			VarDecNode varDec = (VarDecNode) node;

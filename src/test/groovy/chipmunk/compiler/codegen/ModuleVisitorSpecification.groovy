@@ -63,13 +63,13 @@ class ModuleVisitorSpecification extends Specification {
 		then:
 		module.getName() == "chipmunk.testing"
 		module.getImports().size() == 5
-		module.getImports()[1].isImportAll() == true
-		module.getImports()[1].getSymbols().size() == 0
-		module.getImports()[2].isImportAll() == false
+		module.getImports()[1].isImportAll()
+		module.getImports()[1].getSymbols() == null
+		!module.getImports()[2].isImportAll()
 		module.getImports()[2].getSymbols()[0] == "asdf"
-		module.getImports()[3].isImportAll() == true
-		module.getImports()[3].getSymbols().size()== 0
-		module.getImports()[4].isImportAll() == false
+		module.getImports()[3].isImportAll()
+		module.getImports()[3].getSymbols() == null
+		!module.getImports()[4].isImportAll()
 		module.getImports()[4].getSymbols()[0] == "asdf2"
 		
 		module.getNamespace().size() == 0
@@ -87,13 +87,13 @@ class ModuleVisitorSpecification extends Specification {
 		then:
 		module.getName() == ""
 		module.getImports().size() == 5
-		module.getImports()[1].isImportAll() == true
-		module.getImports()[1].getSymbols().size() == 0
-		module.getImports()[2].isImportAll() == false
+		module.getImports()[1].isImportAll()
+		module.getImports()[1].getSymbols() == null
+		!module.getImports()[2].isImportAll()
 		module.getImports()[2].getSymbols()[0] == "asdf"
-		module.getImports()[3].isImportAll() == true
-		module.getImports()[3].getSymbols().size()== 0
-		module.getImports()[4].isImportAll() == false
+		module.getImports()[3].isImportAll()
+		module.getImports()[3].getSymbols() == null
+		!module.getImports()[4].isImportAll()
 		module.getImports()[4].getSymbols()[0] == "asdf2"
 		
 		module.getNamespace().size() == 0
