@@ -40,8 +40,10 @@ public class BinaryWriter {
         dos.writeUTF(module.getName());
         writeConstants(dos, module.getConstantPool());
         writeImports(dos, module.getImports());
-        writeObject(dos, module.getInitializer());
+        writeMethod(dos, module.getInitializer());
         writeNamespace(dos, module.getNamespace());
+
+        dos.flush();
     }
 
     protected void writeConstants(DataOutputStream os, Object[] objs) throws IOException, IllegalConstantTypeException {
@@ -72,13 +74,22 @@ public class BinaryWriter {
         for(BinaryNamespace.Entry e : namespace.getEntries()){
             os.writeUTF(e.getName());
             os.writeByte(e.getFlags());
-            os.writeInt((byte)e.getType().ordinal());
-            writeMethod(os, e.getBinaryMethod());
+            os.writeByte((byte)e.getType().ordinal());
+            if(e.getType() == FieldType.METHOD){
+                writeMethod(os, e.getBinaryMethod());
+            }else if(e.getType() == FieldType.CLASS){
+                writeClass(os, e.getBinaryClass());
+            }
         }
 
     }
 
     protected void writeStrings(DataOutputStream os, String[] strings) throws IOException {
+
+        if(strings == null){
+            os.writeInt(0);
+            return;
+        }
 
         os.writeInt(strings.length);
 

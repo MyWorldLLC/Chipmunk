@@ -152,6 +152,8 @@ public class BinaryReader {
             FieldType type = FieldType.values()[typeOrdinal];
             if(type == FieldType.METHOD){
                 namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readMethod(is, module)));
+            }else if(type == FieldType.CLASS){
+                namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readClass(is, module)));
             }else{
                 namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, type));
             }
@@ -195,10 +197,10 @@ public class BinaryReader {
         final int codeSize = is.readInt();
         checkBufferSize(codeSize);
 
+        method.setCode(is.readNBytes(codeSize));
         method.setExceptionTable(readExceptionTable(is));
         method.setDebugTable(readDebugTable(is));
 
-        method.setCode(is.readNBytes(codeSize));
         method.setModule(module);
 
         return method;
