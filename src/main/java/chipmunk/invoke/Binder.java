@@ -31,6 +31,8 @@ import java.lang.reflect.Modifier;
 public class Binder {
 
     public static final String INDY_BOOTSTRAP_METHOD = "bootstrapCallsite";
+    public static final String INDY_BOOTSTRAP_SET = "bootstrapSetSite";
+    public static final String INDY_BOOTSTRAP_GET = "bootstrapGetSite";
 
     protected static final ChipmunkLinker chipmunkLinker = new ChipmunkLinker();
     protected static final DynamicLinker dynaLink = createDynamicLinker();
@@ -44,20 +46,40 @@ public class Binder {
 
     public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType) throws NoSuchMethodException, IllegalAccessException {
         return dynaLink.link(new SimpleRelinkableCallSite(
-                new CallSiteDescriptor(lookup, chipmunkOp(name), callType)
+                new CallSiteDescriptor(lookup, chipmunkCallOp(name), callType)
         ));
     }
 
-    protected static Operation chipmunkOp(String name){
+    public static CallSite bootstrapSetSite(MethodHandles.Lookup lookup, String name, MethodType callType) throws NoSuchMethodException, IllegalAccessException {
+        return dynaLink.link(new SimpleRelinkableCallSite(
+                new CallSiteDescriptor(lookup, chipmunkFieldSetOp(name), callType)
+        ));
+    }
+
+    public static CallSite bootstrapGetSite(MethodHandles.Lookup lookup, String name, MethodType callType) throws NoSuchMethodException, IllegalAccessException {
+        return dynaLink.link(new SimpleRelinkableCallSite(
+                new CallSiteDescriptor(lookup, chipmunkFieldGetOp(name), callType)
+        ));
+    }
+
+    protected static Operation chipmunkCallOp(String name){
         return StandardOperation.CALL.named(name);
+    }
+
+    protected static Operation chipmunkFieldSetOp(String name) {
+        return StandardOperation.SET.named(name);
+    }
+
+    protected static Operation chipmunkFieldGetOp(String name) {
+        return StandardOperation.GET.named(name);
     }
 
     public static MethodType bootstrapCallsiteType(){
         return MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class);
     }
 
-    public static CallSite bootstrapFieldOp(MethodHandles.Lookup lookup, String name, MethodType callType, Object... args){
-        return new ConstantCallSite(MethodHandles.zero(Integer.class));
+    public static MethodType bootstrapFieldOpType(){
+        return MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class);
     }
 
     protected static DynamicLinker createDynamicLinker(){

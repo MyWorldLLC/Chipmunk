@@ -160,25 +160,22 @@ public class Codegen implements AstVisitor {
 					// shared method reference to shared variable. Self
 					// refers to class, so emit reference via self
 					if(assign){
-						assembler.push(symbol.getName());
 						assembler.getLocal(0);
-						assembler.setattr();
+						assembler.setattr(symbol.getName());
 					}else{
-						assembler.push(symbol.getName());
 						assembler.getLocal(0);
-						assembler.getattr();
+						assembler.getattr(symbol.getName());
 					}
 					
 				}else{
 					// TODO - instance method reference to shared variable. Get class and reference variable
 					// as shared attribute
-					assembler.push(symbol.getName());
 					assembler.getLocal(0);
 					assembler.callAt("getClass", (byte)0);
 					if(assign){
-						assembler.setattr();
+						assembler.setattr(symbol.getName());
 					}else{
-						assembler.getattr();
+						assembler.getattr(symbol.getName());
 					}
 				}
 			}else{
@@ -189,13 +186,11 @@ public class Codegen implements AstVisitor {
 					// reference via self
 					
 					if(assign){
-						assembler.push(symbol.getName());
 						assembler.getLocal(0);
-						assembler.setattr();
+						assembler.setattr(symbol.getName());
 					}else{
-						assembler.push(symbol.getName());
 						assembler.getLocal(0);
-						assembler.getattr();
+						assembler.getattr(symbol.getName());
 					}
 				}
 			}

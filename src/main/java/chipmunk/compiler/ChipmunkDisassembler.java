@@ -303,12 +303,14 @@ public class ChipmunkDisassembler {
 				ip++;
 				break;
 			case SETATTR:
-				builder.append("setattr");
-				ip++;
+				builder.append("setattr ");
+				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);
+				ip += 5;
 				break;
 			case GETATTR:
-				builder.append("getattr");
-				ip++;
+				builder.append("getattr ");
+				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);
+				ip += 5;
 				break;
 			case GETAT:
 				builder.append("getat");

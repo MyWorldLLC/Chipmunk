@@ -220,12 +220,14 @@ public class JvmCompiler {
                     ip++;
                 }
                 case SETATTR -> {
-                    generateFieldSet(cw, mv);
-                    ip++;
+                    String attr = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
+                    generateFieldSet(mv, attr);
+                    ip += 5;
                 }
                 case GETATTR -> {
-                    generateFieldGet(cw, mv);
-                    ip++;
+                    String attr = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
+                    generateFieldGet(mv, attr);
+                    ip += 5;
                 }
                 case GETAT -> {
                     generateDynamicInvocation(mv, "getAt", 2);
@@ -397,6 +399,19 @@ public class JvmCompiler {
 
     }
 
+    protected void generateDynamicFieldAccess(MethodVisitor mv, String field, boolean set) {
+        final Type objType = Type.getType(Object.class);
+
+        Handle bootstrap = new Handle(Opcodes.H_INVOKESTATIC,
+                Type.getType(Binder.class).getInternalName(),
+                set ? Binder.INDY_BOOTSTRAP_SET : Binder.INDY_BOOTSTRAP_GET,
+                Binder.bootstrapFieldOpType().toMethodDescriptorString(),
+                false);
+
+        mv.visitInvokeDynamicInsn(field, Type.getMethodType(objType, objType).getDescriptor(), bootstrap);
+
+    }
+
     protected void generateBoxedBooleanNegation(MethodVisitor mv){
 
         generateUnboxing(mv, Boolean.class);
@@ -465,12 +480,12 @@ public class JvmCompiler {
                 false);
     }
 
-    protected void generateFieldSet(ClassWriter cw, MethodVisitor mv){
-        // TODO - generate a dynamically invoked field setter
+    protected void generateFieldSet(MethodVisitor mv, String attr){
+        generateDynamicFieldAccess(mv, attr, true);
     }
 
-    protected void generateFieldGet(ClassWriter cw, MethodVisitor mv){
-        // TODO - generate a dynamically invoked field getter
+    protected void generateFieldGet(MethodVisitor mv, String attr){
+        generateDynamicFieldAccess(mv, attr, false);
     }
 
     protected void generateLocalSet(MethodVisitor mv, byte index){

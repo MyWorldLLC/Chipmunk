@@ -319,16 +319,15 @@ public class ExpressionVisitor implements AstVisitor {
 		if(lhs instanceof OperatorNode){
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
-				op.getRight().visit(this);
-				if(lOp.getRight() instanceof IdNode){
-					assembler.onLine(lhs.getLineNumber());
-					assembler.push(((IdNode) lOp.getRight()).getID().getText());
-				}else{
-					lOp.getRight().visit(this);
-				}
-				lOp.getLeft().visit(this);
 				assembler.onLine(lhs.getLineNumber());
-				assembler.setattr();
+				lOp.getLeft().visit(this);
+				String attr = ((IdNode) lOp.getRight()).getID().getText();
+
+				assembler.onLine(op.getRight().getLineNumber());
+				op.getRight().visit(this);
+
+				assembler.onLine(lhs.getLineNumber());
+				assembler.setattr(attr);
 			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
 				lOp.getLeft().visit(this);
 				lOp.getRight().visit(this);
@@ -379,16 +378,13 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 	
 	private void emitDotGet(OperatorNode op){
-		if(op.getRight() instanceof IdNode){
-			IdNode attr = (IdNode) op.getRight();
-			assembler.onLine(op.getLineNumber());
-			assembler.push(attr.getID().getText());
-		}else{
-			op.getRight().visit(this);
-		}
+
+		assembler.onLine(op.getLeft().getLineNumber());
 		op.getLeft().visit(this);
 		assembler.onLine(op.getLineNumber());
-		assembler.getattr();
+
+		String attr = ((IdNode) op.getRight()).getID().getText();
+		assembler.getattr(attr);
 	}
 
 	private void emitLogicalOr(OperatorNode op){

@@ -238,12 +238,14 @@ public class ChipmunkAssembler {
 		writeByte(Opcodes.INSTANCEOF);
 	}
 	
-	public void setattr(){
+	public void setattr(String attr){
 		writeByte(Opcodes.SETATTR);
+		writeInt(getConstantPoolEntry(attr));
 	}
 	
-	public void getattr(){
+	public void getattr(String attr){
 		writeByte(Opcodes.GETATTR);
+		writeInt(getConstantPoolEntry(attr));
 	}
 	
 	public void getat(){
