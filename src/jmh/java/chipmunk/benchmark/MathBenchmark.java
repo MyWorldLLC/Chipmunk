@@ -83,12 +83,12 @@ public class MathBenchmark {
 	@BenchmarkMode(Mode.SampleTime)
 	public Object countToOneMillionCVM(ChipmunkScripts scripts) throws Throwable {
 		ChipmunkVM vm = scripts.vm;
-		return vm.invoke(scripts.fibonacci, "main");
+		return vm.invoke(scripts.countToAMillion, "countToAMillion");
 	}
 	
 	@Benchmark
 	@BenchmarkMode(Mode.SampleTime)
-	public Object countToOneMillionJava(ChipmunkScripts scripts) {
+	public Object countToAMillionJava(ChipmunkScripts scripts) {
 		int x = 0;
 		while(x < 1000000) {
 			x = x + 1;
