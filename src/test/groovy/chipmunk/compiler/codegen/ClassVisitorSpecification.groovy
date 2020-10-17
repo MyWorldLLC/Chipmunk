@@ -21,15 +21,11 @@
 package chipmunk.compiler.codegen
 
 
-import chipmunk.ChipmunkVM
 import chipmunk.binary.BinaryClass
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.runtime.CClass
-import chipmunk.modules.runtime.CModule
-import chipmunk.modules.runtime.CObject
 import spock.lang.Specification
 
 class ClassVisitorSpecification extends Specification {
