@@ -8,6 +8,6 @@ def countToAMillion(){
 	return x 
 }
 
-def main(){
-	return countToAMillion()
-}
+#def main(){
+#	return countToAMillion()
+#}
