@@ -28,14 +28,13 @@ class JvmCompilerSpecification extends Specification {
 
     ChipmunkVM vm = new ChipmunkVM()
     ChipmunkCompiler cc = new ChipmunkCompiler()
-    JvmCompiler jc = new JvmCompiler()
 
     def "Load as Java code & run"(){
         when:
         def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
-        def jModIns = jc.compile(module)
+        def instance = vm.load(module)
 
-        def result = jModIns.main(vm, new Object[0])
+        def result = vm.invoke(instance, "main")
 
         then:
         result == 10

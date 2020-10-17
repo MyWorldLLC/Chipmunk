@@ -359,9 +359,9 @@ public class ExpressionVisitor implements AstVisitor {
 			OperatorNode dotOp = (OperatorNode) op.getLeft();
 			// this is a dot access, so issue a callAt opcode
 			IdNode callID = (IdNode) dotOp.getRight();
-			
-			op.visitChildren(this, 1);
+
 			dotOp.getLeft().visit(this);
+			op.visitChildren(this, 1);
 			
 			int argCount = op.getChildren().size() - 1;
 			assembler.onLine(op.getLineNumber());
