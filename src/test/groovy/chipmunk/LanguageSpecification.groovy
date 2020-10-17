@@ -24,8 +24,6 @@ import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.jvm.CompiledModule
-import chipmunk.modules.ChipmunkModuleBuilder
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class LanguageSpecification extends Specification {
@@ -187,7 +185,6 @@ class LanguageSpecification extends Specification {
 		result == 21
 	}
 
-	@Ignore
 	def "Run TryCatch.chp"(){
 		when:
 		def result = compileAndRun("TryCatch.chp")
