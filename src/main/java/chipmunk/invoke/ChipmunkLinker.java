@@ -120,12 +120,15 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Class<?> retType = m.getReturnType();
 
-            if (retType.equals(void.class) || expectedReturnType.isAssignableFrom(retType)) {
+            // TODO - check type conversions on primitive return types
+            if (retType.equals(void.class) || expectedReturnType.isAssignableFrom(retType) || retType.isPrimitive()) {
 
                 boolean paramsMatch = true;
                 for (int i = 0; i < candidatePTypes.length; i++) {
 
-                    Class<?> callPType = pTypes[i];
+                    // Need to offset by 1 because the incoming types include the receiver type
+                    // while the candidate types do not
+                    Class<?> callPType = pTypes[i + 1];
                     Class<?> candidatePType = candidatePTypes[i];
 
                     if (!candidatePType.isAssignableFrom(callPType)) {

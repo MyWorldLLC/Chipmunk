@@ -81,7 +81,7 @@ public class ChipmunkLibraries {
 
             Class<?> retType = m.getReturnType();
 
-            if (retType.equals(void.class) || returnType.isAssignableFrom(retType)) {
+            if (retType.equals(void.class) || returnType.isAssignableFrom(retType) || retType.isPrimitive()) {
 
                 for (int i = 0; i < candidatePTypes.length; i++) {
 

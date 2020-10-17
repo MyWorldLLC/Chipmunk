@@ -20,6 +20,9 @@
 
 package chipmunk;
 
+import chipmunk.runtime.FloatRange;
+import chipmunk.runtime.IntegerRange;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -35,6 +38,14 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Integer pos(Integer a){
         return Math.abs(a);
+    }
+
+    public static IntegerRange range(Integer start, Integer end, Boolean inclusive){
+        return new IntegerRange(start, end, 1, inclusive);
+    }
+
+    public static IntegerRange range(Integer start, Integer end, Integer step, Boolean inclusive){
+        return new IntegerRange(start, end, step, inclusive);
     }
 
     public static Float div(Integer a, Integer b){
@@ -71,6 +82,14 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Boolean truth(Boolean a){
         return a;
+    }
+
+    public static FloatRange range(Float start, Float end, Boolean inclusive){
+        return new FloatRange(start, end, 1.0f, inclusive);
+    }
+
+    public static FloatRange range(Float start, Float end, Float step, Boolean inclusive){
+        return new FloatRange(start, end, step, inclusive);
     }
 
     public static void add(ArrayList<Object> a, Object element){

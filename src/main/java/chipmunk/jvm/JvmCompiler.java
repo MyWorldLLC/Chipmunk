@@ -331,12 +331,12 @@ public class JvmCompiler {
                     ip++;
                 }
                 case ITER -> {
-                    generateDynamicInvocation(mv, "instanceOf", 2);
+                    generateDynamicInvocation(mv, "iterator", 1);
                     ip++;
                 }
                 case NEXT -> {
                     generateDup(mv);
-                    generateIteratorNext(cw, mv, fetchInt(instructions, ip + 1));
+                    generateIteratorNext(mv, fetchInt(instructions, ip + 1), labelMappings);
                     ip += 5;
                 }
                 case RANGE -> {
@@ -352,12 +352,6 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
-                /*//TODO - this probably is not needed anymore
-                case INIT:
-                    ins = stack.peek();
-                    stack.push(((Initializable) ins).getInitializer());
-                    ip++;
-                    break;*/
                 case GETMODULE -> {
                     String varName = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
                     generateGetModule(mv, varName);
@@ -500,11 +494,11 @@ public class JvmCompiler {
     }
 
     protected void generateThrow(MethodVisitor mv){
-        // TODO
+        // TODO - test if the object on the stack is a Throwable or not.
+        // If not, wrap in an AngryChipmunk & throw, else throw unmodified.
     }
 
     protected void generateReturn(MethodVisitor mv){
-        //mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Object.class).getInternalName());
         mv.visitInsn(Opcodes.ARETURN);
     }
 
@@ -529,8 +523,19 @@ public class JvmCompiler {
         mv.visitInsn(Opcodes.DUP);
     }
 
-    protected void generateIteratorNext(ClassWriter cw, MethodVisitor mv, int jumpTarget){
-        // TODO
+    protected void generateIteratorNext(MethodVisitor mv, int jumpTarget, Map<Integer, Label> labelMappings){
+
+        generateDynamicInvocation(mv, "hasNext", 1);
+
+        generateUnboxing(mv, Boolean.class);
+
+        // Jump if there's no next
+        Label loopEnd = markLabel(jumpTarget, labelMappings);
+        mv.visitJumpInsn(Opcodes.IFEQ, loopEnd);
+
+        mv.visitInsn(Opcodes.DUP);
+        // There is a next element, so fetch it
+        generateDynamicInvocation(mv, "next", 1);
     }
 
     protected void generateList(MethodVisitor mv, int elementCount){

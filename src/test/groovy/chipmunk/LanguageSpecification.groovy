@@ -28,7 +28,7 @@ import chipmunk.modules.ChipmunkModuleBuilder
 import spock.lang.Ignore
 import spock.lang.Specification
 
-class RuntimeSpecification extends Specification {
+class LanguageSpecification extends Specification {
 	
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkCompiler compiler = new ChipmunkCompiler()

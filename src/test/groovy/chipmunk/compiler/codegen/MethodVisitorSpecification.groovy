@@ -268,7 +268,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "While loop - 5 iterations")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -285,7 +285,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""")
+			""", "For loop over range - 5 iterations")
 			
 		then:
 		result instanceof Integer
