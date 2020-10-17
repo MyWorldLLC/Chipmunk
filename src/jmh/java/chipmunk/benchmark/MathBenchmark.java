@@ -22,7 +22,9 @@ package chipmunk.benchmark;
 
 import java.io.InputStream;
 
-import chipmunk.modules.runtime.CMethod;
+import chipmunk.binary.BinaryModule;
+import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.jvm.CompiledModule;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -35,36 +37,33 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import chipmunk.ChipmunkScript;
 import chipmunk.ChipmunkVM;
 
 public class MathBenchmark {
 	
-	public static ChipmunkScript compileBenchmark(InputStream is, String name) {
-		return ChipmunkVM.compile(is, name);
+	public static CompiledModule compileBenchmark(InputStream is, String name) throws Throwable {
+		ChipmunkCompiler compiler = new ChipmunkCompiler();
+		BinaryModule module = compiler.compile(is, name)[0];
+
+		ChipmunkVM vm = new ChipmunkVM();
+		return vm.load(module);
 	}
 	
 	@State(Scope.Thread)
 	public static class ChipmunkScripts {
 		
-		public CMethod countToAMillion;
-		public CMethod fibonacci;
+		public CompiledModule countToAMillion;
+		public CompiledModule fibonacci;
 		
 		public ChipmunkVM vm;
 		
 		@Setup(Level.Trial)
-		public void compileSources() {
-			// Run each script once to load/initialize modules, then retrieve the main methods for benchmarked execution
-			ChipmunkVM vm = new ChipmunkVM();
-			ChipmunkScript count = compileBenchmark(MathBenchmark.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
-			vm.run(count);
+		public void compileSources() throws Throwable {
 
-			countToAMillion = (CMethod) count.getModules().get("benchmark").getNamespace().get("main");
+			countToAMillion = compileBenchmark(MathBenchmark.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
 
-			ChipmunkScript fib = compileBenchmark(MathBenchmark.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
-			vm.run(fib);
+			fibonacci = compileBenchmark(MathBenchmark.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
 
-			fibonacci = (CMethod) fib.getModules().get("benchmark").getNamespace().get("main");
 		}
 		
 		@Setup(Level.Trial)
@@ -75,27 +74,27 @@ public class MathBenchmark {
 	
 	@Benchmark
 	@BenchmarkMode(Mode.SampleTime)
-	public Object fibonacci(ChipmunkScripts scripts) {
+	public Object fibonacci(ChipmunkScripts scripts) throws Throwable {
 		ChipmunkVM vm = scripts.vm;
-		return vm.dispatch(scripts.fibonacci, null);
+		return vm.invoke(scripts.fibonacci, "main");
 	}
 	
 	@Benchmark
 	@BenchmarkMode(Mode.SampleTime)
-	public Object countToOneMillionCVM(ChipmunkScripts scripts) {
+	public Object countToOneMillionCVM(ChipmunkScripts scripts) throws Throwable {
 		ChipmunkVM vm = scripts.vm;
-		return vm.dispatch(scripts.countToAMillion, null);
+		return vm.invoke(scripts.fibonacci, "main");
 	}
 	
-//	@Benchmark
-//	@BenchmarkMode(Mode.SampleTime)
-//	public Object countToOneMillionJava(ChipmunkScripts scripts) {
-//		int x = 0;
-//		while(x < 1000000) {
-//			x = x + 1;
-//		}
-//		return x;
-//	}
+	@Benchmark
+	@BenchmarkMode(Mode.SampleTime)
+	public Object countToOneMillionJava(ChipmunkScripts scripts) {
+		int x = 0;
+		while(x < 1000000) {
+			x = x + 1;
+		}
+		return x;
+	}
 
 
 	public static void main(String[] args) throws RunnerException {
