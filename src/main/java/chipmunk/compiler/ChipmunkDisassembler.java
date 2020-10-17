@@ -113,7 +113,7 @@ public class ChipmunkDisassembler {
 		if(cls.getSharedInitializer() != null){
 			builder.append(padding);
 			builder.append("<shared init>\n");
-			builder.append(disassemble(cls.getSharedInitializer().getCode(), null, false, padding));
+			builder.append(disassemble(cls.getSharedInitializer().getCode(), cls.getSharedInitializer().getConstantPool(), false, padding));
 			builder.append("\n");
 		}
 
@@ -130,7 +130,7 @@ public class ChipmunkDisassembler {
 		if(cls.getInstanceInitializer() != null){
 			builder.append(padding);
 			builder.append("<init>\n");
-			builder.append(disassemble(cls.getInstanceInitializer().getCode(), null, false, padding));
+			builder.append(disassemble(cls.getInstanceInitializer().getCode(), cls.getInstanceInitializer().getConstantPool(), false, padding));
 			builder.append("\n\n");
 		}
 
@@ -141,7 +141,7 @@ public class ChipmunkDisassembler {
 				builder.append("def ");
 				builder.append(entry.getName());
 				builder.append(":\n");
-				builder.append(disassemble(entry.getBinaryMethod().getCode(), null, false, padding + INDENTATION));
+				builder.append(disassemble(entry.getBinaryMethod().getCode(), entry.getBinaryMethod().getConstantPool(), false, padding + INDENTATION));
 				builder.append("\n\n");
 			}
 		}
