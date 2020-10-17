@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-	id 'me.champeau.gradle.jmh' version '0.5.0'
+	id 'me.champeau.gradle.jmh' version '0.5.2'
 	id 'net.ltgt.apt' version '0.18'
 	id 'maven-publish'
 }
@@ -34,7 +34,7 @@ dependencies {
 	compile'org.ow2.asm:asm:9.0'
 
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-    jmh 'org.openjdk.jmh:jmh-core:1.19'
+    jmh 'org.openjdk.jmh:jmh-core:1.26'
 }
 
 sourceSets {

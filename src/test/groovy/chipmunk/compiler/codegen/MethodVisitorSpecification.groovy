@@ -423,13 +423,13 @@ class MethodVisitorSpecification extends Specification {
 		BinaryModule binary = compiler.compileMethod(methodBody)
 		CompiledModule runnable = vm.load(binary)
 		
-		/*if(test != ""){
+		if(test != ""){
 			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
 			println()
 			println("============= ${test} =============")
 			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(code, code.getConstantPool()))
-		}*/
+			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
+		}
 		
 		return vm.invoke(runnable, "method")
 	}
