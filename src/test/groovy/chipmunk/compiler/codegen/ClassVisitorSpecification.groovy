@@ -22,6 +22,7 @@ package chipmunk.compiler.codegen
 
 
 import chipmunk.ChipmunkVM
+import chipmunk.binary.BinaryClass
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
@@ -33,84 +34,74 @@ import spock.lang.Specification
 
 class ClassVisitorSpecification extends Specification {
 
-	ChipmunkVM vm = new ChipmunkVM()
-	ChipmunkLexer lexer = new ChipmunkLexer()
-	ChipmunkParser parser
 	ClassVisitor visitor = new ClassVisitor(new BinaryModule("test"))
 	
 	def "Parse empty class"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {}
 		""")
 		
 		then:
-		cClass.getName() == "Chipmunk"
-		cClass.getAttributes().names().size() == 0
-		cClass.getInstanceAttributes().names().size() == 1
-		cClass.getSharedInitializer() != null
-		cClass.getInstanceInitializer() != null
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 1
+		cls.getSharedFields().getEntries().size() == 0
+		cls.getSharedInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with shared variable and initialize"(){
+	def "Parse class with shared variable"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				shared var foo = 2
 			}
 		""")
 		
-		vm.dispatch(cClass.getSharedInitializer(), 0)
-		
 		then:
-		cClass.getName() == "Chipmunk"
-		cClass.getAttributes().names().size() == 1
-		cClass.getAttributes().get("foo").intValue() == 2
-		cClass.getInstanceAttributes().names().size() == 1
-		cClass.getInstanceInitializer() != null
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 1
+		cls.getSharedFields().getEntries().size() == 1
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with instance variable and initialize"(){
+	def "Parse class with instance variable"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				var foo = 2
 			}
 		""")
 		
-		CObject instance = cClass.call(vm, (byte)0)
-		
 		then:
-		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 3
-		instance.getAttributes().get("foo").intValue() == 2
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 2
+		cls.getSharedFields().getEntries().size() == 0
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with shared and instance variables and initialize"(){
+	def "Parse class with shared and instance variables"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				shared var foo = 2
 				var bar = 3
 			}
 		""")
 		
-		vm.dispatch(cClass.getSharedInitializer(), 0)
-		CObject instance = cClass.call(vm, (byte)0)
-		
 		then:
-		cClass.getName() == "Chipmunk"
-		cClass.getAttributes().names().size() == 1
-		cClass.getAttributes().get("foo").intValue() == 2
-		
-		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 3
-		instance.getAttributes().get("bar").intValue() == 3
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 2
+		cls.getSharedFields().getEntries().size() == 1
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with instance variable and empty constructor and initialize"(){
+	def "Parse class with instance variable and empty constructor"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				var foo = 2
 				
@@ -118,17 +109,17 @@ class ClassVisitorSpecification extends Specification {
 			}
 		""")
 		
-		CObject instance = cClass.call(vm, (byte)0)
-		
 		then:
-		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 3
-		instance.getAttributes().get("foo").intValue() == 2
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 2
+		cls.getSharedFields().getEntries().size() == 0
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with instance variable and non-empty constructor and initialize"(){
+	def "Parse class with instance variable and non-empty constructor"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				var foo = 2
 				
@@ -138,17 +129,17 @@ class ClassVisitorSpecification extends Specification {
 			}
 		""")
 		
-		CObject instance = cClass.call(vm, (byte)0)
-		
 		then:
-		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 3
-		instance.getAttributes().get("foo").intValue() == 5
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 2
+		cls.getSharedFields().getEntries().size() == 0
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
-	def "Parse class with shared & instance variables and non-empty constructor and initialize"(){
+	def "Parse class with shared & instance variables and non-empty constructor"(){
 		when:
-		CClass cClass = parseClass("""
+		BinaryClass cls = parseClass("""
 			class Chipmunk {
 				shared var foo = 2
 				var bar = 3
@@ -160,35 +151,31 @@ class ClassVisitorSpecification extends Specification {
 			}
 		""")
 		
-		vm.dispatch(cClass.getSharedInitializer(), 0)
-		CObject instance = cClass.call(vm, (byte)0)
-		
 		then:
-		instance.getCClass().getName() == "Chipmunk"
-		instance.getAttributes().names().size() == 3
-		instance.getAttributes().get("bar").intValue() == 6
-		instance.getCClass().getAttributes().names().size() == 1
-		instance.getCClass().getAttributes().get("foo").intValue() == 5
+		cls.getName() == "Chipmunk"
+		cls.getInstanceFields().getEntries().size() == 2
+		cls.getSharedFields().getEntries().size() == 1
+		cls.getInstanceInitializer() != null
+		cls.getInstanceInitializer() != null
 	}
 	
 	def parseClass(String expression, String test = ""){
-		
-		parser = new ChipmunkParser(lexer.lex(expression))
+
+		ChipmunkLexer lexer = new ChipmunkLexer()
+		ChipmunkParser parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseClassDef()
 		root.visit(new SymbolTableBuilderVisitor())
 		root.visit(visitor)
-		
-		
-		CClass cClass = visitor.getBinaryClass()
+
+
+		BinaryClass cls = visitor.getBinaryClass()
 		
 		if(test != ""){
 			println()
 			println("============= ${test} =============")
-			println(cClass.getName().toString())
-			//println("====Instance Initializer====")
-			//println(ChipmunkDisassembler.disassemble(cClass.getInstanceAttributes().get("Chipmunk").getCode(), cClass.getInstanceAttributes().get("Chipmunk").getConstantPool()))
+			println(ChipmunkDisassembler.disassemble(cls))
 		}
 		
-		return cClass
+		return cls
 	}
 }
