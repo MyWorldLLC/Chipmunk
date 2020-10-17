@@ -417,28 +417,28 @@ public class JvmCompiler {
         generateUnboxing(mv, Integer.class);
         // Need to use the opposite operation in JVM bytecode because Java has the
         // stack backwards from how we have it
-        generateTest(mv, Opcodes.IF_ICMPLT);
+        generateTest(mv, Opcodes.IFLE);
     }
 
     protected void generateLessThan(MethodVisitor mv){
         generateUnboxing(mv, Integer.class);
         // Need to use the opposite operation in JVM bytecode because Java has the
         // stack backwards from how we have it
-        generateTest(mv, Opcodes.IF_ICMPGT);
+        generateTest(mv, Opcodes.IFGE);
     }
 
     protected void generateGreaterThanOrEqual(MethodVisitor mv){
         generateUnboxing(mv, Integer.class);
         // Need to use the opposite operation in JVM bytecode because Java has the
         // stack backwards from how we have it
-        generateTest(mv, Opcodes.IF_ICMPLE);
+        generateTest(mv, Opcodes.IFLT);
     }
 
     protected void generateLessThanOrEqual(MethodVisitor mv){
         generateUnboxing(mv, Integer.class);
         // Need to use the opposite operation in JVM bytecode because Java has the
         // stack backwards from how we have it
-        generateTest(mv, Opcodes.IF_ICMPGE);
+        generateTest(mv, Opcodes.IFGE);
     }
 
     protected void generateReferentialEqualityCheck(MethodVisitor mv){
@@ -450,11 +450,11 @@ public class JvmCompiler {
         Label endLabel = new Label();
         Label falseLabel = new Label();
 
-        mv.visitLdcInsn(1);
         mv.visitJumpInsn(ifOpCode, falseLabel);
 
         // The value was true
         mv.visitLdcInsn(1);
+
         mv.visitJumpInsn(Opcodes.GOTO, endLabel);
 
         // The value was false
@@ -490,9 +490,8 @@ public class JvmCompiler {
         Label target = markLabel(jumpTarget, labels);
 
         generateUnboxing(mv, Boolean.class);
-        mv.visitLdcInsn(1);
 
-        mv.visitJumpInsn(Opcodes.IF_ICMPNE, target);
+        mv.visitJumpInsn(Opcodes.IFEQ, target);
     }
 
     protected void generateGoto(MethodVisitor mv, int jumpTarget, Map<Integer, Label> labelMappings){

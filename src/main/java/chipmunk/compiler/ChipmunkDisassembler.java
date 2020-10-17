@@ -57,7 +57,7 @@ public class ChipmunkDisassembler {
 		if(module.hasInitializer()){
 			builder.append(INDENTATION);
 			builder.append("<init>\n");
-			builder.append(disassemble(module.getInitializer().getCode(), null, false, INDENTATION));
+			builder.append(disassemble(module.getInitializer().getCode().getCode(), null, false, INDENTATION));
 			builder.append("\n\n");
 		}
 
@@ -97,7 +97,7 @@ public class ChipmunkDisassembler {
 		if(cls.getSharedInitializer() != null){
 			builder.append(padding);
 			builder.append("<shared init>\n");
-			builder.append(disassemble(cls.getSharedInitializer().getCode(), null, false, padding));
+			builder.append(disassemble(cls.getSharedInitializer().getCode().getCode(), null, false, padding));
 			builder.append("\n");
 		}
 
@@ -114,7 +114,7 @@ public class ChipmunkDisassembler {
 		if(cls.getInstanceInitializer() != null){
 			builder.append(padding);
 			builder.append("<init>\n");
-			builder.append(disassemble(cls.getInstanceInitializer().getCode(), null, false, padding));
+			builder.append(disassemble(cls.getInstanceInitializer().getCode().getCode(), null, false, padding));
 			builder.append("\n\n");
 		}
 
@@ -126,7 +126,7 @@ public class ChipmunkDisassembler {
 				builder.append("def ");
 				builder.append(varName);
 				builder.append(":\n");
-				builder.append(disassemble(((CMethod) value).getCode(), null, false, padding + INDENTATION));
+				builder.append(disassemble(((CMethod) value).getCode().getCode(), null, false, padding + INDENTATION));
 				builder.append("\n\n");
 			}
 		}
@@ -147,7 +147,7 @@ public class ChipmunkDisassembler {
 			if(constantPool[i] instanceof CMethod){
 				builder.append('\n');
 				CMethod method = (CMethod) constantPool[i];
-				builder.append(disassemble(method.getCode(), method.getCode().getConstantPool(), true, padding + "     "));
+				builder.append(disassemble(method.getCode().getCode(), method.getCode().getConstantPool(), true, padding + "     "));
 			}
 			builder.append('\n');
 		}
@@ -413,15 +413,15 @@ public class ChipmunkDisassembler {
 
 	}
 	
-	public static String disassemble(CMethodCode codeSegment){
+	public static String disassemble(byte[] codeSegment){
 		return disassemble(codeSegment, null);
 	}
 
-	public static String disassemble(CMethodCode codeSegment, Object[] constantPool){
+	public static String disassemble(byte[] codeSegment, Object[] constantPool){
 		return disassemble(codeSegment, constantPool, false, "");
 	}
 	
-	private static String disassemble(CMethodCode codeSegment, Object[] constantPool, boolean isInnerMethod, String padding){
+	private static String disassemble(byte[] codeSegment, Object[] constantPool, boolean isInnerMethod, String padding){
 		StringBuilder builder = new StringBuilder();
 		
 		if(constantPool != null){
@@ -437,12 +437,12 @@ public class ChipmunkDisassembler {
 					builder.append(entryPadding);
 					builder.append(i);
 					builder.append(": ");
-					builder.append(constantPool[i].toString());
+					builder.append(constantPool[i] == null ? "null" : constantPool[i].toString());
 					
 					if(constantPool[i] instanceof CMethod){
 						builder.append('\n');
 						CMethod method = (CMethod) constantPool[i];
-						builder.append(disassemble(method.getCode(), method.getCode().getConstantPool(), true, padding + "     "));
+						builder.append(disassemble(method.getCode().getCode(), method.getCode().getConstantPool(), true, padding + "     "));
 					}
 					builder.append('\n');
 				}
@@ -452,8 +452,8 @@ public class ChipmunkDisassembler {
 		String codePadding = padding + INDENTATION;
 		
 		int ip = 0;
-		while(ip < codeSegment.getCode().length){
-			byte op = codeSegment.getCode()[ip];
+		while(ip < codeSegment.length){
+			byte op = codeSegment[ip];
 
 			builder.append(codePadding);
 			builder.append(ip);
@@ -550,12 +550,12 @@ public class ChipmunkDisassembler {
 				break;
 			case GETLOCAL:
 				builder.append("getlocal ");
-				builder.append(fetchByte(codeSegment.getCode(), ip + 1));
+				builder.append(fetchByte(codeSegment, ip + 1));
 				ip += 2;
 				break;
 			case SETLOCAL:
 				builder.append("setlocal ");
-				builder.append(fetchByte(codeSegment.getCode(), ip + 1));
+				builder.append(fetchByte(codeSegment, ip + 1));
 				ip += 2;
 				break;
 			case TRUTH:
@@ -572,24 +572,24 @@ public class ChipmunkDisassembler {
 				break;
 			case IF:
 				builder.append("if ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case CALL:
 				builder.append("call ");
-				builder.append(fetchByte(codeSegment.getCode(), ip + 1));
+				builder.append(fetchByte(codeSegment, ip + 1));
 				ip += 2;
 				break;
 			case CALLAT:
 				builder.append("callat ");
-				builder.append(fetchByte(codeSegment.getCode(), ip + 1));
+				builder.append(fetchByte(codeSegment, ip + 1));
 				builder.append(' ');
-				builder.append(fetchInt(codeSegment.getCode(), ip + 2));
+				builder.append(fetchInt(codeSegment, ip + 2));
 				ip += 6;
 				break;
 			case GOTO:
 				builder.append("goto ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case THROW:
@@ -604,9 +604,13 @@ public class ChipmunkDisassembler {
 				builder.append("pop");
 				ip++;
 				break;
+			case DUP:
+				builder.append("dup");
+				ip++;
+				break;
 			case PUSH:
 				builder.append("push ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case EQ:
@@ -643,22 +647,22 @@ public class ChipmunkDisassembler {
 				break;
 			case NEXT:
 				builder.append("next ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case RANGE:
 				builder.append("range ");
-				builder.append(fetchByte(codeSegment.getCode(), ip + 1));
+				builder.append(fetchByte(codeSegment, ip + 1));
 				ip += 2;
 				break;
 			case LIST:
 				builder.append("list ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case MAP:
 				builder.append("map ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case INIT:
@@ -667,22 +671,22 @@ public class ChipmunkDisassembler {
 				break;
 			case GETMODULE:
 				builder.append("getmodule ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case SETMODULE:
 				builder.append("setmodule ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case INITMODULE:
 				builder.append("initmodule ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			case IMPORT:
 				builder.append("import ");
-				builder.append(fetchInt(codeSegment.getCode(), ip + 1));
+				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
 			default:

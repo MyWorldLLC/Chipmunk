@@ -26,15 +26,14 @@ import jdk.dynalink.linker.GuardedInvocation;
 import jdk.dynalink.linker.GuardingDynamicLinker;
 import jdk.dynalink.linker.LinkRequest;
 import jdk.dynalink.linker.LinkerServices;
+import jdk.dynalink.linker.support.Guards;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.invoke.TypeDescriptor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class ChipmunkLinker implements GuardingDynamicLinker {
@@ -42,7 +41,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     protected final ThreadLocal<ChipmunkLibraries> libraries;
 
     protected final MethodHandles.Lookup lookup;
-    protected final MethodHandle guard;
 
     public ChipmunkLinker(){
 
@@ -50,12 +48,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         libraries.set(new ChipmunkLibraries());
 
         lookup = MethodHandles.lookup();
-
-        try {
-            guard = lookup.bind(this, "validateCall", MethodType.methodType(Boolean.class, Object[].class));
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new AngryChipmunk(e);
-        }
     }
 
     @Override
@@ -65,12 +57,18 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         NamedOperation op = (NamedOperation) linkRequest.getCallSiteDescriptor().getOperation();
         MethodType callType = linkRequest.getCallSiteDescriptor().getMethodType();
 
-
         Object[] params = linkRequest.getArguments();
 
         MethodHandle handle = getInvocationHandle(lookup, receiver, callType.returnType(), (String)op.getName(), params);
 
-        // TODO - guard by parameter types
+        MethodType guardType = callType.generic().changeReturnType(Boolean.class);
+
+        MethodHandle guard = lookup.findStatic(
+                        this.getClass(),
+                  "validateCall",
+                        MethodType.methodType(Boolean.class, Object[].class, Object[].class))
+                .bindTo(params)
+                .asCollector(Object[].class, guardType.parameterCount());
 
         return new GuardedInvocation(handle, guard);
     }
@@ -147,7 +145,19 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    protected Boolean validateCall(Object[] args){
+    protected static Boolean validateCall(Object[] boundArgs, Object[] callArgs){
+        if(boundArgs.length != callArgs.length){
+            return false;
+        }
+
+        for(int i = 0; i < boundArgs.length; i++){
+            Class<?> boundType = boundArgs[i] != null ? boundArgs[i].getClass() : null;
+            Class<?> callType = callArgs[i] != null ? callArgs[i].getClass() : null;
+
+            if(boundType != callType){
+                return false;
+            }
+        }
         return true;
     }
 
