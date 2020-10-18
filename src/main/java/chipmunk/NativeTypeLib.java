@@ -20,6 +20,12 @@
 
 package chipmunk;
 
+import chipmunk.modules.runtime.CBoolean;
+import chipmunk.modules.runtime.CFloat;
+import chipmunk.modules.runtime.CInteger;
+import chipmunk.modules.runtime.TypeConversionException;
+import chipmunk.runtime.ChipmunkClass;
+import chipmunk.runtime.ChipmunkObject;
 import chipmunk.runtime.FloatRange;
 import chipmunk.runtime.IntegerRange;
 
@@ -28,6 +34,7 @@ import java.util.HashMap;
 
 public class NativeTypeLib implements ChipmunkLibrary {
 
+    // ================================ Integer Math ================================
     public static Integer plus(Integer a, Integer b){
         return Integer.sum(a, b);
     }
@@ -80,9 +87,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a != 0;
     }
 
-    public static Boolean truth(Boolean a){
-        return a;
-    }
+    // ================================ Float Math ================================
 
     public static FloatRange range(Float start, Float end, Boolean inclusive){
         return new FloatRange(start, end, 1.0f, inclusive);
@@ -91,6 +96,26 @@ public class NativeTypeLib implements ChipmunkLibrary {
     public static FloatRange range(Float start, Float end, Float step, Boolean inclusive){
         return new FloatRange(start, end, step, inclusive);
     }
+
+    // ================================ Boolean Operations ================================
+
+    public static Boolean truth(Boolean a){
+        return a;
+    }
+
+    public static Object as(Boolean value, Class<?> otherType){
+        if(otherType == Integer.class){
+            return value ? 1 : 0;
+        }else if(otherType == Float.class){
+            return value ? 1.0f : 0.0f;
+        }else if(otherType == Boolean.class){
+            return value;
+        }else{
+            throw new TypeConversionException(String.format("Cannot convert boolean to %s", otherType.getSimpleName()), value, otherType);
+        }
+    }
+
+    // ================================ Collection Operations ================================
 
     public static void add(ArrayList<Object> a, Object element){
         a.add(element);
@@ -110,5 +135,11 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
         return a.put(key, value);
+    }
+
+    // ================================ Object Operations ================================
+
+    public static ChipmunkClass getClass(ChipmunkObject o){
+        return o.getChipmunkClass();
     }
 }

@@ -57,7 +57,7 @@ public class CBoolean implements RuntimeObject {
 		}else if(otherType == CBoolean.class){
 			return this;
 		}else{
-			throw new BadConversionChipmunk(String.format("Cannot convert boolean to %s", otherType.getClass().getSimpleName()), this, otherType);
+			throw new TypeConversionException(String.format("Cannot convert boolean to %s", otherType.getClass().getSimpleName()), this, otherType);
 		}
 	}
 	

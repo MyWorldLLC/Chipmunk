@@ -195,7 +195,7 @@ public class CInteger implements RuntimeObject {
 		}else if(otherType == CBoolean.class){
 			return truth(context);
 		}else{
-			throw new BadConversionChipmunk(String.format("Cannot convert int to %s", otherType.getClass().getSimpleName()), this, otherType);
+			throw new TypeConversionException(String.format("Cannot convert int to %s", otherType.getClass().getSimpleName()), this, otherType);
 		}
 	}
 	

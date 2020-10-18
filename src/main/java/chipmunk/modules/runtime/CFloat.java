@@ -152,7 +152,7 @@ public class CFloat implements RuntimeObject {
 		}else if(otherType == CBoolean.class){
 			return truth(context);
 		}else{
-			throw new BadConversionChipmunk(String.format("Cannot convert float to %s", otherType.getClass().getSimpleName()), this, otherType);
+			throw new TypeConversionException(String.format("Cannot convert float to %s", otherType.getClass().getSimpleName()), this, otherType);
 		}
 	}
 	
