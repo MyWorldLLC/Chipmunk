@@ -107,7 +107,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             MethodHandle guard = lookup.findStatic(
                     this.getClass(),
                     "validateFieldAccess",
-                    MethodType.methodType(boolean.class, Object.class, Object.class))
+                    MethodType.methodType(boolean.class, Class.class, Class.class))
                     .bindTo(target);
 
             return new GuardedInvocation(fieldHandle, guard);
@@ -207,8 +207,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return true;
     }
 
-    protected static boolean validateFieldAccess(Class<?> boundType, Class<?> callType){
-        return callType.isAssignableFrom(boundType);
+    protected static boolean validateFieldAccess(Object boundTarget, Object fieldValue){
+        return boundTarget.getClass().isAssignableFrom(fieldValue != null ? fieldValue.getClass() : null);
     }
 
     public ChipmunkLibraries getLibraries(){
