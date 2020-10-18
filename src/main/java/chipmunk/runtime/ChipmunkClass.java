@@ -18,45 +18,16 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ast;
+package chipmunk.runtime;
 
-import chipmunk.compiler.Token;
+public interface ChipmunkClass {
 
-public class IdNode extends AstNode {
-	
-	protected Token id;
-	
-	public IdNode(){
-		super();
-	}
-	
-	public IdNode(Token id){
-		super();
-		setID(id);
-	}
-	
-	public Token getID(){
-		return id;
-	}
+    String getSimpleName();
 
-	public String getName(){
-		return id.getText();
-	}
-	
-	public void setID(Token id){
-		this.id = id;
-		setLineNumber(id.getLine());
-	}
-	
-	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		
-		builder.append("(id ");
-		builder.append(id.getText());
-		builder.append(')');
-		
-		return builder.toString();
-	}
+    default String getName() {
+        return getModule().getName() + "." + getSimpleName();
+    }
+
+    ChipmunkModule getModule();
 
 }

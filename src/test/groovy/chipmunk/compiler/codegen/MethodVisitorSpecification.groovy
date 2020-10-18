@@ -27,6 +27,7 @@ import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.jvm.CompiledModule
 import chipmunk.modules.runtime.CMethodCode
+import chipmunk.runtime.ChipmunkModule
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -421,7 +422,7 @@ class MethodVisitorSpecification extends Specification {
 	def parseAndCall(String methodBody, String test = ""){
 
 		BinaryModule binary = compiler.compileMethod(methodBody)
-		CompiledModule runnable = vm.load(binary)
+		ChipmunkModule runnable = vm.load(binary)
 		
 		if(test != ""){
 			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()

@@ -27,6 +27,7 @@ public class Symbol {
 	protected boolean isClosure;
 	protected boolean isTrait;
 	protected String name;
+	protected SymbolTable table;
 	
 	public Symbol(){
 		this("", false, false, false, false);
@@ -95,7 +96,15 @@ public class Symbol {
 	public void setName(String name){
 		this.name = name;
 	}
-	
+
+	public SymbolTable getTable() {
+		return table;
+	}
+
+	public void setTable(SymbolTable table) {
+		this.table = table;
+	}
+
 	@Override
 	public boolean equals(Object other){
 		if(other instanceof Symbol){

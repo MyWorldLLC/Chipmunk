@@ -20,7 +20,6 @@
 
 package chipmunk.compiler.codegen;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.compiler.Symbol;
@@ -28,7 +27,6 @@ import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
-import chipmunk.compiler.ast.CatchNode;
 import chipmunk.compiler.ast.ImportNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.SymbolNode;
@@ -67,7 +65,7 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 		if(node instanceof ImportNode){
 			ImportNode importNode = (ImportNode) node;
 			
-			List<String> symbols = new ArrayList<String>();
+			List<String> symbols;
 			
 			if(importNode.hasAliases()){
 				symbols = importNode.getAliases();

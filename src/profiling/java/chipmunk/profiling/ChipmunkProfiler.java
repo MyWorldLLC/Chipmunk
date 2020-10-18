@@ -28,10 +28,11 @@ import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.jvm.CompiledModule;
 import chipmunk.modules.runtime.CMethod;
+import chipmunk.runtime.ChipmunkModule;
 
 public class ChipmunkProfiler {
 
-	public static CompiledModule compileScript(InputStream is, String name) throws Throwable {
+	public static ChipmunkModule compileScript(InputStream is, String name) throws Throwable {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule module = compiler.compile(is, name)[0];
 
@@ -42,9 +43,9 @@ public class ChipmunkProfiler {
 	public static void main(String[] args) throws Throwable {
 
 		ChipmunkVM vm = new ChipmunkVM();
-		CompiledModule countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+		ChipmunkModule countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
 
-		CompiledModule fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+		ChipmunkModule fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){

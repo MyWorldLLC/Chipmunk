@@ -24,6 +24,7 @@ import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.jvm.CompiledModule
+import chipmunk.runtime.ChipmunkModule
 import spock.lang.Specification
 
 class LanguageSpecification extends Specification {
@@ -35,7 +36,7 @@ class LanguageSpecification extends Specification {
 		BinaryModule[] modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
 		BinaryModule mainModule = modules.find {it -> it.getName() == "test"}
 
-		CompiledModule module = vm.load(mainModule)
+		ChipmunkModule module = vm.load(mainModule)
 		
 		if(!disassembleOnException){
 			return vm.invoke(module, "main")

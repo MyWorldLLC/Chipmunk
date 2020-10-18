@@ -24,7 +24,7 @@ import java.io.InputStream;
 
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.jvm.CompiledModule;
+import chipmunk.runtime.ChipmunkModule;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -41,7 +41,7 @@ import chipmunk.ChipmunkVM;
 
 public class MathBenchmark {
 	
-	public static CompiledModule compileBenchmark(InputStream is, String name) throws Throwable {
+	public static ChipmunkModule compileBenchmark(InputStream is, String name) throws Throwable {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule module = compiler.compile(is, name)[0];
 
@@ -52,8 +52,8 @@ public class MathBenchmark {
 	@State(Scope.Thread)
 	public static class ChipmunkScripts {
 		
-		public CompiledModule countToAMillion;
-		public CompiledModule fibonacci;
+		public ChipmunkModule countToAMillion;
+		public ChipmunkModule fibonacci;
 		
 		public ChipmunkVM vm;
 		

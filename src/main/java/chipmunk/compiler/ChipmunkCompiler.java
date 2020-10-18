@@ -37,6 +37,7 @@ import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
 import chipmunk.compiler.codegen.InnerMethodRewriteVisitor;
 import chipmunk.compiler.codegen.ModuleVisitor;
+import chipmunk.compiler.codegen.SymbolAccessRewriteVisitor;
 import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
 import chipmunk.modules.runtime.CModule;
 
@@ -49,6 +50,7 @@ public class ChipmunkCompiler {
 		visitors = new ArrayList<>();
 		visitors.add(new InnerMethodRewriteVisitor());
 		visitors.add(new SymbolTableBuilderVisitor());
+		visitors.add(new SymbolAccessRewriteVisitor());
 	}
 	
 	public List<AstVisitor> getVisitors(){

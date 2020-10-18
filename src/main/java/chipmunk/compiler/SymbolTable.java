@@ -44,13 +44,14 @@ public class SymbolTable {
 	}
 	
 	public SymbolTable(SymbolTable.Scope scope){
-		symbols = new ArrayList<Symbol>();
+		symbols = new ArrayList<>();
 		setScope(scope);
 	}
 	
 	public void setSymbol(Symbol symbol){
 		if(!symbols.contains(symbol)){
 			symbols.add(symbol);
+			symbol.setTable(this);
 		}
 		if(parent != null){
 			parent.reportChildLocalCount(symbols.size());
@@ -58,16 +59,16 @@ public class SymbolTable {
 	}
 	
 	public Symbol getSymbol(String name){
-		Symbol symbolName = new Symbol(name);
+		Symbol symbol = new Symbol(name);
 		
-		if(!symbols.contains(symbolName)){
+		if(!symbols.contains(symbol)){
 			if(parent != null){
 				return parent.getSymbol(name);
 			}else{
 				return null;
 			}
 		}
-		return symbols.get(symbols.indexOf(symbolName));
+		return symbols.get(symbols.indexOf(symbol));
 	}
 	
 	public void clearSymbol(Symbol symbol){
@@ -211,6 +212,28 @@ public class SymbolTable {
 		}
 		
 		return String.join(".", symbols);
+	}
+
+	public Scope getMethodScope(){
+		SymbolTable symbols = this;
+		while(symbols.getScope() == Scope.LOCAL){
+			symbols = symbols.getParent();
+		}
+
+		// Parent is either (a) a module, (b) a class, or (c) a local scope (lambdas)
+		return symbols.getParent().getScope();
+	}
+
+	public boolean isModuleMethodScope(){
+		return getMethodScope() == Scope.MODULE;
+	}
+
+	public boolean isClassMethodScope(){
+		return getMethodScope() == Scope.CLASS;
+	}
+
+	public boolean isInnerMethodScope(){
+		return getMethodScope() == Scope.METHOD;
 	}
 	
 	@Override

@@ -24,6 +24,7 @@ import chipmunk.DebugEntry;
 import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.invoke.Binder;
+import chipmunk.runtime.ChipmunkModule;
 import org.objectweb.asm.*;
 
 import java.util.*;
@@ -40,21 +41,69 @@ public class JvmCompiler {
         methods = new CompiledMethods();
     }
 
-    public CompiledModule compile(BinaryModule module){
+    public ChipmunkModule compile(BinaryModule module){
 
         Type objType = Type.getType(Object.class);
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(), new String[]{Type.getType(CompiledModule.class).getInternalName()});
+        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(),
+                new String[]{
+                        Type.getType(ChipmunkModule.class).getInternalName()
+                        //Type.getType(ModuleMember.class).getInternalName()
+        });
         cw.visitSource(module.getName() + ".chp", null);
 
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
-        mv.visitCode();
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
-        mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
+        // Implement ChipmunkModule interface
+
+        // ChipmunkModule.getName()
+        cw.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "$name",
+                Type.getType(String.class).getDescriptor(), null, null);
+
+        MethodVisitor getName = cw.visitMethod(Opcodes.ACC_PUBLIC, "getName", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null);
+        getName.visitCode();
+        getName.visitVarInsn(Opcodes.ALOAD, 0);
+        getName.visitFieldInsn(Opcodes.GETFIELD, module.getName().replace('.','/'), "$name", Type.getType(String.class).getDescriptor());
+        getName.visitInsn(Opcodes.ARETURN);
+        getName.visitMaxs(0, 0);
+        getName.visitEnd();
+
+        // ModuleMember.getModule()
+       /* MethodVisitor getModule = cw.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null);
+        getModule.visitCode();
+        getModule.visitVarInsn(Opcodes.ALOAD, 0);
+        getModule.visitInsn(Opcodes.ARETURN);
+        getModule.visitMaxs(0, 0);
+        getModule.visitEnd();*/
+
+        // ChipmunkModule.getDepedencies()
+        /*cw.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "$depedencies",
+                Type.getType(String[].class).getDescriptor(), null, null);
+
+        MethodVisitor getDependencies = cw.visitMethod(Opcodes.ACC_PUBLIC, "getDependencies", Type.getMethodType(Type.getType(String[].class)).getDescriptor(), null, null);
+        getDependencies.visitCode();
+        getDependencies.visitVarInsn(Opcodes.ALOAD, 0);
+        getDependencies.visitFieldInsn(Opcodes.GETFIELD, module.getName().replace('.','/'), "$dependencies", Type.getType(String[].class).getDescriptor());
+        getDependencies.visitInsn(Opcodes.DUP);
+        getDependencies.visitInsn(Opcodes.ARRAYLENGTH);
+        getDependencies.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getType(Arrays.class).getInternalName(), "copyOf", Type.getMethodType(Type.getType(String[].class), Type.INT_TYPE).getDescriptor(), false);
+        getDependencies.visitInsn(Opcodes.ARETURN);
+        getDependencies.visitMaxs(0, 0);
+        getDependencies.visitEnd();*/
+
+        // Module constructor/initializer
+        MethodVisitor moduleInit = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        moduleInit.visitCode();
+        moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
+        moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+        // Init module name
+        moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
+        moduleInit.visitLdcInsn(module.getName());
+        moduleInit.visitFieldInsn(Opcodes.PUTFIELD, module.getName().replace('.', '/'), "$name", Type.getType(String.class).getDescriptor());
+
+        // Init module dependencies
+        //moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
+
 
         for(BinaryNamespace.Entry entry : module.getNamespace()){
             int flags = Opcodes.ACC_PUBLIC;
@@ -64,30 +113,22 @@ public class JvmCompiler {
 
             if(entry.getType() == FieldType.METHOD){
                 visitMethod(cw, flags, entry.getName(), entry.getBinaryMethod());
+            }else if(entry.getType() == FieldType.CLASS){
+                // TODO - generate class, add field to module, and add class initialization call to constructor
             }else{
                 visitVar(cw, flags, entry.getName());
             }
         }
 
-        // TODO - generate module bytecode initializer method & make class implement the CompiledModule interface
-        // The module initializer must run before anything else because it sets all Chipmunk bytecode fields
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "initializeCodeFields", Type.getMethodType(Type.VOID_TYPE, Type.getType(CompiledMethods.class)).getDescriptor(), null, null);
-        mv.visitCode();
-        mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(0, 0);
-        mv.visitEnd();
+        moduleInit.visitInsn(Opcodes.RETURN);
+        moduleInit.visitMaxs(0, 0);
+        moduleInit.visitEnd();
 
-        // TODO - generate the normal module initializer method
-        // This is the usual module initializer that runs all module-level variable expressions & runs the
-        // CClass shared initializers
         cw.visitEnd();
 
         byte[] bytes = cw.toByteArray();
 
-        CompiledModule loadedModule = (CompiledModule) instantiate(loadClass(module.getName(), bytes));
-        loadedModule.initializeCodeFields(methods);
-
-        return loadedModule;
+        return (ChipmunkModule) instantiate(loadClass(module.getName(), bytes));
     }
 
     protected Class<?> loadClass(String name, byte[] bytes){
@@ -576,14 +617,25 @@ public class JvmCompiler {
     }
 
     protected void generateGetModule(MethodVisitor mv, String varName){
-        // TODO
-        mv.visitLdcInsn(1);
-        generateBoxing(mv, 1);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        /*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
+                "getModule",
+                Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(),
+                true);*/
+
+        generateDynamicFieldAccess(mv, varName, false);
     }
 
     protected void generateSetModule(MethodVisitor mv, String varName){
-        // TODO
-        mv.visitInsn(Opcodes.POP);
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        /*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
+                "getModule",
+                Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(),
+                true);*/
+        // Swap the module & the value
+        mv.visitInsn(Opcodes.SWAP);
+
+        generateDynamicFieldAccess(mv, varName, true);
     }
 
     protected void generateBoxing(MethodVisitor mv, Object o){

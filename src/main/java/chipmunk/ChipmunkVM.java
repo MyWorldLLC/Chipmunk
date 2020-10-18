@@ -36,6 +36,7 @@ import chipmunk.invoke.*;
 import chipmunk.jvm.CompiledModule;
 import chipmunk.jvm.JvmCompiler;
 import chipmunk.modules.runtime.*;
+import chipmunk.runtime.ChipmunkModule;
 
 import static chipmunk.Opcodes.*;
 
@@ -830,11 +831,11 @@ public class ChipmunkVM {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
-		CompiledModule compiled = jvmCompiler.compile(expModule);
+		ChipmunkModule compiled = jvmCompiler.compile(expModule);
 		return invoke(compiled, "evaluate");
 	}
 
-	public CompiledModule load(BinaryModule module) throws Throwable {
+	public ChipmunkModule load(BinaryModule module) throws Throwable {
 		return jvmCompiler.compile(module);
 	}
 
