@@ -20,7 +20,7 @@
 
 package chipmunk.jvm;
 
-import chipmunk.DebugEntry;
+import chipmunk.binary.DebugEntry;
 import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.invoke.Binder;

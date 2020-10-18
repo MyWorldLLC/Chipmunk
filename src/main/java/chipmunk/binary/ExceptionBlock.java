@@ -18,12 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.binary;
 
-public class DebugEntry {
-
-	public int beginIndex;
+public class ExceptionBlock {
+	public int startIndex;
 	public int endIndex;
-	public int lineNumber;
-	
+	public int catchIndex;
+	public int exceptionLocalIndex;
 }

@@ -20,8 +20,8 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
+import chipmunk.binary.DebugEntry;
+import chipmunk.binary.ExceptionBlock;
 
 public class CMethodCode {
 	protected int argCount;

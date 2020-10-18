@@ -20,9 +20,6 @@
 
 package chipmunk.binary;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
-
 public class BinaryMethod {
 
     protected int argCount;

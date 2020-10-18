@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.ExceptionBlock;
+import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
@@ -35,7 +35,6 @@ import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.MethodNode;
-import chipmunk.modules.runtime.CModule;
 
 public class Codegen implements AstVisitor {
 

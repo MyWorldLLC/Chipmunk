@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.ExceptionBlock;
+import chipmunk.binary.ExceptionBlock;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.CatchNode;

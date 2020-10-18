@@ -22,8 +22,8 @@ package chipmunk.compiler.codegen;
 
 import java.util.List;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
+import chipmunk.binary.DebugEntry;
+import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkAssembler;
@@ -39,9 +39,6 @@ import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.ast.TryCatchNode;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.ast.WhileNode;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CMethodCode;
-import chipmunk.modules.runtime.CModule;
 
 public class MethodVisitor implements AstVisitor {
 

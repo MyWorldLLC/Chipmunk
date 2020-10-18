@@ -25,9 +25,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
-import chipmunk.binary.BinaryMethod;
-import chipmunk.binary.BinaryModule;
-import chipmunk.binary.BinaryNamespace;
+import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.invoke.*;

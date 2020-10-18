@@ -24,7 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.DebugEntry;
+import chipmunk.binary.DebugEntry;
 import chipmunk.Opcodes;
 import chipmunk.modules.runtime.*;
 

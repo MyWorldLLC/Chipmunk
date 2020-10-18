@@ -20,9 +20,6 @@
 
 package chipmunk.binary;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
-
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
