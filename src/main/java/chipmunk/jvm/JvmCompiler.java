@@ -34,11 +34,9 @@ import static chipmunk.Opcodes.*;
 public class JvmCompiler {
 
     private final ChipmunkClassLoader loader;
-    protected final CompiledMethods methods;
 
     public JvmCompiler(){
         loader = new ChipmunkClassLoader();
-        methods = new CompiledMethods();
     }
 
     public ChipmunkModule compile(BinaryModule module){

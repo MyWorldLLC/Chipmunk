@@ -22,7 +22,6 @@ package chipmunk;
 
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.modules.runtime.CModule;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -46,9 +45,9 @@ public class ChipmunkUtil {
         return modules;
     }
 
-    public static CModule getModule(String moduleName, Collection<CModule> modules){
-        CModule namedModule = null;
-        for(CModule module : modules){
+    public static BinaryModule getModule(String moduleName, Collection<BinaryModule> modules){
+        BinaryModule namedModule = null;
+        for(BinaryModule module : modules){
             if(moduleName.equals(module.getName())){
                 namedModule = module;
                 break;
