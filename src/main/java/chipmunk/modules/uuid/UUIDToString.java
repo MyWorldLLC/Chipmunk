@@ -32,7 +32,7 @@ import java.util.UUID;
 public class UUIDToString implements CCallable {
     @Override
     public Object call(ChipmunkVM vm, Object[] params) {
-        vm.checkArity(params, 1);
+        //vm.checkArity(params, 1);
 
         CObject uuid = (CObject) params[0];
         Buffer buf = (Buffer) uuid.getAttr(vm, "buffer");

@@ -121,7 +121,8 @@ public class CMethod implements RuntimeObject, CCallable {
 	
 	@Override
 	public Object call(ChipmunkVM vm, Object[] params) {
-		return vm.dispatch(this, params);
+		//return vm.dispatch(this, params);
+		return null;
 	}
 
 	public CMethod duplicate(){

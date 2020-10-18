@@ -25,8 +25,6 @@ import jdk.dynalink.*;
 import jdk.dynalink.support.SimpleRelinkableCallSite;
 
 import java.lang.invoke.*;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 public class Binder {
 
@@ -36,11 +34,6 @@ public class Binder {
 
     protected static final ChipmunkLinker chipmunkLinker = new ChipmunkLinker();
     protected static final DynamicLinker dynaLink = createDynamicLinker();
-
-    protected final Class<?>[] callTypes;
-    protected final Class<?>[] voidCallTypes;
-
-    protected final CallCache cache;
 
     protected final MethodHandles.Lookup methodLookup;
 
@@ -92,38 +85,11 @@ public class Binder {
     }
 
     public Binder(){
-        cache = new CallCache();
-
-        callTypes = new Class<?>[11];
-        callTypes[0] = Call.class;
-        callTypes[1] = CallOne.class;
-        callTypes[2] = CallTwo.class;
-        callTypes[3] = CallThree.class;
-        callTypes[4] = CallFour.class;
-        callTypes[5] = CallFive.class;
-        callTypes[6] = CallSix.class;
-        callTypes[7] = CallSeven.class;
-        callTypes[8] = CallEight.class;
-        callTypes[9] = CallNine.class;
-        callTypes[10] = CallTen.class;
-
-        voidCallTypes = new Class<?>[11];
-        voidCallTypes[0] = CallVoid.class;
-        voidCallTypes[1] = CallOneVoid.class;
-        voidCallTypes[2] = CallTwoVoid.class;
-        voidCallTypes[3] = CallThreeVoid.class;
-        voidCallTypes[4] = CallFourVoid.class;
-        voidCallTypes[5] = CallFiveVoid.class;
-        voidCallTypes[6] = CallSixVoid.class;
-        voidCallTypes[7] = CallSevenVoid.class;
-        voidCallTypes[8] = CallEightVoid.class;
-        voidCallTypes[9] = CallNineVoid.class;
-        voidCallTypes[10] = CallTenVoid.class;
 
         methodLookup = MethodHandles.lookup();
     }
 
-    public Object lookupMethod(Object target, String opName, Class<?>[] paramTypes) throws Throwable {
+/*    public Object lookupMethod(Object target, String opName, Class<?>[] paramTypes) throws Throwable {
 
         CallSignature signature = new CallSignature(target.getClass(), opName, paramTypes);
         Object callTarget = cache.getTarget(signature);
@@ -188,7 +154,7 @@ public class Binder {
 
         cache.cacheTarget(signature, callTarget);
         return callTarget;
-    }
+    }*/
 
     private boolean paramTypesMatch(Class<?>[] targetTypes, Class<?>[] callTypes) {
 

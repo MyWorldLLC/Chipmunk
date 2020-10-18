@@ -88,7 +88,8 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 		// is resumed this method will not be invoked, the constructor will resume where it left off,
 		// and the VM will have pushed the newly created object onto the stack when the constructor
 		// returns.
-		return vm.dispatch((CMethod)obj.getAttributes().get(name.toString()), params);
+		//return vm.dispatch((CMethod)obj.getAttributes().get(name.toString()), params);
+		return null;
 	}
 
 	public Object instantiate(){
