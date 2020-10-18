@@ -22,12 +22,9 @@ package chipmunk.profiling;
 
 import java.io.InputStream;
 
-import chipmunk.ChipmunkScript;
 import chipmunk.ChipmunkVM;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.jvm.CompiledModule;
-import chipmunk.modules.runtime.CMethod;
 import chipmunk.runtime.ChipmunkModule;
 
 public class ChipmunkProfiler {

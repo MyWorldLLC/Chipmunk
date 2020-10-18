@@ -25,8 +25,6 @@ import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.jvm.CompiledModule
-import chipmunk.modules.runtime.CMethodCode
 import chipmunk.runtime.ChipmunkModule
 import spock.lang.Specification
 

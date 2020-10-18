@@ -23,8 +23,6 @@ package chipmunk;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import chipmunk.binary.BinaryMethod;
@@ -33,12 +31,10 @@ import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.invoke.*;
-import chipmunk.jvm.CompiledModule;
 import chipmunk.jvm.JvmCompiler;
 import chipmunk.modules.runtime.*;
 import chipmunk.runtime.ChipmunkModule;
 
-import static chipmunk.Opcodes.*;
 
 public class ChipmunkVM {
 
@@ -70,9 +66,6 @@ public class ChipmunkVM {
 
 	protected SecurityMode securityMode;
 	private int memHigh;
-
-	private final CBoolean trueValue;
-	private final CBoolean falseValue;
 	
 	private final int refLength;
 
@@ -90,9 +83,6 @@ public class ChipmunkVM {
 		frozenCallStack = activeScript.frozenCallStack;
 
 		memHigh = 0;
-
-		trueValue = new CBoolean(true);
-		falseValue = new CBoolean(false);
 
 		refLength = 8; // assume 64-bit references
 
