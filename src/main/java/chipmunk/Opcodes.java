@@ -45,6 +45,7 @@ public class Opcodes {
 	// Stack operations
 	public static final byte POP = 0x12;
 	public static final byte DUP = 0x13;
+	public static final byte SWAP = 0x14;
 	public static final byte PUSH = 0x15;
 
 	// Local operations

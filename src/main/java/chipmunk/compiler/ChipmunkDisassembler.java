@@ -218,6 +218,9 @@ public class ChipmunkDisassembler {
 				}
 			}
 		}
+
+		builder.append(padding);
+		builder.append("Code:\n\n");
 		
 		String codePadding = padding + INDENTATION;
 		
@@ -378,6 +381,10 @@ public class ChipmunkDisassembler {
 				break;
 			case DUP:
 				builder.append("dup");
+				ip++;
+				break;
+			case SWAP:
+				builder.append("swap");
 				ip++;
 				break;
 			case PUSH:

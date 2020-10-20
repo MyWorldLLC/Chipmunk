@@ -357,6 +357,10 @@ public class ChipmunkAssembler {
 	public void dup() {
 		writeByte(Opcodes.DUP);
 	}
+
+	public void swap() {
+		writeByte(Opcodes.SWAP);
+	}
 	
 	private int getConstantPoolEntry(Object value){
 		int index = constantPool.indexOf(value);

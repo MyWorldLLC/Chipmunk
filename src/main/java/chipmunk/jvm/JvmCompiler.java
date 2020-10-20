@@ -335,6 +335,10 @@ public class JvmCompiler {
                     generateDup(mv);
                     ip++;
                 }
+                case SWAP -> {
+                    generateSwap(mv);
+                    ip++;
+                }
                 case PUSH -> {
                     generatePush(mv, method.getConstantPool()[fetchInt(instructions, ip + 1)]);
                     ip += 5;
@@ -575,6 +579,10 @@ public class JvmCompiler {
 
     protected void generateDup(MethodVisitor mv){
         mv.visitInsn(Opcodes.DUP);
+    }
+
+    protected void generateSwap(MethodVisitor mv){
+        mv.visitInsn(Opcodes.SWAP);
     }
 
     protected void generateIteratorNext(MethodVisitor mv, int jumpTarget, Map<Integer, Label> labelMappings){
