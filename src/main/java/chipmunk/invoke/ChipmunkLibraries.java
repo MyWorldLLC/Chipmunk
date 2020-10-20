@@ -83,22 +83,26 @@ public class ChipmunkLibraries {
 
             if (retType.equals(void.class) || returnType.isAssignableFrom(retType) || retType.isPrimitive()) {
 
+                boolean matches = true;
                 for (int i = 0; i < candidatePTypes.length; i++) {
 
                     Class<?> callPType = argTypes[i];
                     Class<?> candidatePType = candidatePTypes[i];
 
                     if (!candidatePType.isAssignableFrom(callPType)) {
+                        matches = false;
                         break;
                     }
                 }
 
-                MethodHandle handle = lookup.unreflect(m);
-                if(!Modifier.isStatic(m.getModifiers())){
-                    handle = handle.bindTo(lib);
-                }
+                if(matches){
+                    MethodHandle handle = lookup.unreflect(m);
+                    if(!Modifier.isStatic(m.getModifiers())){
+                        handle = handle.bindTo(lib);
+                    }
 
-                return handle;
+                    return handle;
+                }
             }
         }
 

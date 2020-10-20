@@ -209,7 +209,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     }
 
     protected static boolean validateFieldAccess(Object boundTarget, Object fieldValue){
-        return boundTarget.getClass().isAssignableFrom(fieldValue != null ? fieldValue.getClass() : null);
+        if(fieldValue == null){
+            return true;
+        }
+        return boundTarget.getClass().isAssignableFrom(fieldValue.getClass());
     }
 
     public ChipmunkLibraries getLibraries(){
