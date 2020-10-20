@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.codegen;
+package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
@@ -60,10 +60,16 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 final int line = varId.getID().getLine();
                 final int column = varId.getID().getColumn();
 
-                // If the symbol can't be found or is found in the module scope AND we are not a module method,
-                // emit access at module level
-                if((symbol == null || symbol.getTable().getScope() == SymbolTable.Scope.MODULE) && scope.isClassMethodScope()){
+                if(symbol != null && (symbol.getTable().getScope() == SymbolTable.Scope.LOCAL
+                        || symbol.getTable().getScope() == SymbolTable.Scope.METHOD)){
+                    // No rewrite needed because this is a local variable
+                    return;
+                }
 
+                // If the symbol can't be found or is found in the module scope AND we are in a class-scope method,
+                // call getModule() & emit access at module level
+                if((symbol == null || symbol.getTable().getScope() == SymbolTable.Scope.MODULE) && scope.isClassMethodScope()){
+                    // Class method reference to a module-level symbol
                     OperatorNode getModuleCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
                     OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
                     OperatorNode varDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
@@ -84,45 +90,46 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
                     node.visitChildren(this, 1);
                     return;
-                }else if(symbol.getTable().getScope() == SymbolTable.Scope.CLASS){
-                    if(symbol.isShared()){
-                        // Emit class access
+                }else if(symbol != null && symbol.isShared() && symbol.getTable().getScope() == SymbolTable.Scope.CLASS){
+                    // Symbol is a shared field
 
-                        OperatorNode getClassCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
-                        OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
-                        OperatorNode varDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                    OperatorNode getClassCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
+                    OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                    OperatorNode varDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
 
-                        IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
+                    IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
 
-                        IdNode getClass = new IdNode(new Token("getClass", Token.Type.IDENTIFIER, index, line, column));
+                    IdNode getClass = new IdNode(new Token("getClass", Token.Type.IDENTIFIER, index, line, column));
 
-                        selfDotNode.getChildren().add(self);
-                        selfDotNode.getChildren().add(getClass);
+                    selfDotNode.getChildren().add(self);
+                    selfDotNode.getChildren().add(getClass);
 
-                        getClassCallNode.getChildren().add(selfDotNode);
+                    getClassCallNode.getChildren().add(selfDotNode);
 
-                        varDotNode.getChildren().add(getClassCallNode);
-                        varDotNode.getChildren().add(varId);
+                    varDotNode.getChildren().add(getClassCallNode);
+                    varDotNode.getChildren().add(varId);
 
-                        opNode.getChildren().set(0, varDotNode);
+                    opNode.getChildren().set(0, varDotNode);
 
-                        node.visitChildren(this, 1);
-                        return;
-                    }else{
-                        // Emit instance & module method access
+                    node.visitChildren(this, 1);
+                    return;
+                }else{
+                    // The symbol is either (a) an instance variable, (b) a statically accessible module variable,
+                    // or (c) a non-statically accessible module variable (import *). All three cases are handled
+                    // identically.
 
+                    // TODO - this won't work for an instance method accessing a module-level symbol
 
-                        OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                    OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
 
-                        IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
-                        selfDotNode.getChildren().add(self);
-                        selfDotNode.getChildren().add(varId);
+                    IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
+                    selfDotNode.getChildren().add(self);
+                    selfDotNode.getChildren().add(varId);
 
-                        opNode.getChildren().set(0, selfDotNode);
+                    opNode.getChildren().set(0, selfDotNode);
 
-                        node.visitChildren(this, 1);
-                        return;
-                    }
+                    node.visitChildren(this, 1);
+                    return;
                 }
 
                 // No rewrite needed, this is a locally-qualified access

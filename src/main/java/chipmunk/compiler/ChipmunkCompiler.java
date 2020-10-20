@@ -24,22 +24,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
-import chipmunk.compiler.codegen.InnerMethodRewriteVisitor;
+import chipmunk.compiler.ast.transforms.InitializerBuilderVisitor;
+import chipmunk.compiler.ast.transforms.InnerMethodRewriteVisitor;
 import chipmunk.compiler.codegen.ModuleVisitor;
-import chipmunk.compiler.codegen.SymbolAccessRewriteVisitor;
-import chipmunk.compiler.codegen.SymbolTableBuilderVisitor;
-import chipmunk.modules.runtime.CModule;
+import chipmunk.compiler.ast.transforms.SymbolAccessRewriteVisitor;
+import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor;
 
 public class ChipmunkCompiler {
 	
@@ -48,6 +46,7 @@ public class ChipmunkCompiler {
 	
 	public ChipmunkCompiler(){
 		visitors = new ArrayList<>();
+		visitors.add(new InitializerBuilderVisitor());
 		visitors.add(new InnerMethodRewriteVisitor());
 		visitors.add(new SymbolTableBuilderVisitor());
 		visitors.add(new SymbolAccessRewriteVisitor());

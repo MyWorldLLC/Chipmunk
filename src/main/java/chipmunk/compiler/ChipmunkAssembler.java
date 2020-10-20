@@ -441,11 +441,11 @@ public class ChipmunkAssembler {
 		writeInt(elementCount);
 	}
 	
-	public void init(){
+	/*public void init(){
 		writeByte(Opcodes.INIT);
-	}
+	}*/
 	
-	public void getModule(String name){
+	/*public void getModule(String name){
 		writeByte(Opcodes.GETMODULE);
 		
 		int index = getConstantPoolEntry(name);
@@ -458,9 +458,9 @@ public class ChipmunkAssembler {
 		int index = getConstantPoolEntry(name);
 		
 		writeInt(index);
-	}
+	}*/
 
-	public void initModule(int importIndex){
+	/*public void initModule(int importIndex){
 		writeByte(Opcodes.INITMODULE);
 		writeInt(importIndex);
 	}
@@ -468,27 +468,7 @@ public class ChipmunkAssembler {
 	public void _import(int importIndex){
 		writeByte(Opcodes.IMPORT);
 		writeInt(importIndex);
-	}
-	
-	private void emitBinaryOp(byte op) {
-		writeByte(op);
-		//emitCallSite();
-	}
-	
-	private void emitUnaryOp(byte op) {
-		writeByte(op);
-		//emitCallSite();
-	}
-	
-	private void emitUnaryOpNoPop(byte op) {
-		writeByte(op);
-		//emitCallSite();
-	}
-	
-	private void emitCallSite() {
-		//writeShort(callSite);
-		callSite++;
-	}
+	}*/
 	
 	private void writeByte(byte b) {
 		code.write(b);

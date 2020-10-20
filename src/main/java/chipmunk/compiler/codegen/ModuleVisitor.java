@@ -34,9 +34,9 @@ public class ModuleVisitor implements AstVisitor {
 	
 	protected BinaryModule module;
 	protected Codegen initCodegen;
-	protected ChipmunkAssembler initAssembler;
+	//protected ChipmunkAssembler initAssembler;
 
-	protected MethodNode initMethod;
+	//protected MethodNode initMethod;
 
 	protected List<Object> constantPool;
 	protected List<BinaryImport> imports;
@@ -47,7 +47,7 @@ public class ModuleVisitor implements AstVisitor {
 		imports = new ArrayList<>();
 		namespace = new BinaryNamespace();
 
-		initAssembler = new ChipmunkAssembler(constantPool);
+		//initAssembler = new ChipmunkAssembler(constantPool);
 	}
 
 	@Override
@@ -59,8 +59,8 @@ public class ModuleVisitor implements AstVisitor {
 
 			module = new BinaryModule(moduleNode.getSymbol().getName());
 
-			initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
-			initMethod = new MethodNode("<module init>");
+			//initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
+			//initMethod = new MethodNode("<module init>");
 
 			imports.add(new BinaryImport("chipmunk.lang", true));
 
@@ -75,12 +75,12 @@ public class ModuleVisitor implements AstVisitor {
 			
 			// generate initialization code to run class initializer
 			if(cls.getSharedInitializer() != null){
-				ChipmunkAssembler initAssembler = initCodegen.getAssembler();
+				//ChipmunkAssembler initAssembler = initCodegen.getAssembler();
 				
-				initAssembler.getModule(cls.getName());
-				initAssembler.init();
-				initAssembler.call((byte)1);
-				initAssembler.pop();
+				//initAssembler.getModule(cls.getName());
+				//initAssembler.init();
+				//initAssembler.call((byte)1);
+				//initAssembler.pop();
 			}
 
 			module.getNamespace().addEntry(BinaryNamespace.Entry.makeClass(cls.getName(), (byte)0, cls));
@@ -117,9 +117,12 @@ public class ModuleVisitor implements AstVisitor {
 				flags |= BinaryConstants.FINAL_FLAG;
 			}
 
-			VarDecVisitor visitor = new VarDecVisitor(initCodegen);
+			// At this point, if there was an in-line assignment for this it was already moved to an initializer
+			// AST, so we don't need to do anything except add the method to the module namespace.
 
-			if(varDec.getAssignExpr() != null) {
+			//VarDecVisitor visitor = new VarDecVisitor(initCodegen);
+
+			/*if(varDec.getAssignExpr() != null) {
 				// Move the assignment to the module initializer
 				AstNode expr = varDec.getAssignExpr();
 				IdNode id = new IdNode(varDec.getIDNode().getID());
@@ -131,9 +134,9 @@ public class ModuleVisitor implements AstVisitor {
 				varDec.setAssignExpr(null);
 
 				initMethod.addToBody(assign);
-			}
+			}*/
 
-			visitor.visit(varDec);
+			//visitor.visit(varDec);
 			
 			module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(varDec.getVarName(), flags));
 		}else{
@@ -145,7 +148,7 @@ public class ModuleVisitor implements AstVisitor {
 		module.setConstantPool(constantPool.toArray());
 		module.setImports(imports.toArray(new BinaryImport[]{}));
 
-		MethodVisitor initVisitor = new MethodVisitor(initAssembler, module);
+		//MethodVisitor initVisitor = new MethodVisitor(initAssembler, module);
 
 		Set<String> importedModules = new HashSet<>();
 		for(int i = 0; i < module.getImports().length; i++){
@@ -153,14 +156,14 @@ public class ModuleVisitor implements AstVisitor {
 
 			if(!importedModules.contains(im.getName())){
 				importedModules.add(im.getName());
-				initAssembler.initModule(i);
+				//initAssembler.initModule(i);
 			}
 
-			initAssembler._import(i);
+			//initAssembler._import(i);
 		}
 
-		initVisitor.visit(initMethod);
-		module.setInitializer(initVisitor.getMethod());
+		//initVisitor.visit(initMethod);
+		//module.setInitializer(initVisitor.getMethod());
 		
 		return module;
 	}

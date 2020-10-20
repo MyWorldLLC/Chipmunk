@@ -211,10 +211,10 @@ public class ClassVisitor implements AstVisitor {
 	}
 	
 	private void genInitCall(ChipmunkAssembler assembler){
-		assembler.getLocal(0);
-		assembler.init();
-		assembler.call((byte)1);
-		assembler.pop();
+		//assembler.getLocal(0);
+		//assembler.init();
+		//assembler.call((byte)1);
+		//assembler.pop();
 	}
 
 }

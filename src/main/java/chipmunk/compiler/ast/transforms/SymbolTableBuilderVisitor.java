@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.codegen;
+package chipmunk.compiler.ast.transforms;
 
 import java.util.List;
 

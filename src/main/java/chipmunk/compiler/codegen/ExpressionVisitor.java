@@ -30,7 +30,6 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.runtime.*;
 
 public class ExpressionVisitor implements AstVisitor {
 	
@@ -60,7 +59,7 @@ public class ExpressionVisitor implements AstVisitor {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
 			assembler.onLine(node.getLineNumber());
-			codegen.emitSymbolAccess(id.getID().getText());
+			codegen.emitLocalAccess(id.getID().getText());
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			assembler.onLine(node.getLineNumber());
@@ -346,7 +345,7 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(lhs instanceof IdNode){
 			assembler.onLine(lhs.getLineNumber());
 			op.getRight().visit(this);
-			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
+			codegen.emitLocalAssignment(((IdNode) lhs).getID().getText());
 		}
 	}
 	

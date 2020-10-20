@@ -34,7 +34,6 @@ import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.MethodNode;
 
 public class Codegen implements AstVisitor {
 
@@ -105,106 +104,35 @@ public class Codegen implements AstVisitor {
 		}
 	}
 	
-	public void emitSymbolAccess(String name){
-		emitSymbolReference(name, false);
+	public void emitLocalAccess(String name){
+		emitLocalReference(name, false);
 	}
 	
-	public void emitSymbolAssignment(String name){
-		emitSymbolReference(name, true);
+	public void emitLocalAssignment(String name){
+		emitLocalReference(name, true);
 	}
 	
-	private void emitSymbolReference(String name, boolean assign){
-		
+	private void emitLocalReference(String name, boolean assign){
+
 		Deque<SymbolTable> trace = getSymbolTrace(name);
-		
+
 		if(trace == null){
-			// no variable with that name was returned. Assume it was a module-level symbol
-			if(assign){
-				assembler.setModule(name);
-			}else{
-				assembler.getModule(name);
-			}
-			return;
+			throw new IllegalStateException(name + " not found in a local scope");
 		}
-		
-		// NOTE: in general use, the null check is unneeded because all accessing code
-		// will be inside a method. In some of the tests, however, this is not the case
-		// so leave this in here.
-		SymbolTable methodTable = getMethodScope(trace);
-		MethodNode method = null;
-		if(methodTable != null){
-			method = (MethodNode) methodTable.getNode();
-		}
-		
+
 		SymbolTable table = trace.getLast();
-		SymbolTable.Scope scope = table.getScope();
-		
-		if(scope == SymbolTable.Scope.LOCAL || scope == SymbolTable.Scope.METHOD){
-			// local scope
-			// TODO - closure support
-			if(assign){
-				assembler.dup();
-				assembler.setLocal(table.getLocalIndex(name));
-			}else{
-				assembler.getLocal(table.getLocalIndex(name));
-			}
-		}else if(scope == SymbolTable.Scope.CLASS){
-			Symbol symbol = table.getSymbol(name);
-			
-			if(symbol.isShared()){
-				// initializers aren't enclosed by a method
-				// shared and non-shared variable initializers both bind via "self"
-				// object
-				if(method == null || method.getSymbol().isShared()){
-					// shared method reference to shared variable. Self
-					// refers to class, so emit reference via self
-					if(assign){
-						assembler.getLocal(0);
-						assembler.setattr(symbol.getName());
-					}else{
-						assembler.getLocal(0);
-						assembler.getattr(symbol.getName());
-					}
-					
-				}else{
-					// TODO - instance method reference to shared variable. Get class and reference variable
-					// as shared attribute
-					assembler.getLocal(0);
-					assembler.callAt("getClass", (byte)0);
-					if(assign){
-						assembler.setattr(symbol.getName());
-					}else{
-						assembler.getattr(symbol.getName());
-					}
-				}
-			}else{
-				if(method != null && method.getSymbol().isShared()){
-					// TODO - shared method reference to instance variable. Illegal.
-				}else{
-					// TODO - instance method (or initializer) reference to instance variable. Emit
-					// reference via self
-					
-					if(assign){
-						assembler.getLocal(0);
-						assembler.setattr(symbol.getName());
-					}else{
-						assembler.getLocal(0);
-						assembler.getattr(symbol.getName());
-					}
-				}
-			}
-		}else if(scope == SymbolTable.Scope.MODULE){
-			// Module
-			if(assign){
-				assembler.setModule(name);
-			}else{
-				assembler.getModule(name);
-			}
+
+		if(assign){
+			assembler.dup();
+			assembler.setLocal(table.getLocalIndex(name));
+		}else{
+			assembler.getLocal(table.getLocalIndex(name));
 		}
+
 	}
 	
 	private Deque<SymbolTable> getSymbolTrace(String name){
-		Deque<SymbolTable> trace = new ArrayDeque<SymbolTable>();
+		Deque<SymbolTable> trace = new ArrayDeque<>();
 		
 		SymbolTable symTab = symbols;
 		

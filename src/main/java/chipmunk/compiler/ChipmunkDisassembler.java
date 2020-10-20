@@ -444,7 +444,7 @@ public class ChipmunkDisassembler {
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
-			case INIT:
+			/*case INIT:
 				builder.append("init");
 				ip += 1;
 				break;
@@ -467,7 +467,7 @@ public class ChipmunkDisassembler {
 				builder.append("import ");
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
-				break;
+				break;*/
 			default:
 				throw new InvalidOpcodeChipmunk(op);
 			}

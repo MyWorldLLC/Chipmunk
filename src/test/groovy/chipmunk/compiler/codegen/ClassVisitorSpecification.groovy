@@ -26,6 +26,7 @@ import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkLexer
 import chipmunk.compiler.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
+import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor
 import spock.lang.Specification
 
 class ClassVisitorSpecification extends Specification {

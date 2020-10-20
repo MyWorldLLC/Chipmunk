@@ -397,16 +397,6 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
-                case GETMODULE -> {
-                    String varName = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
-                    generateGetModule(mv, varName);
-                    ip += 5;
-                }
-                case SETMODULE -> {
-                    String varName = (String) method.getConstantPool()[fetchInt(instructions, ip + 1)];
-                    generateSetModule(mv, varName);
-                    ip += 5;
-                }
                 default -> throw new InvalidOpcodeChipmunk(op);
             }
 
@@ -622,27 +612,27 @@ public class JvmCompiler {
                 false);
     }
 
-    protected void generateGetModule(MethodVisitor mv, String varName){
+    /*protected void generateGetModule(MethodVisitor mv, String varName){
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        /*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
+        *//*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
                 "getModule",
                 Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(),
-                true);*/
+                true);*//*
 
         generateDynamicFieldAccess(mv, varName, false);
-    }
+    }*/
 
-    protected void generateSetModule(MethodVisitor mv, String varName){
+    /*protected void generateSetModule(MethodVisitor mv, String varName){
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        /*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
+        *//*mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getType(ModuleMember.class).getInternalName(),
                 "getModule",
                 Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(),
-                true);*/
+                true);*//*
         // Swap the module & the value
         mv.visitInsn(Opcodes.SWAP);
 
         generateDynamicFieldAccess(mv, varName, true);
-    }
+    }*/
 
     protected void generateBoxing(MethodVisitor mv, Object o){
         if(o instanceof Byte){

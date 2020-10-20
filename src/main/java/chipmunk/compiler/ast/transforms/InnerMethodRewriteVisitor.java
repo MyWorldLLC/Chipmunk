@@ -18,13 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.codegen;
+package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
 import chipmunk.compiler.ast.IdNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.SymbolNode;

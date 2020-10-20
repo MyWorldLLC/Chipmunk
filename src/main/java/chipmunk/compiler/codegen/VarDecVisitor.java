@@ -49,7 +49,7 @@ public class VarDecVisitor implements AstVisitor {
 		if(symbol == null) {
 			throw new NullPointerException("Null symbol: " + dec.getVarName() + "\n" + codegen.getActiveSymbols().toString());
 		}
-		codegen.emitSymbolAssignment(symbol.getName());
+		codegen.emitLocalAssignment(symbol.getName());
 		codegen.getAssembler().pop();
 	}
 

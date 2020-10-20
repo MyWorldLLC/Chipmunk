@@ -82,17 +82,17 @@ public class Opcodes {
 	public static final byte RANGE = 0x31;
 	public static final byte LIST = 0x32;
 	public static final byte MAP = 0x33;
-	public static final byte INIT = 0x34;
+	//public static final byte INIT = 0x34;
 	
 	// module level variables
-	public static final byte GETMODULE = 0x35;
-	public static final byte SETMODULE = 0x36;
+	//public static final byte GETMODULE = 0x35;
+	//public static final byte SETMODULE = 0x36;
 	
 	// Closures (always local)
 	public static final byte GETCLOSURE = 0x37;
 	public static final byte SETCLOSURE = 0x38;
 
-	public static final byte INITMODULE = 0x39;
-	public static final byte IMPORT = 0x40;
+	//public static final byte INITMODULE = 0x39;
+	//public static final byte IMPORT = 0x40;
 	
 }
