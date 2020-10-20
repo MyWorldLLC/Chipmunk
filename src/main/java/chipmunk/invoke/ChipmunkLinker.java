@@ -136,6 +136,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Method instanceMethod = getMethod(receiverType, expectedReturnType, methodName, pTypes);
             if(instanceMethod != null){
+                instanceMethod.setAccessible(true);
                 callTarget = lookup.unreflect(instanceMethod);
             }
 
