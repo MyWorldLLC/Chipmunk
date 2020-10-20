@@ -36,15 +36,31 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     // ================================ Integer Math ================================
     public static Integer plus(Integer a, Integer b){
-        return Integer.sum(a, b);
+        return a + b;
+    }
+
+    public static Float plus(Integer a, Float b){
+        return Float.sum(a, b);
     }
 
     public static Integer minus(Integer a, Integer b){
-        return Integer.sum(a, -b);
+        return a - b;
+    }
+
+    public static Float minus(Integer a, Float b){
+        return a - b;
     }
 
     public static Integer pos(Integer a){
         return Math.abs(a);
+    }
+
+    public static Integer inc(Integer a){
+        return a + 1;
+    }
+
+    public static Integer dec(Integer a){
+        return a - 1;
     }
 
     public static IntegerRange range(Integer start, Integer end, Boolean inclusive){
@@ -59,11 +75,19 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a / (float)b;
     }
 
+    public static Float div(Integer a, Float b){
+        return a / b;
+    }
+
     public static Integer fdiv(Integer a, Integer b){
         return a / b;
     }
 
     public static Integer mul(Integer a, Integer b){
+        return a * b;
+    }
+
+    public static Float mul(Integer a, Float b){
         return a * b;
     }
 
@@ -88,6 +112,58 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     // ================================ Float Math ================================
+
+    public static Float plus(Float a, Float b){
+        return a + b;
+    }
+
+    public static Float plus(Float a, Integer b){
+        return a + b;
+    }
+
+    public static Float minus(Float a, Float b){
+        return a - b;
+    }
+
+    public static Float minus(Float a, Integer b){
+        return a - b;
+    }
+
+    public static Float mul(Float a, Float b){
+        return a * b;
+    }
+
+    public static Float mul(Float a, Integer b){
+        return a * b;
+    }
+
+    public static Float div(Float a, Float b){
+        return a / b;
+    }
+
+    public static Float div(Float a, Integer b){
+        return a / (float)b;
+    }
+
+    public static Float pos(Float a){
+        return Math.abs(a);
+    }
+
+    public static Float inc(Float a){
+        return a + 1;
+    }
+
+    public static Float dec(Float a){
+        return a - 1;
+    }
+
+    public static Integer compare(Float a, Float b){
+        return Float.compare(a, b);
+    }
+
+    public static Integer compare(Float a, Integer b){
+        return Float.compare(a, b);
+    }
 
     public static FloatRange range(Float start, Float end, Boolean inclusive){
         return new FloatRange(start, end, 1.0f, inclusive);
