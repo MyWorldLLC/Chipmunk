@@ -20,7 +20,7 @@
 
 package chipmunk;
 
-public class InvalidOpcodeChipmunk extends AngryChipmunk {
+public class InvalidOpcodeChipmunk extends ChipmunkRuntimeException {
 	private static final long serialVersionUID = -8090867885080049997L;
 	
 	protected byte opcode;

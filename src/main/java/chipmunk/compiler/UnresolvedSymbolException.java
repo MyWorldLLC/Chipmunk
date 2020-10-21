@@ -20,21 +20,19 @@
 
 package chipmunk.compiler;
 
-import chipmunk.AngryChipmunk;
-
-public class UnresolvedSymbolChipmunk extends AngryChipmunk {
+public class UnresolvedSymbolException extends RuntimeException {
 	
 	private static final long serialVersionUID = -3751232792577027254L;
 	
 	protected Token symbolName;
 	
-	public UnresolvedSymbolChipmunk(String msg, Token symbolToken){
+	public UnresolvedSymbolException(String msg, Token symbolToken){
 		super(msg);
 		this.symbolName = symbolToken;
 	}
 	
 	
-	public UnresolvedSymbolChipmunk(String msg, Token symbolName, Throwable cause){
+	public UnresolvedSymbolException(String msg, Token symbolName, Throwable cause){
 		super(msg, cause);
 		this.symbolName = symbolName;
 	}

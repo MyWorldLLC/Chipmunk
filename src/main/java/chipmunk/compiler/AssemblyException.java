@@ -18,30 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.compiler;
 
-public class ExceptionChipmunk extends AngryChipmunk {
+import java.lang.RuntimeException;
 
-	private static final long serialVersionUID = 1L;
+public class AssemblyException extends RuntimeException {
 	
-	protected Object payload;
-	
-	public ExceptionChipmunk(Object payload){
+	private static final long serialVersionUID = -3878202494750792713L;
+
+	public AssemblyException(){
 		super();
-		this.payload = payload;
-	}
-	
-	public ExceptionChipmunk(Object payload, String msg){
-		super(msg);
-		this.payload = payload;
-	}
-	
-	public void setPayload(Object payload){
-		this.payload = payload;
-	}
-	
-	public Object getPayload(){
-		return payload;
 	}
 
+	public AssemblyException(String msg){
+		super(msg);
+	}
+	
+	public AssemblyException(String msg, Throwable cause){
+		super(msg, cause);
+	}
 }

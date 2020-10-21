@@ -23,6 +23,6 @@ package chipmunk.runtime;
 public interface ChipmunkModule {
 
     String getName();
-    String[] getDependencies();
+    //String[] getDependencies();
 
 }

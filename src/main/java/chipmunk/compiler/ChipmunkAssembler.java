@@ -95,7 +95,7 @@ public class ChipmunkAssembler {
 			
 			if(!resolved){
 				// Throw error. Label was not resolved.
-				throw new AssemblyChipmunk("Unresolved label: " + label.getName());
+				throw new AssemblyException("Unresolved label: " + label.getName());
 			}
 		}
 		return codeBytes;

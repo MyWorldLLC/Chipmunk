@@ -20,7 +20,7 @@
 
 package chipmunk.invoke;
 
-import chipmunk.AngryChipmunk;
+import chipmunk.ChipmunkRuntimeException;
 import chipmunk.ChipmunkLibrary;
 
 import java.lang.invoke.MethodHandle;
@@ -127,7 +127,7 @@ public class ChipmunkLibraries {
             }
 
         }catch(Throwable t){
-            throw new AngryChipmunk("Failed to load library " + library.getClass().getName(), t);
+            throw new RuntimeException("Failed to load library " + library.getClass().getName(), t);
         }
     }
 
@@ -149,7 +149,7 @@ public class ChipmunkLibraries {
             }
 
         }catch(Throwable t){
-            throw new AngryChipmunk("Failed to unload library " + library.getClass().getName(), t);
+            throw new RuntimeException("Failed to unload library " + library.getClass().getName(), t);
         }
     }
 }

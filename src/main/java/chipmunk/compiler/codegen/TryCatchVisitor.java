@@ -71,8 +71,10 @@ public class TryCatchVisitor implements AstVisitor {
 			
 			// Assemble catch body
 			codegen.enterScope(catchNode.getSymbolTable());
-			
+
+			// Get exception off top of stack & store to the exception local
 			catchLabels.exceptionLocalIndex = catchNode.getSymbolTable().getLocalIndex(catchNode.getExceptionName().getSymbol());
+			//codegen.getAssembler().setLocal(catchLabels.exceptionLocalIndex);
 			
 			node.visitChildren(codegen);
 			codegen.exitScope();

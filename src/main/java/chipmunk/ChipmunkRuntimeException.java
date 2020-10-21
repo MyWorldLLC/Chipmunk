@@ -18,20 +18,20 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.runtime;
+package chipmunk;
 
-import chipmunk.AngryChipmunk;
+public class ChipmunkRuntimeException extends java.lang.RuntimeException {
 
-public class UnimplementedOperationChipmunk extends AngryChipmunk {
-	
-	private static final long serialVersionUID = 2415417246906136592L;
+	private static final long serialVersionUID = 4997822014942264350L;
 
-	public UnimplementedOperationChipmunk(){
-		super();
+	protected final Object payload;
+
+	public ChipmunkRuntimeException(Object payload){
+		this.payload = payload;
 	}
-	
-	public UnimplementedOperationChipmunk(String msg){
-		super(msg, null);
+
+	public Object getPayload(){
+		return payload;
 	}
 
 }

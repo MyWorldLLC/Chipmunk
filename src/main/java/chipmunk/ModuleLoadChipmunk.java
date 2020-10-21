@@ -20,7 +20,7 @@
 
 package chipmunk;
 
-public class ModuleLoadChipmunk extends AngryChipmunk {
+public class ModuleLoadChipmunk extends RuntimeException {
 
 	private static final long serialVersionUID = -4373636324025801028L;
 

@@ -48,7 +48,7 @@ public class NativeBinder implements RuntimeObject, CallInterceptor {
         try {
             return mapToCType(vm, f.get(bound));
         } catch (IllegalAccessException e) {
-            throw new AngryChipmunk(e);
+            throw new ChipmunkRuntimeException(e);
         }
     }
 
@@ -62,7 +62,7 @@ public class NativeBinder implements RuntimeObject, CallInterceptor {
             f.set(bound, o);
             return value;
         } catch (IllegalAccessException e) {
-            throw new AngryChipmunk(e);
+            throw new ChipmunkRuntimeException(e);
         }
     }
 
@@ -123,7 +123,7 @@ public class NativeBinder implements RuntimeObject, CallInterceptor {
         } catch (NoSuchFieldException e) {
             throw new MissingVariableChipmunk(String.format("No such variable %s for native class %s", name, bound.getClass().getName()));
         } catch(IllegalAccessException e){
-            throw new AngryChipmunk(e);
+            throw new ChipmunkRuntimeException(e);
         }
     }
 
@@ -148,7 +148,7 @@ public class NativeBinder implements RuntimeObject, CallInterceptor {
         } catch (NoSuchMethodException e) {
             throw new MissingVariableChipmunk(String.format("No such method %s for native class %s", methodName, bound.getClass().getName()));
         } catch(IllegalAccessException | InvocationTargetException e){
-            throw new AngryChipmunk(e);
+            throw new ChipmunkRuntimeException(e);
         }
     }
 }

@@ -20,6 +20,7 @@
 
 package chipmunk.jvm;
 
+import chipmunk.ChipmunkRuntimeException;
 import chipmunk.binary.DebugEntry;
 import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
@@ -138,7 +139,7 @@ public class JvmCompiler {
             return cClass.getConstructor().newInstance();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new java.lang.RuntimeException(e);
         }
     }
 
@@ -166,6 +167,10 @@ public class JvmCompiler {
         DebugEntry[] debugTable = method.getDebugTable();
         int debugIndex = 0;
 
+        ExceptionBlock[] exceptionTable = method.getExceptionTable();
+        int exceptionIndex = 0;
+
+
         byte[] instructions = method.getCode();
         for(int ip = 0; ip < instructions.length;) {
 
@@ -173,6 +178,7 @@ public class JvmCompiler {
             Label label = markLabel(ip, labelMappings);
             mv.visitLabel(label);
 
+            // Generate debug data
             if(debugTable != null && debugIndex < debugTable.length){
                 DebugEntry entry = debugTable[debugIndex];
                 // This isn't technically correct but it prevents crashes if the debug table is malformed
@@ -181,6 +187,17 @@ public class JvmCompiler {
                     entry = debugTable[debugIndex];
                 }
                 mv.visitLineNumber(entry.lineNumber, label);
+            }
+
+            // Generate exception handlers
+            if(exceptionTable != null && exceptionIndex < exceptionTable.length){
+                ExceptionBlock ex = exceptionTable[exceptionIndex];
+                if(ex.startIndex == ip){
+                    Label end = markLabel(ex.endIndex, labelMappings);
+                    Label handler = markLabel(ex.catchIndex, labelMappings);
+                    mv.visitTryCatchBlock(label, end, handler, Type.getType(Throwable.class).getInternalName());
+                    exceptionIndex++;
+                }
             }
 
             final byte op = instructions[ip];
@@ -542,8 +559,28 @@ public class JvmCompiler {
     }
 
     protected void generateThrow(MethodVisitor mv){
-        // TODO - test if the object on the stack is a Throwable or not.
+
+        // Test if the object on the stack is a Throwable or not.
         // If not, wrap in an AngryChipmunk & throw, else throw unmodified.
+
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitTypeInsn(Opcodes.INSTANCEOF, Type.getType(Throwable.class).getInternalName());
+        Label endWrap = new Label();
+        mv.visitJumpInsn(Opcodes.IFNE, endWrap);
+
+        mv.visitTypeInsn(Opcodes.NEW, Type.getType(ChipmunkRuntimeException.class).getInternalName());
+        mv.visitInsn(Opcodes.DUP_X1);
+        mv.visitInsn(Opcodes.SWAP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                Type.getType(ChipmunkRuntimeException.class).getInternalName(),
+                "<init>",
+                Type.getMethodType(Type.VOID_TYPE, Type.getType(Object.class)).getDescriptor(),
+                false);
+
+        mv.visitLabel(endWrap);
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Throwable.class).getInternalName());
+        mv.visitInsn(Opcodes.ATHROW);
+
     }
 
     protected void generateReturn(MethodVisitor mv){

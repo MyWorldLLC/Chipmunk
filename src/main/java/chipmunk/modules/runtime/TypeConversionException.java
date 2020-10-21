@@ -20,9 +20,9 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.AngryChipmunk;
+import chipmunk.ChipmunkRuntimeException;
 
-public class TypeConversionException extends AngryChipmunk {
+public class TypeConversionException extends ChipmunkRuntimeException {
 
 	private static final long serialVersionUID = 2673936336954560112L;
 	

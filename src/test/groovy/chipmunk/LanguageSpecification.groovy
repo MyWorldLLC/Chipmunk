@@ -151,7 +151,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("OverwriteImport.chp")
 		
 		then:
-		thrown(AngryChipmunk)
+		thrown(ChipmunkRuntimeException)
 	}
 	
 	def "Run List.chp"(){
