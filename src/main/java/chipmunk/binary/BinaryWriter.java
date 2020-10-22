@@ -37,7 +37,6 @@ public class BinaryWriter {
         dos.writeUTF(module.getName());
         writeConstants(dos, module.getConstantPool());
         writeImports(dos, module.getImports());
-        writeMethod(dos, module.getInitializer());
         writeNamespace(dos, module.getNamespace());
 
         dos.flush();
@@ -141,11 +140,9 @@ public class BinaryWriter {
     protected void writeClass(DataOutputStream os, BinaryClass cls) throws IOException, IllegalConstantTypeException {
 
         os.writeUTF(cls.getName());
-        writeMethod(os, cls.getSharedInitializer());
-        writeNamespace(os, cls.getSharedFields());
+        writeNamespace(os, cls.getSharedNamespace());
 
-        writeMethod(os, cls.getInstanceInitializer());
-        writeNamespace(os, cls.getInstanceFields());
+        writeNamespace(os, cls.getInstanceNamespace());
 
     }
 

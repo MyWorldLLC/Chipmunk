@@ -218,8 +218,8 @@ class ModuleVisitorSpecification extends Specification {
 			println()
 			println("============= ${test} =============")
 			println(module.toString())
-			println("====Initializer====")
-			println(ChipmunkDisassembler.disassemble(module.getInitializer().getCode(), module.getConstantPool()))
+			//println("====Initializer====")
+			//println(ChipmunkDisassembler.disassemble(module.getInitializer().getCode(), module.getConstantPool()))
 		}
 		
 		return module

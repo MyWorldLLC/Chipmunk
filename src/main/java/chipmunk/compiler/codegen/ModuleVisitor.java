@@ -74,14 +74,14 @@ public class ModuleVisitor implements AstVisitor {
 			BinaryClass cls = visitor.getBinaryClass();
 			
 			// generate initialization code to run class initializer
-			if(cls.getSharedInitializer() != null){
+			//if(cls.getSharedInitializer() != null){
 				//ChipmunkAssembler initAssembler = initCodegen.getAssembler();
 				
 				//initAssembler.getModule(cls.getName());
 				//initAssembler.init();
 				//initAssembler.call((byte)1);
 				//initAssembler.pop();
-			}
+			//}
 
 			module.getNamespace().addEntry(BinaryNamespace.Entry.makeClass(cls.getName(), (byte)0, cls));
 			

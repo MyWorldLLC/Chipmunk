@@ -74,13 +74,6 @@ public class ChipmunkDisassembler {
 		}
 		builder.append("\n");
 
-		if(module.getInitializer() != null){
-			builder.append(INDENTATION);
-			builder.append("<init>\n");
-			builder.append(disassemble(module.getInitializer().getCode(), null, false, INDENTATION));
-			builder.append("\n\n");
-		}
-
 		for(BinaryNamespace.Entry entry : module.getNamespace()){
 			if(entry.getType() == FieldType.CLASS){
 				disassemble(entry.getBinaryClass(), builder, INDENTATION);
@@ -102,24 +95,17 @@ public class ChipmunkDisassembler {
 
 		builder.append(padding);
 		builder.append("Shared Attributes:\n");
-		for(BinaryNamespace.Entry entry : cls.getSharedFields()){
+		for(BinaryNamespace.Entry entry : cls.getSharedNamespace()){
 			builder.append(padding);
 			builder.append(INDENTATION);
 			builder.append(entry.getName());
 			builder.append("\n");
 		}
 		builder.append("\n");
-
-		if(cls.getSharedInitializer() != null){
-			builder.append(padding);
-			builder.append("<shared init>\n");
-			builder.append(disassemble(cls.getSharedInitializer().getCode(), cls.getSharedInitializer().getConstantPool(), false, padding));
-			builder.append("\n");
-		}
 
 		builder.append(padding);
 		builder.append("Instance Attributes:\n");
-		for(BinaryNamespace.Entry entry : cls.getInstanceFields()){
+		for(BinaryNamespace.Entry entry : cls.getInstanceNamespace()){
 			builder.append(padding);
 			builder.append(INDENTATION);
 			builder.append(entry.getName());
@@ -127,14 +113,7 @@ public class ChipmunkDisassembler {
 		}
 		builder.append("\n");
 
-		if(cls.getInstanceInitializer() != null){
-			builder.append(padding);
-			builder.append("<init>\n");
-			builder.append(disassemble(cls.getInstanceInitializer().getCode(), cls.getInstanceInitializer().getConstantPool(), false, padding));
-			builder.append("\n\n");
-		}
-
-		for(BinaryNamespace.Entry entry : cls.getInstanceFields()){
+		for(BinaryNamespace.Entry entry : cls.getInstanceNamespace()){
 			if(entry.getType() == FieldType.METHOD){
 				builder.append(padding);
 				builder.append(INDENTATION);

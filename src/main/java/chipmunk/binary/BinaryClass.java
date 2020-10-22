@@ -24,14 +24,12 @@ public class BinaryClass {
 
     protected String name;
     protected BinaryModule module;
-    protected BinaryMethod instanceInitializer;
-    protected BinaryMethod sharedInitializer;
-    protected BinaryNamespace instanceFields;
-    protected BinaryNamespace sharedFields;
+    protected BinaryNamespace instance;
+    protected BinaryNamespace shared;
 
     public BinaryClass(){
-        instanceFields = new BinaryNamespace();
-        sharedFields = new BinaryNamespace();
+        instance = new BinaryNamespace();
+        shared = new BinaryNamespace();
     }
 
     public BinaryClass(String name){
@@ -60,35 +58,19 @@ public class BinaryClass {
         this.module = module;
     }
 
-    public BinaryMethod getInstanceInitializer() {
-        return instanceInitializer;
+    public BinaryNamespace getInstanceNamespace() {
+        return instance;
     }
 
-    public void setInstanceInitializer(BinaryMethod instanceInitializer) {
-        this.instanceInitializer = instanceInitializer;
+    public void setInstanceNamespace(BinaryNamespace instanceNamespace) {
+        this.instance = instanceNamespace;
     }
 
-    public BinaryMethod getSharedInitializer() {
-        return sharedInitializer;
+    public BinaryNamespace getSharedNamespace() {
+        return shared;
     }
 
-    public void setSharedInitializer(BinaryMethod sharedInitializer) {
-        this.sharedInitializer = sharedInitializer;
-    }
-
-    public BinaryNamespace getInstanceFields() {
-        return instanceFields;
-    }
-
-    public void setInstanceFields(BinaryNamespace instanceFields) {
-        this.instanceFields = instanceFields;
-    }
-
-    public BinaryNamespace getSharedFields() {
-        return sharedFields;
-    }
-
-    public void setSharedFields(BinaryNamespace sharedFields) {
-        this.sharedFields = sharedFields;
+    public void setSharedNamespace(BinaryNamespace sharedNamespace) {
+        this.shared = sharedNamespace;
     }
 }

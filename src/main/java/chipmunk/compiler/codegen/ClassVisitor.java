@@ -81,9 +81,9 @@ public class ClassVisitor implements AstVisitor {
 				BinaryNamespace.Entry innerEntry = BinaryNamespace.Entry.makeClass(inner.getName(), (byte)0, inner);
 
 				if(classNode.getSymbol().isShared()) {
-					cls.getSharedFields().addEntry(innerEntry);
+					cls.getSharedNamespace().addEntry(innerEntry);
 				}else {
-					cls.getInstanceFields().addEntry(innerEntry);
+					cls.getInstanceNamespace().addEntry(innerEntry);
 				}
 			}
 			
@@ -125,9 +125,9 @@ public class ClassVisitor implements AstVisitor {
 
 			BinaryNamespace clsNamespace;
 			if(isShared){
-				clsNamespace = cls.getSharedFields();
+				clsNamespace = cls.getSharedNamespace();
 			}else{
-				clsNamespace = cls.getInstanceFields();
+				clsNamespace = cls.getInstanceNamespace();
 			}
 
 			clsNamespace.getEntries().add(new BinaryNamespace.Entry(varDec.getVarName(), flags));
@@ -167,18 +167,12 @@ public class ClassVisitor implements AstVisitor {
 			BinaryMethod method = visitor.getMethod();
 			BinaryNamespace.Entry methodEntry = BinaryNamespace.Entry.makeMethod(methodNode.getName(), (byte)0, method);
 
-			if(methodNode == sharedInit){
-				// Shared initializer
-				cls.setSharedInitializer(method);
-			}else if(methodNode == instanceInit){
-				// Instance initializer
-				cls.setInstanceInitializer(method);
-			}else if(methodNode.getSymbol().isShared()){
-				// Plain shared method
-				cls.getSharedFields().addEntry(methodEntry);
+			if(methodNode.getSymbol().isShared()){
+				// Shared method
+				cls.getSharedNamespace().addEntry(methodEntry);
 			}else{
-				// Plain instance method
-				cls.getInstanceFields().addEntry(methodEntry);
+				// Instance method
+				cls.getInstanceNamespace().addEntry(methodEntry);
 			}
 		}
 		
@@ -204,7 +198,7 @@ public class ClassVisitor implements AstVisitor {
 			constructor.setDebugTable(new DebugEntry[]{});
 			constructor.setDeclarationSymbol(cls.getName() + "." + cls.getName());
 			
-			cls.getInstanceFields().getEntries().add(BinaryNamespace.Entry.makeMethod(cls.getName(), (byte)0, constructor));
+			cls.getInstanceNamespace().getEntries().add(BinaryNamespace.Entry.makeMethod(cls.getName(), (byte)0, constructor));
 		}
 		
 		return cls;

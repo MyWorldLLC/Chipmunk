@@ -187,7 +187,7 @@ public class JvmCompiler {
         constructor.visitEnd();
 
         // TODO - Visit class namespace
-        for(BinaryNamespace.Entry entry : cls.getInstanceFields()){
+        for(BinaryNamespace.Entry entry : cls.getInstanceNamespace()){
             int flags = Opcodes.ACC_PUBLIC;
             if(BinaryConstants.isFlagSet(entry.getFlags(), BinaryConstants.FINAL_FLAG)){
                 flags |= Opcodes.ACC_FINAL;

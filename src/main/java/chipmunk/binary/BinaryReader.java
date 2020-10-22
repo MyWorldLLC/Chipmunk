@@ -74,8 +74,6 @@ public class BinaryReader {
             BinaryImport[] imports = readImports(dis);
             module.setImports(imports);
 
-            module.setInitializer(readMethod(dis, module));
-
             module.setNamespace(readNameSpace(dis, module));
 
             return module;
@@ -247,11 +245,9 @@ public class BinaryReader {
         final String name = is.readUTF();
         BinaryClass cls = new BinaryClass(name, module);
 
-        cls.setSharedInitializer(readMethod(is, module));
-        cls.setSharedFields(readNameSpace(is, module));
+        cls.setSharedNamespace(readNameSpace(is, module));
 
-        cls.setInstanceInitializer(readMethod(is, module));
-        cls.setInstanceFields(readNameSpace(is, module));
+        cls.setInstanceNamespace(readNameSpace(is, module));
 
         return cls;
     }

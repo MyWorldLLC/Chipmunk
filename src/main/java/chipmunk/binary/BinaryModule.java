@@ -25,7 +25,6 @@ public class BinaryModule {
     protected String name;
     protected Object[] constantPool;
     protected BinaryImport[] imports;
-    protected BinaryMethod initializer;
     protected BinaryNamespace namespace;
 
     public BinaryModule(){
@@ -69,11 +68,4 @@ public class BinaryModule {
         this.constantPool = constantPool;
     }
 
-    public BinaryMethod getInitializer() {
-        return initializer;
-    }
-
-    public void setInitializer(BinaryMethod initializer) {
-        this.initializer = initializer;
-    }
 }
