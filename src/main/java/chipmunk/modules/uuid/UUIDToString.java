@@ -34,7 +34,7 @@ public class UUIDToString implements CCallable {
     public Object call(ChipmunkVM vm, Object[] params) {
         //vm.checkArity(params, 1);
 
-        CObject uuid = (CObject) params[0];
+        /*CObject uuid = (CObject) params[0];
         Buffer buf = (Buffer) uuid.getAttr(vm, "buffer");
 
         ByteBuffer bytes = ByteBuffer.wrap(buf.getData());
@@ -42,6 +42,7 @@ public class UUIDToString implements CCallable {
 
         String str = jUUID.toString();
         vm.traceString(str);
-        return new CString(str);
+        return new CString(str);*/
+        return null;
     }
 }

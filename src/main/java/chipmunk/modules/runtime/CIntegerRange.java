@@ -21,9 +21,8 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 
-public class CIntegerRange implements RuntimeObject {
+public class CIntegerRange {
 
 	private final int start;
 	private final int end;
@@ -74,7 +73,7 @@ public class CIntegerRange implements RuntimeObject {
 			int value = current;
 			current += step;
 			
-			return vm.traceInteger(value);
+			return new CInteger(value); // vm.traceInteger(value);
 		}
 
 		@Override

@@ -40,32 +40,7 @@ public class ChipmunkVM {
 		UNRESTRICTED, SANDBOXED
 	}
 
-	public class CallFrame {
-		public final BinaryMethod method;
-		public final int ip;
-		public final Object[] locals;
-		public final OperandStack stack;
-
-		public CallFrame(BinaryMethod method, int ip, Object[] locals, OperandStack stack) {
-			this.method = method;
-			this.ip = ip;
-			this.locals = locals;
-			this.stack = stack;
-		}
-	}
-
-	protected List<ModuleLoader> loaders;
-	protected ChipmunkScript activeScript;
-	protected Map<String, BinaryModule> modules;
-
-	protected Deque<CallFrame> frozenCallStack;
-	
-	public volatile boolean interrupted;
-
 	protected SecurityMode securityMode;
-	private int memHigh;
-	
-	private final int refLength;
 
 	protected final Binder binder;
 	protected final JvmCompiler jvmCompiler;
@@ -77,79 +52,9 @@ public class ChipmunkVM {
 	public ChipmunkVM(SecurityMode securityMode) {
 
 		this.securityMode = securityMode;
-		activeScript = new ChipmunkScript(128);
-		frozenCallStack = activeScript.frozenCallStack;
-
-		memHigh = 0;
-
-		refLength = 8; // assume 64-bit references
 
 		binder = new Binder();
 		jvmCompiler = new JvmCompiler();
-	}
-
-	public SecurityMode getSecurityMode(){
-		return securityMode;
-	}
-
-	public void setSecurityMode(SecurityMode mode){
-		securityMode = mode;
-	}
-	
-	public List<ModuleLoader> getLoaders(){
-		return activeScript.getLoaders();
-	}
-
-	public ChipmunkScript getActiveScript(){
-		return activeScript;
-	}
-	
-	public BinaryModule loadModule(String moduleName) throws ModuleLoadChipmunk {
-		
-		if(modules.containsKey(moduleName)){
-			// this module is already loaded - skip
-			return modules.get(moduleName);
-		}
-		
-		for(ModuleLoader loader : loaders){
-			try {
-				BinaryModule module = loader.loadModule(moduleName);
-				if(module != null){
-					// need to record the module *before* handling imports in case
-					// of a circular import
-					modules.put(module.getName(), module);
-					
-					return module;
-				}
-			}catch(Exception e){
-				throw new ModuleLoadChipmunk(e);
-			}
-		}
-		
-		throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
-	}
-
-	public BinaryModule getModule(String name) {
-		return modules.get(name);
-	}
-
-	public BinaryModule resolveModule(String name) throws ModuleLoadChipmunk {
-		if(!modules.containsKey(name)){
-			loadModule(name);
-		}
-		return modules.get(name);
-	}
-	
-	public void freeze(BinaryMethod method, int ip, Object[] locals, OperandStack stack) {
-		frozenCallStack.push(new CallFrame(method, ip, locals, stack));
-	}
-
-	public CallFrame unfreezeNext() {
-		return frozenCallStack.pop();
-	}
-	
-	public boolean hasNextFrame(){
-		return !frozenCallStack.isEmpty();
 	}
 
 	public static ChipmunkScript compile(CharSequence src, String scriptName) throws CompileChipmunk {
@@ -178,100 +83,22 @@ public class ChipmunkVM {
 			throw new IllegalArgumentException("Script contains no main method");
 		}
 
-		ChipmunkScript script = new ChipmunkScript();
-		script.setEntryCall(mainModule.getName(), "main");
+		//ChipmunkScript script = new ChipmunkScript();
+		//script.setEntryCall(mainModule.getName(), "main");
 
-		MemoryModuleLoader loader = new MemoryModuleLoader();
+		//MemoryModuleLoader loader = new MemoryModuleLoader();
 		//loader.addModule(ChipmunkModuleBuilder.buildLangModule());
-		loader.addModules(Arrays.asList(modules));
-		script.getLoaders().add(loader);
+		//loader.addModules(Arrays.asList(modules));
+		//script.getLoaders().add(loader);
 
-		return script;
-	}
-
-
-	public void interrupt(){
-		interrupted = true;
-	}
-
-	public void forceSuspend() throws SuspendedChipmunk {
-		interrupt();
-		throw new SuspendedChipmunk();
-	}
-
-	public void traceMem(int newlyAllocated) {
-		memHigh += newlyAllocated;
-	}
-	
-	public void untraceMem(int amount) {
-		memHigh -= amount;
-	}
-
-	public void traceBoolean() {
-		memHigh += 1;
-	}
-	
-	public CBoolean traceBoolean(boolean value) {
-		traceBoolean();
-		return new CBoolean(value);
-	}
-	
-	public void untraceBoolean() {
-		memHigh -= 1;
-	}
-
-	public void traceInteger() {
-		memHigh += 4;
-	}
-	
-	public CInteger traceInteger(int value) {
-		traceInteger();
-		return new CInteger(value);
-	}
-	
-	public void untraceInteger() {
-		memHigh -= 4;
-	}
-
-	public void traceFloat() {
-		memHigh += 4;
-	}
-	
-	public CFloat traceFloat(float value) {
-		traceFloat();
-		return new CFloat(value);
-	}
-	
-	public void untraceFloat() {
-		memHigh -= 4;
-	}
-
-	public String traceString(String str) {
-		memHigh += str.length() * 2;
-		return str;
-	}
-	
-	public void traceReference() {
-		memHigh += refLength;
-	}
-	
-	public Object traceReference(Object obj) {
-		traceReference();
-		return obj;
-	}
-	
-	public void untraceReference() {
-		memHigh -= refLength;
-	}
-	
-	public void untraceReferences(int count) {
-		memHigh -= refLength * count;
+		return null;
+		//return script;
 	}
 
 	private void doImport(CMethodCode code, int importIndex){
 		final CModule module = code.getModule();
 		final CModule.Import moduleImport = code.getModule().getImports().get(importIndex);
-		final BinaryNamespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
+		//final BinaryNamespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
 
 		if(moduleImport.isImportAll()){
 
@@ -288,9 +115,9 @@ public class ChipmunkVM {
 			for(int i = 0; i < symbols.size(); i++){
 
 				if(moduleImport.isAliased()){
-					module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
+					//module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
 				}else{
-					module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
+					//module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
 				}
 			}
 		}
@@ -331,37 +158,6 @@ public class ChipmunkVM {
 				.getInvocationHandle(MethodHandles.lookup(), target, Object.class, methodName, callParams);
 
 		return invoker.invokeWithArguments(callParams);
-	}
-
-	
-	private ExceptionBlock chooseExceptionHandler(int ip, ExceptionBlock[] eTable) {
-		ExceptionBlock lastCandidate = null;
-		
-		if(eTable == null) {
-			return null;
-		}
-		
-		for(ExceptionBlock block : eTable) {
-			if(lastCandidate == null) {
-				lastCandidate = block;
-			}else if(ip >= block.startIndex && ip <= block.catchIndex && block.startIndex > lastCandidate.startIndex && block.catchIndex < lastCandidate.catchIndex){
-				lastCandidate = block;
-			}
-		}
-
-		return lastCandidate;
-	}
-	
-	private int findLineNumber(int ip, DebugEntry[] debugTable) {
-
-		for(DebugEntry dbg : debugTable) {
-			
-			if(ip >= dbg.beginIndex && ip < dbg.endIndex) {
-				return dbg.lineNumber;
-			}
-		}
-		
-		return 0;
 	}
 
 }

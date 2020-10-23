@@ -21,9 +21,8 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 
-public class CMethod implements RuntimeObject, CCallable {
+public class CMethod implements CCallable {
 	
 	protected Object self;
 	protected CMethodCode code;

@@ -21,13 +21,12 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
 
-public class CBoolean implements RuntimeObject {
+public class CBoolean {
 	
 	private boolean value;
 	
@@ -49,10 +48,10 @@ public class CBoolean implements RuntimeObject {
 	
 	public Object as(ChipmunkVM context, Class<?> otherType){
 		if(otherType == CInteger.class){
-			context.traceMem(4);
+			//context.traceMem(4);
 			return new CInteger(value ? 1 : 0);
 		}else if(otherType == CFloat.class){
-			context.traceMem(4);
+			//context.traceMem(4);
 			return new CFloat(value ? 1.0f : 0.0f);
 		}else if(otherType == CBoolean.class){
 			return this;
@@ -70,12 +69,12 @@ public class CBoolean implements RuntimeObject {
 	}
 	
 	public void unpack(ChipmunkVM context, NutCracker cracker, InputCapsule in){
-		context.traceMem(4);
+		//context.traceMem(4);
 		value = in.readBoolean();
 	}
 	
 	public CInteger hash(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(hashCode());
 	}
 	
@@ -85,13 +84,13 @@ public class CBoolean implements RuntimeObject {
 	
 	public String string(ChipmunkVM context){
 		String stringValue = toString();
-		context.traceMem(stringValue.length() * 2);
+		//context.traceMem(stringValue.length() * 2);
 		return stringValue;
 	}
 
 	public CString toString(ChipmunkVM vm){
 		String str = Boolean.toString(value);
-		vm.traceString(str);
+		//vm.traceString(str);
 		return new CString(str);
 	}
 	public String toString(){

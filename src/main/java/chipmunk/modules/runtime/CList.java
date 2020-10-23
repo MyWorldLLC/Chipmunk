@@ -26,9 +26,8 @@ import java.util.Collections;
 import java.util.List;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 
-public class CList implements RuntimeObject {
+public class CList {
 	
 	private final List<Object> list;
 	
@@ -55,7 +54,7 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CBoolean addAll(ChipmunkVM vm, Collection<? extends Object> collection){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.addAll(collection));
 	}
 	
@@ -64,17 +63,17 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CBoolean contains(ChipmunkVM vm, Object obj){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.contains(obj));
 	}
 	
 	public CBoolean containsAll(ChipmunkVM vm, Collection<? extends Object> collection){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.containsAll(collection));
 	}
 	
 	public CBoolean equals(ChipmunkVM vm, Object obj){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.equals(obj));
 	}
 	
@@ -99,27 +98,27 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CInteger hashCode(ChipmunkVM vm){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(list.hashCode());
 	}
 	
 	public CInteger indexOf(ChipmunkVM vm, Object obj){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(list.indexOf(obj));
 	}
 	
 	public CBoolean isEmpty(ChipmunkVM vm){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.isEmpty());
 	}
 	
 	public CIterator iterator(ChipmunkVM vm){
-		vm.traceMem(8 + 8 + 4); // size of iterator
+		//vm.traceMem(8 + 8 + 4); // size of iterator
 		return new ListIterator(list);
 	}
 	
 	public CInteger lastIndexOf(ChipmunkVM vm, Object obj){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(list.lastIndexOf(obj));
 	}
 	
@@ -128,17 +127,17 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CBoolean remove(ChipmunkVM vm, Object o){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.remove(o));
 	}
 	
 	public CBoolean removeAll(ChipmunkVM vm, Collection<? extends Object> collection){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.removeAll(collection));
 	}
 	
 	public CBoolean retainAll(ChipmunkVM vm, Collection<? extends Object> collection){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(list.retainAll(collection));
 	}
 	
@@ -147,7 +146,7 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CInteger size(ChipmunkVM vm){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(list.size());
 	}
 	
@@ -168,7 +167,7 @@ public class CList implements RuntimeObject {
 	}
 	
 	public CList subList(ChipmunkVM vm, Integer from, Integer to){
-		vm.traceMem(8); // size of CList reference
+		//vm.traceMem(8); // size of CList reference
 		return new CList(list.subList(from, to));
 	}
 	
@@ -205,7 +204,7 @@ public class CList implements RuntimeObject {
 
 	public CString toString(ChipmunkVM vm){
 		String str = list.toString();
-		vm.traceString(str);
+		//vm.traceString(str);
 		return new CString(str);
 	}
 }

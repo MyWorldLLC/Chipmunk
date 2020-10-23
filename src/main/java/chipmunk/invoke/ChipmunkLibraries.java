@@ -20,9 +20,6 @@
 
 package chipmunk.invoke;
 
-import chipmunk.ChipmunkRuntimeException;
-import chipmunk.ChipmunkLibrary;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;

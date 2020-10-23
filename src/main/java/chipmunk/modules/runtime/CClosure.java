@@ -20,9 +20,7 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.RuntimeObject;
-
-public class CClosure implements RuntimeObject {
+public class CClosure {
 	
 	protected boolean isFinal;
 	protected Object value;

@@ -21,10 +21,8 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.Namespace;
-import chipmunk.RuntimeObject;
 
-public class CClass implements RuntimeObject, Initializable, CallInterceptor, CCallable {
+public class CClass implements Initializable, CallInterceptor, CCallable {
 
 	private final Namespace sharedAttributes;
 	
@@ -58,7 +56,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 
 	public CString getFullName(ChipmunkVM vm){
-		vm.traceReference();
+		//vm.traceReference();
 		return new CString(getFullName());
 	}
 
@@ -77,7 +75,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	public Object call(ChipmunkVM vm, Object[] params){
 		
 		// TODO - memory tracing
-		vm.traceReference();
+		//vm.traceReference();
 		CObject obj = (CObject) instantiate();
 		
 		// Invoke constructor (compiler ensures that all classes have exactly one constructor).
@@ -121,7 +119,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 	
 	public Object setAttr(ChipmunkVM vm, String name, Object value){
-		vm.traceMem(8);
+		//vm.traceMem(8);
 		sharedAttributes.set(name, value);
 		return value;
 	}
@@ -131,7 +129,7 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	}
 	
 	public Object getAttr(ChipmunkVM vm, String name){
-		vm.traceMem(8);
+		//vm.traceMem(8);
 		return sharedAttributes.get(name);
 	}
 
@@ -141,10 +139,10 @@ public class CClass implements RuntimeObject, Initializable, CallInterceptor, CC
 	
 	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {
 		if(clazz.getName().equals("Class") && clazz.getModule().getName().equals("chipmunk.lang")) {
-			vm.traceBoolean();
+			//vm.traceBoolean();
 			return new CBoolean(true);
 		}
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(false);
 	}
 

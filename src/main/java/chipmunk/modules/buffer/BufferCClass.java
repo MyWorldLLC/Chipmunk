@@ -41,8 +41,8 @@ public class BufferCClass extends CClass {
             size = ((CInteger) params[0]).intValue();
         }
 
-        vm.traceReference();
-        vm.traceMem(size);
+        //vm.traceReference();
+        //vm.traceMem(size);
         return new Buffer(this, size);
     }
 

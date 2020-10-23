@@ -20,11 +20,10 @@
 
 package chipmunk.compiler;
 
-import chipmunk.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.modules.runtime.CMethod;
 
-import static chipmunk.Opcodes.*;
+import static chipmunk.compiler.Opcodes.*;
 
 public class ChipmunkDisassembler {
 

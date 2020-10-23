@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import chipmunk.Namespace;
-
 public class CModule {
 	
 	public static final String DEFAULT = "";

@@ -18,14 +18,26 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.compiler;
 
-public class SuspendedChipmunk extends RuntimeException {
+import chipmunk.ChipmunkRuntimeException;
+
+public class InvalidOpcodeChipmunk extends ChipmunkRuntimeException {
+	private static final long serialVersionUID = -8090867885080049997L;
 	
-	private static final long serialVersionUID = -2008023058517784193L;
-
-	public SuspendedChipmunk(){
-		super();
+	protected byte opcode;
+	
+	public InvalidOpcodeChipmunk(byte op){
+		super(String.format("Invalid Opcode: 0x%H", op));
+		opcode = op;
 	}
-
+	
+	public InvalidOpcodeChipmunk(byte op, String msg){
+		super(msg);
+		opcode = op;
+	}
+	
+	public byte getInvalidOpcode(){
+		return opcode;
+	}
 }

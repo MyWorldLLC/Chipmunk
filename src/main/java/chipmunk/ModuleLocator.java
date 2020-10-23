@@ -20,22 +20,11 @@
 
 package chipmunk;
 
-public class InvalidOpcodeChipmunk extends ChipmunkRuntimeException {
-	private static final long serialVersionUID = -8090867885080049997L;
-	
-	protected byte opcode;
-	
-	public InvalidOpcodeChipmunk(byte op){
-		super(String.format("Invalid Opcode: 0x%H", op));
-		opcode = op;
-	}
-	
-	public InvalidOpcodeChipmunk(byte op, String msg){
-		super(msg);
-		opcode = op;
-	}
-	
-	public byte getInvalidOpcode(){
-		return opcode;
-	}
+import java.io.IOException;
+import java.io.InputStream;
+
+public interface ModuleLocator {
+
+    InputStream locate(String moduleName) throws IOException;
+
 }

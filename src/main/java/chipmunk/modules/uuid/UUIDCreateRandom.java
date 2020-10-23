@@ -34,7 +34,7 @@ public class UUIDCreateRandom implements CCallable {
     public CObject call(ChipmunkVM vm, Object[] params) {
         //vm.checkArity(params, 0);
 
-        CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
+       /* CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
         BufferCClass cls = (BufferCClass) vm.getModule("chipmunk.buffer").getNamespace().get("Buffer");
 
         Buffer buf = cls.instantiate();
@@ -50,7 +50,8 @@ public class UUIDCreateRandom implements CCallable {
 
         vm.traceMem(16);
         vm.traceReference();
-        return cUUID;
+        return cUUID;*/
+        return null;
     }
 
 }

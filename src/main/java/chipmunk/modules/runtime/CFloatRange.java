@@ -21,9 +21,8 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 
-public class CFloatRange implements RuntimeObject {
+public class CFloatRange {
 
 	private final float start;
 	private final float end;
@@ -74,7 +73,8 @@ public class CFloatRange implements RuntimeObject {
 			float value = current;
 			current += step;
 			
-			return vm.traceFloat(value);
+			//return vm.traceFloat(value);
+			return null;
 		}
 
 		@Override

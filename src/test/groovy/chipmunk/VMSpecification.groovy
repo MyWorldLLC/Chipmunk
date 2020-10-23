@@ -31,7 +31,6 @@ import spock.lang.Specification
 class VMSpecification extends Specification {
 	
 	ChipmunkVM vm = new ChipmunkVM()
-	OperandStack stack = new OperandStack()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 	
 	CInteger negOne = new CInteger(-1)

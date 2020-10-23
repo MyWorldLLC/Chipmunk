@@ -24,9 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 
-public class CMap implements RuntimeObject {
+public class CMap {
 	
 	protected Map<Object, Object> map;
 	
@@ -47,17 +46,17 @@ public class CMap implements RuntimeObject {
 	}
 	
 	public CBoolean containsKey(ChipmunkVM vm, Object key){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.containsKey(key));
 	}
 	
 	public CBoolean containsValue(ChipmunkVM vm, Object value){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.containsValue(value));
 	}
 	
 	public CBoolean equals(ChipmunkVM vm, Object o){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.equals(o));
 	}
 	
@@ -76,17 +75,17 @@ public class CMap implements RuntimeObject {
 		if(had){
 			return former;
 		}
-		vm.traceMem(8);
+		//vm.traceMem(8);
 		return CNull.instance();
 	}
 	
 	public CInteger hashCode(ChipmunkVM vm){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CInteger(map.hashCode());
 	}
 	
 	public CBoolean isEmpty(ChipmunkVM vm){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.isEmpty());
 	}
 	
@@ -111,7 +110,7 @@ public class CMap implements RuntimeObject {
 	}
 	
 	public CBoolean remove(ChipmunkVM vm, Object key, Object value){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.remove(key, value));
 	}
 	
@@ -120,12 +119,12 @@ public class CMap implements RuntimeObject {
 	}
 	
 	public CBoolean replace(ChipmunkVM vm, Object key, Object oldValue, Object newValue){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(map.replace(key, oldValue, newValue));
 	}
 	
 	public CInteger size(ChipmunkVM vm){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(map.size());
 	}
 	

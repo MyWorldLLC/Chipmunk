@@ -21,13 +21,12 @@
 package chipmunk.modules.runtime;
 
 import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
 import chipmunk.nut.InputCapsule;
 import chipmunk.nut.NutCracker;
 import chipmunk.nut.NutPacker;
 import chipmunk.nut.OutputCapsule;
 
-public class CInteger implements RuntimeObject {
+public class CInteger {
 
 	private int value;
 	
@@ -56,141 +55,141 @@ public class CInteger implements RuntimeObject {
 	}
 	
 	public CInteger plus(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value + other.value);
 	}
 	
 	public CFloat plus(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(value + other.floatValue());
 	}
 	
 	public CInteger minus(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value - other.value);
 	}
 	
 	public CFloat minus(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(value - other.floatValue());
 	}
 	
 	public CInteger mul(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value * other.value);
 	}
 	
 	public CFloat mul(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(value * other.floatValue());
 	}
 	
 	public CFloat div(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(((float)value) / other.value);
 	}
 	
 	public CFloat div(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(value / other.floatValue());
 	}
 	
 	public CInteger fdiv(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value / other.value);
 	}
 	
 	public CInteger fdiv(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger((int) (value / other.floatValue()));
 	}
 	
 	public CInteger mod(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value % other.value);
 	}
 	
 	public CFloat mod(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat(value % other.floatValue());
 	}
 	
 	public CInteger pow(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger((int) Math.pow(value, other.value));
 	}
 	
 	public CFloat pow(ChipmunkVM context, CFloat other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CFloat((float) Math.pow(value, other.floatValue()));
 	}
 	
 	public CInteger inc(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value + 1);
 	}
 	
 	public CInteger dec(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value - 1);
 	}
 	
 	public CInteger pos(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(Math.abs(value));
 	}
 	
 	public CInteger neg(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(-value);
 	}
 	
 	public CInteger bxor(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value ^ other.value);
 	}
 	
 	public CInteger band(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value & other.value);
 	}
 	
 	public CInteger bor(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value | other.value);
 	}
 	
 	public CInteger bneg(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(~value);
 	}
 	
 	public CInteger lshift(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value << other.value);
 	}
 	
 	public CInteger rshift(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value >> other.value);
 	}
 	
 	public CInteger urshift(ChipmunkVM context, CInteger other){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(value >>> other.value);
 	}
 	
 	public CBoolean truth(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return value != 0 ? new CBoolean(true) : new CBoolean(false);
 	}
 	
 	public Object as(ChipmunkVM context, Class<?> otherType){
 		if(otherType == CInteger.class){
-			context.traceMem(4);
+			//context.traceMem(4);
 			return new CInteger(value);
 		}else if(otherType == CFloat.class){
-			context.traceMem(4);
+			//context.traceMem(4);
 			return new CFloat(value);
 		}else if(otherType == CBoolean.class){
 			return truth(context);
@@ -228,12 +227,12 @@ public class CInteger implements RuntimeObject {
 	}
 	
 	public void unpack(ChipmunkVM context, NutCracker cracker, InputCapsule in){
-		context.traceMem(4);
+		//context.traceMem(4);
 		value = in.readInt();
 	}
 	
 	public CInteger hash(ChipmunkVM context){
-		context.traceMem(4);
+		//context.traceMem(4);
 		return new CInteger(hashCode());
 	}
 	
@@ -243,7 +242,7 @@ public class CInteger implements RuntimeObject {
 	
 	public CString string(ChipmunkVM context){
 		String stringValue = toString();
-		context.traceMem(stringValue.length() * 2);
+		//context.traceMem(stringValue.length() * 2);
 		return new CString(stringValue);
 	}
 	
@@ -252,12 +251,12 @@ public class CInteger implements RuntimeObject {
 	}
 	
 	public CBoolean equals(ChipmunkVM context, CInteger other){
-		context.traceMem(1);
+		//context.traceMem(1);
 		return new CBoolean(value == other.value);
 	}
 	
 	public CBoolean equals(ChipmunkVM context, CFloat other){
-		context.traceMem(1);
+		//context.traceMem(1);
 		return new CBoolean(((float)value) == other.floatValue());
 	}
 	

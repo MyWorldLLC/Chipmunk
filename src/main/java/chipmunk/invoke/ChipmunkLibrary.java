@@ -18,24 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.invoke;
 
-public class NativeChipmunk extends RuntimeException {
+public interface ChipmunkLibrary {
 
-	private static final long serialVersionUID = 4862801255426666976L;
-	
-	protected Exception nativeException;
-	
-	public NativeChipmunk(Exception ex){
-		this(ex.getMessage(), ex);
-	}
-	
-	public NativeChipmunk(String msg, Exception ex){
-		super(msg, ex);
-		nativeException = ex;
-	}
-	
-	public Exception getNativeException(){
-		return nativeException;
-	}
+    default String moduleName(){
+        return getClass().getName();
+    }
+
 }

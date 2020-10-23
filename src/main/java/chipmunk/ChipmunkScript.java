@@ -20,96 +20,66 @@
 
 package chipmunk;
 
-import java.util.*;
+import chipmunk.runtime.ChipmunkModule;
 
-import chipmunk.ChipmunkVM.CallFrame;
-import chipmunk.binary.BinaryModule;
-import chipmunk.modules.runtime.CModule;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class ChipmunkScript {
+public abstract class ChipmunkScript {
 
-	protected List<ModuleLoader> loaders;
-	protected Map<String, BinaryModule> modules;
+    private static final ThreadLocal<ChipmunkScript> currentScript;
+    static {
+        currentScript = new ThreadLocal<>();
+    }
 
-	protected final List<Object> tags;
+    protected static void setCurrentScript(ChipmunkScript script){
+        currentScript.set(script);
+    }
 
-	protected Deque<CallFrame> frozenCallStack;
-	private boolean initialized;
+    public static ChipmunkScript getCurrentScript(){
+        return currentScript.get();
+    }
 
-	protected String entryModule;
-	protected String entryMethod;
-	protected Object[] entryArgs;
-	
-	public ChipmunkScript(){
-		this(128);
-	}
-	
-	public ChipmunkScript(int initialStackDepth){
-		loaders = new ArrayList<>();
-		modules = new HashMap<>();
-		tags = new ArrayList<>();
-		frozenCallStack = new ArrayDeque<>();
-		initialized = false;
-	}
-	
-	public boolean isFrozen(){
-		return !frozenCallStack.isEmpty();
-	}
-	public boolean isInitialized(){ return initialized; }
+    protected int id;
 
-	protected void markInitialized(){
-		initialized = true;
-	}
+    protected final List<Object> tags;
 
-	public void setEntryCall(String module, String method, Object... args){
-		entryModule = module;
-		entryMethod = method;
-		entryArgs = args;
-	}
-	
-	public void setEntryCall(String module, String method){
-		setEntryCall(module, method, new Object[]{});
-	}
+    protected volatile ChipmunkVM vm;
 
-	public String getEntryModule(){
-		return entryModule;
-	}
+    public ChipmunkScript(){
+        tags = new CopyOnWriteArrayList<>();
+    }
 
-	public String getEntryMethod(){
-		return entryMethod;
-	}
+    public ChipmunkVM getVM() {
+        return vm;
+    }
 
-	public Map<String, BinaryModule> getModules(){
-		return modules;
-	}
-	public void setModule(BinaryModule module){
-		modules.put(module.getName(), module);
-	}
+    protected void setVM(ChipmunkVM vm) {
+        this.vm = vm;
+    }
 
-	public List<ModuleLoader> getLoaders(){
-		return loaders;
-	}
+    public void tag(Object tag){
+        tags.add(tag);
+    }
 
-	public void setLoaders(List<ModuleLoader> loaders){
-		this.loaders = loaders;
-	}
+    public void removeTag(Object tag){
+        tags.remove(tag);
+    }
 
-	public synchronized void tag(Object tag){
-		tags.add(tag);
-	}
+    public <T> T getTag(Class<?> tagType){
+        for(Object o : tags){
+            if(tagType.isInstance(o)){
+                return (T) o;
+            }
+        }
+        return null;
+    }
 
-	public synchronized void removeTag(Object tag){
-		tags.remove(tag);
-	}
-	public synchronized <T> T getTag(Class<?> tagType){
-		for(Object o : tags){
-			if(tagType.isInstance(o)){
-				return (T) o;
-			}
-		}
-		return null;
-	}
-	public synchronized List<Object> getTagsUnmodifiable(){
-		return Collections.unmodifiableList(tags);
-	}
+    public List<Object> getTags(){
+        return tags;
+    }
+
+    public abstract Collection<ChipmunkModule> getModules();
+
 }

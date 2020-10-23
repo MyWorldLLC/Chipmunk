@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.modules.runtime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,8 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import chipmunk.modules.runtime.*;
 
 public class Namespace {
 

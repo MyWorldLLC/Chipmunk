@@ -18,16 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.invoke;
 
-import chipmunk.modules.runtime.CBoolean;
-import chipmunk.modules.runtime.CFloat;
-import chipmunk.modules.runtime.CInteger;
+import chipmunk.invoke.ChipmunkLibrary;
 import chipmunk.modules.runtime.TypeConversionException;
-import chipmunk.runtime.ChipmunkClass;
-import chipmunk.runtime.ChipmunkObject;
-import chipmunk.runtime.FloatRange;
-import chipmunk.runtime.IntegerRange;
+import chipmunk.runtime.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

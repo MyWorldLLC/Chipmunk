@@ -39,18 +39,18 @@ public class CString {
 	}
 
 	public CInteger hashCode(ChipmunkVM vm){
-		vm.traceInteger();
+		//vm.traceInteger();
 		return new CInteger(hashCode());
 	}
 
 	public CString plus(ChipmunkVM vm, Object other){
 		String newValue = value + other != null ? other.toString() : "null";
-		vm.traceString(newValue);
+		//vm.traceString(newValue);
 		return new CString(newValue);
 	}
 
 	public CBoolean equals(ChipmunkVM vm, Object other){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(equals(other));
 	}
 	

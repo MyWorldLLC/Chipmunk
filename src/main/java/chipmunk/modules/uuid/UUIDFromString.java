@@ -36,7 +36,7 @@ public class UUIDFromString implements CCallable {
     public Object call(ChipmunkVM vm, Object[] params) {
         //vm.checkArity(params, 1);
 
-        CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
+       /* CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
         BufferCClass cls = (BufferCClass) vm.getModule("chipmunk.buffer").getNamespace().get("Buffer");
 
         Buffer buf = cls.instantiate();
@@ -52,6 +52,7 @@ public class UUIDFromString implements CCallable {
 
         vm.traceMem(16);
         vm.traceReference();
-        return cUUID;
+        return cUUID;*/
+        return null;
     }
 }
