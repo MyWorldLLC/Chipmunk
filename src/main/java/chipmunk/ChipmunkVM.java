@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkCompiler;
@@ -44,6 +45,7 @@ public class ChipmunkVM {
 
 	protected final Binder binder;
 	protected final JvmCompiler jvmCompiler;
+	protected final ForkJoinPool scriptPool;
 
 	public ChipmunkVM() {
 		this(SecurityMode.SANDBOXED);
@@ -55,6 +57,8 @@ public class ChipmunkVM {
 
 		binder = new Binder();
 		jvmCompiler = new JvmCompiler();
+
+		scriptPool = new ForkJoinPool();
 	}
 
 	public static ChipmunkScript compile(CharSequence src, String scriptName) throws CompileChipmunk {
