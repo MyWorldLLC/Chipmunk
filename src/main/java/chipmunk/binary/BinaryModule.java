@@ -23,6 +23,7 @@ package chipmunk.binary;
 public class BinaryModule {
 
     protected String name;
+    protected String fileName;
     protected Object[] constantPool;
     protected BinaryImport[] imports;
     protected BinaryNamespace namespace;
@@ -42,6 +43,14 @@ public class BinaryModule {
 
     public void setName(String name){
         this.name = name;
+    }
+
+    public String getFileName(){
+        return fileName;
+    }
+
+    public void setFileName(String fileName){
+        this.fileName = fileName;
     }
 
     public BinaryImport[] getImports() {

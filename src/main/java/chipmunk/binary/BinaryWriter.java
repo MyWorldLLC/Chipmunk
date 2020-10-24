@@ -35,6 +35,7 @@ public class BinaryWriter {
         dos.writeShort(BinaryConstants.BINARY_VERSION);
 
         dos.writeUTF(module.getName());
+        dos.writeUTF(module.getFileName());
         writeConstants(dos, module.getConstantPool());
         writeImports(dos, module.getImports());
         writeNamespace(dos, module.getNamespace());

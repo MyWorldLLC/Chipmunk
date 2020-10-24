@@ -69,6 +69,7 @@ public class BinaryReader {
             String name = dis.readUTF();
 
             BinaryModule module = new BinaryModule(name);
+            module.setFileName(dis.readUTF());
             module.setConstantPool(readConstants(dis, module));
 
             BinaryImport[] imports = readImports(dis);
