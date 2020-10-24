@@ -20,16 +20,19 @@
 
 package chipmunk;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.invoke.*;
+import chipmunk.jvm.CompilationUnit;
 import chipmunk.jvm.JvmCompiler;
 import chipmunk.modules.runtime.*;
 import chipmunk.runtime.ChipmunkModule;
@@ -45,6 +48,7 @@ public class ChipmunkVM {
 
 	protected final Binder binder;
 	protected final JvmCompiler jvmCompiler;
+	protected final ConcurrentHashMap<Integer, ChipmunkScript> scripts;
 	protected final ForkJoinPool scriptPool;
 
 	public ChipmunkVM() {
@@ -58,22 +62,23 @@ public class ChipmunkVM {
 		binder = new Binder();
 		jvmCompiler = new JvmCompiler();
 
+		scripts = new ConcurrentHashMap<>();
 		scriptPool = new ForkJoinPool();
 	}
 
-	public static ChipmunkScript compile(CharSequence src, String scriptName) throws CompileChipmunk {
+	public ChipmunkScript compile(CharSequence src, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(src, scriptName);
-		return modulesToScript(modules, scriptName);
+		BinaryModule[] modules = compiler.compile(src, fileName);
+		return modulesToScript(modules);
 	}
 
-	public static ChipmunkScript compile(InputStream is, String scriptName) throws CompileChipmunk {
+	public ChipmunkScript compile(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(is, scriptName);
-		return modulesToScript(modules, scriptName);
+		BinaryModule[] modules = compiler.compile(is, fileName);
+		return modulesToScript(modules);
 	}
 
-	private static ChipmunkScript modulesToScript(BinaryModule[] modules, String scriptName) {
+	private ChipmunkScript modulesToScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
 
 		BinaryModule mainModule = null;
 		for (BinaryModule module : modules) {
@@ -84,19 +89,15 @@ public class ChipmunkVM {
 		}
 
 		if (mainModule == null) {
-			throw new IllegalArgumentException("Script contains no main method");
+			throw new IllegalArgumentException("Could not find main method");
 		}
 
-		//ChipmunkScript script = new ChipmunkScript();
-		//script.setEntryCall(mainModule.getName(), "main");
+		CompilationUnit unit = new CompilationUnit();
+		unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
+		unit.setEntryModule(mainModule.getName());
+		unit.setEntryMethodName("main");
 
-		//MemoryModuleLoader loader = new MemoryModuleLoader();
-		//loader.addModule(ChipmunkModuleBuilder.buildLangModule());
-		//loader.addModules(Arrays.asList(modules));
-		//script.getLoaders().add(loader);
-
-		return null;
-		//return script;
+		return jvmCompiler.compile(unit);
 	}
 
 	private void doImport(CMethodCode code, int importIndex){
@@ -131,12 +132,29 @@ public class ChipmunkVM {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
-		ChipmunkModule compiled = jvmCompiler.compile(expModule);
+		ChipmunkModule compiled = jvmCompiler.compileModule(expModule);
 		return invoke(compiled, "evaluate");
 	}
 
+	protected ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
+		ChipmunkModule module = script.loadedModules.get(moduleName);
+		if(module != null){
+			return module;
+		}
+
+		BinaryModule modBinary = script.getModuleLoader().load(moduleName);
+		if(modBinary == null){
+			throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
+		}
+
+		module = load(modBinary);
+		module.initialize();
+		script.addModule(module);
+		return module;
+	}
+
 	public ChipmunkModule load(BinaryModule module) throws Throwable {
-		return jvmCompiler.compile(module);
+		return jvmCompiler.compileModule(module);
 	}
 
 	public Object invoke(Object target, String methodName) throws Throwable {

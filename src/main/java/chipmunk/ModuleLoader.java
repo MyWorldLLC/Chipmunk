@@ -43,6 +43,11 @@ public class ModuleLoader {
 		loadedModules = new ConcurrentHashMap<>();
 	}
 
+	public ModuleLoader(Collection<BinaryModule> modules){
+		this();
+		addToLoaded(modules);
+	}
+
 	public void addLocator(ModuleLocator locator){
 		locators.add(locator);
 	}
@@ -73,7 +78,7 @@ public class ModuleLoader {
 		return null;
 	}
 
-	BinaryModule loadModule(String moduleName) throws IOException, BinaryFormatException {
+	public BinaryModule load(String moduleName) throws IOException, BinaryFormatException {
 
 		if(loadedModules.containsKey(moduleName)){
 			return loadedModules.get(moduleName);
