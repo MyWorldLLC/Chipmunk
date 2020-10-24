@@ -147,23 +147,6 @@ public class ModuleVisitor implements AstVisitor {
 	public BinaryModule getModule(){
 		module.setConstantPool(constantPool.toArray());
 		module.setImports(imports.toArray(new BinaryImport[]{}));
-
-		//MethodVisitor initVisitor = new MethodVisitor(initAssembler, module);
-
-		Set<String> importedModules = new HashSet<>();
-		for(int i = 0; i < module.getImports().length; i++){
-			BinaryImport im = module.getImports()[i];
-
-			if(!importedModules.contains(im.getName())){
-				importedModules.add(im.getName());
-				//initAssembler.initModule(i);
-			}
-
-			//initAssembler._import(i);
-		}
-
-		//initVisitor.visit(initMethod);
-		//module.setInitializer(initVisitor.getMethod());
 		
 		return module;
 	}

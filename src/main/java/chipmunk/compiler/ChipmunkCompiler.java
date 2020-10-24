@@ -60,7 +60,7 @@ public class ChipmunkCompiler {
 		return parsedModules;
 	}
 
-	public BinaryModule compileAst(ModuleNode node) throws CompileChipmunk {
+	public BinaryModule compileAst(ModuleNode node, String fileName) throws CompileChipmunk {
 
 		for(AstVisitor visitor : visitors){
 			node.visit(visitor);
@@ -68,7 +68,10 @@ public class ChipmunkCompiler {
 
 		ModuleVisitor visitor = new ModuleVisitor();
 		node.visit(visitor);
-		return visitor.getModule();
+
+		BinaryModule module = visitor.getModule();
+		module.setFileName(fileName);
+		return module;
 	}
 	
 	public BinaryModule[] compile(CharSequence src, String fileName) throws CompileChipmunk {
@@ -77,7 +80,7 @@ public class ChipmunkCompiler {
 
 		BinaryModule[] modules = new BinaryModule[parsedModules.size()];
 		for(int i = 0; i < parsedModules.size(); i++){
-			modules[i] = compileAst(parsedModules.get(i));
+			modules[i] = compileAst(parsedModules.get(i), fileName);
 		}
 		
 		return modules;
@@ -129,7 +132,7 @@ public class ChipmunkCompiler {
 
 		module.addMethodDef(method);
 
-		return compileAst(module);
+		return compileAst(module, "runtimeExpression");
 	}
 
 	public BinaryModule compileMethod(String methodDef) throws CompileChipmunk {
@@ -143,7 +146,7 @@ public class ChipmunkCompiler {
 
 		module.addMethodDef(method);
 
-		return compileAst(module);
+		return compileAst(module, "runtimeMethod");
 	}
 
 }
