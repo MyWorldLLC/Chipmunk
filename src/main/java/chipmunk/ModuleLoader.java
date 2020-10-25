@@ -23,6 +23,7 @@ package chipmunk;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
+import chipmunk.jvm.ChipmunkClassLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,10 +38,12 @@ public class ModuleLoader {
 
 	protected final List<ModuleLocator> locators;
 	protected final Map<String, BinaryModule> loadedModules;
+	protected final ChipmunkClassLoader classLoader;
 
 	public ModuleLoader(){
 		locators = new CopyOnWriteArrayList<>();
 		loadedModules = new ConcurrentHashMap<>();
+		classLoader = new ChipmunkClassLoader();
 	}
 
 	public ModuleLoader(Collection<BinaryModule> modules){
@@ -117,6 +120,10 @@ public class ModuleLoader {
 
 	public void removeFromLoaded(BinaryModule module){
 		loadedModules.remove(module.getName());
+	}
+
+	public ChipmunkClassLoader getClassLoader(){
+		return classLoader;
 	}
 
 }

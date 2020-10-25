@@ -22,6 +22,7 @@ package chipmunk.jvm;
 
 import chipmunk.ChipmunkRuntimeException;
 import chipmunk.ChipmunkScript;
+import chipmunk.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
 import chipmunk.compiler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
@@ -47,50 +48,86 @@ public class JvmCompiler {
 
         BinaryModule mainBin = sources.getModuleLoader().load(sources.getEntryModule());
 
-        ChipmunkModule mainModule = compileModule(mainBin);
-
         Type scriptType = Type.getType(ChipmunkScript.class);
 
         ClassWriter sw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        sw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, mainBin.getName(), null, scriptType.getInternalName(),
+        sw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, "ChipmunkScriptImpl", null, scriptType.getInternalName(),
                 null);
         sw.visitSource(mainBin.getFileName(), null);
 
-        // Generate run() method
+        // Generate constructor
+        MethodVisitor constructor = sw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        constructor.visitCode();
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(ChipmunkScript.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+        constructor.visitInsn(Opcodes.RETURN);
+        constructor.visitMaxs(0, 0);
+        constructor.visitEnd();
 
-        BinaryMethod entryMethod = sources.getEntryMethod();
+        // Generate run() method
         MethodVisitor run = sw.visitMethod(Opcodes.ACC_PUBLIC, "run",
                 Type.getMethodType(Type.getType(Object.class), Type.getType(Object[].class)).getDescriptor(),
                 null, null);
 
         run.visitCode();
 
-        // TODO - generate call to get the module instance
-        // TODO - generate vm call to invoke the main method with run() parameters
+        // Get the module instance
+        run.visitVarInsn(Opcodes.ALOAD, 0);
+        run.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "getVM",
+                Type.getMethodType(Type.getType(ChipmunkVM.class)).getDescriptor(),
+                false);
+        run.visitInsn(Opcodes.DUP);
+        run.visitVarInsn(Opcodes.ALOAD, 0);
+        run.visitLdcInsn(mainBin.getName());
+        run.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkVM.class).getInternalName(),
+                "getModule",
+                Type.getMethodType(
+                        Type.getType(ChipmunkModule.class),
+                        Type.getType(ChipmunkScript.class),
+                        Type.getType(String.class)).getDescriptor(),
+                false);
+
+        // Invoke the main method with run() parameters
+        run.visitLdcInsn(sources.getEntryMethodName());
+        run.visitVarInsn(Opcodes.ALOAD, 1);
+        run.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkVM.class).getInternalName(),
+                "invoke",
+                Type.getMethodType(
+                        Type.getType(Object.class),
+                        Type.getType(Object.class),
+                        Type.getType(String.class),
+                        Type.getType(Object[].class)).getDescriptor(),
+                false);
+        run.visitInsn(Opcodes.ARETURN);
+
 
         run.visitMaxs(0, 0);
         run.visitEnd();
 
         sw.visitEnd();
 
-        return (ChipmunkScript) instantiate(loadClass(mainBin.getName(), sw.toByteArray()));
+        return (ChipmunkScript) instantiate(sources.getModuleLoader().getClassLoader().define("ChipmunkScriptImpl", sw.toByteArray()));
     }
 
     public ChipmunkModule compileModule(BinaryModule module){
 
         Type objType = Type.getType(Object.class);
 
-        ClassWriter mw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        mw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(),
+        ClassWriter moduleWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        moduleWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(),
                 new String[]{
                         Type.getType(ChipmunkModule.class).getInternalName()
         });
-        mw.visitSource(module.getFileName(), null);
+        moduleWriter.visitSource(module.getFileName(), null);
 
         // Implement ChipmunkModule interface
 
         // ChipmunkModule.getName()
-        MethodVisitor getName = mw.visitMethod(Opcodes.ACC_PUBLIC, "getName", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null);
+        MethodVisitor getName = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "getName", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null);
         getName.visitCode();
         getName.visitLdcInsn(module.getName());
         getName.visitInsn(Opcodes.ARETURN);
@@ -98,7 +135,7 @@ public class JvmCompiler {
         getName.visitEnd();
 
         // ChipmunkModule.initialize()
-        MethodVisitor initialize = mw.visitMethod(Opcodes.ACC_PUBLIC, "initialize", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        MethodVisitor initialize = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "initialize", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         initialize.visitCode();
         initialize.visitVarInsn(Opcodes.ALOAD, 0);
         initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
@@ -109,10 +146,10 @@ public class JvmCompiler {
 
 
         // ChipmunkModule.getDepedencies()
-        /*mw.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "$depedencies",
+        /*moduleWriter.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "$depedencies",
                 Type.getType(String[].class).getDescriptor(), null, null);
 
-        MethodVisitor getDependencies = mw.visitMethod(Opcodes.ACC_PUBLIC, "getDependencies", Type.getMethodType(Type.getType(String[].class)).getDescriptor(), null, null);
+        MethodVisitor getDependencies = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "getDependencies", Type.getMethodType(Type.getType(String[].class)).getDescriptor(), null, null);
         getDependencies.visitCode();
         getDependencies.visitVarInsn(Opcodes.ALOAD, 0);
         getDependencies.visitFieldInsn(Opcodes.GETFIELD, module.getName().replace('.','/'), "$dependencies", Type.getType(String[].class).getDescriptor());
@@ -124,7 +161,7 @@ public class JvmCompiler {
         getDependencies.visitEnd();*/
 
         // Module constructor/initializer
-        MethodVisitor moduleInit = mw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        MethodVisitor moduleInit = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         moduleInit.visitCode();
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
         moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -150,7 +187,7 @@ public class JvmCompiler {
             }
 
             if(entry.getType() == FieldType.METHOD){
-                visitMethod(mw, flags, entry.getName(), entry.getBinaryMethod());
+                visitMethod(moduleWriter, flags, entry.getName(), entry.getBinaryMethod());
             }else if(entry.getType() == FieldType.CLASS){
                 // Generate class, add field to module, and add class initialization call to constructor
 
@@ -161,7 +198,7 @@ public class JvmCompiler {
                 Class<?> cls = loadClass(module.getName() + "." + entry.getName(), cw.toByteArray());
                 Type clsType = Type.getType(cls);
 
-                mw.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
+                moduleWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
                         Type.getType(cls).getDescriptor(), null, null);
 
                 moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
@@ -170,7 +207,7 @@ public class JvmCompiler {
                 moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, clsType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
                 moduleInit.visitFieldInsn(Opcodes.PUTFIELD, module.getName(), entry.getName(), clsType.getDescriptor());
             }else{
-                visitVar(mw, flags, entry.getName());
+                visitVar(moduleWriter, flags, entry.getName());
             }
         }
 
@@ -178,9 +215,9 @@ public class JvmCompiler {
         moduleInit.visitMaxs(0, 0);
         moduleInit.visitEnd();
 
-        mw.visitEnd();
+        moduleWriter.visitEnd();
 
-        byte[] bytes = mw.toByteArray();
+        byte[] bytes = moduleWriter.toByteArray();
 
         return (ChipmunkModule) instantiate(loadClass(module.getName(), bytes));
     }

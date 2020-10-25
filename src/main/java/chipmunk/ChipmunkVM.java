@@ -66,19 +66,19 @@ public class ChipmunkVM {
 		scriptPool = new ForkJoinPool();
 	}
 
-	public ChipmunkScript compile(CharSequence src, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(CharSequence src, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule[] modules = compiler.compile(src, fileName);
-		return modulesToScript(modules);
+		return compileScript(modules);
 	}
 
-	public ChipmunkScript compile(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule[] modules = compiler.compile(is, fileName);
-		return modulesToScript(modules);
+		return compileScript(modules);
 	}
 
-	private ChipmunkScript modulesToScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
 
 		BinaryModule mainModule = null;
 		for (BinaryModule module : modules) {
@@ -97,7 +97,10 @@ public class ChipmunkVM {
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 
-		return jvmCompiler.compile(unit);
+		ChipmunkScript script = jvmCompiler.compile(unit);
+		script.setVM(this);
+		script.setModuleLoader(unit.getModuleLoader());
+		return script;
 	}
 
 	private void doImport(CMethodCode code, int importIndex){
@@ -136,7 +139,7 @@ public class ChipmunkVM {
 		return invoke(compiled, "evaluate");
 	}
 
-	protected ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
+	public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
 		ChipmunkModule module = script.loadedModules.get(moduleName);
 		if(module != null){
 			return module;

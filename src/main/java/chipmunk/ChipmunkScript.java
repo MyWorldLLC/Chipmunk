@@ -119,4 +119,8 @@ public abstract class ChipmunkScript {
 
     public abstract Object run(Object[] args);
 
+    public Object run(){
+        return run(null);
+    }
+
 }
