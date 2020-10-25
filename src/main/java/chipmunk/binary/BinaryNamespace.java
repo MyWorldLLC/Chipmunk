@@ -23,6 +23,7 @@ package chipmunk.binary;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BinaryNamespace implements Iterable<BinaryNamespace.Entry> {
 
@@ -146,4 +147,10 @@ public class BinaryNamespace implements Iterable<BinaryNamespace.Entry> {
         return entries.iterator();
     }
 
+    public String[] getNames(){
+        return entries.stream()
+                .map(Entry::getName)
+                .collect(Collectors.toList())
+                .toArray(new String[]{});
+    }
 }

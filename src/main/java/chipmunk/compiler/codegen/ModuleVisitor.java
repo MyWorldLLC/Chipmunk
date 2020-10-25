@@ -34,9 +34,6 @@ public class ModuleVisitor implements AstVisitor {
 	
 	protected BinaryModule module;
 	protected Codegen initCodegen;
-	//protected ChipmunkAssembler initAssembler;
-
-	//protected MethodNode initMethod;
 
 	protected List<Object> constantPool;
 	protected List<BinaryImport> imports;
@@ -46,8 +43,6 @@ public class ModuleVisitor implements AstVisitor {
 		constantPool = new ArrayList<>();
 		imports = new ArrayList<>();
 		namespace = new BinaryNamespace();
-
-		//initAssembler = new ChipmunkAssembler(constantPool);
 	}
 
 	@Override
@@ -59,10 +54,7 @@ public class ModuleVisitor implements AstVisitor {
 
 			module = new BinaryModule(moduleNode.getSymbol().getName());
 
-			//initCodegen = new Codegen(initAssembler, moduleNode.getSymbolTable(), module);
-			//initMethod = new MethodNode("<module init>");
-
-			imports.add(new BinaryImport("chipmunk.lang", true));
+			//imports.add(new BinaryImport("chipmunk.lang", true));
 
 			moduleNode.visitChildren(this);
 			
@@ -72,16 +64,6 @@ public class ModuleVisitor implements AstVisitor {
 			node.visit(visitor);
 			
 			BinaryClass cls = visitor.getBinaryClass();
-			
-			// generate initialization code to run class initializer
-			//if(cls.getSharedInitializer() != null){
-				//ChipmunkAssembler initAssembler = initCodegen.getAssembler();
-				
-				//initAssembler.getModule(cls.getName());
-				//initAssembler.init();
-				//initAssembler.call((byte)1);
-				//initAssembler.pop();
-			//}
 
 			module.getNamespace().addEntry(BinaryNamespace.Entry.makeClass(cls.getName(), (byte)0, cls));
 			
@@ -119,24 +101,6 @@ public class ModuleVisitor implements AstVisitor {
 
 			// At this point, if there was an in-line assignment for this it was already moved to an initializer
 			// AST, so we don't need to do anything except add the method to the module namespace.
-
-			//VarDecVisitor visitor = new VarDecVisitor(initCodegen);
-
-			/*if(varDec.getAssignExpr() != null) {
-				// Move the assignment to the module initializer
-				AstNode expr = varDec.getAssignExpr();
-				IdNode id = new IdNode(varDec.getIDNode().getID());
-
-				OperatorNode assign = new OperatorNode(new Token("=", Token.Type.EQUALS));
-				assign.getChildren().add(id);
-				assign.getChildren().add(expr);
-
-				varDec.setAssignExpr(null);
-
-				initMethod.addToBody(assign);
-			}*/
-
-			//visitor.visit(varDec);
 			
 			module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(varDec.getVarName(), flags));
 		}else{

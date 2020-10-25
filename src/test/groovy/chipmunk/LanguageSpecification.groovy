@@ -43,17 +43,12 @@ class LanguageSpecification extends Specification {
 		loader.addToLoaded(Arrays.asList(modules))
 		unit.setModuleLoader(loader)
 
-		BinaryModule mainModule = modules.find {it -> it.getName() == "test"}
-
-		//ChipmunkModule module = vm.load(mainModule)
 		ChipmunkScript script = vm.compileScript(getClass().getResourceAsStream(scriptName), scriptName)
 		
 		if(!disassembleOnException){
-			//return vm.invoke(module, "main")
 			return script.run()
 		}else{
 			try{
-				//return vm.invoke(module, "main")
 				return script.run()
 			}catch(Exception e){
 

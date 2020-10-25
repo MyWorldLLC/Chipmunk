@@ -137,9 +137,11 @@ public class JvmCompiler {
         // ChipmunkModule.initialize()
         MethodVisitor initialize = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "initialize", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         initialize.visitCode();
-        initialize.visitVarInsn(Opcodes.ALOAD, 0);
-        initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
-        initialize.visitInsn(Opcodes.POP);
+        if(module.getNamespace().has("$module_init$")){
+            initialize.visitVarInsn(Opcodes.ALOAD, 0);
+            initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+            initialize.visitInsn(Opcodes.POP);
+        }
         initialize.visitInsn(Opcodes.RETURN);
         initialize.visitMaxs(0, 0);
         initialize.visitEnd();
@@ -166,18 +168,50 @@ public class JvmCompiler {
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
         moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
-        // Init module name
-        /*moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
-        moduleInit.visitLdcInsn(module.getName());
-        moduleInit.visitFieldInsn(Opcodes.PUTFIELD, module.getName(), "$name", Type.getType(String.class).getDescriptor());*/
 
         // Init module dependencies
         //moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
 
         // Generate a module methodhandle field for each imported field, &
-        // generate & initializer section to get a handle to that
+        // generate an initializer section to get a handle to that
         // symbol in the original module.
         // TODO
+        for(BinaryImport binaryImport : module.getImports()){
+
+            BinaryModule importedModule = null; // TODO
+
+            String[] symbols;
+            if(binaryImport.isImportAll()){
+                symbols = importedModule.getNamespace().getNames();
+            }else{
+                symbols = binaryImport.getSymbols();
+            }
+
+            String[] fieldNames;
+
+            if(binaryImport.isAliased()){
+                fieldNames = binaryImport.getAliases();
+            }else if(binaryImport.isImportAll()){
+                fieldNames = symbols;
+            }else{
+                fieldNames = binaryImport.getSymbols();
+            }
+
+            // Map our imported symbols to the names they're defined
+            // as in the other module
+            Map<String, String> mappingTable = new HashMap<>();
+            for(int i = 0; i < fieldNames.length; i++){
+                mappingTable.put(fieldNames[i], symbols[i]);
+            }
+
+            final String objDescriptor = Type.getType(Object.class).getDescriptor();
+
+            for(String field : fieldNames){
+                moduleWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, field, objDescriptor, null, null);
+
+                // TODO - generate init code to get value from imported module
+            }
+        }
 
 
         for(BinaryNamespace.Entry entry : module.getNamespace()){
