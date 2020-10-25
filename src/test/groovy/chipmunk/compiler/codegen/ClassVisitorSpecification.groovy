@@ -41,8 +41,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 2
-		cls.getSharedNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 1
+		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
 	def "Parse class with shared variable"(){
@@ -55,8 +55,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 2
-		cls.getSharedNamespace().getEntries().size() == 2
+		cls.getInstanceNamespace().getEntries().size() == 1
+		cls.getSharedNamespace().getEntries().size() == 1
 	}
 	
 	def "Parse class with instance variable"(){
@@ -69,8 +69,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 3
-		cls.getSharedNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
 	def "Parse class with shared and instance variables"(){
@@ -84,8 +84,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 3
-		cls.getSharedNamespace().getEntries().size() == 2
+		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getSharedNamespace().getEntries().size() == 1
 	}
 	
 	def "Parse class with instance variable and empty constructor"(){
@@ -100,8 +100,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 3
-		cls.getSharedNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
 	def "Parse class with instance variable and non-empty constructor"(){
@@ -118,8 +118,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 3
-		cls.getSharedNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
 	def "Parse class with shared & instance variables and non-empty constructor"(){
@@ -138,8 +138,8 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 3
-		cls.getSharedNamespace().getEntries().size() == 2
+		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getSharedNamespace().getEntries().size() == 1
 	}
 	
 	def parseClass(String expression, String test = ""){

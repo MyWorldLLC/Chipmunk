@@ -34,9 +34,6 @@ public class ClassVisitor implements AstVisitor {
 
 	protected BinaryClass cls;
 	protected List<Object> constantPool;
-
-	protected MethodNode sharedInit;
-	protected MethodNode instanceInit;
 	
 	protected BinaryModule module;
 	
@@ -62,16 +59,6 @@ public class ClassVisitor implements AstVisitor {
 			if(cls == null) {
 				cls = new BinaryClass(classNode.getName(), module);
 
-				sharedInit = new MethodNode("<class init>");
-				sharedInit.getSymbol().setShared(true);
-				sharedInit.getSymbolTable().setParent(classNode.getSymbolTable());
-
-				instanceInit = new MethodNode("<init>");
-				instanceInit.getSymbolTable().setParent(classNode.getSymbolTable());
-
-				classNode.addChild(sharedInit);
-				classNode.addChild(instanceInit);
-
 				classNode.visitChildren(this);
 			}else {
 				// visit nested class declarations
@@ -90,8 +77,7 @@ public class ClassVisitor implements AstVisitor {
 		}else if(node instanceof VarDecNode){
 
 			VarDecNode varDec = (VarDecNode) node;
-			
-			VarDecVisitor visitor = null;
+
 			final boolean isShared = varDec.getSymbol().isShared();
 			final boolean isFinal = varDec.getSymbol().isFinal();
 			final boolean isTrait = varDec.getSymbol().isTrait();
@@ -103,24 +89,6 @@ public class ClassVisitor implements AstVisitor {
 
 			if(isTrait){
 				flags |= BinaryConstants.TRAIT_FLAG;
-			}
-
-			if(varDec.getAssignExpr() != null){
-				// Move the assignment to the relevant initializer
-				AstNode expr = varDec.getAssignExpr();
-				IdNode id = new IdNode(varDec.getIDNode().getID());
-
-				OperatorNode assign = new OperatorNode(new Token("=", Token.Type.EQUALS));
-				assign.getChildren().add(id);
-				assign.getChildren().add(expr);
-
-				varDec.setAssignExpr(null);
-
-				if(isShared){
-					sharedInit.addToBody(assign);
-				}else{
-					instanceInit.addToBody(assign);
-				}
 			}
 
 			BinaryNamespace clsNamespace;
@@ -147,9 +115,6 @@ public class ClassVisitor implements AstVisitor {
 				alreadyReachedConstructor = true;
 				
 				ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-				
-				// call instance initializer before doing anything else
-				genInitCall(assembler);
 				
 				visitor = new MethodVisitor(assembler, module);
 				visitor.setDefaultReturn(false);
@@ -184,7 +149,6 @@ public class ClassVisitor implements AstVisitor {
 		// generate default constructor if no constructor was specified
 		if(!alreadyReachedConstructor){
 			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-			genInitCall(assembler);
 			// return self
 			assembler.getLocal(0);
 			assembler._return();
@@ -202,13 +166,6 @@ public class ClassVisitor implements AstVisitor {
 		}
 		
 		return cls;
-	}
-	
-	private void genInitCall(ChipmunkAssembler assembler){
-		//assembler.getLocal(0);
-		//assembler.init();
-		//assembler.call((byte)1);
-		//assembler.pop();
 	}
 
 }

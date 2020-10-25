@@ -100,6 +100,8 @@ public class ChipmunkVM {
 		ChipmunkScript script = jvmCompiler.compile(unit);
 		script.setVM(this);
 		script.setModuleLoader(unit.getModuleLoader());
+
+		// TODO - assign ID & add to script pool
 		return script;
 	}
 

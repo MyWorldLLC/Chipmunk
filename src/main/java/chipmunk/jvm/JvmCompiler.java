@@ -256,8 +256,13 @@ public class JvmCompiler {
         constructor.visitCode();
         constructor.visitVarInsn(Opcodes.ALOAD, 0);
         constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
-        constructor.visitVarInsn(Opcodes.ALOAD, 0);
-        constructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+
+        // TODO - shared initializers should be invoked by module init
+        if(cls.getSharedNamespace().has("$class_init$")){
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+        }
+
         constructor.visitInsn(Opcodes.RETURN);
         constructor.visitMaxs(0, 0);
         constructor.visitEnd();
