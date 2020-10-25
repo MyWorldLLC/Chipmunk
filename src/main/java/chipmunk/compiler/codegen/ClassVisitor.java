@@ -147,7 +147,8 @@ public class ClassVisitor implements AstVisitor {
 	public BinaryClass getBinaryClass(){
 		
 		// generate default constructor if no constructor was specified
-		if(!alreadyReachedConstructor){
+		// TODO - move this to an AST transform
+		/*if(!alreadyReachedConstructor){
 			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
 			// return self
 			assembler.getLocal(0);
@@ -163,7 +164,7 @@ public class ClassVisitor implements AstVisitor {
 			constructor.setDeclarationSymbol(cls.getName() + "." + cls.getName());
 			
 			cls.getInstanceNamespace().getEntries().add(BinaryNamespace.Entry.makeMethod(cls.getName(), (byte)0, constructor));
-		}
+		}*/
 		
 		return cls;
 	}

@@ -41,7 +41,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 0
 		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
@@ -55,7 +55,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 1
+		cls.getInstanceNamespace().getEntries().size() == 0
 		cls.getSharedNamespace().getEntries().size() == 1
 	}
 	
@@ -69,7 +69,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getInstanceNamespace().getEntries().size() == 1
 		cls.getSharedNamespace().getEntries().size() == 0
 	}
 	
@@ -84,7 +84,7 @@ class ClassVisitorSpecification extends Specification {
 		
 		then:
 		cls.getName() == "Chipmunk"
-		cls.getInstanceNamespace().getEntries().size() == 2
+		cls.getInstanceNamespace().getEntries().size() == 1
 		cls.getSharedNamespace().getEntries().size() == 1
 	}
 	
