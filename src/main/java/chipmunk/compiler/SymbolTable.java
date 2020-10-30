@@ -21,6 +21,7 @@
 package chipmunk.compiler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import chipmunk.compiler.ast.BlockNode;
@@ -78,7 +79,11 @@ public class SymbolTable {
 			symbols.remove(symbolIndex);
 		}
 	}
-	
+
+	public List<Symbol> getSymbolsUnmodifiable(){
+		return Collections.unmodifiableList(symbols);
+	}
+
 	public boolean isSymbolSet(String name, boolean searchParents){
 		int symbolIndex = symbols.indexOf(new Symbol(name));
 		

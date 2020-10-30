@@ -142,6 +142,17 @@ public class BinaryNamespace implements Iterable<BinaryNamespace.Entry> {
         return null;
     }
 
+    public Entry getEntry(String symbol){
+
+        for(Entry e : entries){
+            if(e.getName().equals(symbol)){
+                return e;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public Iterator<Entry> iterator() {
         return entries.iterator();

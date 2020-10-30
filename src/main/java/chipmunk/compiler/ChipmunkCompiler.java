@@ -26,18 +26,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import chipmunk.ModuleLoader;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.ModuleNode;
-import chipmunk.compiler.ast.transforms.InitializerBuilderVisitor;
-import chipmunk.compiler.ast.transforms.InnerMethodRewriteVisitor;
+import chipmunk.compiler.ast.transforms.*;
 import chipmunk.compiler.codegen.ModuleVisitor;
-import chipmunk.compiler.ast.transforms.SymbolAccessRewriteVisitor;
-import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor;
+import chipmunk.compiler.imports.AstImportResolver;
+import chipmunk.compiler.imports.BinaryImportResolver;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
@@ -46,22 +47,45 @@ import chipmunk.compiler.parser.ChipmunkParser;
 public class ChipmunkCompiler {
 	
 	protected List<AstVisitor> visitors;
-	protected List<ModuleNode> parsedModules;
+	protected ModuleLoader moduleLoader;
+
+	protected final AstImportResolver astResolver;
+	protected final BinaryImportResolver binaryResolver;
 	
 	public ChipmunkCompiler(){
+		this(new ModuleLoader());
+	}
+
+	public ChipmunkCompiler(ModuleLoader loader){
+		astResolver = new AstImportResolver();
+		binaryResolver = new BinaryImportResolver(loader);
+
 		visitors = new ArrayList<>();
 		visitors.add(new InitializerBuilderVisitor());
 		visitors.add(new InnerMethodRewriteVisitor());
 		visitors.add(new SymbolTableBuilderVisitor());
+		visitors.add(new ImportResolveVisitor(Arrays.asList(astResolver, binaryResolver)));
 		visitors.add(new SymbolAccessRewriteVisitor());
 	}
 	
 	public List<AstVisitor> getVisitors(){
 		return visitors;
 	}
-	
-	public List<ModuleNode> getLastParsedModules(){
-		return parsedModules;
+
+	public ModuleLoader getModuleLoader(){
+		return binaryResolver.getModuleLoader();
+	}
+
+	public void setModuleLoader(ModuleLoader loader){
+		binaryResolver.setModuleLoader(loader);
+	}
+
+	public AstImportResolver getAstResolver(){
+		return astResolver;
+	}
+
+	public BinaryImportResolver getBinaryResolver(){
+		return binaryResolver;
 	}
 
 	public BinaryModule compileAst(ModuleNode node, String fileName) throws CompileChipmunk {
@@ -80,7 +104,8 @@ public class ChipmunkCompiler {
 	
 	public BinaryModule[] compile(CharSequence src, String fileName) throws CompileChipmunk {
 
-		parsedModules = parse(lex(src), fileName);
+		List<ModuleNode> parsedModules = parse(lex(src), fileName);
+		astResolver.setModules(parsedModules);
 
 		BinaryModule[] modules = new BinaryModule[parsedModules.size()];
 		for(int i = 0; i < parsedModules.size(); i++){

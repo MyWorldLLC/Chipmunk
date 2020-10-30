@@ -18,26 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.imports;
 
-public class UnresolvedSymbolException extends RuntimeException {
-	
-	private static final long serialVersionUID = -3751232792577027254L;
+import chipmunk.compiler.Symbol;
 
-	protected final String moduleName;
-	protected final String symbolName;
-	
-	public UnresolvedSymbolException(String moduleName, String symbolName){
-		super(String.format("Could not resolve %s.%s", moduleName, symbolName));
-		this.moduleName = moduleName;
-		this.symbolName = symbolName;
-	}
+import java.util.List;
 
-	public String getModuleName(){
-		return moduleName;
-	}
+public interface ImportResolver {
 
-	public String getSymbolName(){
-		return symbolName;
-	}
+    Symbol resolve(String moduleName, String name);
+    List<Symbol> resolveSymbols(String moduleName);
+
 }
