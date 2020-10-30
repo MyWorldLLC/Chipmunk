@@ -22,7 +22,7 @@ package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
-import chipmunk.compiler.Token;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
 /**

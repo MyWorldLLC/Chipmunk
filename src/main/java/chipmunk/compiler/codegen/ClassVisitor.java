@@ -23,11 +23,9 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.binary.DebugEntry;
-import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.*;
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Token;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
 public class ClassVisitor implements AstVisitor {

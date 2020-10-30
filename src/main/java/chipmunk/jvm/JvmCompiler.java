@@ -24,7 +24,7 @@ import chipmunk.ChipmunkRuntimeException;
 import chipmunk.ChipmunkScript;
 import chipmunk.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
-import chipmunk.compiler.InvalidOpcodeChipmunk;
+import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.invoke.Binder;
 import chipmunk.runtime.ChipmunkClass;
@@ -34,7 +34,7 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.util.*;
 
-import static chipmunk.compiler.Opcodes.*;
+import static chipmunk.compiler.assembler.Opcodes.*;
 
 public class JvmCompiler {
 

@@ -20,7 +20,9 @@
 
 package chipmunk.compiler
 
-import chipmunk.compiler.Token.Type
+
+import chipmunk.compiler.lexer.ChipmunkLexer
+import chipmunk.compiler.lexer.Token
 import spock.lang.Specification
 
 class ChipmunkLexerSpecification extends Specification {
@@ -28,7 +30,7 @@ class ChipmunkLexerSpecification extends Specification {
 	def "Tokenize 3 + 4"(){
 		
 		setup:
-		ChipmunkLexer lexer = new ChipmunkLexer()
+        ChipmunkLexer lexer = new ChipmunkLexer()
 
 		when:
 		def tokens = lexer.lex("3 + 4")

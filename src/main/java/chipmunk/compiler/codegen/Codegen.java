@@ -29,7 +29,7 @@ import java.util.Map;
 
 import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryModule;
-import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
 import chipmunk.compiler.ast.AstNode;

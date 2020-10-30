@@ -21,6 +21,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.*;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ClassNode;
@@ -30,6 +31,8 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.lexer.ChipmunkLexer;
+import chipmunk.compiler.lexer.Token;
 
 public class ExpressionVisitor implements AstVisitor {
 	

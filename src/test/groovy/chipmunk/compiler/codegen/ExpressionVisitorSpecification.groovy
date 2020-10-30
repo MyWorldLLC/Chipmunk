@@ -23,17 +23,9 @@ package chipmunk.compiler.codegen
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.ChipmunkVM
-import chipmunk.compiler.ChipmunkAssembler
-import chipmunk.compiler.ChipmunkLexer
-import chipmunk.compiler.ChipmunkParser
-import chipmunk.compiler.ast.AstNode
-import chipmunk.modules.runtime.CBoolean
-import chipmunk.modules.runtime.CFloat
-import chipmunk.modules.runtime.CInteger
-import chipmunk.modules.runtime.CList
-import chipmunk.modules.runtime.CMap
-import chipmunk.modules.runtime.CMethod
-import chipmunk.modules.runtime.CString
+import chipmunk.compiler.assembler.ChipmunkAssembler
+import chipmunk.compiler.lexer.ChipmunkLexer
+import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {

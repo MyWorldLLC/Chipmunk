@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import chipmunk.compiler.Token;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
 import java.util.ArrayDeque;

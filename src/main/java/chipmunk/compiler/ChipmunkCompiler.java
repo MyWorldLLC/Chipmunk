@@ -38,6 +38,10 @@ import chipmunk.compiler.ast.transforms.InnerMethodRewriteVisitor;
 import chipmunk.compiler.codegen.ModuleVisitor;
 import chipmunk.compiler.ast.transforms.SymbolAccessRewriteVisitor;
 import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor;
+import chipmunk.compiler.lexer.ChipmunkLexer;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenStream;
+import chipmunk.compiler.parser.ChipmunkParser;
 
 public class ChipmunkCompiler {
 	

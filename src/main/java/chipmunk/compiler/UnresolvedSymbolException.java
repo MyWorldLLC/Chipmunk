@@ -20,6 +20,8 @@
 
 package chipmunk.compiler;
 
+import chipmunk.compiler.lexer.Token;
+
 public class UnresolvedSymbolException extends RuntimeException {
 	
 	private static final long serialVersionUID = -3751232792577027254L;

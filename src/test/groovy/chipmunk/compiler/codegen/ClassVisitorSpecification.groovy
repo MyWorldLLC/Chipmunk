@@ -23,8 +23,8 @@ package chipmunk.compiler.codegen
 
 import chipmunk.binary.BinaryClass
 import chipmunk.binary.BinaryModule
-import chipmunk.compiler.ChipmunkLexer
-import chipmunk.compiler.ChipmunkParser
+import chipmunk.compiler.lexer.ChipmunkLexer
+import chipmunk.compiler.parser.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
 import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor
 import spock.lang.Specification

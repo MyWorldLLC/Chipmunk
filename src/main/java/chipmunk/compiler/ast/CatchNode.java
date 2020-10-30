@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ast;
 
-import chipmunk.compiler.Token;
+import chipmunk.compiler.lexer.Token;
 
 public class CatchNode extends BlockNode {
 	

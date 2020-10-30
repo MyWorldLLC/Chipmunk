@@ -20,6 +20,8 @@
 
 package chipmunk.compiler;
 
+import chipmunk.compiler.lexer.Token;
+
 public class SyntaxErrorChipmunk extends CompileChipmunk {
 
 	private static final long serialVersionUID = 1758610427119118408L;

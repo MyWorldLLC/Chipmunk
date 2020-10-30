@@ -21,7 +21,7 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.Symbol;
-import chipmunk.compiler.Token;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.IdNode;

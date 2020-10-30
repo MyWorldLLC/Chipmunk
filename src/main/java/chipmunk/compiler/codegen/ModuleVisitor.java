@@ -21,13 +21,9 @@
 package chipmunk.compiler.codegen;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import chipmunk.binary.*;
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Token;
 import chipmunk.compiler.ast.*;
 
 public class ModuleVisitor implements AstVisitor {

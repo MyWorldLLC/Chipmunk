@@ -22,7 +22,7 @@ package chipmunk
 
 import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
-import chipmunk.compiler.ChipmunkAssembler
+import chipmunk.compiler.assembler.ChipmunkAssembler
 import chipmunk.modules.runtime.CInteger
 import spock.lang.Ignore
 import spock.lang.Specification
