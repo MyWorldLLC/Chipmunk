@@ -21,12 +21,40 @@
 package chipmunk.compiler;
 
 public class Symbol {
+
+	public static class Import {
+		protected final String module;
+		protected final String alias;
+
+		public Import(String module){
+			this(module, null);
+		}
+
+		public Import(String module, String alias){
+			this.module = module;
+			this.alias = alias;
+		}
+
+		public String getModule() {
+			return module;
+		}
+
+		public String getAlias() {
+			return alias;
+		}
+
+		public boolean isAliased(){
+			return alias != null;
+		}
+
+	}
 	
 	protected boolean isShared;
 	protected boolean isFinal;
 	protected boolean isClosure;
 	protected boolean isTrait;
 	protected String name;
+	protected Import im;
 	protected SymbolTable table;
 	
 	public Symbol(){
@@ -103,6 +131,18 @@ public class Symbol {
 
 	public void setTable(SymbolTable table) {
 		this.table = table;
+	}
+
+	public void setImport(Import im){
+		this.im = im;
+	}
+
+	public Import getImport(){
+		return im;
+	}
+
+	public boolean isImported(){
+		return im != null;
 	}
 
 	@Override

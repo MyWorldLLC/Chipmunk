@@ -18,14 +18,18 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.runtime;
+package chipmunk;
 
-import chipmunk.ChipmunkVM;
+public class ModuleNotFoundChipmunk extends RuntimeException {
 
-public interface ChipmunkModule {
+    protected final String module;
 
-    String getName();
-    default void initialize(ChipmunkVM vm){}
-    //String[] getDependencies();
+    public ModuleNotFoundChipmunk(String module){
+        super(String.format("module not found: %s", module));
+        this.module = module;
+    }
 
+    public String getModule(){
+        return module;
+    }
 }

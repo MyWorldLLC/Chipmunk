@@ -134,12 +134,13 @@ public class JvmCompiler {
         getName.visitMaxs(0, 0);
         getName.visitEnd();
 
-        // ChipmunkModule.initialize()
-        MethodVisitor initialize = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "initialize", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        // ChipmunkModule.initialize(ChipmunkVM)
+        MethodVisitor initialize = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "initialize", Type.getMethodType(Type.VOID_TYPE, Type.getType(ChipmunkVM.class)).getDescriptor(), null, null);
         initialize.visitCode();
         if(module.getNamespace().has("$module_init$")){
             initialize.visitVarInsn(Opcodes.ALOAD, 0);
-            initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+            initialize.visitVarInsn(Opcodes.ALOAD, 1);
+            initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class), Type.getType(Object.class)).getDescriptor(), false);
             initialize.visitInsn(Opcodes.POP);
         }
         initialize.visitInsn(Opcodes.RETURN);
@@ -175,8 +176,8 @@ public class JvmCompiler {
         // Generate a module methodhandle field for each imported field, &
         // generate an initializer section to get a handle to that
         // symbol in the original module.
-        // TODO
-        for(BinaryImport binaryImport : module.getImports()){
+        // TODO - this should all happen in the Chipmunk compiler
+        /*for(BinaryImport binaryImport : module.getImports()){
 
             BinaryModule importedModule = null; // TODO
 
@@ -211,7 +212,7 @@ public class JvmCompiler {
 
                 // TODO - generate init code to get value from imported module
             }
-        }
+        }*/
 
 
         for(BinaryNamespace.Entry entry : module.getNamespace()){

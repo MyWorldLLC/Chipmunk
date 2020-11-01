@@ -20,18 +20,40 @@
 
 package chipmunk.compiler.ast.transforms;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import chipmunk.ModuleNotFoundChipmunk;
 import chipmunk.compiler.Symbol;
 import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.UnresolvedSymbolException;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.BlockNode;
 import chipmunk.compiler.ast.ImportNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.SymbolNode;
+import chipmunk.compiler.imports.ImportResolver;
 
 public class SymbolTableBuilderVisitor implements AstVisitor {
+
+	protected List<ImportResolver> resolvers;
+
+	public SymbolTableBuilderVisitor(){
+		this(new ArrayList<>());
+	}
+
+	public SymbolTableBuilderVisitor(List<ImportResolver> resolvers){
+		this.resolvers = resolvers;
+	}
+
+	public List<ImportResolver> getResolvers(){
+		return resolvers;
+	}
+
+	public void setResolvers(List<ImportResolver> resolvers){
+		this.resolvers = resolvers;
+	}
 	
 	protected SymbolTable currentScope;
 
@@ -65,16 +87,45 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 		if(node instanceof ImportNode){
 			ImportNode importNode = (ImportNode) node;
 			
-			List<String> symbols;
-			
-			if(importNode.hasAliases()){
-				symbols = importNode.getAliases();
+			List<Symbol> symbols;
+
+			if(importNode.isImportAll()){
+				symbols = getModuleSymbols(importNode.getModule());
+			}else if(importNode.hasAliases()){
+				symbols = new ArrayList<>();
+
+				List<String> importedSymbols = importNode.getSymbols();
+				List<String> aliases = importNode.getAliases();
+				for(int s = 0; s < importedSymbols.size(); s++){
+
+					Symbol symbol = getModuleSymbol(importNode.getModule(), importedSymbols.get(s));
+					if(symbol == null){
+						throw new UnresolvedSymbolException(importNode.getModule(), importedSymbols.get(s));
+					}
+
+					symbol.setImport(new Symbol.Import(importNode.getModule(), aliases.get(s)));
+					symbols.add(symbol);
+				}
 			}else{
-				symbols = importNode.getSymbols();
+				symbols = new ArrayList<>();
+
+				for(String s : importNode.getSymbols()){
+
+					Symbol symbol = getModuleSymbol(importNode.getModule(), s);
+					if(symbol == null){
+						throw new UnresolvedSymbolException(importNode.getModule(), s);
+					}
+
+					symbols.add(symbol);
+				}
+			}
+
+			if(symbols == null){
+				throw new ModuleNotFoundChipmunk(importNode.getModule());
 			}
 			
-			for(String symbol : symbols){
-				currentScope.setSymbol(new Symbol(symbol, true));
+			for(Symbol symbol : symbols){
+				currentScope.setSymbol(symbol);
 			}
 		}
 		
@@ -83,6 +134,32 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 		if(currentScope != null && node instanceof BlockNode){
 			currentScope = currentScope.getParent();
 		}
+	}
+
+	protected List<Symbol> getModuleSymbols(String moduleName){
+
+		for(ImportResolver resolver : resolvers){
+			List<Symbol> symbols = resolver.resolveSymbols(moduleName);
+			if(symbols != null){
+				symbols.forEach(s -> s.setImport(new Symbol.Import(moduleName)));
+				return symbols;
+			}
+		}
+
+		return null;
+	}
+
+	protected Symbol getModuleSymbol(String moduleName, String name){
+
+		for(ImportResolver resolver : resolvers){
+			Symbol symbol = resolver.resolve(moduleName, name);
+			if(symbol != null){
+				symbol.setImport(new Symbol.Import(moduleName));
+				return symbol;
+			}
+		}
+
+		return null;
 	}
 
 }

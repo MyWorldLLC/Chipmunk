@@ -105,40 +105,16 @@ public class ChipmunkVM {
 		return script;
 	}
 
-	private void doImport(CMethodCode code, int importIndex){
-		final CModule module = code.getModule();
-		final CModule.Import moduleImport = code.getModule().getImports().get(importIndex);
-		//final BinaryNamespace importedNamespace = modules.get(moduleImport.getName()).getNamespace();
-
-		if(moduleImport.isImportAll()){
-
-			//Set<String> importedNames = importedNamespace.names();
-
-			//for(String name : importedNames){
-			//	module.getNamespace().setFinal(name, importedNamespace.get(name));
-			//}
-		}else{
-
-			List<String> symbols = moduleImport.getSymbols();
-			List<String> aliases = moduleImport.getAliases();
-
-			for(int i = 0; i < symbols.size(); i++){
-
-				if(moduleImport.isAliased()){
-					//module.getNamespace().setFinal(aliases.get(i), importedNamespace.get(symbols.get(i)));
-				}else{
-					//module.getNamespace().setFinal(symbols.get(i), importedNamespace.get(symbols.get(i)));
-				}
-			}
-		}
-	}
-
 	public Object eval(String exp) throws Throwable {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
 		ChipmunkModule compiled = jvmCompiler.compileModule(expModule);
 		return invoke(compiled, "evaluate");
+	}
+
+	public ChipmunkModule getModule(String moduleName) throws Throwable {
+		return getModule(ChipmunkScript.getCurrentScript(), moduleName);
 	}
 
 	public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
@@ -153,8 +129,7 @@ public class ChipmunkVM {
 		}
 
 		module = load(modBinary);
-		module.initialize();
-		script.addModule(module);
+		module.initialize(this);
 		return module;
 	}
 

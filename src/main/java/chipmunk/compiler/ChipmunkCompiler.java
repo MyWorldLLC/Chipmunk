@@ -63,8 +63,7 @@ public class ChipmunkCompiler {
 		visitors = new ArrayList<>();
 		visitors.add(new InitializerBuilderVisitor());
 		visitors.add(new InnerMethodRewriteVisitor());
-		visitors.add(new SymbolTableBuilderVisitor());
-		visitors.add(new ImportResolveVisitor(Arrays.asList(astResolver, binaryResolver)));
+		visitors.add(new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver)));
 		visitors.add(new SymbolAccessRewriteVisitor());
 	}
 	

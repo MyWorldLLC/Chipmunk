@@ -38,6 +38,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
             ModuleNode moduleNode = (ModuleNode) node;
 
             MethodNode initializer = new MethodNode("$module_init$");
+            initializer.addParam(new VarDecNode("vm"));
             moduleNode.getChildren().add(0, initializer);
 
             modulesAndClasses.push(moduleNode);
