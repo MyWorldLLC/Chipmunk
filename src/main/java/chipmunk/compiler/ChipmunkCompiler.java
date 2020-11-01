@@ -25,9 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import chipmunk.ModuleLoader;
 import chipmunk.binary.BinaryModule;
@@ -45,8 +43,12 @@ import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.parser.ChipmunkParser;
 
 public class ChipmunkCompiler {
-	
-	protected List<AstVisitor> visitors;
+
+	public enum Pass {
+		POST_PARSE, SYMBOL_RESOLUTION, PRE_ASSEMBLY
+	}
+
+	protected Map<Pass, List<AstVisitor>> passes;
 	protected ModuleLoader moduleLoader;
 
 	protected final AstImportResolver astResolver;
@@ -60,15 +62,14 @@ public class ChipmunkCompiler {
 		astResolver = new AstImportResolver();
 		binaryResolver = new BinaryImportResolver(loader);
 
-		visitors = new ArrayList<>();
-		visitors.add(new InitializerBuilderVisitor());
-		visitors.add(new InnerMethodRewriteVisitor());
-		visitors.add(new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver)));
-		visitors.add(new SymbolAccessRewriteVisitor());
-	}
-	
-	public List<AstVisitor> getVisitors(){
-		return visitors;
+		passes = new HashMap<>();
+		passes.put(Pass.POST_PARSE, Arrays.asList(
+				new InitializerBuilderVisitor(),
+				new InnerMethodRewriteVisitor()));
+
+		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver))));
+
+		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(new SymbolAccessRewriteVisitor()));
 	}
 
 	public ModuleLoader getModuleLoader(){
@@ -87,33 +88,6 @@ public class ChipmunkCompiler {
 		return binaryResolver;
 	}
 
-	public BinaryModule compileAst(ModuleNode node, String fileName) throws CompileChipmunk {
-
-		for(AstVisitor visitor : visitors){
-			node.visit(visitor);
-		}
-
-		ModuleVisitor visitor = new ModuleVisitor();
-		node.visit(visitor);
-
-		BinaryModule module = visitor.getModule();
-		module.setFileName(fileName);
-		return module;
-	}
-	
-	public BinaryModule[] compile(CharSequence src, String fileName) throws CompileChipmunk {
-
-		List<ModuleNode> parsedModules = parse(lex(src), fileName);
-		astResolver.setModules(parsedModules);
-
-		BinaryModule[] modules = new BinaryModule[parsedModules.size()];
-		for(int i = 0; i < parsedModules.size(); i++){
-			modules[i] = compileAst(parsedModules.get(i), fileName);
-		}
-		
-		return modules;
-	}
-
 	public TokenStream lex(CharSequence src) throws CompileChipmunk {
 		ChipmunkLexer lexer = new ChipmunkLexer();
 		return lexer.lex(src);
@@ -125,28 +99,58 @@ public class ChipmunkCompiler {
 		parser.parse();
 		return parser.getModuleRoots();
 	}
-	
-	public BinaryModule[] compile(InputStream src, String fileName) throws CompileChipmunk {
-		StringBuilder builder = new StringBuilder();
 
-		try{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(src, StandardCharsets.UTF_8));
-			int character = reader.read();
-			while(character != -1){
-				builder.append((char) character);
-				character = reader.read();
-			}
-		}catch(IOException ex){
-			throw new CompileChipmunk("Failed to load source", ex);
+	protected void visit(ModuleNode node, List<AstVisitor> visitors){
+		visitors.forEach(v -> v.visit(node));
+	}
+
+	public BinaryModule[] compile(InputStream src, String fileName) throws CompileChipmunk {
+		Compilation compilation = new Compilation();
+		compilation.addSource(new ChipmunkSource(src, fileName));
+		return compile(compilation);
+	}
+
+	public BinaryModule[] compile(Compilation compilation) throws CompileChipmunk {
+		List<ModuleNode> asts = new ArrayList<>();
+
+		for(ChipmunkSource source : compilation.getSources()){
+			List<ModuleNode> parsed = parse(lex(source.readFully()), source.getFileName());
+			asts.addAll(parsed);
 		}
 
-		
-		return compile(builder, fileName);
+		return compile(asts);
+	}
+
+	public BinaryModule[] compile(ModuleNode... asts) throws CompileChipmunk {
+		return compile(Arrays.asList(asts));
+	}
+
+	public BinaryModule[] compile(List<ModuleNode> asts) throws CompileChipmunk {
+		astResolver.setModules(asts);
+
+		asts.forEach(moduleNode -> visit(moduleNode, passes.get(Pass.POST_PARSE)));
+		asts.forEach(moduleNode -> visit(moduleNode, passes.get(Pass.SYMBOL_RESOLUTION)));
+		asts.forEach(moduleNode -> visit(moduleNode, passes.get(Pass.PRE_ASSEMBLY)));
+
+		BinaryModule[] modules = new BinaryModule[asts.size()];
+		for(int i = 0; i < asts.size(); i++){
+			ModuleNode ast = asts.get(i);
+
+			ModuleVisitor visitor = new ModuleVisitor();
+			ast.visit(visitor);
+
+			BinaryModule module = visitor.getModule();
+			module.setFileName(ast.getFileName());
+			modules[i] = module;
+		}
+
+		return modules;
 	}
 
 	public BinaryModule compileExpression(String exp) throws CompileChipmunk {
 		ModuleNode module = new ModuleNode();
 		module.setName("exp");
+		module.setFileName("runtimeExpression");
 
 		MethodNode method = new MethodNode("evaluate");
 		FlowControlNode ret = new FlowControlNode(new Token("return", Token.Type.RETURN));
@@ -160,12 +164,13 @@ public class ChipmunkCompiler {
 
 		module.addMethodDef(method);
 
-		return compileAst(module, "runtimeExpression");
+		return compile(module)[0];
 	}
 
 	public BinaryModule compileMethod(String methodDef) throws CompileChipmunk {
 		ModuleNode module = new ModuleNode();
 		module.setName("exp");
+		module.setFileName("runtimeMethod");
 
 		TokenStream tokens = lex(methodDef);
 		ChipmunkParser parser = new ChipmunkParser(tokens);
@@ -174,7 +179,7 @@ public class ChipmunkCompiler {
 
 		module.addMethodDef(method);
 
-		return compileAst(module, "runtimeMethod");
+		return compile(module)[0];
 	}
 
 }

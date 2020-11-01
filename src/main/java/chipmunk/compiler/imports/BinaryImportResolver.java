@@ -56,6 +56,10 @@ public class BinaryImportResolver implements ImportResolver {
 
         try {
             BinaryModule module = loader.load(moduleName);
+            if(module == null){
+                return null;
+            }
+
             if(module.getNamespace().has(name)){
                 BinaryNamespace.Entry e = module.getNamespace().getEntry(name);
                 return makeSymbol(e);
@@ -71,6 +75,10 @@ public class BinaryImportResolver implements ImportResolver {
     public List<Symbol> resolveSymbols(String moduleName) {
         try {
             BinaryModule module = loader.load(moduleName);
+            if(module == null){
+                return null;
+            }
+
             BinaryNamespace namespace = module.getNamespace();
             return namespace.getEntries()
                     .stream()

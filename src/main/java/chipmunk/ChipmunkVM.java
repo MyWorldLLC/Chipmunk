@@ -30,6 +30,8 @@ import java.util.concurrent.ForkJoinPool;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.ChipmunkSource;
+import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.invoke.*;
 import chipmunk.jvm.CompilationUnit;
@@ -66,16 +68,16 @@ public class ChipmunkVM {
 		scriptPool = new ForkJoinPool();
 	}
 
-	public ChipmunkScript compileScript(CharSequence src, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(src, fileName);
+		BinaryModule[] modules = compiler.compile(compilation);
 		return compileScript(modules);
 	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
-		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(is, fileName);
-		return compileScript(modules);
+		Compilation compilation = new Compilation();
+		compilation.addSource(new ChipmunkSource(is, fileName));
+		return compileScript(compilation);
 	}
 
 	public ChipmunkScript compileScript(BinaryModule[] modules) throws IOException, BinaryFormatException {

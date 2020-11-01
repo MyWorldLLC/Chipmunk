@@ -71,7 +71,7 @@ public class AstImportResolver implements ImportResolver {
     }
 
     public Optional<ModuleNode> getModuleNode(String moduleName){
-        return  modules.stream()
+        return modules.stream()
                 .filter(n -> n.getName().equals(moduleName))
                 .findFirst();
     }

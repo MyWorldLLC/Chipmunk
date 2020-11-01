@@ -25,6 +25,7 @@ import chipmunk.compiler.SymbolTable;
 
 public class ModuleNode extends BlockNode implements SymbolNode {
 
+	protected String fileName;
 	protected Symbol symbol;
 	
 	public ModuleNode(){
@@ -48,6 +49,14 @@ public class ModuleNode extends BlockNode implements SymbolNode {
 	
 	public Symbol getSymbol() {
 		return symbol;
+	}
+
+	public String getFileName(){
+		return fileName;
+	}
+
+	public void setFileName(String fileName){
+		this.fileName = fileName;
 	}
 	
 	public void addImport(ImportNode node){

@@ -191,6 +191,7 @@ public class ChipmunkParser {
 	
 	public ModuleNode parseModule(){
 		ModuleNode module = new ModuleNode();
+		module.setFileName(fileName);
 		startNode(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		skipNewlinesAndComments();
