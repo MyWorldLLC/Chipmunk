@@ -44,7 +44,8 @@ class LanguageSpecification extends Specification {
 		unit.setModuleLoader(loader)
 
 		ChipmunkScript script = vm.compileScript(getClass().getResourceAsStream(scriptName), scriptName)
-		
+		ChipmunkScript.setCurrentScript(script)
+
 		if(!disassembleOnException){
 			return script.run()
 		}else{

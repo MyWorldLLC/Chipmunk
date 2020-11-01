@@ -129,6 +129,10 @@ public class Symbol {
 		return table;
 	}
 
+	public SymbolTable.Scope getDeclaringScope(){
+		return table.getScope();
+	}
+
 	public void setTable(SymbolTable table) {
 		this.table = table;
 	}

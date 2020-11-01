@@ -92,7 +92,7 @@ public class SymbolTable {
 				return true;
 			}
 		}
-		return symbolIndex != -1 ? true : false;
+		return symbolIndex != -1;
 	}
 	
 	public int getLocalIndex(String symbolName){
@@ -219,7 +219,7 @@ public class SymbolTable {
 		return String.join(".", symbols);
 	}
 
-	public Scope getMethodScope(){
+	public Scope getMethodContainingScope(){
 		SymbolTable symbols = this;
 		while(symbols.getScope() == Scope.LOCAL){
 			symbols = symbols.getParent();
@@ -229,16 +229,29 @@ public class SymbolTable {
 		return symbols.getParent().getScope();
 	}
 
+	public SymbolTable getModuleScope(){
+		SymbolTable symbols = this;
+		while(symbols.getScope() != Scope.MODULE){
+			symbols = symbols.getParent();
+		}
+
+		return symbols;
+	}
+
 	public boolean isModuleMethodScope(){
-		return getMethodScope() == Scope.MODULE;
+		return getMethodContainingScope() == Scope.MODULE;
 	}
 
 	public boolean isClassMethodScope(){
-		return getMethodScope() == Scope.CLASS;
+		return getMethodContainingScope() == Scope.CLASS;
 	}
 
 	public boolean isInnerMethodScope(){
-		return getMethodScope() == Scope.METHOD;
+		return getMethodContainingScope() == Scope.METHOD;
+	}
+
+	public boolean isMethodScope(){
+		return scope == Scope.LOCAL || scope == Scope.METHOD;
 	}
 	
 	@Override

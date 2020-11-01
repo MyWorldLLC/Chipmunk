@@ -28,7 +28,7 @@ public class UnresolvedSymbolException extends RuntimeException {
 	protected final String symbolName;
 	
 	public UnresolvedSymbolException(String moduleName, String symbolName){
-		super(String.format("Could not resolve %s.%s", moduleName, symbolName));
+		super(String.format("%s is not defined or imported in module %s", symbolName, moduleName));
 		this.moduleName = moduleName;
 		this.symbolName = symbolName;
 	}

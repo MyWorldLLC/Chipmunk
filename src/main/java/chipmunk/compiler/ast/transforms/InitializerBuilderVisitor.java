@@ -20,11 +20,14 @@
 
 package chipmunk.compiler.ast.transforms;
 
+import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class InitializerBuilderVisitor implements AstVisitor {
 
@@ -40,6 +43,33 @@ public class InitializerBuilderVisitor implements AstVisitor {
             MethodNode initializer = new MethodNode("$module_init$");
             initializer.addParam(new VarDecNode("vm"));
             moduleNode.getChildren().add(0, initializer);
+
+            // Create imported module fields & generate vm calls to initialize them
+            List<ImportNode> imports = moduleNode.getChildren()
+                    .stream()
+                    .filter(n -> n instanceof ImportNode)
+                    .map(n -> (ImportNode) n)
+                    .collect(Collectors.toList());
+
+            for(ImportNode im : imports){
+
+                final int index = im.getBeginTokenIndex();
+                final int line = im.getLineNumber();
+                final int column = 0;
+
+                VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(im.getModule()));
+
+                OperatorNode getModuleCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
+                OperatorNode vmDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                vmDotNode.getChildren().add(new IdNode("vm"));
+                vmDotNode.getChildren().add(new IdNode("getModule"));
+
+                getModuleCallNode.getChildren().add(vmDotNode);
+                getModuleCallNode.getChildren().add(new LiteralNode(new Token("\"" + im.getModule() + "\"", Token.Type.STRINGLITERAL)));
+
+                dec.setAssignExpr(getModuleCallNode);
+                moduleNode.getChildren().add(dec);
+            }
 
             modulesAndClasses.push(moduleNode);
 

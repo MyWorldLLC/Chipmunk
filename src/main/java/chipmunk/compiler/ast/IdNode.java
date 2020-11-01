@@ -34,6 +34,11 @@ public class IdNode extends AstNode {
 		super();
 		setID(id);
 	}
+
+	public IdNode(String id){
+		super();
+		setID(new Token(id, Token.Type.IDENTIFIER));
+	}
 	
 	public Token getID(){
 		return id;

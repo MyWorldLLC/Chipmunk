@@ -26,6 +26,9 @@ public interface ChipmunkModule {
 
     String getName();
     default void initialize(ChipmunkVM vm){}
+    default ChipmunkModule getModule(){
+        return this;
+    }
     //String[] getDependencies();
 
 }

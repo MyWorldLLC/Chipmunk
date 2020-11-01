@@ -223,9 +223,9 @@ public class ChipmunkParser {
 					}
 				}
 			}
-			module.getSymbol().setName(moduleName.toString());
+			module.setName(moduleName.toString());
 		}else{
-			module.getSymbol().setName("");
+			module.setName("");
 		}
 		
 		skipNewlinesAndComments();
