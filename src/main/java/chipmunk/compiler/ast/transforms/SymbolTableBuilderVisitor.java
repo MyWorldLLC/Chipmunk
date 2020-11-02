@@ -100,10 +100,11 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 
 					Symbol symbol = getModuleSymbol(importNode.getModule(), importedSymbols.get(s));
 					if(symbol == null){
-						throw new UnresolvedSymbolException(importNode.getModule(), importedSymbols.get(s));
+						throw new UnresolvedSymbolException(importNode.getModule(), aliases.get(s));
 					}
 
-					symbol.setImport(new Symbol.Import(importNode.getModule(), aliases.get(s)));
+					symbol.setName(aliases.get(s));
+					symbol.setImport(new Symbol.Import(importNode.getModule(), importedSymbols.get(s)));
 					symbols.add(symbol);
 				}
 			}else{

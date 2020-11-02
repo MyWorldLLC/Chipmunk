@@ -100,7 +100,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                         IdNode importedModuleName = new IdNode(new Token(moduleFieldName, Token.Type.IDENTIFIER, index, line, column));
 
                         if(symbol.getImport().isAliased()){
-                            varId = new IdNode(new Token(symbol.getImport().getAlias(), Token.Type.IDENTIFIER, index, line, column));
+                            varId = new IdNode(new Token(symbol.getImport().getAliasedSymbol(), Token.Type.IDENTIFIER, index, line, column));
                         }
 
                         varDotNode.getChildren().add(importedModuleName);

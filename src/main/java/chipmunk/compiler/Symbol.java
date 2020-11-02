@@ -24,27 +24,27 @@ public class Symbol {
 
 	public static class Import {
 		protected final String module;
-		protected final String alias;
+		protected final String aliased;
 
 		public Import(String module){
 			this(module, null);
 		}
 
-		public Import(String module, String alias){
+		public Import(String module, String aliased){
 			this.module = module;
-			this.alias = alias;
+			this.aliased = aliased;
 		}
 
 		public String getModule() {
 			return module;
 		}
 
-		public String getAlias() {
-			return alias;
+		public String getAliasedSymbol() {
+			return aliased;
 		}
 
 		public boolean isAliased(){
-			return alias != null;
+			return aliased != null;
 		}
 
 	}

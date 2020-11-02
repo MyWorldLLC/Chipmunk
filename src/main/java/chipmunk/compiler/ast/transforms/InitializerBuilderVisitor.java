@@ -24,9 +24,7 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InitializerBuilderVisitor implements AstVisitor {
@@ -51,11 +49,17 @@ public class InitializerBuilderVisitor implements AstVisitor {
                     .map(n -> (ImportNode) n)
                     .collect(Collectors.toList());
 
+            Set<String> alreadyImported = new HashSet<>();
+
             for(ImportNode im : imports){
 
                 final int index = im.getBeginTokenIndex();
                 final int line = im.getLineNumber();
                 final int column = 0;
+
+                if(alreadyImported.contains(im.getModule())){
+                    continue;
+                }
 
                 VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(im.getModule()));
 
@@ -69,6 +73,8 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 dec.setAssignExpr(getModuleCallNode);
                 moduleNode.getChildren().add(dec);
+
+                alreadyImported.add(im.getModule());
             }
 
             modulesAndClasses.push(moduleNode);
