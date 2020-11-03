@@ -117,10 +117,13 @@ public class Codegen implements AstVisitor {
 		Deque<SymbolTable> trace = getSymbolTrace(name);
 
 		if(trace == null){
-			throw new IllegalStateException(name + " not found in a local scope");
+			throw new IllegalStateException(name + " not found");
 		}
 
 		SymbolTable table = trace.getLast();
+		if(table.getLocalIndex(name) == -1){
+			throw new IllegalStateException(name + " is not a local");
+		}
 
 		if(assign){
 			assembler.dup();

@@ -169,8 +169,11 @@ public class Symbol {
 		if(isFinal){
 			builder.append("final ");
 		}
-		
+
 		builder.append(name);
+
+		builder.append(" scope: ");
+		builder.append(getDeclaringScope());
 		
 		return builder.toString();
 	}
