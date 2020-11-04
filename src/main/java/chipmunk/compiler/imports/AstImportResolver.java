@@ -26,6 +26,7 @@ import chipmunk.compiler.ast.ModuleNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AstImportResolver implements ImportResolver {
 
@@ -56,7 +57,12 @@ public class AstImportResolver implements ImportResolver {
             return null;
         }
 
-        return node.get().getSymbolTable().getSymbol(name);
+        Symbol symbol = node.get().getSymbolTable().getSymbol(name);
+        if(symbol != null){
+            symbol = symbol.clone();
+        }
+
+        return symbol;
     }
 
     @Override
@@ -67,7 +73,11 @@ public class AstImportResolver implements ImportResolver {
             return null;
         }
 
-        return node.get().getSymbolTable().getSymbolsUnmodifiable();
+        return node.get().getSymbolTable()
+                .getSymbolsUnmodifiable()
+                .stream()
+                .map(Symbol::clone)
+                .collect(Collectors.toList());
     }
 
     public Optional<ModuleNode> getModuleNode(String moduleName){

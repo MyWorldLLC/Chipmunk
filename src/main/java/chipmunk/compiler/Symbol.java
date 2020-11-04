@@ -47,6 +47,10 @@ public class Symbol {
 			return aliased != null;
 		}
 
+		public Import clone(){
+			return new Import(module, aliased);
+		}
+
 	}
 	
 	protected boolean isShared;
@@ -147,6 +151,15 @@ public class Symbol {
 
 	public boolean isImported(){
 		return im != null;
+	}
+
+	public Symbol clone(){
+		Symbol clone = new Symbol(name, isFinal, isShared, isClosure, isTrait);
+		clone.setTable(table);
+		if(isImported()){
+			clone.setImport(im.clone());
+		}
+		return clone;
 	}
 
 	@Override

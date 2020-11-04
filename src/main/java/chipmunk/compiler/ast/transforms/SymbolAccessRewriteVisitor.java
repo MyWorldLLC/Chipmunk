@@ -48,7 +48,6 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
         if(node instanceof BlockNode){
             scope = ((BlockNode) node).getSymbolTable();
-            System.out.println("Visiting " + scope.getDebugSymbol());
             node.visitChildren(this);
             scope = scope.getParent();
         }else if(node instanceof OperatorNode || node instanceof FlowControlNode){
@@ -98,8 +97,6 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             return child;
         }
 
-        System.out.println(symbol);
-
         // If the symbol is found in the module scope call getModule() & emit access at module level
         if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE) {
 
@@ -139,7 +136,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             } else {
                 varDotNode.getChildren().add(varId);
             }
-            System.out.println(varDotNode);
+
             return varDotNode;
         } else if (symbol.getDeclaringScope() == SymbolTable.Scope.CLASS) {
 

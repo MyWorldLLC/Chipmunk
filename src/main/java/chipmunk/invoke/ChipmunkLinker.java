@@ -98,8 +98,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            //Object value = params[1];
-
             Field field = target.getClass().getField((String) op.getName());
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
                     .toMethodHandle(VarHandle.AccessMode.SET);
@@ -107,7 +105,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             MethodHandle guard = lookup.findStatic(
                     this.getClass(),
                     "validateFieldAccess",
-                    MethodType.methodType(boolean.class, Class.class, Class.class))
+                    MethodType.methodType(boolean.class, Object.class, Object.class))
                     .bindTo(target);
 
             return new GuardedInvocation(fieldHandle, guard);
