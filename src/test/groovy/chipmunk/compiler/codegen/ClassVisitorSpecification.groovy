@@ -23,6 +23,7 @@ package chipmunk.compiler.codegen
 
 import chipmunk.binary.BinaryClass
 import chipmunk.binary.BinaryModule
+import chipmunk.compiler.ast.transforms.SymbolAccessRewriteVisitor
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
@@ -148,6 +149,7 @@ class ClassVisitorSpecification extends Specification {
 		ChipmunkParser parser = new ChipmunkParser(lexer.lex(expression))
 		AstNode root = parser.parseClassDef()
 		root.visit(new SymbolTableBuilderVisitor())
+		root.visit(new SymbolAccessRewriteVisitor())
 		root.visit(visitor)
 
 
