@@ -25,6 +25,7 @@ import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.jvm.CompilationUnit
 import chipmunk.runtime.ChipmunkModule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class LanguageSpecification extends Specification {
@@ -65,7 +66,8 @@ class LanguageSpecification extends Specification {
 			}
 		}
 	}
-	
+
+	@Ignore
 	def "Run SimpleMethod.chp"(){
 		when:
 		def result = compileAndRun("SimpleMethod.chp", true)

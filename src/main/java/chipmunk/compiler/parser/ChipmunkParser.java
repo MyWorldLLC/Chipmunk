@@ -147,7 +147,7 @@ public class ChipmunkParser {
 		register(Token.Type.LBRACKET, new IndexOperatorParselet());
 		
 		// method def operator (allow method definitions in expressions)
-		register(Token.Type.DEF, new MethodDefParselet());
+		//register(Token.Type.DEF, new MethodDefParselet());
 		// class definition operator (allows creating anonymous classes in expressions)
 		//register(Token.Type.CLASS, new ClassDefParselet());
 	}
@@ -554,9 +554,9 @@ public class ChipmunkParser {
 		
 		if(checkVarDec()){
 			return parseVarDec();
-		}else if(checkMethodDef()){
-			return parseMethodDef();
-		}
+		}//else if(checkMethodDef()){
+		//	return parseMethodDef();
+		//}
 		//else if(checkClassDef()){
 		//	return parseClassDef();
 		//}

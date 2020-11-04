@@ -26,6 +26,7 @@ import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.runtime.ChipmunkModule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -372,7 +373,8 @@ class MethodVisitorSpecification extends Specification {
 		result instanceof Integer
 		result == 5
 	}
-	
+
+	@Ignore
 	def "Lambda call"(){
 		when:
 		def result = parseAndCall("""
@@ -386,8 +388,8 @@ class MethodVisitorSpecification extends Specification {
 		result instanceof Integer
 		result == 1
 	}
-	
-	
+
+	@Ignore
 	def "Lambda call - one parameter"(){
 		when:
 		def result = parseAndCall("""
@@ -402,7 +404,8 @@ class MethodVisitorSpecification extends Specification {
 		result instanceof Integer
 		result == 1
 	}
-	
+
+	@Ignore
 	def "Lambda call - two parameters"(){
 		when:
 		def result = parseAndCall("""
