@@ -149,7 +149,12 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         if(callTarget == null){
             throw new NoSuchMethodException(
-                    receiverType.getName() + "." + methodName + "(" + Arrays.stream(pTypes).map(c -> c != null ? c.getName() : "null").collect(Collectors.toList()) + ")");
+                    receiverType.getName() + "." + methodName + "(" +
+                            Arrays.stream(pTypes)
+                                    .skip(1) // Skip self reference
+                                    .map(c -> c != null ? c.getName() : "null")
+                                    .collect(Collectors.joining(","))
+                            + ")");
         }
 
         return callTarget;

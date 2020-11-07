@@ -155,13 +155,13 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 10
 	}
-	
+
 	def "Run OverwriteImport.chp"(){
 		when:
 		def result = compileAndRun("OverwriteImport.chp")
 		
 		then:
-		thrown(ChipmunkRuntimeException)
+		result == 4
 	}
 	
 	def "Run List.chp"(){

@@ -221,10 +221,10 @@ public class JvmCompiler {
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
-        //if(cls.getSharedNamespace().has("$class_init$")){
+        if(cls.getSharedNamespace().has("$class_init$")){
             clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
             clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedCClassName), "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
-       // }
+        }
 
         clsConstructor.visitInsn(Opcodes.RETURN);
         clsConstructor.visitMaxs(0, 0);
