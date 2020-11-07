@@ -87,6 +87,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
             ClassNode classNode = (ClassNode) node;
 
             MethodNode sharedInitializer = new MethodNode("$class_init$");
+            sharedInitializer.getSymbol().setShared(true);
             classNode.getChildren().add(0, sharedInitializer);
 
             MethodNode instanceInitializer = new MethodNode("$instance_init$");

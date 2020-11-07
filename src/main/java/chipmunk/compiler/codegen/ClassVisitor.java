@@ -99,7 +99,6 @@ public class ClassVisitor implements AstVisitor {
 			
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;
-			methodNode.addParam(0, new VarDecNode(new IdNode(new Token("self", Token.Type.IDENTIFIER))));
 			
 			MethodVisitor visitor = null;
 			

@@ -76,7 +76,7 @@ class ActualState {
 
     shared var STATE_NAME = 'ARealLiveActualState'
 
-    trait state = State(STATE_NAME)
+    trait state = State.new(STATE_NAME)
     var foo
 
     def activate(){
@@ -94,9 +94,9 @@ class ActualState {
 }
 
 def main(){
-    var stateManager = StateManager()
+    var stateManager = StateManager.new()
 
-    stateManager.addState(ActualState())
+    stateManager.addState(ActualState.new())
 
     stateManager.switchState(ActualState.STATE_NAME)
     return stateManager.getActiveState().getFoo()

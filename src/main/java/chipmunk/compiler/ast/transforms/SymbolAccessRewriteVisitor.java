@@ -142,7 +142,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             // Symbol is defined in the class - emit a shared or instance fetch
 
-            if (symbol.isShared() && !scope.isClassMethodScope()) {
+            if (symbol.isShared() && !scope.isSharedMethodScope()) {
                 // Symbol is a shared field AND we are not accessing it from a shared method
                 // Rewrite to self.getChipmunkClass().symbol
 

@@ -47,8 +47,8 @@ class Behavior2 {
 
 class TestClass {
 	
-	trait behavior = Behavior()
-	trait behavior2 = Behavior2()
+	trait behavior = Behavior.new()
+	trait behavior2 = Behavior2.new()
 	
 	def override(){
 		return 1
@@ -57,6 +57,6 @@ class TestClass {
 }
 
 def main(){
-	var test = TestClass()
+	var test = TestClass.new()
 	return (test.addOneAndTwo() + test.multiplyThreeAndFour() + test.returnOne()) * test.override() + test.five
 }

@@ -118,7 +118,7 @@ public class JvmCompiler {
         Type objType = Type.getType(Object.class);
 
         ClassWriter moduleWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        moduleWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, module.getName(), null, objType.getInternalName(),
+        moduleWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, nameToBinaryName(module.getName()), null, objType.getInternalName(),
                 new String[]{
                         Type.getType(ChipmunkModule.class).getInternalName()
         });
@@ -140,7 +140,7 @@ public class JvmCompiler {
         if(module.getNamespace().has("$module_init$")){
             initialize.visitVarInsn(Opcodes.ALOAD, 0);
             initialize.visitVarInsn(Opcodes.ALOAD, 1);
-            initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, moduleClassName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class), Type.getType(Object.class)).getDescriptor(), false);
+            initialize.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(module.getName()), "$module_init$", Type.getMethodType(Type.getType(Object.class), Type.getType(Object.class)).getDescriptor(), false);
             initialize.visitInsn(Opcodes.POP);
         }
         initialize.visitInsn(Opcodes.RETURN);
@@ -169,37 +169,7 @@ public class JvmCompiler {
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
         moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
-        for(BinaryNamespace.Entry entry : module.getNamespace()){
-            int flags = Opcodes.ACC_PUBLIC;
-            if(BinaryConstants.isFlagSet(entry.getFlags(), BinaryConstants.FINAL_FLAG)){
-                flags |= Opcodes.ACC_FINAL;
-            }
-
-            if(entry.getType() == FieldType.METHOD){
-                visitMethod(moduleWriter, flags, entry.getName(), entry.getBinaryMethod());
-            }else if(entry.getType() == FieldType.CLASS){
-                // Generate class, add field to module, and add class initialization call to constructor
-
-                ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-                visitChipmunkClass(cw, module.getFileName(), module.getName() + "/" + entry.getName(), entry.getBinaryClass());
-                cw.visitEnd();
-
-                Class<?> cls = loadClass(module.getName() + "." + entry.getName(), cw.toByteArray());
-                Type clsType = Type.getType(cls);
-
-                moduleWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
-                        Type.getType(cls).getDescriptor(), null, null);
-
-                moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
-                moduleInit.visitTypeInsn(Opcodes.NEW, clsType.getInternalName());
-                moduleInit.visitInsn(Opcodes.DUP);
-                moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, clsType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
-                moduleInit.visitFieldInsn(Opcodes.PUTFIELD, module.getName(), entry.getName(), clsType.getDescriptor());
-            }else{
-                System.out.println(String.format("%s.%s", module.getName(), entry.getName()));
-                visitVar(moduleWriter, flags, entry.getName());
-            }
-        }
+        visitNamespace(moduleWriter, moduleInit, module.getName(), module.getNamespace());
 
         moduleInit.visitInsn(Opcodes.RETURN);
         moduleInit.visitMaxs(0, 0);
@@ -233,59 +203,132 @@ public class JvmCompiler {
         cw.visitField(flags, name, type.getDescriptor(), null, null).visitEnd();
     }
 
-    protected void visitChipmunkClass(ClassWriter cw, String fileName, String name, BinaryClass cls){
+    protected Class<?> visitChipmunkClass(String containingName, String className, BinaryClass cls){
 
-        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, name, null, Type.getType(Object.class).getInternalName(),
+        final String qualifiedInsName = containingName + "." + className;
+        final String qualifiedCClassName = containingName + "." + className + "$class";
+
+        ClassWriter cClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cClassWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, nameToBinaryName(qualifiedCClassName), null, Type.getType(Object.class).getInternalName(),
                 new String[]{
                         Type.getType(ChipmunkClass.class).getInternalName()
                 });
-        cw.visitSource(fileName, null);
+        cClassWriter.visitSource(cls.getModule().getFileName(), null);
 
-        // Generate constructor
-        MethodVisitor constructor = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
-        constructor.visitCode();
-        constructor.visitVarInsn(Opcodes.ALOAD, 0);
-        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+        // Generate class constructor
+        MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        clsConstructor.visitCode();
+        clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+        clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
-        // TODO - shared initializers should be invoked by module init
-        if(cls.getSharedNamespace().has("$class_init$")){
-            constructor.visitVarInsn(Opcodes.ALOAD, 0);
-            constructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+        //if(cls.getSharedNamespace().has("$class_init$")){
+            clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+            clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedCClassName), "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+       // }
+
+        clsConstructor.visitInsn(Opcodes.RETURN);
+        clsConstructor.visitMaxs(0, 0);
+        clsConstructor.visitEnd();
+
+        ClassWriter cInsWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, nameToBinaryName(qualifiedInsName), null, Type.getType(Object.class).getInternalName(), null);
+        cInsWriter.visitSource(cls.getModule().getFileName(), null);
+
+        // Generate class field
+        cInsWriter.visitField(Opcodes.ACC_PUBLIC, "$cClass", Type.getType(ChipmunkClass.class).getDescriptor(), null, null);
+
+        // Generate instance constructor
+        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        insConstructor.visitCode();
+        insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+        insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+        if(cls.getInstanceNamespace().has("$instance_init$")){
+            insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+            insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), "$instance_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
         }
 
-        constructor.visitInsn(Opcodes.RETURN);
-        constructor.visitMaxs(0, 0);
-        constructor.visitEnd();
+        if(cls.getInstanceNamespace().has(className)){
+            // If the class has a constructor, invoke it from <init>
+            insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+            insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+        }
 
-        // TODO - Visit class namespace
-        for(BinaryNamespace.Entry entry : cls.getInstanceNamespace()){
+        insConstructor.visitInsn(Opcodes.RETURN);
+        insConstructor.visitMaxs(0, 0);
+        insConstructor.visitEnd();
+
+        visitNamespace(cClassWriter, clsConstructor, qualifiedCClassName, cls.getSharedNamespace());
+        visitNamespace(cInsWriter, insConstructor, qualifiedInsName, cls.getInstanceNamespace());
+
+        // Create new method on the class object to create instances of the instance class
+        // newInstance = CClass.new(p1, p2, ...)
+        Type insType = Type.getObjectType(nameToBinaryName(qualifiedInsName));
+        BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry("$instance_init$").getBinaryMethod();
+        Type[] pTypes = paramTypes(binaryConstructor);
+
+        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", Type.getMethodType(insType, pTypes).getDescriptor(), null, null);
+        callMethod.visitCode();
+        callMethod.visitTypeInsn(Opcodes.NEW, insType.getInternalName());
+        callMethod.visitInsn(Opcodes.DUP);
+        for(int i = 0; i < pTypes.length; i++){
+            callMethod.visitVarInsn(Opcodes.ALOAD, i);
+        }
+        callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, pTypes).getDescriptor(), false);
+        callMethod.visitInsn(Opcodes.DUP);
+        callMethod.visitVarInsn(Opcodes.ALOAD, 0);
+        callMethod.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(ChipmunkClass.class).getInternalName());
+        callMethod.visitFieldInsn(Opcodes.PUTFIELD, nameToBinaryName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());
+        callMethod.visitInsn(Opcodes.ARETURN);
+        callMethod.visitMaxs(0, 0);
+        callMethod.visitEnd();
+
+        cClassWriter.visitEnd();
+
+        // Implement ChipmunkObject.getChipmunkClass()
+        MethodVisitor insGetCClass = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "getChipmunkClass", Type.getMethodType(Type.getType(ChipmunkClass.class)).getDescriptor(), null, null);
+        insGetCClass.visitVarInsn(Opcodes.ALOAD, 0);
+        insGetCClass.visitFieldInsn(Opcodes.GETFIELD, nameToBinaryName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());
+        insGetCClass.visitInsn(Opcodes.ARETURN);
+        insGetCClass.visitMaxs(0, 0);
+        insGetCClass.visitEnd();
+
+        cInsWriter.visitEnd();
+
+        Class<?> cClass = loadClass(qualifiedCClassName, cClassWriter.toByteArray());
+        loadClass(qualifiedInsName, cInsWriter.toByteArray());
+
+        return cClass;
+    }
+
+    protected void visitNamespace(ClassWriter containingWriter, MethodVisitor constructor, String containingName, BinaryNamespace ns){
+        for(BinaryNamespace.Entry entry : ns){
             int flags = Opcodes.ACC_PUBLIC;
             if(BinaryConstants.isFlagSet(entry.getFlags(), BinaryConstants.FINAL_FLAG)){
                 flags |= Opcodes.ACC_FINAL;
             }
 
             if(entry.getType() == FieldType.METHOD){
-                visitMethod(cw, flags, entry.getName(), entry.getBinaryMethod());
+                visitMethod(containingWriter, flags, entry.getName(), entry.getBinaryMethod());
             }else if(entry.getType() == FieldType.CLASS){
-                // Generate class, add field to this class, and add class initialization call to constructor
 
-                /*ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-                visitClass(cw, module.getName() + ".chp", module.getName() + "/" + entry.getName(), entry.getBinaryClass());
-                cw.visitEnd();
+                // Generate class
+                Class<?> compiledCClass = visitChipmunkClass(containingName, entry.getName(), entry.getBinaryClass());
+                Type clsType = Type.getType(compiledCClass);
 
-                Class<?> cls = loadClass(module.getName() + "." + entry.getName(), cw.toByteArray());
-                Type clsType = Type.getType(cls);
+                // Add field to parent class
+                containingWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
+                        Type.getType(compiledCClass).getDescriptor(), null, null);
 
-                mw.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
-                        Type.getType(cls).getDescriptor(), null, null);
+                // Add initialization call to parent constructor
+                constructor.visitVarInsn(Opcodes.ALOAD, 0);
+                constructor.visitTypeInsn(Opcodes.NEW, clsType.getInternalName());
+                constructor.visitInsn(Opcodes.DUP);
+                constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, clsType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+                constructor.visitFieldInsn(Opcodes.PUTFIELD, nameToBinaryName(containingName), entry.getName(), clsType.getDescriptor());
 
-                moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
-                moduleInit.visitTypeInsn(Opcodes.NEW, clsType.getInternalName());
-                moduleInit.visitInsn(Opcodes.DUP);
-                moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, clsType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
-                moduleInit.visitFieldInsn(Opcodes.PUTFIELD, module.getName(), entry.getName(), clsType.getDescriptor());*/
             }else{
-                visitVar(cw, flags, entry.getName());
+                visitVar(containingWriter, flags, entry.getName());
             }
         }
     }
@@ -294,7 +337,7 @@ public class JvmCompiler {
 
         final Type objType = Type.getType(Object.class);
 
-        Type[] pTypes = new Type[method.getArgCount()];
+        Type[] pTypes = new Type[Math.max(0, method.getArgCount())];
         Arrays.fill(pTypes, objType);
 
         Type methodType = Type.getMethodType(objType, pTypes);
@@ -900,7 +943,24 @@ public class JvmCompiler {
         return unresolved.get(chpTarget);
     }
 
-    public String moduleClassName(String moduleName){
+    public String nameToBinaryName(String moduleName){
         return moduleName.replace('.', '/');
+    }
+
+    public String className(String className){
+        return nameToBinaryName(className) + "$class";
+    }
+
+    public Type methodCallType(BinaryMethod m){
+        Type objType = Type.getType(Object.class);
+        return Type.getMethodType(objType, paramTypes(m));
+    }
+
+    public Type[] paramTypes(BinaryMethod m){
+        Type objType = Type.getType(Object.class);
+
+        Type[] pTypes = new Type[Math.max(0, m.getArgCount() - 1)]; // JVM doesn't count self as a parameter
+        Arrays.fill(pTypes, objType);
+        return pTypes;
     }
 }

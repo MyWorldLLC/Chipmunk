@@ -80,7 +80,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            Field field = target.getClass().getField((String) op.getName());
+            Field field = getField(target.getClass(), (String) op.getName());
+            if(field == null){
+                throw new NoSuchFieldException(target.getClass().getName() + "." + (String) op.getName());
+            }
 
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
                     .toMethodHandle(VarHandle.AccessMode.GET);
@@ -98,7 +101,11 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            Field field = target.getClass().getField((String) op.getName());
+            Field field = getField(target.getClass(), (String) op.getName());
+            if(field == null){
+                throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
+            }
+
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
                     .toMethodHandle(VarHandle.AccessMode.SET);
 
@@ -185,6 +192,16 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     return m;
                 }
 
+            }
+        }
+        return null;
+    }
+
+    public Field getField(Class<?> receiver, String fieldName){
+        Field[] fields = receiver.getFields();
+        for(Field f : fields){
+            if(f.getName().equals(fieldName)){
+                return f;
             }
         }
         return null;

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import chipmunk.compiler.ast.BlockNode;
+import chipmunk.compiler.ast.SymbolNode;
 
 public class SymbolTable {
 	
@@ -227,6 +228,21 @@ public class SymbolTable {
 
 		// Parent is either (a) a module, (b) a class, or (c) a local scope (lambdas)
 		return symbols.getParent().getScope();
+	}
+
+	public SymbolTable getMethodTable(){
+		SymbolTable symbols = this;
+		while(symbols.getScope() == Scope.LOCAL){
+			symbols = symbols.getParent();
+		}
+
+		return symbols;
+	}
+
+	public boolean isSharedMethodScope(){
+		SymbolTable table = getMethodTable();
+		SymbolNode node = (SymbolNode) table.getNode();
+		return node.getSymbol().isShared();
 	}
 
 	public SymbolTable getModuleScope(){
