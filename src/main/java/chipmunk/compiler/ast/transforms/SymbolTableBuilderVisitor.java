@@ -24,16 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.ModuleNotFoundChipmunk;
-import chipmunk.compiler.Symbol;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.ast.*;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.UnresolvedSymbolException;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.BlockNode;
-import chipmunk.compiler.ast.ImportNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.SymbolNode;
 import chipmunk.compiler.imports.ImportResolver;
+import chipmunk.compiler.symbols.SymbolType;
 
 public class SymbolTableBuilderVisitor implements AstVisitor {
 
@@ -61,14 +57,24 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		
 		if(node instanceof SymbolNode){
+			SymbolNode symbolNode = (SymbolNode) node;
 			if(currentScope != null){
-				Symbol symbol = ((SymbolNode) node).getSymbol();
+				Symbol symbol = symbolNode.getSymbol();
 				// only set non-empty symbols - otherwise superfluous local slots are created for
 				// anonymous methods/classes
 				if(!symbol.getName().equals("")) {
 					currentScope.setSymbol(symbol);
 				}
 			}
+
+			if(symbolNode instanceof ClassNode){
+				symbolNode.getSymbol().setType(SymbolType.CLASS);
+			}else if(symbolNode instanceof MethodNode){
+				symbolNode.getSymbol().setType(SymbolType.METHOD);
+			}else if(symbolNode instanceof VarDecNode){
+				symbolNode.getSymbol().setType(SymbolType.VAR);
+			}
+
 		}
 		
 		if(node instanceof BlockNode){

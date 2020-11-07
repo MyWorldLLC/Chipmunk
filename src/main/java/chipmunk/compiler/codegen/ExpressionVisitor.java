@@ -33,6 +33,7 @@ import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.symbols.SymbolTable;
 
 public class ExpressionVisitor implements AstVisitor {
 	

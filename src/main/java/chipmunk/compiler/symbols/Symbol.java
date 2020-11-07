@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.symbols;
 
 public class Symbol {
 
@@ -59,6 +59,7 @@ public class Symbol {
 	protected boolean isTrait;
 	protected String name;
 	protected Import im;
+	protected SymbolType type;
 	protected SymbolTable table;
 	
 	public Symbol(){
@@ -87,6 +88,7 @@ public class Symbol {
 		this.isShared = isShared;
 		this.isClosure = isClosure;
 		this.isTrait = isTrait;
+		type = SymbolType.VAR;
 	}
 
 	public boolean isShared(){
@@ -153,9 +155,18 @@ public class Symbol {
 		return im != null;
 	}
 
+	public SymbolType getType(){
+		return type;
+	}
+
+	public void setType(SymbolType type){
+		this.type = type;
+	}
+
 	public Symbol clone(){
 		Symbol clone = new Symbol(name, isFinal, isShared, isClosure, isTrait);
 		clone.setTable(table);
+		clone.setType(type);
 		if(isImported()){
 			clone.setImport(im.clone());
 		}
@@ -187,6 +198,9 @@ public class Symbol {
 
 		builder.append(" scope: ");
 		builder.append(getDeclaringScope());
+
+		builder.append(" type: ");
+		builder.append(type);
 		
 		return builder.toString();
 	}

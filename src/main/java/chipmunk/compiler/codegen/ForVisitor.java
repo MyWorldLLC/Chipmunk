@@ -21,7 +21,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.assembler.ChipmunkAssembler;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ForNode;

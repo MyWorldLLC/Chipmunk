@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.symbols;
 
 import java.util.ArrayList;
 import java.util.Collections;

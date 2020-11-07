@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ast;
 
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.symbols.SymbolTable;
 
 public class BlockNode extends AstNode {
 	

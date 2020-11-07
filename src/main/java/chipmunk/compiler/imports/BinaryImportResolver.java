@@ -21,11 +21,9 @@
 package chipmunk.compiler.imports;
 
 import chipmunk.ModuleLoader;
-import chipmunk.binary.BinaryConstants;
-import chipmunk.binary.BinaryFormatException;
-import chipmunk.binary.BinaryModule;
-import chipmunk.binary.BinaryNamespace;
-import chipmunk.compiler.Symbol;
+import chipmunk.binary.*;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolType;
 
 import java.io.IOException;
 import java.util.List;
@@ -90,7 +88,17 @@ public class BinaryImportResolver implements ImportResolver {
     }
 
     protected Symbol makeSymbol(BinaryNamespace.Entry e){
-        return new Symbol(e.getName(), BinaryConstants.isFlagSet(e.getFlags(), BinaryConstants.FINAL_FLAG));
+        Symbol symbol = new Symbol(e.getName(), BinaryConstants.isFlagSet(e.getFlags(), BinaryConstants.FINAL_FLAG));
+
+        if(e.getType() == FieldType.DYNAMIC_VAR){
+            symbol.setType(SymbolType.VAR);
+        }else if(e.getType() == FieldType.CLASS){
+            symbol.setType(SymbolType.CLASS);
+        }else if(e.getType() == FieldType.METHOD){
+            symbol.setType(SymbolType.METHOD);
+        }
+
+        return symbol;
     }
 
 }

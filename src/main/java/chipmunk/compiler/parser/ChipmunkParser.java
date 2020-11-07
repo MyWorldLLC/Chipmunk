@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.compiler.IllegalImportChipmunk;
-import chipmunk.compiler.Symbol;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.SyntaxErrorChipmunk;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;

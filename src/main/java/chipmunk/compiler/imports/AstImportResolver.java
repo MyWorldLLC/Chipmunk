@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.imports;
 
-import chipmunk.compiler.Symbol;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.ast.ModuleNode;
 
 import java.util.ArrayList;

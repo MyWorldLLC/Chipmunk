@@ -18,15 +18,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.imports;
+package chipmunk.compiler.symbols;
 
-import chipmunk.compiler.symbols.Symbol;
-
-import java.util.List;
-
-public interface ImportResolver {
-
-    Symbol resolve(String moduleName, String name);
-    List<Symbol> resolveSymbols(String moduleName);
-
+public enum SymbolType {
+    VAR, METHOD, CLASS
 }

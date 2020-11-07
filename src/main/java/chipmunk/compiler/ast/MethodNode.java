@@ -20,8 +20,8 @@
 
 package chipmunk.compiler.ast;
 
-import chipmunk.compiler.Symbol;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
 
 public class MethodNode extends BlockNode implements SymbolNode {
 	

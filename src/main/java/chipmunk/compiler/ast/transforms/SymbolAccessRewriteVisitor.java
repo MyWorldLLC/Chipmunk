@@ -21,8 +21,8 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.compiler.Symbol;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.UnresolvedSymbolException;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;

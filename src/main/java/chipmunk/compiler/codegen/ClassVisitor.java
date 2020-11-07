@@ -56,7 +56,6 @@ public class ClassVisitor implements AstVisitor {
 			
 			if(cls == null) {
 				cls = new BinaryClass(classNode.getName(), module);
-
 				classNode.visitChildren(this);
 			}else {
 				// visit nested class declarations
@@ -132,6 +131,7 @@ public class ClassVisitor implements AstVisitor {
 
 			if(methodNode.getSymbol().isShared()){
 				// Shared method
+				System.out.println("Adding shared method " + methodNode.getSymbol());
 				cls.getSharedNamespace().addEntry(methodEntry);
 			}else{
 				// Instance method
