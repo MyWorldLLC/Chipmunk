@@ -39,8 +39,8 @@ class BinaryFormatSpecification  extends Specification {
                 "BinaryFeatureTest.chp")[0]
 
         module = writeAndRead(module)
-
-        def result = vm.invoke(vm.load(module), "main")
+        def script = vm.compileScript(module)
+        def result = script.run()
 
         then:
         noExceptionThrown()

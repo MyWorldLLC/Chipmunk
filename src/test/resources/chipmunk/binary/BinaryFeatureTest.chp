@@ -30,6 +30,6 @@ class TestClass {
 }
 
 def main(){
-    var instance = TestClass()
+    var instance = TestClass.new()
     return the + instance.joinStrings()
 }

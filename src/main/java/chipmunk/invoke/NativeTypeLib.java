@@ -186,6 +186,11 @@ public class NativeTypeLib implements ChipmunkLibrary {
         }
     }
 
+    // ================================ String Operations ================================
+    public static String plus(String a, Object b){
+        return a + b;
+    }
+
     // ================================ Collection Operations ================================
 
     public static void add(ArrayList<Object> a, Object element){
