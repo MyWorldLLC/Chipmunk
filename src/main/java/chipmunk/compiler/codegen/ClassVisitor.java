@@ -130,7 +130,6 @@ public class ClassVisitor implements AstVisitor {
 
 			if(methodNode.getSymbol().isShared()){
 				// Shared method
-				System.out.println("Adding shared method " + methodNode.getSymbol());
 				cls.getSharedNamespace().addEntry(methodEntry);
 			}else{
 				// Instance method

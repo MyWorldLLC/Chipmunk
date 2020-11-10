@@ -24,7 +24,9 @@ import chipmunk.ChipmunkVM;
 
 public interface ChipmunkModule {
 
-    String getName();
+    default String getName() {
+        return getClass().getName();
+    }
     default void initialize(ChipmunkVM vm){}
     default ChipmunkModule getModule(){
         return this;

@@ -29,6 +29,7 @@ import chipmunk.binary.*;
 import chipmunk.invoke.Binder;
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.ChipmunkObject;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -231,17 +232,25 @@ public class JvmCompiler {
         clsConstructor.visitEnd();
 
         ClassWriter cInsWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, nameToBinaryName(qualifiedInsName), null, Type.getType(Object.class).getInternalName(), null);
+        cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, nameToBinaryName(qualifiedInsName), null, Type.getType(Object.class).getInternalName(), new String[]{
+                Type.getType(ChipmunkObject.class).getInternalName()
+        });
         cInsWriter.visitSource(cls.getModule().getFileName(), null);
 
         // Generate class field
-        cInsWriter.visitField(Opcodes.ACC_PUBLIC, "$cClass", Type.getType(ChipmunkClass.class).getDescriptor(), null, null);
+        cInsWriter.visitField(Opcodes.ACC_PUBLIC, "$cClass", Type.getType(ChipmunkClass.class).getDescriptor(), null, null)
+                .visitEnd();
 
         // Generate instance constructor
-        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, Type.getObjectType(nameToBinaryName(qualifiedCClassName))).getDescriptor(), null, null);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+        // Store the $cClass
+        insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+        insConstructor.visitVarInsn(Opcodes.ALOAD, 1);
+        insConstructor.visitFieldInsn(Opcodes.PUTFIELD, nameToBinaryName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());//Type.getObjectType(nameToBinaryName(qualifiedCClassName)).getDescriptor());
 
         if(cls.getInstanceNamespace().has("$instance_init$")){
             insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -265,23 +274,48 @@ public class JvmCompiler {
         // newInstance = CClass.new(p1, p2, ...)
         Type insType = Type.getObjectType(nameToBinaryName(qualifiedInsName));
         BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry("$instance_init$").getBinaryMethod();
-        Type[] pTypes = paramTypes(binaryConstructor);
+        // Normally we would subtract 1 since the VM doesn't count the self parameter,
+        // but since we're adding the class parameter we don't
+        Type[] mTypes = paramTypes(binaryConstructor.getArgCount());
+        Type[] cTypes = paramTypes(Math.max(1, binaryConstructor.getArgCount()));
+        cTypes[0] = Type.getObjectType(nameToBinaryName(qualifiedCClassName));
 
-        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", Type.getMethodType(insType, pTypes).getDescriptor(), null, null);
+        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", Type.getMethodType(insType, mTypes).getDescriptor(), null, null);
         callMethod.visitCode();
         callMethod.visitTypeInsn(Opcodes.NEW, insType.getInternalName());
         callMethod.visitInsn(Opcodes.DUP);
-        for(int i = 0; i < pTypes.length; i++){
+        callMethod.visitVarInsn(Opcodes.ALOAD, 0);
+        for(int i = 1; i < cTypes.length; i++){
             callMethod.visitVarInsn(Opcodes.ALOAD, i);
         }
-        callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, pTypes).getDescriptor(), false);
-        callMethod.visitInsn(Opcodes.DUP);
-        callMethod.visitVarInsn(Opcodes.ALOAD, 0);
-        callMethod.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(ChipmunkClass.class).getInternalName());
-        callMethod.visitFieldInsn(Opcodes.PUTFIELD, nameToBinaryName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());
+        callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, cTypes).getDescriptor(), false);
         callMethod.visitInsn(Opcodes.ARETURN);
         callMethod.visitMaxs(0, 0);
         callMethod.visitEnd();
+
+        MethodVisitor cClassGetModule = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null);
+        // TODO - pass module to cClass constructor?
+        cClassGetModule.visitVarInsn(Opcodes.ALOAD, 0);
+        cClassGetModule.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "getVM",
+                Type.getMethodType(Type.getType(ChipmunkVM.class)).getDescriptor(),
+                false);
+        cClassGetModule.visitInsn(Opcodes.DUP);
+        cClassGetModule.visitVarInsn(Opcodes.ALOAD, 0);
+        cClassGetModule.visitLdcInsn(containingName);
+        cClassGetModule.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkVM.class).getInternalName(),
+                "getModule",
+                Type.getMethodType(
+                        Type.getType(ChipmunkModule.class),
+                        Type.getType(ChipmunkScript.class),
+                        Type.getType(String.class)).getDescriptor(),
+                false);
+        cClassGetModule.visitMaxs(0, 0);
+        cClassGetModule.visitEnd();
+
+        // TODO - implement ChipmunkClass interface fully
 
         cClassWriter.visitEnd();
 
@@ -957,9 +991,13 @@ public class JvmCompiler {
     }
 
     public Type[] paramTypes(BinaryMethod m){
+        return paramTypes(Math.max(0, m.getArgCount() - 1)); // JVM doesn't count self as a parameter
+    }
+
+    public Type[] paramTypes(int params){
         Type objType = Type.getType(Object.class);
 
-        Type[] pTypes = new Type[Math.max(0, m.getArgCount() - 1)]; // JVM doesn't count self as a parameter
+        Type[] pTypes = new Type[params];
         Arrays.fill(pTypes, objType);
         return pTypes;
     }
