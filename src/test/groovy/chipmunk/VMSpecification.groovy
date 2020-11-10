@@ -24,6 +24,7 @@ import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.assembler.ChipmunkAssembler
 import chipmunk.modules.runtime.CInteger
+import chipmunk.vm.ChipmunkVM
 import spock.lang.Ignore
 import spock.lang.Specification
 

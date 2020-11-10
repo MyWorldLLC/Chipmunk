@@ -18,13 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm.jvm;
 
-import java.io.IOException;
-import java.io.InputStream;
+public class ChipmunkClassLoader extends ClassLoader {
 
-public interface ModuleLocator {
-
-    InputStream locate(String moduleName) throws IOException;
-
+    public Class<?> define(String name, byte[] bytes){
+        return super.defineClass(name, bytes, 0, bytes.length);
+    }
 }

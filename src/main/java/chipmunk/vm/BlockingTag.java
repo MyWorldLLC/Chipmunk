@@ -18,25 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm;
 
-public class ModuleLoadChipmunk extends RuntimeException {
+public interface BlockingTag {
 
-	private static final long serialVersionUID = -4373636324025801028L;
+    default boolean isBlocking(){
+        return true;
+    }
 
-	public ModuleLoadChipmunk(){
-		this(null, null);
-	}
-	
-	public ModuleLoadChipmunk(String message){
-		this(message, null);
-	}
-
-	public ModuleLoadChipmunk(Throwable cause){
-		this(cause.getMessage(), cause);
-	}
-	
-	public ModuleLoadChipmunk(String message, Throwable cause){
-		super(message, cause);
-	}
 }

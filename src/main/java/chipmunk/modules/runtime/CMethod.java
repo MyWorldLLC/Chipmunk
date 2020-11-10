@@ -20,7 +20,7 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public class CMethod implements CCallable {
 	

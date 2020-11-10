@@ -18,15 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.jvm;
+package chipmunk.vm.jvm;
 
 import chipmunk.ChipmunkRuntimeException;
-import chipmunk.ChipmunkScript;
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
-import chipmunk.invoke.Binder;
+import chipmunk.vm.invoke.Binder;
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.ChipmunkObject;

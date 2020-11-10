@@ -20,7 +20,7 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public class CClass implements Initializable, CallInterceptor, CCallable {
 

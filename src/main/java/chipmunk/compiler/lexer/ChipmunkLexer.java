@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.lexer;
 
-import chipmunk.compiler.SyntaxErrorChipmunk;
+import chipmunk.compiler.SyntaxError;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -116,7 +116,7 @@ public class ChipmunkLexer {
 			
 			// error - we couldn't match a valid token
 			if(!foundToken){
-				throw new SyntaxErrorChipmunk("Syntax error at line " + line + ", column " + column + ": Could not match a valid syntax element");
+				throw new SyntaxError("Syntax error at line " + line + ", column " + column + ": Could not match a valid syntax element");
 			}
 		}
 

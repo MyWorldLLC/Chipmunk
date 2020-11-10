@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.imports;
 
-import chipmunk.ModuleLoader;
+import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolType;

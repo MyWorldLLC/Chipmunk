@@ -18,13 +18,13 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm;
 
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
-import chipmunk.jvm.ChipmunkClassLoader;
-import chipmunk.jvm.JvmCompiler;
+import chipmunk.vm.jvm.ChipmunkClassLoader;
+import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;

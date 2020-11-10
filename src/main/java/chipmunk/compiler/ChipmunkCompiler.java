@@ -23,7 +23,7 @@ package chipmunk.compiler;
 import java.io.InputStream;
 import java.util.*;
 
-import chipmunk.ModuleLoader;
+import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;

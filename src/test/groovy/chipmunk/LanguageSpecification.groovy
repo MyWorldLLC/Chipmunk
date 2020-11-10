@@ -23,8 +23,10 @@ package chipmunk
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.jvm.CompilationUnit
-import chipmunk.runtime.ChipmunkModule
+import chipmunk.vm.jvm.CompilationUnit
+import chipmunk.vm.ChipmunkScript
+import chipmunk.vm.ChipmunkVM
+import chipmunk.vm.ModuleLoader
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -36,11 +38,11 @@ class LanguageSpecification extends Specification {
 	def compileAndRun(String scriptName, boolean disassembleOnException = false){
 		BinaryModule[] modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
 
-		CompilationUnit unit = new CompilationUnit();
+		CompilationUnit unit = new CompilationUnit()
 		unit.setEntryModule("test")
 		unit.setEntryMethodName("main")
 
-		ModuleLoader loader = new ModuleLoader()
+        ModuleLoader loader = new ModuleLoader()
 		loader.addToLoaded(Arrays.asList(modules))
 		unit.setModuleLoader(loader)
 

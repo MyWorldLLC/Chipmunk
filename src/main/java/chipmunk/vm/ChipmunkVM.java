@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,9 +33,9 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
-import chipmunk.invoke.*;
-import chipmunk.jvm.CompilationUnit;
-import chipmunk.jvm.JvmCompiler;
+import chipmunk.vm.invoke.*;
+import chipmunk.vm.jvm.CompilationUnit;
+import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 
@@ -127,7 +127,7 @@ public class ChipmunkVM {
 		module = script.getModuleLoader().load(moduleName, jvmCompiler);
 
 		if(module == null){
-			throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
+			throw new ModuleLoadException(String.format("Module %s not found", moduleName));
 		}
 
 		script.modules.put(moduleName, module);

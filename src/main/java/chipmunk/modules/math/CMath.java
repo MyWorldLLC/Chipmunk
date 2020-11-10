@@ -20,7 +20,7 @@
 
 package chipmunk.modules.math;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.CFloat;
 import chipmunk.modules.runtime.CInteger;
 

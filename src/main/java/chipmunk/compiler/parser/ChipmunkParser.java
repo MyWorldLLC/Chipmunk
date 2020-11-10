@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.compiler.IllegalImportChipmunk;
+import chipmunk.compiler.IllegalImportException;
 import chipmunk.compiler.symbols.Symbol;
-import chipmunk.compiler.SyntaxErrorChipmunk;
+import chipmunk.compiler.SyntaxError;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
@@ -818,7 +818,7 @@ public class ChipmunkParser {
 					node.setImportAll(true);
 					break;
 				}else{
-					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
+					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().getText());
 				}
 			}
 			
@@ -855,7 +855,7 @@ public class ChipmunkParser {
 					identifiers.add(getNext(Token.Type.STAR));
 					node.setImportAll(true);
 				}else{
-					throw new IllegalImportChipmunk("Expected identifier or *, got " + tokens.peek().getText());
+					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().getText());
 				}
 			}
 			
@@ -890,7 +890,7 @@ public class ChipmunkParser {
 		if(peek(Token.Type.AS)){
 			
 			if(node.getSymbols().contains("*")){
-				throw new IllegalImportChipmunk("Cannot alias a * import");
+				throw new IllegalImportException("Cannot alias a * import");
 			}
 			
 			dropNext();
@@ -903,7 +903,7 @@ public class ChipmunkParser {
 			}
 			
 			if(node.getSymbols().size() < node.getAliases().size()){
-				throw new IllegalImportChipmunk("Cannot have more aliases than imported symbols");
+				throw new IllegalImportException("Cannot have more aliases than imported symbols");
 			}
 		}
 		
@@ -1033,7 +1033,7 @@ public class ChipmunkParser {
 		node.setEndTokenIndex(tokens.getStreamPosition());
 	}
 	
-	public void syntaxError(String context, Token got, Token.Type... expected) throws SyntaxErrorChipmunk {
+	public void syntaxError(String context, Token got, Token.Type... expected) throws SyntaxError {
 		StringBuilder expectedTypes = new StringBuilder();
 		
 		for(int i = 0; i < expected.length; i++){
@@ -1049,16 +1049,16 @@ public class ChipmunkParser {
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
 				context, fileName, got.getLine(), got.getColumn(), expectedTypes.toString(), got.getText());
 		
-		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
+		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(expected);
 		error.setGot(got);
 		throw error;
 	}
 	
-	public void syntaxError(String context, String expected, Token got) throws SyntaxErrorChipmunk {
+	public void syntaxError(String context, String expected, Token got) throws SyntaxError {
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
 				context, fileName, got.getLine(), got.getColumn(), expected, got.getText());
-		SyntaxErrorChipmunk error = new SyntaxErrorChipmunk(msg);
+		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(new Token.Type[]{});
 		error.setGot(got);
 		throw error;

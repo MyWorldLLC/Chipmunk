@@ -18,9 +18,9 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.jvm;
+package chipmunk.vm.jvm;
 
-import chipmunk.ModuleLoader;
+import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;

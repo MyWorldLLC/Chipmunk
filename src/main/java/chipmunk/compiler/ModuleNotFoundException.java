@@ -18,13 +18,13 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.compiler;
 
-public class ModuleNotFoundChipmunk extends RuntimeException {
+public class ModuleNotFoundException extends RuntimeException {
 
     protected final String module;
 
-    public ModuleNotFoundChipmunk(String module){
+    public ModuleNotFoundException(String module){
         super(String.format("module not found: %s", module));
         this.module = module;
     }

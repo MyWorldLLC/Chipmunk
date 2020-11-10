@@ -20,16 +20,14 @@
 
 package chipmunk.nut;
 
-import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import chipmunk.ChipmunkVM;
 import chipmunk.modules.runtime.CObject;
 //import chipmunk.modules.lang.CType;
-import chipmunk.modules.runtime.CModule;
+
 
 public class NutCracker {
 

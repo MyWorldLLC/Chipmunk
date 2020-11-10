@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.invoke;
+package chipmunk.vm.invoke;
 
 import jdk.dynalink.*;
 import jdk.dynalink.support.SimpleRelinkableCallSite;

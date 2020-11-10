@@ -22,7 +22,7 @@ package chipmunk.modules.runtime;
 
 import java.util.List;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public class CObject implements Initializable, CallInterceptor {
 	

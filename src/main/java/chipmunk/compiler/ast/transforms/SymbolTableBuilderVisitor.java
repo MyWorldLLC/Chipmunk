@@ -23,7 +23,7 @@ package chipmunk.compiler.ast.transforms;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.ModuleNotFoundChipmunk;
+import chipmunk.compiler.ModuleNotFoundException;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
@@ -128,7 +128,7 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 			}
 
 			if(symbols == null){
-				throw new ModuleNotFoundChipmunk(importNode.getModule());
+				throw new ModuleNotFoundException(importNode.getModule());
 			}
 			
 			for(Symbol symbol : symbols){

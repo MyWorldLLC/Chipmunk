@@ -22,7 +22,7 @@ package chipmunk.compiler.codegen
 
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.ChipmunkVM
+import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.assembler.ChipmunkAssembler
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser

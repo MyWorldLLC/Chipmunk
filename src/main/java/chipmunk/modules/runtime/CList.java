@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public class CList {
 	

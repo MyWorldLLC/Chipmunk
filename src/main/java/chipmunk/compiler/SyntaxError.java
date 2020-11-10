@@ -22,27 +22,27 @@ package chipmunk.compiler;
 
 import chipmunk.compiler.lexer.Token;
 
-public class SyntaxErrorChipmunk extends CompileChipmunk {
+public class SyntaxError extends CompileChipmunk {
 
 	private static final long serialVersionUID = 1758610427119118408L;
 	
 	private Token.Type[] expected;
 	private Token got;
 
-	public SyntaxErrorChipmunk(){
+	public SyntaxError(){
 		super();
 	}
 	
-	public SyntaxErrorChipmunk(String msg){
+	public SyntaxError(String msg){
 		super(msg);
 	}
 	
-	public SyntaxErrorChipmunk(String msg, Token got){
+	public SyntaxError(String msg, Token got){
 		super(msg);
 		this.got = got;
 	}
 	
-	public SyntaxErrorChipmunk(String msg, Throwable cause){
+	public SyntaxError(String msg, Throwable cause){
 		super(msg, cause);
 	}
 

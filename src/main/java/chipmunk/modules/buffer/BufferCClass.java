@@ -20,7 +20,7 @@
 
 package chipmunk.modules.buffer;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CInteger;
 import chipmunk.modules.runtime.CModule;

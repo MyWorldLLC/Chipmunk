@@ -18,12 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.invoke;
+package chipmunk.compiler;
 
-public interface ChipmunkLibrary {
+import chipmunk.ChipmunkRuntimeException;
 
-    default String moduleName(){
-        return getClass().getName();
-    }
+public class IllegalImportException extends ChipmunkRuntimeException {
 
+	private static final long serialVersionUID = 8040202523161901920L;
+
+	public IllegalImportException(String msg){
+		super(msg);
+	}
 }

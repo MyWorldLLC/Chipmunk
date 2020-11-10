@@ -18,12 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm.invoke;
 
-import chipmunk.runtime.ChipmunkModule;
+public interface ChipmunkLibrary {
 
-public interface NativeModuleFactory {
-
-    ChipmunkModule createModule();
+    default String moduleName(){
+        return getClass().getName();
+    }
 
 }

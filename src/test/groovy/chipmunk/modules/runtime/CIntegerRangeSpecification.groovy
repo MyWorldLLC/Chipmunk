@@ -20,8 +20,7 @@
 
 package chipmunk.modules.runtime
 
-import chipmunk.ChipmunkVM
-import chipmunk.modules.runtime.CIntegerRange
+import chipmunk.vm.ChipmunkVM
 import spock.lang.Specification
 
 class CIntegerRangeSpecification extends Specification {

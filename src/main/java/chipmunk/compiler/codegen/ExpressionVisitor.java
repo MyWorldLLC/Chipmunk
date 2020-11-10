@@ -307,7 +307,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler._instanceof();
 				break;
 			default:
-				throw new SyntaxErrorChipmunk(
+				throw new SyntaxError(
 						String.format("Unsupported operator %s at %d:%d",
 								operator.getText(),
 								operator.getLine(),

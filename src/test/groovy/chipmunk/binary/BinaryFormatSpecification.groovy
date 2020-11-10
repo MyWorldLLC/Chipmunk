@@ -20,7 +20,7 @@
 
 package chipmunk.binary
 
-import chipmunk.ChipmunkVM
+import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkCompiler
 import spock.lang.Specification
 

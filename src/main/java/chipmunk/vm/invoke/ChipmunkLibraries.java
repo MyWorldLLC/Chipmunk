@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.invoke;
+package chipmunk.vm.invoke;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

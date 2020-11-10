@@ -23,7 +23,7 @@ package chipmunk.compiler.codegen
 import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.ChipmunkVM
+import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.runtime.ChipmunkModule
 import spock.lang.Ignore

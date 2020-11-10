@@ -18,12 +18,13 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm;
 
-public interface BlockingTag {
+import java.io.IOException;
+import java.io.InputStream;
 
-    default boolean isBlocking(){
-        return true;
-    }
+public interface ModuleLocator {
+
+    InputStream locate(String moduleName) throws IOException;
 
 }

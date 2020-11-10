@@ -18,11 +18,25 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.jvm;
+package chipmunk.vm.jvm
 
-public class ChipmunkClassLoader extends ClassLoader {
+import chipmunk.vm.ChipmunkVM
+import chipmunk.compiler.ChipmunkCompiler
+import spock.lang.Specification
 
-    public Class<?> define(String name, byte[] bytes){
-        return super.defineClass(name, bytes, 0, bytes.length);
+class JvmCompilerSpecification extends Specification {
+
+    ChipmunkVM vm = new ChipmunkVM()
+    ChipmunkCompiler cc = new ChipmunkCompiler()
+
+    def "Load as Java code & run"(){
+        when:
+        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
+        def instance = vm.load(module)
+
+        def result = vm.invoke(instance, "main")
+
+        then:
+        result == 10
     }
 }

@@ -36,7 +36,7 @@ class ChipmunkLexerSpecification extends Specification {
 		def tokens = lexer.lex("3 + 4")
 		
 		then:
-			notThrown(SyntaxErrorChipmunk)
+			notThrown(SyntaxError)
 			tokens.get().getText() == "3"
 			tokens.get().getText() == "+"
 			tokens.get().getText() == "4"
@@ -51,7 +51,7 @@ class ChipmunkLexerSpecification extends Specification {
 		def tokens = lexer.lex("3 + 4")
 		
 		then:
-		notThrown(SyntaxErrorChipmunk)
+		notThrown(SyntaxError)
 		tokens.get().getType() == Token.Type.INTLITERAL
 		tokens.get().getType() == Token.Type.PLUS
 		tokens.get().getType() == Token.Type.INTLITERAL
@@ -66,7 +66,7 @@ class ChipmunkLexerSpecification extends Specification {
 		def tokens = lexer.lex("3.0 4.3 5.6789 -4.3 -2.5e10 -2.5E10 -2.5E-10")
 		
 		then:
-		notThrown(SyntaxErrorChipmunk)
+		notThrown(SyntaxError)
 		
 		def tok1 = tokens.get()
 		tok1.getText() == "3.0"
@@ -105,7 +105,7 @@ class ChipmunkLexerSpecification extends Specification {
 		def tokens = lexer.lex("3 # This is a comment.\n4")
 		
 		then:
-		notThrown(SyntaxErrorChipmunk)
+		notThrown(SyntaxError)
 		
 		def tok = tokens.get()
 		tok.getText() == "3"
@@ -132,7 +132,7 @@ class ChipmunkLexerSpecification extends Specification {
 		def tokens = lexer.lex("module foobar")
 		
 		then:
-		notThrown(SyntaxErrorChipmunk)
+		notThrown(SyntaxError)
 		tokens.get().getType() == Token.Type.MODULE
 		tokens.get().getType() == Token.Type.IDENTIFIER
 		tokens.get().getType() == Token.Type.EOF

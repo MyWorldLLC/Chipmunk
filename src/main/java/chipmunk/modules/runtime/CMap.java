@@ -23,7 +23,7 @@ package chipmunk.modules.runtime;
 import java.util.HashMap;
 import java.util.Map;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public class CMap {
 	

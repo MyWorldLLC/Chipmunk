@@ -20,7 +20,7 @@
 
 package chipmunk.runtime;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 
 public interface ChipmunkModule {
 

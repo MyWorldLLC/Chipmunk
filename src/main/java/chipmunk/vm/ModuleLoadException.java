@@ -18,25 +18,25 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.jvm
+package chipmunk.vm;
 
-import chipmunk.ChipmunkVM
-import chipmunk.compiler.ChipmunkCompiler
-import spock.lang.Specification
+public class ModuleLoadException extends RuntimeException {
 
-class JvmCompilerSpecification extends Specification {
+	private static final long serialVersionUID = -4373636324025801028L;
 
-    ChipmunkVM vm = new ChipmunkVM()
-    ChipmunkCompiler cc = new ChipmunkCompiler()
+	public ModuleLoadException(){
+		this(null, null);
+	}
+	
+	public ModuleLoadException(String message){
+		this(message, null);
+	}
 
-    def "Load as Java code & run"(){
-        when:
-        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
-        def instance = vm.load(module)
-
-        def result = vm.invoke(instance, "main")
-
-        then:
-        result == 10
-    }
+	public ModuleLoadException(Throwable cause){
+		this(cause.getMessage(), cause);
+	}
+	
+	public ModuleLoadException(String message, Throwable cause){
+		super(message, cause);
+	}
 }
