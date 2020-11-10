@@ -53,7 +53,7 @@ public class BinaryImportResolver implements ImportResolver {
     public Symbol resolve(String moduleName, String name) {
 
         try {
-            BinaryModule module = loader.load(moduleName);
+            BinaryModule module = loader.loadBinary(moduleName);
             if(module == null){
                 return null;
             }
@@ -72,7 +72,7 @@ public class BinaryImportResolver implements ImportResolver {
     @Override
     public List<Symbol> resolveSymbols(String moduleName) {
         try {
-            BinaryModule module = loader.load(moduleName);
+            BinaryModule module = loader.loadBinary(moduleName);
             if(module == null){
                 return null;
             }

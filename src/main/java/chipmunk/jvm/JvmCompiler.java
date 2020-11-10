@@ -47,7 +47,7 @@ public class JvmCompiler {
 
     public ChipmunkScript compile(CompilationUnit sources) throws IOException, BinaryFormatException {
 
-        BinaryModule mainBin = sources.getModuleLoader().load(sources.getEntryModule());
+        BinaryModule mainBin = sources.getModuleLoader().loadBinary(sources.getEntryModule());
 
         Type scriptType = Type.getType(ChipmunkScript.class);
 

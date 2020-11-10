@@ -46,14 +46,14 @@ public abstract class ChipmunkScript {
     protected int id;
 
     protected final List<Object> tags;
-    protected final Map<String, ChipmunkModule> loadedModules;
+    protected final Map<String, ChipmunkModule> modules;
 
     protected volatile ChipmunkVM vm;
     protected volatile ModuleLoader loader;
 
     public ChipmunkScript(){
         tags = new CopyOnWriteArrayList<>();
-        loadedModules = new ConcurrentHashMap<>();
+        modules = new ConcurrentHashMap<>();
     }
 
     public ChipmunkVM getVM() {
@@ -102,19 +102,19 @@ public abstract class ChipmunkScript {
     }
 
     public Map<String, ChipmunkModule> getModulesUnmodifiable() {
-        return Collections.unmodifiableMap(loadedModules);
+        return Collections.unmodifiableMap(modules);
     }
 
     public void addModule(ChipmunkModule module){
-        if(loadedModules.containsKey(module.getName())){
+        if(modules.containsKey(module.getName())){
             throw new IllegalStateException(String.format("Module %s is already loaded", module.getName()));
         }
 
-        loadedModules.put(module.getName(), module);
+        modules.put(module.getName(), module);
     }
 
     public boolean isLoaded(String moduleName){
-        return loadedModules.containsKey(moduleName);
+        return modules.containsKey(moduleName);
     }
 
     public abstract Object run(Object[] args);

@@ -24,6 +24,8 @@ import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
 import chipmunk.jvm.ChipmunkClassLoader;
+import chipmunk.jvm.JvmCompiler;
+import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,17 +40,23 @@ public class ModuleLoader {
 
 	protected final List<ModuleLocator> locators;
 	protected final Map<String, BinaryModule> loadedModules;
+	protected final Map<String, NativeModuleFactory> nativeFactories;
 	protected final ChipmunkClassLoader classLoader;
 
 	public ModuleLoader(){
 		locators = new CopyOnWriteArrayList<>();
 		loadedModules = new ConcurrentHashMap<>();
+		nativeFactories = new ConcurrentHashMap<>();
 		classLoader = new ChipmunkClassLoader();
 	}
 
 	public ModuleLoader(Collection<BinaryModule> modules){
 		this();
 		addToLoaded(modules);
+	}
+
+	public ChipmunkClassLoader getClassLoader(){
+		return classLoader;
 	}
 
 	public void addLocator(ModuleLocator locator){
@@ -81,7 +89,7 @@ public class ModuleLoader {
 		return null;
 	}
 
-	public BinaryModule load(String moduleName) throws IOException, BinaryFormatException {
+	public BinaryModule loadBinary(String moduleName) throws IOException, BinaryFormatException {
 
 		if(loadedModules.containsKey(moduleName)){
 			return loadedModules.get(moduleName);
@@ -98,6 +106,20 @@ public class ModuleLoader {
 		loadedModules.put(moduleName, module);
 
 		return module;
+	}
+
+	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
+		BinaryModule binMod = loadBinary(moduleName);
+
+		if(binMod == null){
+			NativeModuleFactory nativeFactory = nativeFactories.get(moduleName);
+			if(nativeFactory == null){
+				return null;
+			}
+			return nativeFactory.createModule();
+		}
+
+		return compiler.compileModule(binMod);
 	}
 
 	public Map<String, BinaryModule> getLoadedModules(){
@@ -122,8 +144,16 @@ public class ModuleLoader {
 		loadedModules.remove(module.getName());
 	}
 
-	public ChipmunkClassLoader getClassLoader(){
-		return classLoader;
+	public void registerNativeFactory(String moduleName, NativeModuleFactory factory){
+		nativeFactories.put(moduleName, factory);
+	}
+
+	public void unregisterNativeFactory(String moduleName){
+		nativeFactories.remove(moduleName);
+	}
+
+	public Map<String, NativeModuleFactory> getNativeFactories(){
+		return nativeFactories;
 	}
 
 }

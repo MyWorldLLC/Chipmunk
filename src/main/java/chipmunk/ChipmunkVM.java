@@ -36,7 +36,6 @@ import chipmunk.compiler.CompileChipmunk;
 import chipmunk.invoke.*;
 import chipmunk.jvm.CompilationUnit;
 import chipmunk.jvm.JvmCompiler;
-import chipmunk.modules.runtime.*;
 import chipmunk.runtime.ChipmunkModule;
 
 
@@ -120,17 +119,18 @@ public class ChipmunkVM {
 	}
 
 	public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
-		ChipmunkModule module = script.loadedModules.get(moduleName);
+		ChipmunkModule module = script.modules.get(moduleName);
 		if(module != null){
 			return module;
 		}
 
-		BinaryModule modBinary = script.getModuleLoader().load(moduleName);
-		if(modBinary == null){
+		module = script.getModuleLoader().load(moduleName, jvmCompiler);
+
+		if(module == null){
 			throw new ModuleLoadChipmunk(String.format("Module %s not found", moduleName));
 		}
 
-		module = load(modBinary);
+		script.modules.put(moduleName, module);
 		module.initialize(this);
 		return module;
 	}
