@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.invoke;
+package chipmunk.runtime;
 
 import chipmunk.vm.invoke.ChipmunkLibrary;
 import chipmunk.modules.runtime.TypeConversionException;

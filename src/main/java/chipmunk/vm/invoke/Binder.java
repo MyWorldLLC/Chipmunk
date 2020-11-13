@@ -20,6 +20,7 @@
 
 package chipmunk.vm.invoke;
 
+import chipmunk.runtime.NativeTypeLib;
 import jdk.dynalink.*;
 import jdk.dynalink.support.SimpleRelinkableCallSite;
 

@@ -33,6 +33,7 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
+import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.invoke.*;
 import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompiler;

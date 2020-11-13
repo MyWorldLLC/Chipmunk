@@ -20,6 +20,8 @@
 
 package chipmunk.vm.invoke;
 
+import chipmunk.vm.invoke.security.DefaultMode;
+import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
 import jdk.dynalink.linker.GuardedInvocation;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 public class ChipmunkLinker implements GuardingDynamicLinker {
 
     protected final ThreadLocal<ChipmunkLibraries> libraries;
+    protected volatile LinkingPolicy linkPolicy;
 
     protected final MethodHandles.Lookup lookup;
 
@@ -48,7 +51,16 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         libraries = new ThreadLocal<>();
         libraries.set(new ChipmunkLibraries());
 
+        linkPolicy = new LinkingPolicy(DefaultMode.ALLOWING);
         lookup = MethodHandles.lookup();
+    }
+
+    public LinkingPolicy getLinkPolicy(){
+        return linkPolicy;
+    }
+
+    public void setLinkPolicy(LinkingPolicy policy){
+        linkPolicy = policy;
     }
 
     @Override
@@ -82,7 +94,11 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Field field = getField(target.getClass(), (String) op.getName());
             if(field == null){
-                throw new NoSuchFieldException(target.getClass().getName() + "." + (String) op.getName());
+                throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
+            }
+
+            if(!linkPolicy.allowFieldGet(receiver, field)){
+                throw new IllegalAccessException(target.getClass().getName() + "." + op.getName() + ": policy forbids get");
             }
 
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
@@ -104,6 +120,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Field field = getField(target.getClass(), (String) op.getName());
             if(field == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
+            }
+
+            if(!linkPolicy.allowFieldSet(receiver, field, linkRequest.getArguments()[1])){
+                throw new IllegalAccessException(target.getClass().getName() + "." + op.getName() + ": policy forbids set to " + linkRequest.getArguments()[1]);
             }
 
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
@@ -141,6 +161,9 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Method instanceMethod = getMethod(receiverType, expectedReturnType, methodName, pTypes);
             if(instanceMethod != null){
+                if(!linkPolicy.allowMethodCall(receiver, instanceMethod, params)){
+                    throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
+                }
                 instanceMethod.setAccessible(true);
                 callTarget = lookup.unreflect(instanceMethod);
             }
@@ -149,12 +172,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         if(callTarget == null){
             throw new NoSuchMethodException(
-                    receiverType.getName() + "." + methodName + "(" +
-                            Arrays.stream(pTypes)
-                                    .skip(1) // Skip self reference
-                                    .map(c -> c != null ? c.getName() : "null")
-                                    .collect(Collectors.joining(","))
-                            + ")");
+                    formatMethodSignature(receiverType, methodName, pTypes));
         }
 
         return callTarget;
@@ -193,7 +211,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 }
 
                 if (paramsMatch) {
-                    // TODO - check security policy
                     // We have a match!
                     return m;
                 }
@@ -242,5 +259,14 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public void setLibraries(ChipmunkLibraries libraries){
         this.libraries.set(libraries);
+    }
+
+    public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
+        return receiverType.getName() + "." + methodName + "(" +
+                Arrays.stream(pTypes)
+                        .skip(1) // Skip self reference
+                        .map(c -> c != null ? c.getName() : "null")
+                        .collect(Collectors.joining(","))
+                + ")";
     }
 }
