@@ -27,15 +27,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LinkingPolicy {
 
-    protected final DefaultMode mode;
+    protected final SecurityMode mode;
     protected final CopyOnWriteArrayList<PolicyEntry> entries;
 
-    public LinkingPolicy(DefaultMode mode){
+    public LinkingPolicy(SecurityMode mode){
         this.mode = mode;
         entries = new CopyOnWriteArrayList<>();
     }
 
-    public DefaultMode getDefaultMode(){
+    public SecurityMode getDefaultMode(){
         return mode;
     }
 
@@ -65,7 +65,7 @@ public class LinkingPolicy {
             }
         }
 
-        return mode == DefaultMode.ALLOWING;
+        return mode == SecurityMode.ALLOWING;
     }
 
     public boolean allowFieldSet(Object target, Field field, Object value){
@@ -77,7 +77,7 @@ public class LinkingPolicy {
             }
         }
 
-        return mode == DefaultMode.ALLOWING;
+        return mode == SecurityMode.ALLOWING;
     }
 
     public boolean allowFieldGet(Object target, Field field){
@@ -89,6 +89,6 @@ public class LinkingPolicy {
             }
         }
 
-        return mode == DefaultMode.ALLOWING;
+        return mode == SecurityMode.ALLOWING;
     }
 }

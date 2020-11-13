@@ -20,6 +20,6 @@
 
 package chipmunk.vm.invoke.security;
 
-public enum DefaultMode {
+public enum SecurityMode {
     ALLOWING, DENYING
 }

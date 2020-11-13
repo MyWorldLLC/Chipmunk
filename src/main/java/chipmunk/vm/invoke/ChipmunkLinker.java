@@ -20,7 +20,7 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.invoke.security.DefaultMode;
+import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -51,7 +51,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         libraries = new ThreadLocal<>();
         libraries.set(new ChipmunkLibraries());
 
-        linkPolicy = new LinkingPolicy(DefaultMode.ALLOWING);
+        linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
         lookup = MethodHandles.lookup();
     }
 
