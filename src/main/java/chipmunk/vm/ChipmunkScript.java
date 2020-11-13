@@ -21,6 +21,8 @@
 package chipmunk.vm;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.invoke.security.LinkingPolicy;
+import chipmunk.vm.invoke.security.SecurityMode;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,10 +52,13 @@ public abstract class ChipmunkScript {
 
     protected volatile ChipmunkVM vm;
     protected volatile ModuleLoader loader;
+    protected volatile LinkingPolicy linkPolicy;
 
     public ChipmunkScript(){
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
+
+        linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
     }
 
     public ChipmunkVM getVM() {
@@ -83,6 +88,14 @@ public abstract class ChipmunkScript {
 
     public List<Object> getTags(){
         return tags;
+    }
+
+    public LinkingPolicy getLinkPolicy(){
+        return linkPolicy;
+    }
+
+    public void setLinkPolicy(LinkingPolicy policy){
+        linkPolicy = policy;
     }
 
     public int getId(){

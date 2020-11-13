@@ -20,7 +20,7 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 public class ChipmunkLinker implements GuardingDynamicLinker {
 
     protected final ThreadLocal<ChipmunkLibraries> libraries;
-    protected volatile LinkingPolicy linkPolicy;
 
     protected final MethodHandles.Lookup lookup;
 
@@ -51,16 +50,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         libraries = new ThreadLocal<>();
         libraries.set(new ChipmunkLibraries());
 
-        linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
         lookup = MethodHandles.lookup();
-    }
-
-    public LinkingPolicy getLinkPolicy(){
-        return linkPolicy;
-    }
-
-    public void setLinkPolicy(LinkingPolicy policy){
-        linkPolicy = policy;
     }
 
     @Override
@@ -96,8 +86,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             if(field == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
-
-            if(!linkPolicy.allowFieldGet(receiver, field)){
+            LinkingPolicy linkPolicy = getLinkingPolicy();
+            if(linkPolicy != null && !linkPolicy.allowFieldGet(receiver, field)){
                 throw new IllegalAccessException(target.getClass().getName() + "." + op.getName() + ": policy forbids get");
             }
 
@@ -122,7 +112,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
 
-            if(!linkPolicy.allowFieldSet(receiver, field, linkRequest.getArguments()[1])){
+            LinkingPolicy linkPolicy = getLinkingPolicy();
+            if(linkPolicy != null && !linkPolicy.allowFieldSet(receiver, field, linkRequest.getArguments()[1])){
                 throw new IllegalAccessException(target.getClass().getName() + "." + op.getName() + ": policy forbids set to " + linkRequest.getArguments()[1]);
             }
 
@@ -161,7 +152,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Method instanceMethod = getMethod(receiverType, expectedReturnType, methodName, pTypes);
             if(instanceMethod != null){
-                if(!linkPolicy.allowMethodCall(receiver, instanceMethod, params)){
+                LinkingPolicy linkPolicy = getLinkingPolicy();
+                if(linkPolicy != null && !linkPolicy.allowMethodCall(receiver, instanceMethod, params)){
                     throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
                 }
                 instanceMethod.setAccessible(true);
@@ -259,6 +251,15 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public void setLibraries(ChipmunkLibraries libraries){
         this.libraries.set(libraries);
+    }
+
+    protected LinkingPolicy getLinkingPolicy(){
+        ChipmunkScript script = ChipmunkScript.getCurrentScript();
+        if(script == null){
+            return null;
+        }
+
+        return script.getLinkPolicy();
     }
 
     public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
