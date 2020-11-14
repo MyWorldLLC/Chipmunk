@@ -42,7 +42,6 @@ import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.scheduler.Scheduler;
-import chipmunk.vm.scheduler.ScriptRunner;
 
 
 public class ChipmunkVM {
