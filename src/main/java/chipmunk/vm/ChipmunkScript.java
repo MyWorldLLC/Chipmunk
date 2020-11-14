@@ -45,7 +45,8 @@ public abstract class ChipmunkScript {
         return currentScript.get();
     }
 
-    protected int id;
+    protected long id;
+    private volatile boolean yieldFlag;
 
     protected final List<Object> tags;
     protected final Map<String, ChipmunkModule> modules;
@@ -98,11 +99,11 @@ public abstract class ChipmunkScript {
         linkPolicy = policy;
     }
 
-    public int getId(){
+    public long getId(){
         return id;
     }
 
-    protected void setId(int id){
+    protected void setId(long id){
         this.id = id;
     }
 
@@ -134,6 +135,18 @@ public abstract class ChipmunkScript {
 
     public Object run(){
         return run(null);
+    }
+
+    public void yield(){
+        yieldFlag = true;
+    }
+
+    public boolean isYielded(){
+        return yieldFlag;
+    }
+
+    public void resume(){
+        yieldFlag = false;
     }
 
 }

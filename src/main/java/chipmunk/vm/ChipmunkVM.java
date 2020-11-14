@@ -24,9 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ChipmunkCompiler;
@@ -38,6 +41,8 @@ import chipmunk.vm.invoke.*;
 import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.scheduler.Scheduler;
+import chipmunk.vm.scheduler.ScriptRunner;
 
 
 public class ChipmunkVM {
@@ -48,10 +53,11 @@ public class ChipmunkVM {
 
 	protected SecurityMode securityMode;
 
-	protected final Binder binder;
 	protected final JvmCompiler jvmCompiler;
-	protected final ConcurrentHashMap<Integer, ChipmunkScript> scripts;
+	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
+	protected final AtomicLong scriptIds;
 	protected final ForkJoinPool scriptPool;
+	protected final Scheduler scheduler;
 
 	public ChipmunkVM() {
 		this(SecurityMode.SANDBOXED);
@@ -61,11 +67,34 @@ public class ChipmunkVM {
 
 		this.securityMode = securityMode;
 
-		binder = new Binder();
 		jvmCompiler = new JvmCompiler();
 
-		scripts = new ConcurrentHashMap<>();
-		scriptPool = new ForkJoinPool();
+		runningScripts = new ConcurrentHashMap<>();
+		scriptIds = new AtomicLong();
+		scriptPool = new ForkJoinPool(4,
+				ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+				(thread, throwable) -> {throwable.printStackTrace();},
+				true,
+				4,
+				8,
+				0,
+				null,
+				60,
+				TimeUnit.SECONDS);
+		scheduler = new Scheduler();
+	}
+
+	public void start() {
+		scheduler.start();
+	}
+
+	public void stop(){
+		scriptPool.shutdown();
+		scheduler.shutdown();
+	}
+
+	public Scheduler getScheduler(){
+		return scheduler;
 	}
 
 	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
@@ -102,8 +131,8 @@ public class ChipmunkVM {
 		ChipmunkScript script = jvmCompiler.compile(unit);
 		script.setVM(this);
 		script.setModuleLoader(unit.getModuleLoader());
+		script.setId(scriptIds.incrementAndGet());
 
-		// TODO - assign ID & add to script pool
 		return script;
 	}
 
@@ -163,6 +192,42 @@ public class ChipmunkVM {
 				.getInvocationHandle(MethodHandles.lookup(), target, Object.class, methodName, callParams);
 
 		return invoker.invokeWithArguments(callParams);
+	}
+
+	public Object invoke(ChipmunkScript script, Object target, String methodName){
+		return invoke(script, target, methodName, null);
+	}
+
+	public Object invoke(ChipmunkScript script, Object target, String methodName, Object[] params){
+		runningScripts.put(script.getId(), script);
+		ChipmunkScript.setCurrentScript(script);
+		scheduler.notifyInvocationBegan(script);
+
+		try{
+			return invoke(target, methodName, params);
+		}catch (Throwable t){
+			throw new RuntimeException(t);
+		}finally{
+			runningScripts.remove(script.getId());
+			ChipmunkScript.setCurrentScript(null);
+			scheduler.notifyInvocationEnded(script);
+		}
+	}
+
+	public Future<Object> runAsync(ChipmunkScript script) {
+		return invokeAsync(script, script, "run");
+	}
+
+	public Future<Object> runAsync(ChipmunkScript script, Object[] params) {
+		return invokeAsync(script, script, "run", params);
+	}
+
+	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName){
+		return invokeAsync(script, target, methodName, null);
+	}
+
+	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName, Object[] params){
+		return scriptPool.submit(() -> invoke(script, target, methodName, params));
 	}
 
 }
