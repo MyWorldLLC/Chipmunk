@@ -63,7 +63,9 @@ public class ChipmunkCompiler {
 				new InitializerBuilderVisitor(),
 				new InnerMethodRewriteVisitor()));
 
-		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver))));
+		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(
+				new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver)),
+				new DefaultConstructorVisitor()));
 
 		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(new SymbolAccessRewriteVisitor()));
 	}

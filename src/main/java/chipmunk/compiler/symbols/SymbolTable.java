@@ -72,6 +72,14 @@ public class SymbolTable {
 		}
 		return symbols.get(symbols.indexOf(symbol));
 	}
+
+	public Symbol getSymbolLocal(String name){
+		Symbol symbol = new Symbol(name);
+		if(symbols.contains(symbol)){
+			return symbols.get(symbols.indexOf(symbol));
+		}
+		return null;
+	}
 	
 	public void clearSymbol(Symbol symbol){
 		int symbolIndex = symbols.indexOf(symbol);
