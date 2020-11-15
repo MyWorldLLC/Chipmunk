@@ -293,16 +293,21 @@ public class JvmCompiler {
         callMethod.visitMaxs(0, 0);
         callMethod.visitEnd();
 
+        // Generate CClass.getModule()
         MethodVisitor cClassGetModule = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null);
         // TODO - pass module to cClass constructor?
-        cClassGetModule.visitVarInsn(Opcodes.ALOAD, 0);
+        cClassGetModule.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "getCurrentScript",
+                Type.getMethodType(Type.getType(ChipmunkScript.class)).getDescriptor(),
+                false);
+        cClassGetModule.visitInsn(Opcodes.DUP);
         cClassGetModule.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                 Type.getType(ChipmunkScript.class).getInternalName(),
                 "getVM",
                 Type.getMethodType(Type.getType(ChipmunkVM.class)).getDescriptor(),
                 false);
-        cClassGetModule.visitInsn(Opcodes.DUP);
-        cClassGetModule.visitVarInsn(Opcodes.ALOAD, 0);
+        cClassGetModule.visitInsn(Opcodes.SWAP);
         cClassGetModule.visitLdcInsn(containingName);
         cClassGetModule.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                 Type.getType(ChipmunkVM.class).getInternalName(),
@@ -312,6 +317,7 @@ public class JvmCompiler {
                         Type.getType(ChipmunkScript.class),
                         Type.getType(String.class)).getDescriptor(),
                 false);
+        cClassGetModule.visitInsn(Opcodes.ARETURN);
         cClassGetModule.visitMaxs(0, 0);
         cClassGetModule.visitEnd();
 
