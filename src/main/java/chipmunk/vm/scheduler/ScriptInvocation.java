@@ -24,20 +24,33 @@ import chipmunk.vm.ChipmunkScript;
 
 public class ScriptInvocation {
 
-    protected final long startTimeNanos;
+    protected volatile long queueTime;
+    protected volatile long startTime;
     protected final ChipmunkScript script;
 
     public ScriptInvocation(ChipmunkScript script){
         this(System.nanoTime(), script);
     }
 
-    public ScriptInvocation(long startTimeNanos, ChipmunkScript script){
-        this.startTimeNanos = startTimeNanos;
+    public ScriptInvocation(long queueTime, ChipmunkScript script){
+        this.queueTime = queueTime;
         this.script = script;
     }
 
-    public long getStartTimeNanos() {
-        return startTimeNanos;
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getQueueTime() {
+        return queueTime;
+    }
+
+    public void setQueueTime(long queueTime) {
+        this.queueTime = queueTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 
     public ChipmunkScript getScript() {

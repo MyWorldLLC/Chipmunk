@@ -24,9 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -226,6 +223,7 @@ public class ChipmunkVM {
 	}
 
 	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName, Object[] params){
+		scheduler.notifyQueuedForInvocation(script);
 		return scriptPool.submit(() -> invoke(script, target, methodName, params));
 	}
 

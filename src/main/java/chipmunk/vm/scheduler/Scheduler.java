@@ -42,8 +42,18 @@ public class Scheduler {
         schedulingThread.interrupt();
     }
 
-    public void notifyInvocationBegan(ChipmunkScript script){
+    public void notifyQueuedForInvocation(ChipmunkScript script){
         invocations.putIfAbsent(script.getId(), new ScriptInvocation(script));
+    }
+
+    public void notifyInvocationBegan(ChipmunkScript script){
+        invocations.compute(script.getId(), (k, invocation) -> {
+            if(invocation == null){
+                invocation = new ScriptInvocation(script);
+            }
+            invocation.setStartTime(System.nanoTime());
+            return invocation;
+        });
     }
 
     public void notifyInvocationEnded(ChipmunkScript script){
