@@ -242,7 +242,16 @@ public class JvmCompiler {
                 .visitEnd();
 
         // Generate instance constructor
-        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, Type.getObjectType(nameToBinaryName(qualifiedCClassName))).getDescriptor(), null, null);
+        BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry(className).getBinaryMethod();
+        // Normally we would subtract 1 since the VM doesn't count the self parameter,
+        // but since we're adding the class parameter we don't
+        Type[] mTypes = paramTypes(binaryConstructor.getArgCount());
+        Type[] initTypes = paramTypes(Math.max(1, binaryConstructor.getArgCount()));
+        initTypes[0] = Type.getObjectType(nameToBinaryName(qualifiedCClassName));
+
+        Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount());
+
+        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -252,16 +261,16 @@ public class JvmCompiler {
         insConstructor.visitVarInsn(Opcodes.ALOAD, 1);
         insConstructor.visitFieldInsn(Opcodes.PUTFIELD, nameToBinaryName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());//Type.getObjectType(nameToBinaryName(qualifiedCClassName)).getDescriptor());
 
-        if(cls.getInstanceNamespace().has("$instance_init$")){
-            insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
-            insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), "$instance_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
-        }
+        // Invoke $instance_init$
+        insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+        insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), "$instance_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
 
-        if(cls.getInstanceNamespace().has(className)){
-            // If the class has a constructor, invoke it from <init>
-            insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
-            insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+        // Invoke constructor
+        insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
+        for(int i = 0; i < constructorTypes.length; i++){
+            insConstructor.visitVarInsn(Opcodes.ALOAD, i + 1);
         }
+        insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, nameToBinaryName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
 
         insConstructor.visitInsn(Opcodes.RETURN);
         insConstructor.visitMaxs(0, 0);
@@ -273,22 +282,16 @@ public class JvmCompiler {
         // Create new method on the class object to create instances of the instance class
         // newInstance = CClass.new(p1, p2, ...)
         Type insType = Type.getObjectType(nameToBinaryName(qualifiedInsName));
-        BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry("$instance_init$").getBinaryMethod();
-        // Normally we would subtract 1 since the VM doesn't count the self parameter,
-        // but since we're adding the class parameter we don't
-        Type[] mTypes = paramTypes(binaryConstructor.getArgCount());
-        Type[] cTypes = paramTypes(Math.max(1, binaryConstructor.getArgCount()));
-        cTypes[0] = Type.getObjectType(nameToBinaryName(qualifiedCClassName));
 
         MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", Type.getMethodType(insType, mTypes).getDescriptor(), null, null);
         callMethod.visitCode();
         callMethod.visitTypeInsn(Opcodes.NEW, insType.getInternalName());
         callMethod.visitInsn(Opcodes.DUP);
         callMethod.visitVarInsn(Opcodes.ALOAD, 0);
-        for(int i = 1; i < cTypes.length; i++){
+        for(int i = 1; i < initTypes.length; i++){
             callMethod.visitVarInsn(Opcodes.ALOAD, i);
         }
-        callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, cTypes).getDescriptor(), false);
+        callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), false);
         callMethod.visitInsn(Opcodes.ARETURN);
         callMethod.visitMaxs(0, 0);
         callMethod.visitEnd();
@@ -320,8 +323,6 @@ public class JvmCompiler {
         cClassGetModule.visitInsn(Opcodes.ARETURN);
         cClassGetModule.visitMaxs(0, 0);
         cClassGetModule.visitEnd();
-
-        // TODO - implement ChipmunkClass interface fully
 
         cClassWriter.visitEnd();
 
