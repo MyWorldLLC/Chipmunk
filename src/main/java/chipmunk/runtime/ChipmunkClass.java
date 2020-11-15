@@ -22,10 +22,12 @@ package chipmunk.runtime;
 
 public interface ChipmunkClass {
 
-    String getSimpleName();
+    default String getSimpleName(){
+        return getClass().getSimpleName();
+    }
 
     default String getName() {
-        return getModule().getName() + "." + getSimpleName();
+        return getClass().getName();
     }
 
     ChipmunkModule getModule();
