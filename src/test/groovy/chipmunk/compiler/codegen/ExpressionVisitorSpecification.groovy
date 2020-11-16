@@ -20,22 +20,13 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.vm.ChipmunkVM
-import chipmunk.compiler.assembler.ChipmunkAssembler
-import chipmunk.compiler.lexer.ChipmunkLexer
-import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {
 
-	ChipmunkLexer lexer = new ChipmunkLexer()
-	ChipmunkParser parser
-	Codegen codegen = new Codegen(new BinaryModule("test"))
-	ChipmunkAssembler assembler = codegen.getAssembler()
-	ChipmunkVM vm = new ChipmunkVM(ChipmunkVM.SecurityMode.UNRESTRICTED)
-	ExpressionVisitor visitor = new ExpressionVisitor(codegen)
+	ChipmunkVM vm = new ChipmunkVM()
 	
 	def "Evaluate boolean literal true"(){
 		when:

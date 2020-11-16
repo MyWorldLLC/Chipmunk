@@ -35,6 +35,8 @@ import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.invoke.*;
+import chipmunk.vm.invoke.security.LinkingPolicy;
+import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
@@ -43,11 +45,7 @@ import chipmunk.vm.scheduler.Scheduler;
 
 public class ChipmunkVM {
 
-	public enum SecurityMode {
-		UNRESTRICTED, SANDBOXED
-	}
-
-	protected SecurityMode securityMode;
+	protected volatile LinkingPolicy defaultLinkPolicy;
 
 	protected final JvmCompiler jvmCompiler;
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
@@ -56,17 +54,18 @@ public class ChipmunkVM {
 	protected final Scheduler scheduler;
 
 	public ChipmunkVM() {
-		this(SecurityMode.SANDBOXED);
+		this(SecurityMode.ALLOWING);
 	}
 
 	public ChipmunkVM(SecurityMode securityMode) {
 
-		this.securityMode = securityMode;
+		defaultLinkPolicy = new LinkingPolicy(securityMode);
 
 		jvmCompiler = new JvmCompiler();
 
 		runningScripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
+		// TODO - make configurable
 		scriptPool = new ForkJoinPool(4,
 				ForkJoinPool.defaultForkJoinWorkerThreadFactory,
 				(thread, throwable) -> {throwable.printStackTrace();},
@@ -78,6 +77,14 @@ public class ChipmunkVM {
 				60,
 				TimeUnit.SECONDS);
 		scheduler = new Scheduler();
+	}
+
+	public LinkingPolicy getDefaultLinkPolicy(){
+		return defaultLinkPolicy;
+	}
+
+	public void setDefaultLinkPolicy(LinkingPolicy policy){
+		defaultLinkPolicy = policy;
 	}
 
 	public void start() {
@@ -124,10 +131,15 @@ public class ChipmunkVM {
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 
+		return compileScript(unit);
+	}
+
+	public ChipmunkScript compileScript(CompilationUnit unit) throws IOException, BinaryFormatException {
 		ChipmunkScript script = jvmCompiler.compile(unit);
 		script.setVM(this);
 		script.setModuleLoader(unit.getModuleLoader());
 		script.setId(scriptIds.incrementAndGet());
+		script.setLinkPolicy(defaultLinkPolicy);
 
 		return script;
 	}
