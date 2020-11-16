@@ -364,7 +364,6 @@ public class JvmCompiler {
 
         final ClassWriter writer = namespaceInfo.getWriter();
         final MethodVisitor constructor = namespaceInfo.getInit();
-        final String name = namespaceInfo.getName();
 
         for(BinaryNamespace.Entry entry : ns){
             int flags = Opcodes.ACC_PUBLIC;
