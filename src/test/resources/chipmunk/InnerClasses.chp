@@ -29,6 +29,6 @@ class TestClass {
 }
 
 def main(){
-	var inner = TestClass().InnerClass()
-	return TestClass().InnerClass().baz + inner.baz + TestClass.SharedInnerClass().bar
+	var inner = TestClass.new().InnerClass.new()
+	return TestClass.new().InnerClass.new().baz + inner.baz + TestClass.SharedInnerClass.new().bar
 }

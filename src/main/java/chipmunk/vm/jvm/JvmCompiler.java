@@ -236,10 +236,6 @@ public class JvmCompiler {
             clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedCClassName), "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
         }
 
-        clsConstructor.visitInsn(Opcodes.RETURN);
-        clsConstructor.visitMaxs(0, 0);
-        clsConstructor.visitEnd();
-
         ClassWriter cInsWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedInsName), null, Type.getType(Object.class).getInternalName(), new String[]{
                 Type.getType(ChipmunkObject.class).getInternalName()
@@ -281,19 +277,24 @@ public class JvmCompiler {
         }
         insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
 
-        insConstructor.visitInsn(Opcodes.RETURN);
-        insConstructor.visitMaxs(0, 0);
-        insConstructor.visitEnd();
-
-        final NamespaceInfo clsNamespace = new NamespaceInfo(cClassWriter, clsConstructor, qualifiedCClassName);
+        final NamespaceInfo clsNamespace = new NamespaceInfo(cClassWriter, clsConstructor, className + "$class");
         compilation.enterNamespace(clsNamespace);
         visitNamespace(compilation, cls.getSharedNamespace());
         compilation.exitNamespace();
 
-        final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, qualifiedInsName);
+        final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, className);
         compilation.enterNamespace(insNamespace);
         visitNamespace(compilation, cls.getInstanceNamespace());
         compilation.exitNamespace();
+
+        // Close constructors *after* visiting the class namespaces
+        clsConstructor.visitInsn(Opcodes.RETURN);
+        clsConstructor.visitMaxs(0, 0);
+        clsConstructor.visitEnd();
+
+        insConstructor.visitInsn(Opcodes.RETURN);
+        insConstructor.visitMaxs(0, 0);
+        insConstructor.visitEnd();
 
         // Create new method on the class object to create instances of the instance class
         // newInstance = CClass.new(p1, p2, ...)
@@ -388,7 +389,7 @@ public class JvmCompiler {
                 constructor.visitTypeInsn(Opcodes.NEW, clsType.getInternalName());
                 constructor.visitInsn(Opcodes.DUP);
                 constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, clsType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
-                constructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(name), entry.getName(), clsType.getDescriptor());
+                constructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(compilation.qualifiedContainingName()), entry.getName(), clsType.getDescriptor());
 
             }else{
                 visitVar(writer, flags, entry.getName());

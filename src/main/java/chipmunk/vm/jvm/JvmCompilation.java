@@ -59,15 +59,15 @@ public class JvmCompilation {
     }
 
     public void enterNamespace(NamespaceInfo info){
-        namespaceInfo.push(info);
+        namespaceInfo.add(info);
     }
 
     public NamespaceInfo exitNamespace(){
-        return namespaceInfo.pop();
+        return namespaceInfo.pollLast();
     }
 
     public NamespaceInfo containingNamespace(){
-        return namespaceInfo.peek();
+        return namespaceInfo.peekLast();
     }
 
     public String qualifiedContainingName(){
