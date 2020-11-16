@@ -21,11 +21,10 @@
 package chipmunk.vm.jvm;
 
 import chipmunk.binary.BinaryModule;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.stream.Collectors;
 
 public class JvmCompilation {
 
@@ -69,5 +68,12 @@ public class JvmCompilation {
 
     public NamespaceInfo containingNamespace(){
         return namespaceInfo.peek();
+    }
+
+    public String qualifiedContainingName(){
+        final String containingName = namespaceInfo.stream()
+                .map(NamespaceInfo::getName)
+                .collect(Collectors.joining("."));
+        return packagePrefix != null ? packagePrefix + "." + containingName : containingName;
     }
 }

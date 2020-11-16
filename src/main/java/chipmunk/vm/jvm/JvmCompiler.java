@@ -21,7 +21,6 @@
 package chipmunk.vm.jvm;
 
 import chipmunk.ChipmunkRuntimeException;
-import chipmunk.compiler.Compilation;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
@@ -216,9 +215,8 @@ public class JvmCompiler {
     protected Class<?> visitChipmunkClass(JvmCompilation compilation, BinaryClass cls){
 
         final String className = cls.getName();
-        // TODO - the names below will not work for nested classes
-        final String qualifiedInsName = compilation.getPrefixedModuleName() + "." + className;
-        final String qualifiedCClassName = compilation.getPrefixedModuleName() + "." + className + "$class";
+        final String qualifiedInsName = compilation.qualifiedContainingName() + "." + className;
+        final String qualifiedCClassName = compilation.qualifiedContainingName() + "." + className + "$class";
 
         ClassWriter cClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cClassWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedCClassName), null, Type.getType(Object.class).getInternalName(),
@@ -329,7 +327,7 @@ public class JvmCompiler {
                 Type.getMethodType(Type.getType(ChipmunkVM.class)).getDescriptor(),
                 false);
         cClassGetModule.visitInsn(Opcodes.SWAP);
-        cClassGetModule.visitLdcInsn(compilation.getPrefixedModuleName()); // TODO - won't work for nested classes
+        cClassGetModule.visitLdcInsn(compilation.qualifiedContainingName());
         cClassGetModule.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                 Type.getType(ChipmunkVM.class).getInternalName(),
                 "getModule",
