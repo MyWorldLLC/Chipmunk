@@ -34,6 +34,7 @@ import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static chipmunk.compiler.assembler.Opcodes.*;
 
@@ -127,7 +128,7 @@ public class JvmCompiler {
         ClassWriter moduleWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         moduleWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(compilation.getPrefixedModuleName()), null, objType.getInternalName(),
                 new String[]{
-                        Type.getType(ChipmunkModule.class).getInternalName()
+                        Type.getInternalName(ChipmunkModule.class)
                 });
         moduleWriter.visitSource(module.getFileName(), null);
 
@@ -219,17 +220,63 @@ public class JvmCompiler {
         final String qualifiedCClassName = compilation.qualifiedContainingName() + "." + className + "$class";
 
         ClassWriter cClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cClassWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedCClassName), null, Type.getType(Object.class).getInternalName(),
+        cClassWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedCClassName), null, Type.getInternalName(Object.class),
                 new String[]{
-                        Type.getType(ChipmunkClass.class).getInternalName()
+                        Type.getInternalName(ChipmunkClass.class)
                 });
         cClassWriter.visitSource(cls.getModule().getFileName(), null);
+
+        // Generate traits fields
+        cClassWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, "$sharedTraits", Type.getDescriptor(List.class), Type.getDescriptor(Object.class), null)
+        .visitEnd();
 
         // Generate class constructor
         MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         clsConstructor.visitCode();
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
-        clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+        clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+        // Before running class initializer, fill the traits
+        Set<String> clsTraitNames = cls.getSharedNamespace().getEntries()
+                .stream()
+                .filter(e -> (e.getFlags() & BinaryConstants.TRAIT_FLAG) != 0)
+                .map(BinaryNamespace.Entry::getName)
+                .collect(Collectors.toSet());
+
+        if(!clsTraitNames.isEmpty()){
+            clsConstructor.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ArrayList.class));
+            clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(ArrayList.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+            for(String traitName : clsTraitNames){
+                clsConstructor.visitInsn(Opcodes.DUP);
+                clsConstructor.visitLdcInsn(traitName);
+                clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(ArrayList.class), "add", Type.getMethodType(Type.VOID_TYPE, Type.getType(String.class)).getDescriptor(), false);
+            }
+
+            clsConstructor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Collections.class), "unmodifiableSet", Type.getMethodType(Type.getType(List.class), Type.getType(List.class)).getDescriptor(), false);
+            clsConstructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(qualifiedCClassName), "$sharedTraits", Type.getDescriptor(List.class));
+        }
+
+        // Instance traits
+        Set<String> insTraitNames = cls.getInstanceNamespace().getEntries()
+                .stream()
+                .filter(e -> (e.getFlags() & BinaryConstants.TRAIT_FLAG) != 0)
+                .map(BinaryNamespace.Entry::getName)
+                .collect(Collectors.toSet());
+
+        if(!insTraitNames.isEmpty()){
+            clsConstructor.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ArrayList.class));
+            clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(ArrayList.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+
+            for(String traitName : clsTraitNames){
+                clsConstructor.visitInsn(Opcodes.DUP);
+                clsConstructor.visitLdcInsn(traitName);
+                clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(ArrayList.class), "add", Type.getMethodType(Type.VOID_TYPE, Type.getType(String.class)).getDescriptor(), false);
+            }
+
+            clsConstructor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(Collections.class), "unmodifiableSet", Type.getMethodType(Type.getType(List.class), Type.getType(List.class)).getDescriptor(), false);
+            clsConstructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(qualifiedCClassName), "$traits", Type.getDescriptor(List.class));
+        }
 
         if(cls.getSharedNamespace().has("$class_init$")){
             clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -237,8 +284,8 @@ public class JvmCompiler {
         }
 
         ClassWriter cInsWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedInsName), null, Type.getType(Object.class).getInternalName(), new String[]{
-                Type.getType(ChipmunkObject.class).getInternalName()
+        cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedInsName), null, Type.getInternalName(Object.class), new String[]{
+                Type.getInternalName(ChipmunkObject.class)
         });
         cInsWriter.visitSource(cls.getModule().getFileName(), null);
 
@@ -259,7 +306,7 @@ public class JvmCompiler {
         MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
-        insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getType(Object.class).getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+        insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
         // Store the $cClass
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -315,6 +362,7 @@ public class JvmCompiler {
 
         // Generate CClass.getModule()
         MethodVisitor cClassGetModule = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null);
+        cClassGetModule.visitCode();
         // TODO - pass module to cClass constructor?
         cClassGetModule.visitMethodInsn(Opcodes.INVOKESTATIC,
                 Type.getType(ChipmunkScript.class).getInternalName(),
@@ -340,6 +388,24 @@ public class JvmCompiler {
         cClassGetModule.visitInsn(Opcodes.ARETURN);
         cClassGetModule.visitMaxs(0, 0);
         cClassGetModule.visitEnd();
+
+        // Generate cClass.getTraits()
+        MethodVisitor getTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getTraits", Type.getMethodType(Type.getType(List.class)).getDescriptor(), null, null);
+        getTraits.visitCode();
+        getTraits.visitVarInsn(Opcodes.ALOAD, 0);
+        getTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$traits", Type.getDescriptor(List.class));
+        getTraits.visitInsn(Opcodes.ARETURN);
+        getTraits.visitMaxs(0, 0);
+        getTraits.visitEnd();
+
+        // Generate cClass.getSharedTraits()
+        MethodVisitor getSharedTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getSharedTraits", Type.getMethodType(Type.getType(List.class)).getDescriptor(), null, null);
+        getSharedTraits.visitCode();
+        getSharedTraits.visitVarInsn(Opcodes.ALOAD, 0);
+        getSharedTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$sharedTraits", Type.getDescriptor(List.class));
+        getSharedTraits.visitInsn(Opcodes.ARETURN);
+        getSharedTraits.visitMaxs(0, 0);
+        getSharedTraits.visitEnd();
 
         cClassWriter.visitEnd();
 

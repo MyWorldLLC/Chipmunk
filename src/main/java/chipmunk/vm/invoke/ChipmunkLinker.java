@@ -20,6 +20,8 @@
 
 package chipmunk.vm.invoke;
 
+import chipmunk.runtime.ChipmunkClass;
+import chipmunk.runtime.ChipmunkObject;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
@@ -36,7 +38,9 @@ import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ChipmunkLinker implements GuardingDynamicLinker {
@@ -69,6 +73,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             MethodType guardType = callType.generic().changeReturnType(Boolean.class);
 
+            // TODO - when this method handle is bound to a trait, we need to guard on the current switch point
+            // for that trait in addition to the target/parameter types
             MethodHandle guard = lookup.findStatic(
                     this.getClass(),
                     "validateCall",
@@ -120,6 +126,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
                     .toMethodHandle(VarHandle.AccessMode.SET);
 
+            // TODO - when setting a field that is a trait, we need to invalidate the current switch point for that
+            // trait to invalidate any method handles that are bound to it.
             MethodHandle guard = lookup.findStatic(
                     this.getClass(),
                     "validateFieldAccess",
@@ -138,39 +146,44 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             throw new NullPointerException("Invocation target is null");
         }
 
-        Class<?> receiverType = receiver.getClass();
-
         Class<?>[] pTypes = new Class<?>[params.length];
         for(int i = 0; i < params.length; i++){
             pTypes[i] = params[i] != null ? params[i].getClass() : void.class;
         }
 
+        return resolveCallTarget(lookup, receiver, expectedReturnType, methodName, params, pTypes);
+    }
+
+    public MethodHandle resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes) throws Exception {
         // Library methods should override type methods, so check them first
         MethodHandle callTarget = getLibraries().getMethod(lookup, expectedReturnType, methodName, pTypes);
 
         if(callTarget == null) {
-
-            Method instanceMethod = getMethod(receiverType, expectedReturnType, methodName, pTypes);
-            if(instanceMethod != null){
-                LinkingPolicy linkPolicy = getLinkingPolicy();
-                if(linkPolicy != null && !linkPolicy.allowMethodCall(receiver, instanceMethod, params)){
-                    throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
-                }
-                instanceMethod.setAccessible(true);
-                callTarget = lookup.unreflect(instanceMethod);
-            }
-
+            callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes);
         }
 
         if(callTarget == null){
-            throw new NoSuchMethodException(
-                    formatMethodSignature(receiverType, methodName, pTypes));
+            // Check for trait methods
+            List<String> traits;
+            if(receiver instanceof ChipmunkObject){
+                traits = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
+            }else if(receiver instanceof ChipmunkClass){
+                traits = ((ChipmunkClass) receiver).getSharedTraits();
+            }else{
+                throw new NoSuchMethodException(
+                        formatMethodSignature(receiver.getClass(), methodName, pTypes));
+            }
+
+            // TODO - when producing the method handle
+
         }
 
         return callTarget;
     }
 
-    public Method getMethod(Class<?> receiverType, Class<?> expectedReturnType, String methodName, Class<?>[] pTypes){
+    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes) throws IllegalAccessException {
+
+        Class<?> receiverType = receiver.getClass();
 
         for (Method m : receiverType.getMethods()) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
@@ -204,7 +217,12 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 if (paramsMatch) {
                     // We have a match!
-                    return m;
+                    LinkingPolicy linkPolicy = getLinkingPolicy();
+                    if(linkPolicy != null && !linkPolicy.allowMethodCall(receiver, m, params)){
+                        throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
+                    }
+                    m.setAccessible(true);
+                    return lookup.unreflect(m);
                 }
 
             }

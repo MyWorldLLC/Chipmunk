@@ -20,6 +20,8 @@
 
 package chipmunk.runtime;
 
+import java.util.List;
+
 public interface ChipmunkClass {
 
     default String getSimpleName(){
@@ -28,6 +30,14 @@ public interface ChipmunkClass {
 
     default String getName() {
         return getClass().getName();
+    }
+
+    default List<String> getTraits(){
+        return null;
+    }
+
+    default List<String> getSharedTraits(){
+        return null;
     }
 
     ChipmunkModule getModule();
