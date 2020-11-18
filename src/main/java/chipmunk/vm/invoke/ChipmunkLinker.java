@@ -22,6 +22,7 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkObject;
+import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
@@ -164,7 +165,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         if(callTarget == null){
             // Check for trait methods
-            List<String> traits;
+            TraitField[] traits;
             if(receiver instanceof ChipmunkObject){
                 traits = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
             }else if(receiver instanceof ChipmunkClass){

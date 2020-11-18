@@ -20,26 +20,32 @@
 
 package chipmunk.runtime;
 
-import java.util.List;
+import java.lang.invoke.SwitchPoint;
+import java.util.concurrent.locks.ReentrantLock;
 
-public interface ChipmunkClass {
+public class TraitField {
+    protected final String field;
+    protected final ReentrantLock lock;
+    protected volatile SwitchPoint invalidationPoint;
 
-    default String getSimpleName(){
-        return getClass().getSimpleName();
+    public TraitField(String fieldName){
+        field = fieldName;
+        lock = new ReentrantLock();
     }
 
-    default String getName() {
-        return getClass().getName();
+    public String getField(){
+        return field;
     }
 
-    default TraitField[] getTraits(){
-        return null;
+    public ReentrantLock getLock(){
+        return lock;
     }
 
-    default TraitField[] getSharedTraits(){
-        return null;
+    public SwitchPoint getInvalidationPoint(){
+        return invalidationPoint;
     }
 
-    ChipmunkModule getModule();
-
+    public void resetSwitchPoint(){
+        invalidationPoint = new SwitchPoint();
+    }
 }
