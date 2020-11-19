@@ -95,7 +95,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            Field field = getField(target.getClass(), (String) op.getName());
+            Field field = getField(target, (String) op.getName());
             if(field == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
@@ -285,7 +285,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             }
         }
 
-        TraitField[] traitFields = null;
+       /* TraitField[] traitFields = null;
         if(receiver instanceof ChipmunkObject){
             traitFields = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
         }else if(receiver instanceof ChipmunkClass){
@@ -305,7 +305,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if (receiverField == null) {
                     Class<?> receiverClass = receiver.getClass();
                     for(Field f : receiverClass.getFields()){
-                        if(f.getName().equals(fieldName)){
+                        if(f.getName().equals(trait.getField())){
                             receiverField = f;
                             receiverField.setAccessible(true);
                             trait.setReflectedField(receiverField);
@@ -331,7 +331,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             }finally{
                 traitLock.unlock();
             }
-        }
+        }*/
 
         return null;
     }
