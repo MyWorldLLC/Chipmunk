@@ -21,16 +21,19 @@
 package chipmunk.runtime;
 
 import java.lang.invoke.SwitchPoint;
+import java.lang.reflect.Field;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TraitField {
     protected final String field;
     protected final ReentrantLock lock;
     protected volatile SwitchPoint invalidationPoint;
+    protected volatile Field reflectedField;
 
     public TraitField(String fieldName){
         field = fieldName;
         lock = new ReentrantLock();
+        invalidationPoint = new SwitchPoint();
     }
 
     public String getField(){
@@ -47,5 +50,54 @@ public class TraitField {
 
     public void resetSwitchPoint(){
         invalidationPoint = new SwitchPoint();
+    }
+
+    public Field getReflectedField(){
+        return reflectedField;
+    }
+
+    public void setReflectedField(Field f){
+        reflectedField = f;
+    }
+
+    @Override
+    public String toString(){
+        return "TraitField[" + field + "]";
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof TraitField){
+            return ((TraitField) o).field.equals(field);
+        }
+        return false;
+    }
+
+    public static boolean isTrait(TraitField[] fields, String fieldName){
+        if(fields == null){
+            return false;
+        }
+
+        for(TraitField f : fields){
+            if(f.getField().equals(fieldName)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static TraitField getField(TraitField[] fields, String fieldName){
+        if(fields == null){
+            return null;
+        }
+
+        for(TraitField f : fields){
+            if(f.getField().equals(fieldName)){
+                return f;
+            }
+        }
+
+        return null;
     }
 }

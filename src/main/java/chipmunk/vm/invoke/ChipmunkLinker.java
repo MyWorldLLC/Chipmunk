@@ -32,16 +32,11 @@ import jdk.dynalink.linker.GuardingDynamicLinker;
 import jdk.dynalink.linker.LinkRequest;
 import jdk.dynalink.linker.LinkerServices;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.VarHandle;
+import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class ChipmunkLinker implements GuardingDynamicLinker {
@@ -69,27 +64,13 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         if(op.getBaseOperation().equals(StandardOperation.CALL)){
             // Bind method calls
-
-            MethodHandle handle = getInvocationHandle(lookup, receiver, callType.returnType(), (String)op.getName(), params);
-
-            MethodType guardType = callType.generic().changeReturnType(Boolean.class);
-
-            // TODO - when this method handle is bound to a trait, we need to guard on the current switch point
-            // for that trait in addition to the target/parameter types
-            MethodHandle guard = lookup.findStatic(
-                    this.getClass(),
-                    "validateCall",
-                    MethodType.methodType(boolean.class, Object[].class, Object[].class))
-                    .bindTo(params)
-                    .asCollector(Object[].class, guardType.parameterCount());
-
-            return new GuardedInvocation(handle, guard);
+            return getInvocationHandle(lookup, receiver, callType, (String)op.getName(), params);
         }else if(op.getBaseOperation().equals(StandardOperation.GET)){
             // Bind field access
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            Field field = getField(target.getClass(), (String) op.getName());
+            Field field = getField(target, (String) op.getName());
             if(field == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
@@ -127,8 +108,24 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             MethodHandle fieldHandle = lookup.unreflectVarHandle(field)
                     .toMethodHandle(VarHandle.AccessMode.SET);
 
-            // TODO - when setting a field that is a trait, we need to invalidate the current switch point for that
+            // When setting a field that is a trait, we need to invalidate the current switch point for that
             // trait to invalidate any method handles that are bound to it.
+            TraitField[] traits = null;
+            if(target instanceof ChipmunkObject) {
+                traits = ((ChipmunkObject) target).getChipmunkClass().getTraits();
+            }else if(target instanceof ChipmunkClass){
+                traits = ((ChipmunkClass) target).getSharedTraits();
+            }
+
+            if(traits != null){
+                TraitField trait = TraitField.getField(traits, field.getName());
+                if(trait != null){
+                    MethodHandle invalidationHandle = lookup.findStatic(ChipmunkLinker.class, "setTraitField",
+                            MethodType.methodType(void.class, TraitField.class, MethodHandle.class, Object.class, Object.class));
+                    fieldHandle = MethodHandles.insertArguments(invalidationHandle, 0, trait, fieldHandle);
+                }
+            }
+
             MethodHandle guard = lookup.findStatic(
                     this.getClass(),
                     "validateFieldAccess",
@@ -141,7 +138,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    public MethodHandle getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, Class<?> expectedReturnType, String methodName, Object[] params) throws Exception {
+    public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params) throws Exception {
 
         if(receiver == null){
             throw new NullPointerException("Invocation target is null");
@@ -152,34 +149,83 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             pTypes[i] = params[i] != null ? params[i].getClass() : void.class;
         }
 
-        return resolveCallTarget(lookup, receiver, expectedReturnType, methodName, params, pTypes);
+        GuardedInvocation invocation = resolveCallTarget(lookup, receiver, callType, methodName, params, pTypes);
+
+        if(invocation == null){
+            // Failed to resolve method or a trait providing the method
+            throw new NoSuchMethodException(
+                    formatMethodSignature(receiver.getClass(), methodName, pTypes));
+        }
+
+        return invocation;
     }
 
-    public MethodHandle resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes) throws Exception {
+    public GuardedInvocation resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, Class<?>[] pTypes) throws Exception {
         // Library methods should override type methods, so check them first
+        Class<?> expectedReturnType = callType.returnType();
         MethodHandle callTarget = getLibraries().getMethod(lookup, expectedReturnType, methodName, pTypes);
 
-        if(callTarget == null) {
+        if (callTarget == null) {
             callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes);
         }
 
-        if(callTarget == null){
-            // Check for trait methods
-            TraitField[] traits;
-            if(receiver instanceof ChipmunkObject){
-                traits = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
-            }else if(receiver instanceof ChipmunkClass){
-                traits = ((ChipmunkClass) receiver).getSharedTraits();
-            }else{
-                throw new NoSuchMethodException(
-                        formatMethodSignature(receiver.getClass(), methodName, pTypes));
-            }
-
-            // TODO - when producing the method handle
-
+        if (callTarget != null) {
+            // Return non-trait invocation
+            return new GuardedInvocation(callTarget, getCallGuard(lookup, callType, params));
         }
 
-        return callTarget;
+        // Check for trait methods
+        TraitField[] traits = null;
+        if (receiver instanceof ChipmunkObject) {
+            traits = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
+        } else if (receiver instanceof ChipmunkClass) {
+            traits = ((ChipmunkClass) receiver).getSharedTraits();
+        }
+
+        if (traits != null) {
+            for (TraitField trait : traits) {
+
+                ReentrantLock traitLock = trait.getLock();
+                try {
+                    traitLock.lock();
+
+                    Field receiverField = trait.getReflectedField();
+                    if (receiverField == null) {
+                        receiverField = receiver.getClass().getField(trait.getField());
+                        receiverField.setAccessible(true);
+                        trait.setReflectedField(receiverField);
+                    }
+
+                    Object traitReceiver = receiverField.get(receiver);
+                    if (traitReceiver == null) {
+                        continue;
+                    }
+
+                    GuardedInvocation invocation = resolveCallTarget(lookup, traitReceiver, callType, methodName, params, pTypes);
+
+                    if (invocation != null) {
+
+                        MethodHandle receiverFilter = lookup.unreflectGetter(trait.getReflectedField())
+                                .asType(MethodType.methodType(traitReceiver.getClass(), pTypes[0]));
+
+                        invocation = invocation
+                                .addSwitchPoint(trait.getInvalidationPoint())
+                                .replaceMethods(
+                                        MethodHandles.filterArguments(invocation.getInvocation(), 0, receiverFilter),
+                                        invocation.getGuard()
+                                );
+
+                        return invocation;
+                    }
+
+                } finally {
+                    traitLock.unlock();
+                }
+
+            }
+        }
+
+        return null;
     }
 
     public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes) throws IllegalAccessException {
@@ -231,17 +277,66 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    public Field getField(Class<?> receiver, String fieldName){
-        Field[] fields = receiver.getFields();
+    public Field getField(Object receiver, String fieldName) throws Exception {
+        Field[] fields = receiver.getClass().getFields();
         for(Field f : fields){
             if(f.getName().equals(fieldName)){
                 return f;
             }
         }
+
+        TraitField[] traitFields = null;
+        if(receiver instanceof ChipmunkObject){
+            traitFields = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
+        }else if(receiver instanceof ChipmunkClass){
+            traitFields = ((ChipmunkClass) receiver).getSharedTraits();
+        }
+
+        if(traitFields == null){
+            return null;
+        }
+
+        for(TraitField trait : traitFields){
+            ReentrantLock traitLock = trait.getLock();
+            try {
+                traitLock.lock();
+
+                Field receiverField = trait.getReflectedField();
+                if (receiverField == null) {
+                    Class<?> receiverClass = receiver.getClass();
+                    for(Field f : receiverClass.getFields()){
+                        if(f.getName().equals(fieldName)){
+                            receiverField = f;
+                            receiverField.setAccessible(true);
+                            trait.setReflectedField(receiverField);
+                            break;
+                        }
+                    }
+                }
+
+                if(receiverField == null){
+                    continue;
+                }
+
+                Object traitReceiver = receiverField.get(receiver);
+                if (traitReceiver == null) {
+                    continue;
+                }
+
+                Field f = getField(traitReceiver, fieldName);
+                if(f != null){
+                    return f;
+                }
+
+            }finally{
+                traitLock.unlock();
+            }
+        }
+
         return null;
     }
 
-    protected static boolean validateCall(Object[] boundArgs, Object[] callArgs){
+    public static boolean validateCall(Object[] boundArgs, Object[] callArgs){
         if(boundArgs.length != callArgs.length){
             return false;
         }
@@ -257,11 +352,27 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return true;
     }
 
-    protected static boolean validateFieldAccess(Object boundTarget, Object fieldValue){
+    public static boolean validateFieldAccess(Object boundTarget, Object fieldValue){
         if(fieldValue == null){
             return true;
         }
         return boundTarget.getClass().isAssignableFrom(fieldValue.getClass());
+    }
+
+    public static void setTraitField(TraitField f, MethodHandle setter, Object target, Object value) throws Throwable {
+        SwitchPoint.invalidateAll(new SwitchPoint[]{f.getInvalidationPoint()});
+        setter.invoke(target, value);
+    }
+
+    protected MethodHandle getCallGuard(MethodHandles.Lookup lookup, MethodType callType, Object[] params) throws NoSuchMethodException, IllegalAccessException {
+        MethodType guardType = callType.generic().changeReturnType(Boolean.class);
+
+        return lookup.findStatic(
+                this.getClass(),
+                "validateCall",
+                MethodType.methodType(boolean.class, Object[].class, Object[].class))
+                .bindTo(params)
+                .asCollector(Object[].class, guardType.parameterCount());
     }
 
     public ChipmunkLibraries getLibraries(){
@@ -289,4 +400,5 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                         .collect(Collectors.joining(","))
                 + ")";
     }
+
 }

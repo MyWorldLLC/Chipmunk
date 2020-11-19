@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,6 +42,7 @@ import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.scheduler.Scheduler;
+import jdk.dynalink.linker.GuardedInvocation;
 
 
 public class ChipmunkVM {
@@ -196,10 +198,10 @@ public class ChipmunkVM {
 			System.arraycopy(params, 0, callParams, 1, pCount);
 		}
 
-		MethodHandle invoker = linker
-				.getInvocationHandle(MethodHandles.lookup(), target, Object.class, methodName, callParams);
+		GuardedInvocation invoker = linker
+				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams);
 
-		return invoker.invokeWithArguments(callParams);
+		return invoker.getInvocation().invokeWithArguments(callParams);
 	}
 
 	public Object invoke(ChipmunkScript script, Object target, String methodName){

@@ -227,10 +227,6 @@ public class JvmCompiler {
                 });
         cClassWriter.visitSource(cls.getModule().getFileName(), null);
 
-        // Generate traits fields
-        //cClassWriter.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, "$sharedTraits", Type.getDescriptor(TraitField[].class), null, null)
-       // .visitEnd();
-
         // Generate class constructor
         MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
         clsConstructor.visitCode();
@@ -358,19 +354,19 @@ public class JvmCompiler {
         cClassGetModule.visitEnd();
 
         // Generate cClass.getTraits()
-        MethodVisitor getTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getTraits", Type.getMethodType(Type.getType(List.class)).getDescriptor(), null, null);
+        MethodVisitor getTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null);
         getTraits.visitCode();
         getTraits.visitVarInsn(Opcodes.ALOAD, 0);
-        getTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$traits", Type.getDescriptor(List.class));
+        getTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$traits", Type.getDescriptor(TraitField[].class));
         getTraits.visitInsn(Opcodes.ARETURN);
         getTraits.visitMaxs(0, 0);
         getTraits.visitEnd();
 
         // Generate cClass.getSharedTraits()
-        MethodVisitor getSharedTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getSharedTraits", Type.getMethodType(Type.getType(List.class)).getDescriptor(), null, null);
+        MethodVisitor getSharedTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getSharedTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null);
         getSharedTraits.visitCode();
         getSharedTraits.visitVarInsn(Opcodes.ALOAD, 0);
-        getSharedTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$sharedTraits", Type.getDescriptor(List.class));
+        getSharedTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$sharedTraits", Type.getDescriptor(TraitField[].class));
         getSharedTraits.visitInsn(Opcodes.ARETURN);
         getSharedTraits.visitMaxs(0, 0);
         getSharedTraits.visitEnd();
@@ -444,6 +440,8 @@ public class JvmCompiler {
                 .filter(e -> (e.getFlags() & BinaryConstants.TRAIT_FLAG) != 0)
                 .map(BinaryNamespace.Entry::getName)
                 .collect(Collectors.toList());
+
+        System.out.println("Generating traits " + fieldName + " for class " + compilation.qualifiedContainingName() + ": " + traitNames);
 
         if(!traitNames.isEmpty()){
             init.visitVarInsn(Opcodes.ALOAD, 0);
