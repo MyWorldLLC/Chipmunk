@@ -58,5 +58,6 @@ class TestClass {
 
 def main(){
 	var test = TestClass.new()
+	test.five = 5 # Set this to trigger the polymorphic set codepath
 	return (test.addOneAndTwo() + test.multiplyThreeAndFour() + test.returnOne()) * test.override() + test.five
 }

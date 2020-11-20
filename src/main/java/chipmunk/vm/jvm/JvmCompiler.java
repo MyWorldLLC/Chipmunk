@@ -441,8 +441,6 @@ public class JvmCompiler {
                 .map(BinaryNamespace.Entry::getName)
                 .collect(Collectors.toList());
 
-        System.out.println("Generating traits " + fieldName + " for class " + compilation.qualifiedContainingName() + ": " + traitNames);
-
         if(!traitNames.isEmpty()){
             init.visitVarInsn(Opcodes.ALOAD, 0);
             init.visitLdcInsn(traitNames.size());

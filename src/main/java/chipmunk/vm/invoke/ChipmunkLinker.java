@@ -334,14 +334,27 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 GuardedInvocation invocation = getField(traitReceiver, linkRequest, fieldName, set);
                 if(invocation != null){
+                    Class<?> receiverType = linkRequest.getReceiver().getClass();
+
+                    MethodType filterType = MethodType.methodType(traitReceiver.getClass(), receiverType);
 
                     MethodHandle receiverFilter = lookup.unreflectGetter(trait.getReflectedField())
-                            .asType(MethodType.methodType(traitReceiver.getClass(), linkRequest.getReceiver().getClass()));
+                            .asType(filterType);
+
+                    if(set){
+                        // If setting, need to invalidate the field's switchpoint. Implementing this
+                        // as a bound method filter lets us easily inline this into the handle call sequence.
+                        MethodHandle invalidationFilter = lookup.findStatic(
+                                this.getClass(),
+                                "invalidateTraitField",
+                                MethodType.methodType(Object.class, TraitField.class, Object.class)
+                        ).bindTo(trait)
+                                .asType(MethodType.methodType(receiverType, receiverType));
+
+                        receiverFilter = MethodHandles.filterArguments(receiverFilter, 0, invalidationFilter);
+                    }
 
                     MethodHandle invoker = MethodHandles.filterArguments(invocation.getInvocation(), 0, receiverFilter);
-                    if(set){
-                        // TODO - if setting, need to invalidate the field's switchpoint
-                    }
 
                     invocation = invocation.addSwitchPoint(trait.getInvalidationPoint())
                             .replaceMethods(invoker, invocation.getGuard());
@@ -380,9 +393,9 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return boundTarget.getClass().isAssignableFrom(fieldValue.getClass());
     }
 
-    public static void setTraitField(TraitField f, MethodHandle setter, Object target, Object value) throws Throwable {
+    public static Object invalidateTraitField(TraitField f, Object target) {
         SwitchPoint.invalidateAll(new SwitchPoint[]{f.getInvalidationPoint()});
-        setter.invoke(target, value);
+        return target;
     }
 
     protected MethodHandle getCallGuard(MethodHandles.Lookup lookup, MethodType callType, Object[] params) throws NoSuchMethodException, IllegalAccessException {
