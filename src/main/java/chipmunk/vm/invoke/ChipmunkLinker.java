@@ -77,14 +77,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             return fieldHandle;
 
-           /* MethodHandle guard = lookup.findStatic(
-                    this.getClass(),
-                    "validateFieldAccess",
-                    MethodType.methodType(boolean.class, Object.class, Object.class))
-                    .bindTo(target);
-
-            return new GuardedInvocation(fieldHandle, guard);*/
-
         }else if( op.getBaseOperation().equals(StandardOperation.SET)){
             // Bind field set
             Object target = linkRequest.getReceiver();
@@ -96,33 +88,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             }
 
             return fieldHandle;
-
-            // When setting a field that is a trait, we need to invalidate the current switch point for that
-            // trait to invalidate any method handles that are bound to it.
-            // TODO - this needs to happen when setting up the access chain
-            /*TraitField[] traits = null;
-            if(target instanceof ChipmunkObject) {
-                traits = ((ChipmunkObject) target).getChipmunkClass().getTraits();
-            }else if(target instanceof ChipmunkClass){
-                traits = ((ChipmunkClass) target).getSharedTraits();
-            }
-
-            if(traits != null){
-                TraitField trait = TraitField.getField(traits, field.getName());
-                if(trait != null){
-                    MethodHandle invalidationHandle = lookup.findStatic(ChipmunkLinker.class, "setTraitField",
-                            MethodType.methodType(void.class, TraitField.class, MethodHandle.class, Object.class, Object.class));
-                    fieldHandle = MethodHandles.insertArguments(invalidationHandle, 0, trait, fieldHandle);
-                }
-            }*/
-
-            /*MethodHandle guard = lookup.findStatic(
-                    this.getClass(),
-                    "validateFieldAccess",
-                    MethodType.methodType(boolean.class, Object.class, Object.class))
-                    .bindTo(target);
-
-            return new GuardedInvocation(fieldHandle, guard);*/
         }
 
         return null;
@@ -165,12 +130,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         }
 
         // Check for trait methods
-        TraitField[] traits = null;
-        if (receiver instanceof ChipmunkObject) {
-            traits = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
-        } else if (receiver instanceof ChipmunkClass) {
-            traits = ((ChipmunkClass) receiver).getSharedTraits();
-        }
+        TraitField[] traits = getTraitFields(receiver);
 
         if (traits != null) {
             for (TraitField trait : traits) {
@@ -269,7 +229,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public GuardedInvocation getField(Object receiver, LinkRequest linkRequest, String fieldName, boolean set) throws Exception {
 
-        Field[] fields = receiver.getClass().getFields();
+        final Class<?>  receiverType = receiver.getClass();
+        Field[] fields = receiverType.getFields();
         for(Field f : fields){
             if(f.getName().equals(fieldName)){
 
@@ -277,7 +238,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if(linkPolicy != null){
                     if(set){
                         if(!linkPolicy.allowFieldSet(receiver, f, linkRequest.getArguments()[1])){
-                            throw new IllegalAccessException(receiver.getClass().getName() + "." + fieldName + ": policy forbids set to " + linkRequest.getArguments()[1]);
+                            throw new IllegalAccessException(receiverType.getName() + "." + fieldName + ": policy forbids set to " + linkRequest.getArguments()[1]);
                         }
                     }else {
                         if(!linkPolicy.allowFieldGet(receiver, f)){
@@ -290,16 +251,28 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 MethodHandle accessor = lookup.unreflectVarHandle(f)
                         .toMethodHandle(set ? VarHandle.AccessMode.SET : VarHandle.AccessMode.GET);
 
+                // If this field is a trait and we're setting, invalidate the trait switch point
+                if(set){
+                    TraitField trait = getTraitField(receiver, fieldName);
+                    if(trait != null){
+                        // If setting, need to invalidate the field's switchpoint. Implementing this
+                        // as a bound method filter lets us easily inline this into the handle call sequence.
+                        MethodHandle invalidationFilter = lookup.findStatic(
+                                this.getClass(),
+                                "invalidateTraitField",
+                                MethodType.methodType(Object.class, TraitField.class, Object.class)
+                        ).bindTo(trait)
+                                .asType(MethodType.methodType(receiverType, receiverType));
+
+                        accessor = MethodHandles.filterArguments(accessor, 0, invalidationFilter);
+                    }
+                }
+
                 return new GuardedInvocation(accessor, getFieldGuard(lookup, receiver));
             }
         }
 
-        TraitField[] traitFields = null;
-        if(receiver instanceof ChipmunkObject){
-            traitFields = ((ChipmunkObject) receiver).getChipmunkClass().getTraits();
-        }else if(receiver instanceof ChipmunkClass){
-            traitFields = ((ChipmunkClass) receiver).getSharedTraits();
-        }
+        TraitField[] traitFields = getTraitFields(receiver);
 
         if(traitFields == null){
             return null;
@@ -334,9 +307,9 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 GuardedInvocation invocation = getField(traitReceiver, linkRequest, fieldName, set);
                 if(invocation != null){
-                    Class<?> receiverType = linkRequest.getReceiver().getClass();
+                    Class<?> rootReceiverType = linkRequest.getReceiver().getClass();
 
-                    MethodType filterType = MethodType.methodType(traitReceiver.getClass(), receiverType);
+                    MethodType filterType = MethodType.methodType(traitReceiver.getClass(), rootReceiverType);
 
                     MethodHandle receiverFilter = lookup.unreflectGetter(trait.getReflectedField())
                             .asType(filterType);
@@ -349,7 +322,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                                 "invalidateTraitField",
                                 MethodType.methodType(Object.class, TraitField.class, Object.class)
                         ).bindTo(trait)
-                                .asType(MethodType.methodType(receiverType, receiverType));
+                                .asType(MethodType.methodType(rootReceiverType, rootReceiverType));
 
                         receiverFilter = MethodHandles.filterArguments(receiverFilter, 0, invalidationFilter);
                     }
@@ -432,6 +405,34 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         }
 
         return script.getLinkPolicy();
+    }
+
+    protected TraitField[] getTraitFields(Object target){
+
+        TraitField[] traitFields = null;
+
+        if(target instanceof ChipmunkObject){
+            traitFields = ((ChipmunkObject) target).getChipmunkClass().getTraits();
+        }else if(target instanceof ChipmunkClass){
+            traitFields = ((ChipmunkClass) target).getSharedTraits();
+        }
+
+        return traitFields;
+    }
+
+    protected TraitField getTraitField(Object target, String field){
+        TraitField[] traitFields = getTraitFields(target);
+        if(traitFields == null){
+            return null;
+        }
+
+        for(TraitField f : traitFields){
+            if(f.getField().equals(field)){
+                return f;
+            }
+        }
+
+        return null;
     }
 
     public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
