@@ -54,6 +54,7 @@ public class MathBenchmark {
 		
 		public ChipmunkModule countToAMillion;
 		public ChipmunkModule fibonacci;
+		public ChipmunkModule mandelbrot;
 		
 		public ChipmunkVM vm;
 		
@@ -64,6 +65,7 @@ public class MathBenchmark {
 
 			fibonacci = compileBenchmark(MathBenchmark.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
 
+			mandelbrot = compileBenchmark(MathBenchmark.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
 		}
 		
 		@Setup(Level.Trial)
@@ -83,7 +85,7 @@ public class MathBenchmark {
 	@BenchmarkMode(Mode.SampleTime)
 	public Object countToOneMillionCVM(ChipmunkScripts scripts) throws Throwable {
 		ChipmunkVM vm = scripts.vm;
-		return vm.invoke(scripts.countToAMillion, "countToAMillion");
+		return vm.invoke(scripts.countToAMillion, "main");
 	}
 	
 	@Benchmark
@@ -96,6 +98,12 @@ public class MathBenchmark {
 		return x;
 	}
 
+	@Benchmark
+	@BenchmarkMode(Mode.SampleTime)
+	public Object mandelbrot(ChipmunkScripts scripts) throws Throwable {
+		ChipmunkVM vm = scripts.vm;
+		return vm.invoke(scripts.mandelbrot, "main");
+	}
 
 	public static void main(String[] args) throws RunnerException {
 
