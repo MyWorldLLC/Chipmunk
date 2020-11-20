@@ -43,15 +43,16 @@ public class ChipmunkProfiler {
 		ChipmunkModule countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
 
 		ChipmunkModule fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+		ChipmunkModule mandelbrot = compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.invoke(fibonacci, "main");
+			value = vm.invoke(mandelbrot, "main");
 			long endTime = System.nanoTime();
 			
-			System.out.println("Value: " + value.toString() + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
+			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}
 		
 	}
