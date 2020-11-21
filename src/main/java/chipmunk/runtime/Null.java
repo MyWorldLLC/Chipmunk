@@ -29,4 +29,8 @@ public class Null {
     public static Null getInstance(){
         return instance;
     }
+
+    public static Object wrapNull(Object o){
+        return o == null ? instance : o;
+    }
 }

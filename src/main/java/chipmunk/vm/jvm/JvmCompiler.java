@@ -253,8 +253,6 @@ public class JvmCompiler {
         visitTraits(compilation, "$traits", cls.getInstanceNamespace());
 
         // Generate class namespace
-        // This must happen *before* $class_init$ is called so that initialized fields
-        // are not overwritten with Null
         visitNamespace(compilation, cls.getSharedNamespace());
         compilation.exitNamespace();
 
@@ -289,8 +287,6 @@ public class JvmCompiler {
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
         // Generate instance namespace
-        // This must happen *before* $instance_init$ is called so that initialized fields
-        // are not overwritten with Null
         final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, className);
         compilation.enterNamespace(insNamespace);
         visitNamespace(compilation, cls.getInstanceNamespace());

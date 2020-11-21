@@ -206,11 +206,11 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     public static Object getAt(HashMap<Object, Object> a, Object key){
-        return a.get(key);
+        return Null.wrapNull(a.get(key));
     }
 
     public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
-        return a.put(key, value);
+        return Null.wrapNull(a.put(key, value));
     }
 
     // ================================ Object Operations ================================
