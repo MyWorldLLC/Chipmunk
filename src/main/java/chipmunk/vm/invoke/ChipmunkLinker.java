@@ -101,7 +101,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         Class<?>[] pTypes = new Class<?>[params.length];
         for(int i = 0; i < params.length; i++){
-            pTypes[i] = params[i] != null ? params[i].getClass() : void.class;
+            pTypes[i] = params[i] != null ? params[i].getClass() : null;
         }
 
         GuardedInvocation invocation = resolveCallTarget(lookup, receiver, callType, methodName, params, pTypes);

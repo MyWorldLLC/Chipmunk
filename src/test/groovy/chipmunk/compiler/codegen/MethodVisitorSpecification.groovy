@@ -23,6 +23,7 @@ package chipmunk.compiler.codegen
 import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.runtime.Null
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.runtime.ChipmunkModule
@@ -36,7 +37,7 @@ class MethodVisitorSpecification extends Specification {
 	
 	def "Parse, generate, and run empty method def"(){
 		expect:
-		parseAndCall("def method(){}") == null
+		parseAndCall("def method(){}") == Null.getInstance()
 	}
 	
 	def "Parse, generate, and run return expression method def"(){
@@ -74,7 +75,7 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result == null
+		result == Null.getInstance()
 	}
 	
 	def "Parse, generate, and run method def with multiple var decs and return"(){

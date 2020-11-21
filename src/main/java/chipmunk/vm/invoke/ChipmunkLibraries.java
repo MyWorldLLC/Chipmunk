@@ -86,6 +86,10 @@ public class ChipmunkLibraries {
                     Class<?> callPType = argTypes[i];
                     Class<?> candidatePType = candidatePTypes[i];
 
+                    if(callPType == null){
+                        continue;
+                    }
+
                     if (!candidatePType.isAssignableFrom(callPType)) {
                         matches = false;
                         break;

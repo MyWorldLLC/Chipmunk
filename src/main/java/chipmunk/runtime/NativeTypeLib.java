@@ -218,4 +218,9 @@ public class NativeTypeLib implements ChipmunkLibrary {
     public static ChipmunkClass getClass(ChipmunkObject o){
         return o.getChipmunkClass();
     }
+
+    public static Boolean equals(Null n, Object o){
+        return o == null || o instanceof Null;
+    }
+
 }

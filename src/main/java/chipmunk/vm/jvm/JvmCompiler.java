@@ -21,16 +21,13 @@
 package chipmunk.vm.jvm;
 
 import chipmunk.ChipmunkRuntimeException;
-import chipmunk.runtime.TraitField;
+import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.vm.invoke.Binder;
-import chipmunk.runtime.ChipmunkClass;
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.runtime.ChipmunkObject;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -206,12 +203,24 @@ public class JvmCompiler {
         }
     }
 
-    protected void visitVar(ClassWriter cw, int flags, String name){
-        visitVar(cw, flags, name, Type.getType(Object.class));
+    protected void visitVar(JvmCompilation compilation, int flags, String name){
+        visitVar(compilation, flags, name, Type.getType(Object.class));
     }
 
-    protected void visitVar(ClassWriter cw, int flags, String name, Type type){
+    protected void visitVar(JvmCompilation compilation, int flags, String name, Type type){
+        ClassWriter cw = compilation.containingNamespace().getWriter();
         cw.visitField(flags, name, type.getDescriptor(), null, null).visitEnd();
+
+        // Initialize field to the Null instance
+        /*MethodVisitor constructor = compilation.containingNamespace().getInit();
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(Null.class),
+                "getInstance",
+                Type.getMethodType(Type.getType(Null.class)).getDescriptor(),
+                false);
+        constructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(compilation.qualifiedContainingName()), name, type.getDescriptor());
+        */
     }
 
     protected Class<?> visitChipmunkClass(JvmCompilation compilation, BinaryClass cls){
@@ -243,13 +252,16 @@ public class JvmCompiler {
         // Instance traits
         visitTraits(compilation, "$traits", cls.getInstanceNamespace());
 
+        // Generate class namespace
+        // This must happen *before* $class_init$ is called so that initialized fields
+        // are not overwritten with Null
+        visitNamespace(compilation, cls.getSharedNamespace());
+        compilation.exitNamespace();
+
         if(cls.getSharedNamespace().has("$class_init$")){
             clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
             clsConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedCClassName), "$class_init$", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
         }
-
-        visitNamespace(compilation, cls.getSharedNamespace());
-        compilation.exitNamespace();
 
         ClassWriter cInsWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cInsWriter.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(qualifiedInsName), null, Type.getInternalName(Object.class), new String[]{
@@ -276,6 +288,14 @@ public class JvmCompiler {
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
 
+        // Generate instance namespace
+        // This must happen *before* $instance_init$ is called so that initialized fields
+        // are not overwritten with Null
+        final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, className);
+        compilation.enterNamespace(insNamespace);
+        visitNamespace(compilation, cls.getInstanceNamespace());
+        compilation.exitNamespace();
+
         // Store the $cClass
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitVarInsn(Opcodes.ALOAD, 1);
@@ -292,11 +312,6 @@ public class JvmCompiler {
         }
         insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
 
-        // Generate instance namespace
-        final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, className);
-        compilation.enterNamespace(insNamespace);
-        visitNamespace(compilation, cls.getInstanceNamespace());
-        compilation.exitNamespace();
 
         // Close constructors *after* visiting the class namespaces
         clsConstructor.visitInsn(Opcodes.RETURN);
@@ -413,7 +428,7 @@ public class JvmCompiler {
                 writer.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, entry.getName(),
                         Type.getType(compiledCClass).getDescriptor(), null, null);
 
-                // Add initialization call to parent constructor
+                // Add call to construct class instance
                 constructor.visitVarInsn(Opcodes.ALOAD, 0);
                 constructor.visitTypeInsn(Opcodes.NEW, clsType.getInternalName());
                 constructor.visitInsn(Opcodes.DUP);
@@ -421,7 +436,7 @@ public class JvmCompiler {
                 constructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(compilation.qualifiedContainingName()), entry.getName(), clsType.getDescriptor());
 
             }else{
-                visitVar(writer, flags, entry.getName());
+                visitVar(compilation, flags, entry.getName());
             }
         }
     }
@@ -918,7 +933,12 @@ public class JvmCompiler {
             }
             generateBoxing(mv, constant);
         }else{
-            mv.visitInsn(Opcodes.ACONST_NULL);
+            //mv.visitInsn(Opcodes.ACONST_NULL);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getInternalName(Null.class),
+                    "getInstance",
+                    Type.getMethodType(Type.getType(Null.class)).getDescriptor(),
+                    false);
         }
     }
 
