@@ -173,7 +173,7 @@ public class ChipmunkDisassembler {
 	private static String disassemble(byte[] codeSegment, Object[] constantPool, boolean isInnerMethod, String padding){
 		StringBuilder builder = new StringBuilder();
 		
-		if(constantPool != null){
+		/*if(constantPool != null){
 			builder.append(padding);
 			builder.append("Constants:\n");
 			if(isInnerMethod){
@@ -196,10 +196,10 @@ public class ChipmunkDisassembler {
 					builder.append('\n');
 				}
 			}
-		}
+		}*/
 
-		builder.append(padding);
-		builder.append("Code:\n\n");
+		//builder.append(padding);
+		//builder.append("Code:\n\n");
 		
 		String codePadding = padding + INDENTATION;
 		
