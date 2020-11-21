@@ -210,17 +210,6 @@ public class JvmCompiler {
     protected void visitVar(JvmCompilation compilation, int flags, String name, Type type){
         ClassWriter cw = compilation.containingNamespace().getWriter();
         cw.visitField(flags, name, type.getDescriptor(), null, null).visitEnd();
-
-        // Initialize field to the Null instance
-        /*MethodVisitor constructor = compilation.containingNamespace().getInit();
-        constructor.visitVarInsn(Opcodes.ALOAD, 0);
-        constructor.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getInternalName(Null.class),
-                "getInstance",
-                Type.getMethodType(Type.getType(Null.class)).getDescriptor(),
-                false);
-        constructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(compilation.qualifiedContainingName()), name, type.getDescriptor());
-        */
     }
 
     protected Class<?> visitChipmunkClass(JvmCompilation compilation, BinaryClass cls){
@@ -273,12 +262,18 @@ public class JvmCompiler {
 
         // Generate instance constructor
         BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry(className).getBinaryMethod();
-        // Normally we would subtract 1 since the VM doesn't count the self parameter,
-        // but since we're adding the class parameter we don't
-        Type[] mTypes = paramTypes(binaryConstructor.getArgCount());
-        Type[] initTypes = paramTypes(Math.max(1, binaryConstructor.getArgCount()));
+
+        // The self parameter is always implicit and is not reflected in the binaryConstructor.getArgCount() call.
+        // The <init> params then are:
+        // 0: self
+        // 1: cClass
+        // 2+: binaryConstructor params
+        Type[] initTypes = paramTypes(binaryConstructor.getArgCount() + 1);
         initTypes[0] = Type.getObjectType(jvmName(qualifiedCClassName));
 
+        // The constructor params are:
+        // 0: self
+        // 1+: binaryConstructor params
         Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount());
 
         MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
@@ -295,7 +290,7 @@ public class JvmCompiler {
         // Store the $cClass
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitVarInsn(Opcodes.ALOAD, 1);
-        insConstructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());//Type.getObjectType(nameToBinaryName(qualifiedCClassName)).getDescriptor());
+        insConstructor.visitFieldInsn(Opcodes.PUTFIELD, jvmName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());
 
         // Invoke $instance_init$
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -304,7 +299,7 @@ public class JvmCompiler {
         // Invoke constructor
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         for(int i = 0; i < constructorTypes.length; i++){
-            insConstructor.visitVarInsn(Opcodes.ALOAD, i + 1);
+            insConstructor.visitVarInsn(Opcodes.ALOAD, i + 2);
         }
         insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
 
@@ -320,15 +315,21 @@ public class JvmCompiler {
 
         // Create new method on the class object to create instances of the instance class
         // newInstance = CClass.new(p1, p2, ...)
-        Type insType = Type.getObjectType(jvmName(qualifiedInsName));
 
-        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", Type.getMethodType(insType, mTypes).getDescriptor(), null, null);
+        // cClass.new params are:
+        // 0: self (cClass)
+        // 1+: binaryConstructor params
+
+        Type insType = Type.getObjectType(jvmName(qualifiedInsName));
+        Type newMethodType = Type.getMethodType(insType, constructorTypes);
+
+        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", newMethodType.getDescriptor(), null, null);
         callMethod.visitCode();
         callMethod.visitTypeInsn(Opcodes.NEW, insType.getInternalName());
         callMethod.visitInsn(Opcodes.DUP);
         callMethod.visitVarInsn(Opcodes.ALOAD, 0);
-        for(int i = 1; i < initTypes.length; i++){
-            callMethod.visitVarInsn(Opcodes.ALOAD, i);
+        for(int i = 0; i < newMethodType.getArgumentTypes().length; i++){
+            callMethod.visitVarInsn(Opcodes.ALOAD, i + 1);
         }
         callMethod.visitMethodInsn(Opcodes.INVOKESPECIAL, insType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), false);
         callMethod.visitInsn(Opcodes.ARETURN);

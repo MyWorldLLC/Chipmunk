@@ -20,8 +20,6 @@
 
 package chipmunk.runtime;
 
-import java.util.List;
-
 public interface ChipmunkClass {
 
     default String getSimpleName(){
