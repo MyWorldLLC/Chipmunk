@@ -103,27 +103,31 @@ public class InitializerBuilderVisitor implements AstVisitor {
             VarDecNode varDec = (VarDecNode) node;
             AstNode assignExpression = varDec.getAssignExpr();
 
-            if(assignExpression != null){
-                BlockNode owner = modulesAndClasses.peek();
+            // Rewrite empty assign expression to null assignment
+            if(assignExpression == null){
+                assignExpression = new LiteralNode(new Token("null", Token.Type.NULL));
+            }
 
-                IdNode id = new IdNode(varDec.getIDNode().getID());
+            BlockNode owner = modulesAndClasses.peek();
 
-                OperatorNode assignStatement = new OperatorNode(new Token("=", Token.Type.EQUALS));
-                assignStatement.getChildren().add(id);
-                assignStatement.getChildren().add(assignExpression);
+            IdNode id = new IdNode(varDec.getIDNode().getID());
 
-                varDec.setAssignExpr(null);
+            OperatorNode assignStatement = new OperatorNode(new Token("=", Token.Type.EQUALS));
+            assignStatement.getChildren().add(id);
+            assignStatement.getChildren().add(assignExpression);
 
-                if(owner instanceof ModuleNode){
+            varDec.setAssignExpr(null);
+
+            if (owner instanceof ModuleNode) {
+                ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
+            } else if (owner instanceof ClassNode) {
+                if (varDec.getSymbol().isShared()) {
                     ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
-                }else if(owner instanceof ClassNode){
-                    if(varDec.getSymbol().isShared()){
-                        ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
-                    }else{
-                        ((MethodNode) owner.getChildren().get(1)).addToBody(assignStatement);
-                    }
+                } else {
+                    ((MethodNode) owner.getChildren().get(1)).addToBody(assignStatement);
                 }
             }
+
 
         }
 
