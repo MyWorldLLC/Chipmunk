@@ -20,8 +20,8 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ForNode;
@@ -63,7 +63,7 @@ public class ForVisitor implements AstVisitor {
 			
 			// set the next value in the iterator as a local variable
 			assembler.setLocal(symbols.getLocalIndex(id.getVarName()));
-			assembler.pop();
+			//assembler.pop();
 			
 			assembler.closeLine();
 
@@ -73,7 +73,6 @@ public class ForVisitor implements AstVisitor {
 			
 			// jump to iterator
 			assembler._goto(labels.getGuardLabel());
-			assembler.pop();
 			
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());

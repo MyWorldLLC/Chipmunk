@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ast;
 
-import chipmunk.compiler.Symbol;
+import chipmunk.compiler.symbols.Symbol;
 
 public interface SymbolNode {
 

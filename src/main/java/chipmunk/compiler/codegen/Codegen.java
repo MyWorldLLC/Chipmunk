@@ -27,14 +27,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.ExceptionBlock;
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Symbol;
-import chipmunk.compiler.SymbolTable;
+import chipmunk.binary.ExceptionBlock;
+import chipmunk.binary.BinaryModule;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.modules.runtime.CModule;
 
 public class Codegen implements AstVisitor {
 
@@ -42,7 +41,7 @@ public class Codegen implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	protected CModule module;
+	protected BinaryModule module;
 	
 	protected List<LoopLabels> loopStack;
 	protected List<IfElseLabels> ifElseStack;
@@ -51,29 +50,29 @@ public class Codegen implements AstVisitor {
 	protected List<ExceptionBlock> exceptions;
 	
 	
-	public Codegen(CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		ifElseStack = new ArrayList<IfElseLabels>();
-		tryCatchStack = new ArrayList<TryCatchLabels>();
-		exceptions = new ArrayList<ExceptionBlock>();
+	public Codegen(BinaryModule module){
+		visitors = new HashMap<>();
+		loopStack = new ArrayList<>();
+		ifElseStack = new ArrayList<>();
+		tryCatchStack = new ArrayList<>();
+		exceptions = new ArrayList<>();
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
 	}
 	
-	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
-		visitors = new HashMap<Class<? extends AstNode>, AstVisitor>();
-		loopStack = new ArrayList<LoopLabels>();
-		ifElseStack = new ArrayList<IfElseLabels>();
-		tryCatchStack = new ArrayList<TryCatchLabels>();
-		exceptions = new ArrayList<ExceptionBlock>();
+	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, BinaryModule module){
+		visitors = new HashMap<>();
+		loopStack = new ArrayList<>();
+		ifElseStack = new ArrayList<>();
+		tryCatchStack = new ArrayList<>();
+		exceptions = new ArrayList<>();
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
 	}
 	
-	public CModule getModule() {
+	public BinaryModule getModule() {
 		return module;
 	}
 	
@@ -105,110 +104,38 @@ public class Codegen implements AstVisitor {
 		}
 	}
 	
-	public void emitSymbolAccess(String name){
-		emitSymbolReference(name, false);
+	public void emitLocalAccess(String name){
+		emitLocalReference(name, false);
 	}
 	
-	public void emitSymbolAssignment(String name){
-		emitSymbolReference(name, true);
+	public void emitLocalAssignment(String name){
+		emitLocalReference(name, true);
 	}
 	
-	private void emitSymbolReference(String name, boolean assign){
-		
+	private void emitLocalReference(String name, boolean assign){
+
 		Deque<SymbolTable> trace = getSymbolTrace(name);
-		
+
 		if(trace == null){
-			// no variable with that name was returned. Assume it was a module-level symbol
-			if(assign){
-				assembler.setModule(name);
-			}else{
-				assembler.getModule(name);
-			}
-			return;
+			throw new IllegalStateException(name + " not found");
 		}
-		
-		// NOTE: in general use, the null check is unneeded because all accessing code
-		// will be inside a method. In some of the tests, however, this is not the case
-		// so leave this in here.
-		SymbolTable methodTable = getMethodScope(trace);
-		MethodNode method = null;
-		if(methodTable != null){
-			method = (MethodNode) methodTable.getNode();
-		}
-		
+
 		SymbolTable table = trace.getLast();
-		SymbolTable.Scope scope = table.getScope();
-		
-		if(scope == SymbolTable.Scope.LOCAL || scope == SymbolTable.Scope.METHOD){
-			// local scope
-			// TODO - closure support
-			if(assign){
-				assembler.setLocal(table.getLocalIndex(name));
-			}else{
-				assembler.getLocal(table.getLocalIndex(name));
-			}
-		}else if(scope == SymbolTable.Scope.CLASS){
-			Symbol symbol = table.getSymbol(name);
-			
-			if(symbol.isShared()){
-				// initializers aren't enclosed by a method
-				// shared and non-shared variable initializers both bind via "self"
-				// object
-				if(method == null || method.getSymbol().isShared()){
-					// shared method reference to shared variable. Self
-					// refers to class, so emit reference via self
-					if(assign){
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.setattr();
-					}else{
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.getattr();
-					}
-					
-				}else{
-					// TODO - instance method reference to shared variable. Get class and reference variable
-					// as shared attribute
-					assembler.push(symbol.getName());
-					assembler.getLocal(0);
-					assembler.callAt("getClass", (byte)0);
-					if(assign){
-						assembler.setattr();
-					}else{
-						assembler.getattr();
-					}
-				}
-			}else{
-				if(method != null && method.getSymbol().isShared()){
-					// TODO - shared method reference to instance variable. Illegal.
-				}else{
-					// TODO - instance method (or initializer) reference to instance variable. Emit
-					// reference via self
-					
-					if(assign){
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.setattr();
-					}else{
-						assembler.push(symbol.getName());
-						assembler.getLocal(0);
-						assembler.getattr();
-					}
-				}
-			}
-		}else if(scope == SymbolTable.Scope.MODULE){
-			// Module
-			if(assign){
-				assembler.setModule(name);
-			}else{
-				assembler.getModule(name);
-			}
+		if(table.getLocalIndex(name) == -1){
+			throw new IllegalStateException(name + " is not a local");
 		}
+
+		if(assign){
+			assembler.dup();
+			assembler.setLocal(table.getLocalIndex(name));
+		}else{
+			assembler.getLocal(table.getLocalIndex(name));
+		}
+
 	}
 	
 	private Deque<SymbolTable> getSymbolTrace(String name){
-		Deque<SymbolTable> trace = new ArrayDeque<SymbolTable>();
+		Deque<SymbolTable> trace = new ArrayDeque<>();
 		
 		SymbolTable symTab = symbols;
 		

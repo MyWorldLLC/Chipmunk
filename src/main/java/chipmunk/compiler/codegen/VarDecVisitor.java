@@ -20,8 +20,8 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Symbol;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.VarDecNode;
@@ -49,7 +49,7 @@ public class VarDecVisitor implements AstVisitor {
 		if(symbol == null) {
 			throw new NullPointerException("Null symbol: " + dec.getVarName() + "\n" + codegen.getActiveSymbols().toString());
 		}
-		codegen.emitSymbolAssignment(symbol.getName());
+		codegen.emitLocalAssignment(symbol.getName());
 		codegen.getAssembler().pop();
 	}
 

@@ -36,8 +36,8 @@ class SetVars {
 
 def main(){
 
-    var v1 = SetVars()
-    var v2 = SetVars()
+    var v1 = SetVars.new()
+    var v2 = SetVars.new()
 
     if(v1.set1(true) || v1.set2(true)){
         # Shortcircuit - 1
@@ -47,8 +47,8 @@ def main(){
         # No shortcircuit - 2
     }
 
-    var v3 = SetVars()
-    var v4 = SetVars()
+    var v3 = SetVars.new()
+    var v4 = SetVars.new()
 
     if(v3.set1(false) && v3.set2(true)){
         # Shortcircuit - 1

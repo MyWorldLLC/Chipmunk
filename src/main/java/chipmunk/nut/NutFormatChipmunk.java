@@ -20,9 +20,7 @@
 
 package chipmunk.nut;
 
-import chipmunk.AngryChipmunk;
-
-public class NutFormatChipmunk extends AngryChipmunk {
+public class NutFormatChipmunk extends RuntimeException {
 
 	private static final long serialVersionUID = 8644608496061990630L;
 

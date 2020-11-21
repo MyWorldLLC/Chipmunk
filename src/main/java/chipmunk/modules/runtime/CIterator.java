@@ -20,10 +20,9 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
+import chipmunk.vm.ChipmunkVM;
 
-public interface CIterator extends RuntimeObject {
+public interface CIterator {
 	
 	public Object next(ChipmunkVM vm);
 	public boolean hasNext(ChipmunkVM vm);

@@ -23,34 +23,25 @@ package chipmunk.compiler.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
-import chipmunk.Namespace;
-import chipmunk.compiler.ChipmunkAssembler;
-import chipmunk.compiler.Token;
+import chipmunk.binary.*;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
-import chipmunk.modules.runtime.CClass;
-import chipmunk.modules.runtime.CMethod;
-import chipmunk.modules.runtime.CModule;
-import chipmunk.modules.runtime.CNull;
 
 public class ClassVisitor implements AstVisitor {
 
-	protected CClass cClass;
+	protected BinaryClass cls;
 	protected List<Object> constantPool;
-
-	protected MethodNode sharedInit;
-	protected MethodNode instanceInit;
 	
-	protected CModule module;
+	protected BinaryModule module;
 	
 	private boolean alreadyReachedConstructor;
 	
-	public ClassVisitor(CModule module){
+	public ClassVisitor(BinaryModule module){
 		this(new ArrayList<>(), module);
 	}
 	
-	public ClassVisitor(List<Object> constantPool, CModule module){
+	public ClassVisitor(List<Object> constantPool, BinaryModule module){
 		this.constantPool = constantPool;
 		this.module = module;
 		alreadyReachedConstructor = false;
@@ -63,81 +54,56 @@ public class ClassVisitor implements AstVisitor {
 		if(node instanceof ClassNode){
 			ClassNode classNode = (ClassNode) node;
 			
-			if(cClass == null) {
-				cClass = new CClass(classNode.getName(), module);
-
-				sharedInit = new MethodNode("<class init>");
-				sharedInit.getSymbol().setShared(true);
-				sharedInit.getSymbolTable().setParent(classNode.getSymbolTable());
-
-				instanceInit = new MethodNode("<init>");
-				instanceInit.getSymbolTable().setParent(classNode.getSymbolTable());
-
-				classNode.addChild(sharedInit);
-				classNode.addChild(instanceInit);
-
+			if(cls == null) {
+				cls = new BinaryClass(classNode.getName(), module);
 				classNode.visitChildren(this);
 			}else {
 				// visit nested class declarations
 				ClassVisitor visitor = new ClassVisitor(constantPool, module);
 				classNode.visit(visitor);
-				CClass inner = visitor.getCClass();
-				
+				BinaryClass inner = visitor.getBinaryClass();
+				BinaryNamespace.Entry innerEntry = BinaryNamespace.Entry.makeClass(inner.getName(), (byte)0, inner);
+
 				if(classNode.getSymbol().isShared()) {
-					cClass.getAttributes().set(inner.getName(), inner);
+					cls.getSharedNamespace().addEntry(innerEntry);
 				}else {
-					cClass.getInstanceAttributes().set(inner.getName(), inner);
+					cls.getInstanceNamespace().addEntry(innerEntry);
 				}
 			}
 			
 		}else if(node instanceof VarDecNode){
-			// TODO - final variables
+
 			VarDecNode varDec = (VarDecNode) node;
-			
-			VarDecVisitor visitor = null;
+
 			final boolean isShared = varDec.getSymbol().isShared();
 			final boolean isFinal = varDec.getSymbol().isFinal();
 			final boolean isTrait = varDec.getSymbol().isTrait();
 
-			if(varDec.getAssignExpr() != null){
-				// Move the assignment to the relevant initializer
-				AstNode expr = varDec.getAssignExpr();
-				IdNode id = new IdNode(varDec.getIDNode().getID());
-
-				OperatorNode assign = new OperatorNode(new Token("=", Token.Type.EQUALS));
-				assign.getChildren().add(id);
-				assign.getChildren().add(expr);
-
-				varDec.setAssignExpr(null);
-
-				if(isShared){
-					sharedInit.addToBody(assign);
-				}else{
-					instanceInit.addToBody(assign);
-				}
+			byte flags = 0;
+			if(isFinal){
+				flags |= BinaryConstants.FINAL_FLAG;
 			}
 
-			Namespace clsNamespace;
+			if(isTrait){
+				flags |= BinaryConstants.TRAIT_FLAG;
+			}
+
+			BinaryNamespace clsNamespace;
 			if(isShared){
-				clsNamespace = cClass.getAttributes();
+				clsNamespace = cls.getSharedNamespace();
 			}else{
-				clsNamespace = cClass.getInstanceAttributes();
+				clsNamespace = cls.getInstanceNamespace();
 			}
-			
-			if(isTrait) {
-				clsNamespace.setTrait(varDec.getVarName(), CNull.instance());
-			}else {
-				clsNamespace.set(varDec.getVarName(), CNull.instance());
-			}
+
+			clsNamespace.getEntries().add(new BinaryNamespace.Entry(varDec.getVarName(), flags));
 			
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;
-			methodNode.addParam(0, new VarDecNode(new IdNode(new Token("self", Token.Type.IDENTIFIER))));
 			
 			MethodVisitor visitor = null;
 			
 			// this is the constructor
-			if(methodNode.getSymbol().getName().equals(cClass.getName())){
+			if(methodNode.getSymbol().getName().equals(cls.getName())){
 				if(alreadyReachedConstructor){
 					// TODO - throw error until we have support for multi-methods
 					throw new IllegalStateException("Only one constructor per class allowed");
@@ -145,9 +111,6 @@ public class ClassVisitor implements AstVisitor {
 				alreadyReachedConstructor = true;
 				
 				ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-				
-				// call instance initializer before doing anything else
-				genInitCall(assembler);
 				
 				visitor = new MethodVisitor(assembler, module);
 				visitor.setDefaultReturn(false);
@@ -162,59 +125,23 @@ public class ClassVisitor implements AstVisitor {
 				methodNode.visit(visitor);
 			}
 				
-			CMethod method = visitor.getMethod();
+			BinaryMethod method = visitor.getMethod();
+			BinaryNamespace.Entry methodEntry = BinaryNamespace.Entry.makeMethod(methodNode.getName(), (byte)0, method);
 
-			if(methodNode == sharedInit){
-				// Shared initializer
-				method.bind(cClass);
-				cClass.setSharedInitializer(method);
-			}else if(methodNode == instanceInit){
-				// Instance initializer
-				cClass.setInstanceInitializer(method);
-			}else if(methodNode.getSymbol().isShared()){
-				// Plain shared method
-				method.bind(cClass);
-				cClass.getAttributes().set(methodNode.getName(), method);
+			if(methodNode.getSymbol().isShared()){
+				// Shared method
+				cls.getSharedNamespace().addEntry(methodEntry);
 			}else{
-				// Plain instance method
-				cClass.getInstanceAttributes().set(methodNode.getName(), method);
+				// Instance method
+				cls.getInstanceNamespace().addEntry(methodEntry);
 			}
 		}
 		
 		return;
 	}
 	
-	public CClass getCClass(){
-		
-		// generate default constructor if no constructor was specified
-		if(!alreadyReachedConstructor){
-			ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-			genInitCall(assembler);
-			// return self
-			assembler.getLocal(0);
-			assembler._return();
-			
-			CMethod constructor = new CMethod();
-			constructor.setArgCount(0);
-			constructor.setLocalCount(1);
-			constructor.setConstantPool(constantPool.toArray());
-			constructor.setModule(module);
-			constructor.setInstructions(assembler.getCodeSegment());
-			constructor.getCode().setExceptionTable(new ExceptionBlock[]{});
-			constructor.getCode().setDebugTable(new DebugEntry[]{});
-			constructor.getCode().setDebugSymbol(cClass.getName() + "." + cClass.getName());
-			
-			cClass.getInstanceAttributes().set(cClass.getName(), constructor);
-		}
-		
-		return cClass;
-	}
-	
-	private void genInitCall(ChipmunkAssembler assembler){
-		assembler.getLocal(0);
-		assembler.init();
-		assembler.call((byte)1);
-		assembler.pop();
+	public BinaryClass getBinaryClass(){
+		return cls;
 	}
 
 }

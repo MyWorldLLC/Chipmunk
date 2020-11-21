@@ -21,6 +21,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.*;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.ClassNode;
@@ -30,7 +31,9 @@ import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.modules.runtime.*;
+import chipmunk.compiler.lexer.ChipmunkLexer;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.symbols.SymbolTable;
 
 public class ExpressionVisitor implements AstVisitor {
 	
@@ -60,36 +63,36 @@ public class ExpressionVisitor implements AstVisitor {
 		if(node instanceof IdNode){
 			IdNode id = (IdNode) node;
 			assembler.onLine(node.getLineNumber());
-			codegen.emitSymbolAccess(id.getID().getText());
+			codegen.emitLocalAccess(id.getID().getText());
 		}else if(node instanceof LiteralNode){
 			Token literal = ((LiteralNode) node).getLiteral();
 			assembler.onLine(node.getLineNumber());
 			switch (literal.getType()) {
 				case BOOLLITERAL:
-					assembler.push(new CBoolean(Boolean.parseBoolean(literal.getText())));
+					assembler.push(Boolean.parseBoolean(literal.getText()));
 					return;
 				case INTLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText(), 10)));
+					assembler.push(Integer.parseInt(literal.getText(), 10));
 					return;
 				case HEXLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 16)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 16));
 					return;
 				case OCTLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 8)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 8));
 					return;
 				case BINARYLITERAL:
-					assembler.push(new CInteger(Integer.parseInt(literal.getText().substring(2), 2)));
+					assembler.push(Integer.parseInt(literal.getText().substring(2), 2));
 					return;
 				case FLOATLITERAL:
-					assembler.push(new CFloat(Float.parseFloat(literal.getText())));
+					assembler.push(Float.parseFloat(literal.getText()));
 					return;
 				case STRINGLITERAL:
 					// strip quotes
 					String value = literal.getText().substring(1, literal.getText().length() - 1);
-					assembler.push(new CString(ChipmunkLexer.unescapeString(value)));
+					assembler.push(ChipmunkLexer.unescapeString(value));
 					return;
 				case NULL:
-					assembler.push(CNull.instance());
+					assembler.push(null);
 					return;
 				
 				default:
@@ -97,27 +100,35 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 		}else if(node instanceof ListNode){
 			ListNode listNode = (ListNode) node;
-			
-			for(int i = 0; i < listNode.getChildren().size(); i++){
-				// visit expression
-				this.visit(listNode.getChildren().get(i));
-			}
+
 			assembler.onLine(node.getLineNumber());
 			assembler.list(listNode.getChildren().size());
+
+			for(int i = 0; i < listNode.getChildren().size(); i++){
+				// visit expression
+				assembler.dup();
+				this.visit(listNode.getChildren().get(i));
+				assembler.callAt("add", (byte)1);
+				assembler.pop();
+			}
+
 		}else if(node instanceof MapNode){
 			MapNode mapNode = (MapNode) node;
-			mapNode.visitChildren(this);
-			
+
+			assembler.onLine(node.getLineNumber());
+			assembler.map(mapNode.getChildren().size());
+
 			for(int i = 0; i < mapNode.getChildren().size(); i++){
+				assembler.dup();
 				// visit key & value expressions
 				AstNode keyValue = mapNode.getChildren().get(i);
 				// key
 				this.visit(keyValue.getChildren().get(0));
 				// value
 				this.visit(keyValue.getChildren().get(1));
+				assembler.callAt("put", (byte)2);
+				assembler.pop();
 			}
-			assembler.onLine(node.getLineNumber());
-			assembler.map(mapNode.getChildren().size());
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
@@ -136,9 +147,6 @@ public class ExpressionVisitor implements AstVisitor {
 			
 			AstNode lhs = op.getLeft();
 			AstNode rhs = op.getRight();
-			
-			// TODO - need to detect unary inc/dec/etc operators that re-assign variables
-			// and emit correct code
 
 			switch (operator.getType()) {
 			case PLUS:
@@ -270,8 +278,7 @@ public class ExpressionVisitor implements AstVisitor {
 				emitDotGet(op);
 				return;
 			case EQUALS:
-				rhs.visit(this);
-				emitAssignment(lhs);
+				emitAssignment(op);
 				return;
 			case DOUBLEEQUAlS:
 				op.visitChildren(this);
@@ -300,7 +307,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler._instanceof();
 				break;
 			default:
-				throw new SyntaxErrorChipmunk(
+				throw new SyntaxError(
 						String.format("Unsupported operator %s at %d:%d",
 								operator.getText(),
 								operator.getLine(),
@@ -310,36 +317,36 @@ public class ExpressionVisitor implements AstVisitor {
 
 	}
 	
-	private void emitAssignment(AstNode lhs){
+	private void emitAssignment(OperatorNode op){
+		AstNode lhs = op.getLeft();
 		if(lhs instanceof OperatorNode){
 			OperatorNode lOp = (OperatorNode) lhs;
 			if(lOp.getOperator().getType() == Token.Type.DOT){
-				if(lOp.getRight() instanceof IdNode){
-					assembler.onLine(lhs.getLineNumber());
-					assembler.push(((IdNode) lOp.getRight()).getID().getText());
-				}else{
-					lOp.getRight().visit(this);
-				}
-				lOp.getLeft().visit(this);
 				assembler.onLine(lhs.getLineNumber());
-				assembler.setattr();
-			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
-				lOp.getRight().visit(this);
 				lOp.getLeft().visit(this);
+				String attr = ((IdNode) lOp.getRight()).getID().getText();
+
+				assembler.onLine(op.getRight().getLineNumber());
+				op.getRight().visit(this);
+
+				assembler.onLine(lhs.getLineNumber());
+				assembler.setattr(attr);
+			}else if(lOp.getOperator().getType() == Token.Type.LBRACKET){
+				lOp.getLeft().visit(this);
+				lOp.getRight().visit(this);
+				op.getRight().visit(this);
 				assembler.onLine(lOp.getLineNumber());
 				assembler.setat();
 			}else{
 				// error!
-				//throw new CompileChipmunk(String.format("Invalid assignment at %s: %d. The left hand side of an assignment"
-				//		+ "must be either an attribute, index, or a local variable.", 
-				//		lOp.getOperator().getFile(), lOp.getOperator().getLine()));
 				throw new CompileChipmunk(String.format("Invalid assignment at %d. The left hand side of an assignment"
 						+ "must be either an attribute, index, or a local variable.", 
 						  lOp.getOperator().getLine()));
 			}
 		}else if(lhs instanceof IdNode){
 			assembler.onLine(lhs.getLineNumber());
-			codegen.emitSymbolAssignment(((IdNode) lhs).getID().getText());
+			op.getRight().visit(this);
+			codegen.emitLocalAssignment(((IdNode) lhs).getID().getText());
 		}
 	}
 	
@@ -351,9 +358,9 @@ public class ExpressionVisitor implements AstVisitor {
 			OperatorNode dotOp = (OperatorNode) op.getLeft();
 			// this is a dot access, so issue a callAt opcode
 			IdNode callID = (IdNode) dotOp.getRight();
-			
-			op.visitChildren(this, 1);
+
 			dotOp.getLeft().visit(this);
+			op.visitChildren(this, 1);
 			
 			int argCount = op.getChildren().size() - 1;
 			assembler.onLine(op.getLineNumber());
@@ -371,16 +378,13 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 	
 	private void emitDotGet(OperatorNode op){
-		if(op.getRight() instanceof IdNode){
-			IdNode attr = (IdNode) op.getRight();
-			assembler.onLine(op.getLineNumber());
-			assembler.push(attr.getID().getText());
-		}else{
-			op.getRight().visit(this);
-		}
+
+		assembler.onLine(op.getLeft().getLineNumber());
 		op.getLeft().visit(this);
 		assembler.onLine(op.getLineNumber());
-		assembler.getattr();
+
+		String attr = ((IdNode) op.getRight()).getID().getText();
+		assembler.getattr(attr);
 	}
 
 	private void emitLogicalOr(OperatorNode op){
@@ -406,7 +410,7 @@ public class ExpressionVisitor implements AstVisitor {
 
 		// Expression is true - shortcircuit
 		assembler.setLabelTarget(caseTrue);
-		assembler.push(new CBoolean(true)); // 1
+		assembler.push(true); // 1
 
 		assembler.setLabelTarget(end);
 	}
@@ -428,12 +432,12 @@ public class ExpressionVisitor implements AstVisitor {
 		assembler._if(caseFalse); // 0
 
 		// Expression is true
-		assembler.push(new CBoolean(true)); // 1
+		assembler.push(true); // 1
 		assembler._goto(end);
 
 		// Expression is false
 		assembler.setLabelTarget(caseFalse);
-		assembler.push(new CBoolean(false)); // 1
+		assembler.push(false); // 1
 
 		assembler.setLabelTarget(end);
 	}

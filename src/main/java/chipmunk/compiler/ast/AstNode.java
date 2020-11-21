@@ -32,7 +32,7 @@ public class AstNode {
 	protected int lineNumber;
 	
 	public AstNode(){
-		children = new ArrayList<AstNode>();
+		children = new ArrayList<>();
 	}
 	
 	public AstNode(AstNode... children){
@@ -93,6 +93,12 @@ public class AstNode {
 	public void visitChildren(AstVisitor visitor){
 		for(AstNode child : children){
 			child.visit(visitor);
+		}
+	}
+
+	public void visitChildrenRightLeft(AstVisitor visitor){
+		for(int i = children.size() - 1; i >= 0; i--){
+			children.get(i).visit(visitor);
 		}
 	}
 	

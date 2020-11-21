@@ -21,19 +21,53 @@
 package chipmunk.binary;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class BinaryNamespace {
+public class BinaryNamespace implements Iterable<BinaryNamespace.Entry> {
 
     public static class Entry {
         protected final String name;
         protected final byte flags;
-        protected final Object value;
+        protected final FieldType type;
+        protected final Object classOrMethod;
 
-        public Entry(String name, byte flags, Object value){
+        public Entry(String name, byte flags){
+            this(name, flags, FieldType.DYNAMIC_VAR);
+        }
+
+        public Entry(String name, byte flags, FieldType type){
             this.name = name;
             this.flags = flags;
-            this.value = value;
+            this.type = type;
+            classOrMethod = null;
+        }
+
+        public Entry(String name, byte flags, BinaryMethod method){
+            this.name = name;
+            this.flags = flags;
+            this.type = FieldType.METHOD;
+            classOrMethod = method;
+        }
+
+        public Entry(String name, byte flags, BinaryClass cls){
+            this.name = name;
+            this.flags = flags;
+            this.type = FieldType.CLASS;
+            classOrMethod = cls;
+        }
+
+        public static Entry makeField(String name, byte flags){
+            return new Entry(name, flags, FieldType.DYNAMIC_VAR);
+        }
+
+        public static Entry makeClass(String name, byte flags, BinaryClass cls){
+            return new Entry(name, flags, cls);
+        }
+
+        public static Entry makeMethod(String name, byte flags, BinaryMethod method){
+            return new Entry(name, flags, method);
         }
 
         public String getName(){
@@ -44,8 +78,16 @@ public class BinaryNamespace {
             return flags;
         }
 
-        public Object getValue(){
-            return value;
+        public FieldType getType(){
+            return type;
+        }
+
+        public BinaryClass getBinaryClass(){
+            return (BinaryClass) classOrMethod;
+        }
+
+        public BinaryMethod getBinaryMethod(){
+            return (BinaryMethod) classOrMethod;
         }
     }
 
@@ -65,5 +107,61 @@ public class BinaryNamespace {
 
     public void setEntries(List<Entry> entries){
         this.entries = entries;
+    }
+
+    public void addEntry(BinaryNamespace.Entry entry){
+        entries.add(entry);
+    }
+
+    public boolean has(String symbol){
+
+        for(Entry e : entries){
+            if(e.getName().equals(symbol)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Object get(String symbol){
+
+        for(Entry e : entries){
+            if(e.getName().equals(symbol)){
+                FieldType type = e.getType();
+
+                if(type == FieldType.CLASS){
+                    return e.getBinaryClass();
+                }else if(type == FieldType.METHOD){
+                    return e.getBinaryMethod();
+                }
+
+            }
+        }
+
+        return null;
+    }
+
+    public Entry getEntry(String symbol){
+
+        for(Entry e : entries){
+            if(e.getName().equals(symbol)){
+                return e;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public Iterator<Entry> iterator() {
+        return entries.iterator();
+    }
+
+    public String[] getNames(){
+        return entries.stream()
+                .map(Entry::getName)
+                .collect(Collectors.toList())
+                .toArray(new String[]{});
     }
 }

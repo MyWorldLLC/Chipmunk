@@ -21,6 +21,8 @@
 package chipmunk.compiler
 
 import chipmunk.compiler.ast.ImportNode
+import chipmunk.compiler.lexer.ChipmunkLexer
+import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
 
 class ChipmunkParserImportSpecification extends Specification {
@@ -100,7 +102,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		ImportNode node = parser.parseImport()
 		
 		then:
-		thrown(IllegalImportChipmunk)
+		thrown(IllegalImportException)
 	}
 	
 	def "parse from foo.bar import baz"(){
@@ -178,7 +180,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		ImportNode node = parser.parseImport()
 		
 		then:
-		thrown(IllegalImportChipmunk)
+		thrown(IllegalImportException)
 	}
 	
 	def "parse from foo.bar import bar,*"(){
@@ -191,7 +193,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		ImportNode node = parser.parseImport()
 		
 		then:
-		thrown(SyntaxErrorChipmunk)
+		thrown(SyntaxError)
 	}
 	
 	def "parse from foo.bar import bar,baz as bar1, baz1, baz2"(){
@@ -204,7 +206,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		ImportNode node = parser.parseImport()
 		
 		then:
-		thrown(IllegalImportChipmunk)
+		thrown(IllegalImportException)
 	}
 	
 	def "parse import foo.bar as bar1,baz"(){
@@ -217,6 +219,6 @@ class ChipmunkParserImportSpecification extends Specification {
 		ImportNode node = parser.parseImport()
 		
 		then:
-		thrown(IllegalImportChipmunk)
+		thrown(IllegalImportException)
 	}
 }

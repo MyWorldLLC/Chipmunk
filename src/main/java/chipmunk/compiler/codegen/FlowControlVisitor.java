@@ -20,9 +20,9 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.CompileChipmunk;
-import chipmunk.compiler.Token;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.FlowControlNode;

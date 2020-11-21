@@ -20,12 +20,8 @@
 
 package chipmunk.binary
 
-import chipmunk.ChipmunkScript
-import chipmunk.ChipmunkVM
-import chipmunk.MemoryModuleLoader
+import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.modules.ChipmunkModuleBuilder
-import chipmunk.modules.runtime.CModule
 import spock.lang.Specification
 
 class BinaryFormatSpecification  extends Specification {
@@ -37,21 +33,14 @@ class BinaryFormatSpecification  extends Specification {
 
     def "Write/read binary and run"(){
         when:
-        def module = compiler.compile(
+        BinaryModule module = compiler.compile(
                 getClass()
                         .getResourceAsStream("/chipmunk/binary/BinaryFeatureTest.chp"),
                 "BinaryFeatureTest.chp")[0]
 
         module = writeAndRead(module)
-        MemoryModuleLoader loader = new MemoryModuleLoader()
-        loader.addModule(ChipmunkModuleBuilder.buildLangModule())
-        loader.addModules([module])
-
-        ChipmunkScript script = new ChipmunkScript()
-        script.getLoaders().add(loader)
-
-        script.setEntryCall("test", "main")
-        def result = vm.run(script)
+        def script = vm.compileScript(module)
+        def result = script.run()
 
         then:
         noExceptionThrown()
@@ -59,7 +48,7 @@ class BinaryFormatSpecification  extends Specification {
 
     }
 
-    def writeAndRead(CModule module){
+    def writeAndRead(BinaryModule module){
 
         ByteArrayOutputStream os = new ByteArrayOutputStream()
         writer.writeModule(os, module)
@@ -68,6 +57,6 @@ class BinaryFormatSpecification  extends Specification {
         ByteArrayInputStream is = new ByteArrayInputStream(bytes)
 
         reader.setMaxBufferSize(bytes.length)
-        return module // reader.readModule(is)
+        return reader.readModule(is)
     }
 }

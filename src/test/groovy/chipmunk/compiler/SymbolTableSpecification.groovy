@@ -20,13 +20,15 @@
 
 package chipmunk.compiler
 
+import chipmunk.compiler.symbols.Symbol
+import chipmunk.compiler.symbols.SymbolTable
 import spock.lang.Specification
 
 class SymbolTableSpecification extends Specification {
 
 	def "Empty local table"(){
 		when:
-		SymbolTable symTab = new SymbolTable(SymbolTable.Scope.LOCAL)
+        SymbolTable symTab = new SymbolTable(SymbolTable.Scope.LOCAL)
 		
 		then:
 		symTab.getScope() == SymbolTable.Scope.LOCAL

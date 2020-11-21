@@ -20,9 +20,9 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.AngryChipmunk;
+import chipmunk.ChipmunkRuntimeException;
 
-public class FinalViolationChipmunk extends AngryChipmunk {
+public class FinalViolationChipmunk extends ChipmunkRuntimeException {
 
 	private static final long serialVersionUID = -7540926854001205326L;
 

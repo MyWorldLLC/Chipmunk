@@ -22,23 +22,13 @@ package chipmunk.binary;
 
 public class BinaryConstants {
 
-    enum ConstantType {
-        NULL,
-        BOOLEAN,
-        BYTE,
-        SHORT,
-        INT,
-        LONG,
-        FLOAT,
-        DOUBLE,
-        STRING,
-        METHOD,
-        CLASS,
-    }
-
     public static final String CHIPMUNK_BINARY_IDENTIFIER = "chpb";
     public static final short BINARY_VERSION = 1_0;
 
     public static final int TRAIT_FLAG = 0b01;
     public static final int FINAL_FLAG = 0b10;
+
+    public static boolean isFlagSet(int field, int flag){
+        return (field & flag) != 0;
+    }
 }

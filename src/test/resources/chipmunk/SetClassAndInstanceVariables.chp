@@ -35,7 +35,7 @@ class Foo {
 }
 
 def main(){
-	var myFoo = Foo()
+	var myFoo = Foo.new()
 	Foo.bar = 6
 	myFoo.age = 3
 	return myFoo.addAgeAndBar()

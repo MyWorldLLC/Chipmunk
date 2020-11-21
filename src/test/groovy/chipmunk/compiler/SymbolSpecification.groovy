@@ -20,6 +20,7 @@
 
 package chipmunk.compiler
 
+import chipmunk.compiler.symbols.Symbol
 import spock.lang.Specification
 
 class SymbolSpecification extends Specification {

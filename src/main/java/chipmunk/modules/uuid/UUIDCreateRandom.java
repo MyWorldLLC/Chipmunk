@@ -20,21 +20,16 @@
 
 package chipmunk.modules.uuid;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.modules.buffer.Buffer;
-import chipmunk.modules.buffer.BufferCClass;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.*;
-
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
 public class UUIDCreateRandom implements CCallable {
 
     @Override
     public CObject call(ChipmunkVM vm, Object[] params) {
-        vm.checkArity(params, 0);
+        //vm.checkArity(params, 0);
 
-        CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
+       /* CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
         BufferCClass cls = (BufferCClass) vm.getModule("chipmunk.buffer").getNamespace().get("Buffer");
 
         Buffer buf = cls.instantiate();
@@ -50,7 +45,8 @@ public class UUIDCreateRandom implements CCallable {
 
         vm.traceMem(16);
         vm.traceReference();
-        return cUUID;
+        return cUUID;*/
+        return null;
     }
 
 }

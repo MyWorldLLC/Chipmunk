@@ -33,8 +33,8 @@ public class ImportNode extends AstNode {
 	public ImportNode(){
 		super();
 		importAll = false;
-		symbols = new ArrayList<String>();
-		aliases = new ArrayList<String>();
+		symbols = new ArrayList<>();
+		aliases = new ArrayList<>();
 	}
 	
 	public String getModule(){

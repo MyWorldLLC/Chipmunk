@@ -20,17 +20,10 @@
 
 package chipmunk.binary;
 
-import chipmunk.DebugEntry;
-import chipmunk.ExceptionBlock;
-import chipmunk.Namespace;
-import chipmunk.modules.runtime.*;
-
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BinaryReader {
 
@@ -52,7 +45,7 @@ public class BinaryReader {
         return maxBufferSize;
     }
 
-    public CModule readModule(InputStream is) throws IOException, BinaryFormatException {
+    public BinaryModule readModule(InputStream is) throws IOException, BinaryFormatException {
 
         try {
 
@@ -75,33 +68,14 @@ public class BinaryReader {
             // Read name, constants, imports, & namespace
             String name = dis.readUTF();
 
-            CModule module = new CModule(name);
-            module.getConstants().addAll(readConstants(dis, module));
+            BinaryModule module = new BinaryModule(name);
+            module.setFileName(dis.readUTF());
+            module.setConstantPool(readConstants(dis, module));
 
-            List<CModule.Import> imports = readImports(dis);
-            module.getImports().addAll(imports);
+            BinaryImport[] imports = readImports(dis);
+            module.setImports(imports);
 
-            Object initializer = readObject(dis, module);
-            if(initializer instanceof CMethod){
-                module.setInitializer((CMethod) initializer);
-            }
-
-            Namespace moduleNamespace = module.getNamespace();
-            BinaryNamespace namespace = readNameSpace(dis, module);
-
-            for(BinaryNamespace.Entry entry : namespace.getEntries()){
-
-                moduleNamespace.set(entry.getName(), entry.getValue());
-
-                if(entry.getValue() instanceof CMethod){
-                    ((CMethod) entry.getValue()).bind(module);
-                }
-
-                final int flags = entry.getFlags();
-                if((flags & BinaryConstants.FINAL_FLAG) != 0){
-                    moduleNamespace.markFinal(entry.getName());
-                }
-            }
+            module.setNamespace(readNameSpace(dis, module));
 
             return module;
         }catch(EOFException e){
@@ -110,55 +84,56 @@ public class BinaryReader {
 
     }
 
-    protected List<Object> readConstants(DataInputStream is, CModule module) throws IOException, BinaryFormatException {
-        List<Object> constants = new ArrayList<>();
+    protected Object[] readConstants(DataInputStream is, BinaryModule module) throws IOException, BinaryFormatException {
 
         final int count = is.readInt();
         checkBufferSize(count);
+
+        Object[] constants = new Object[count];
         for(int i = 0; i < count; i++){
-            constants.add(readObject(is, module));
+            constants[i] = readObject(is, module);
         }
 
         return constants;
     }
 
-    protected List<String> readStrings(DataInputStream is) throws IOException, BinaryFormatException {
+    protected String[] readStrings(DataInputStream is) throws IOException, BinaryFormatException {
 
         final int count = is.readInt();
         checkBufferSize(count);
 
-        List<String> strings = new ArrayList<>(count);
+        String[] strings = new String[count];
 
         for(int i = 0; i < count; i++){
-            strings.add(is.readUTF());
+            strings[i] = is.readUTF();
         }
 
         return strings;
     }
 
-    protected List<CModule.Import> readImports(DataInputStream is) throws IOException, BinaryFormatException {
+    protected BinaryImport[] readImports(DataInputStream is) throws IOException, BinaryFormatException {
 
         final int count = is.readInt();
         checkBufferSize(count);
 
-        List<CModule.Import> imports = new ArrayList<>(count);
+        BinaryImport[] imports = new BinaryImport[count];
 
         for(int i = 0; i < count; i++){
             final String name = is.readUTF();
             final boolean importAll = is.readBoolean();
-            final List<String> symbols = readStrings(is);
-            final List<String> aliases = readStrings(is);
+            final String[] symbols = readStrings(is);
+            final String[] aliases = readStrings(is);
 
-            CModule.Import im = new CModule.Import(name, importAll);
-            im.getSymbols().addAll(symbols);
-            im.getAliases().addAll(aliases);
-            imports.add(im);
+            BinaryImport im = new BinaryImport(name, importAll);
+            im.setSymbols(symbols);
+            im.setAliases(aliases);
+            imports[i] = im;
         }
 
         return imports;
     }
 
-    protected BinaryNamespace readNameSpace(DataInputStream is, CModule module) throws IOException, BinaryFormatException {
+    protected BinaryNamespace readNameSpace(DataInputStream is, BinaryModule module) throws IOException, BinaryFormatException {
 
         final int count = is.readInt();
         checkBufferSize(count);
@@ -168,28 +143,36 @@ public class BinaryReader {
         for(int i = 0; i < count; i++){
             final String name = is.readUTF();
             final byte flags = is.readByte();
-            System.out.println(name);
-            namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readObject(is, module)));
+            final byte typeOrdinal = is.readByte();
+
+            FieldType type = FieldType.values()[typeOrdinal];
+            if(type == FieldType.METHOD){
+                namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readMethod(is, module)));
+            }else if(type == FieldType.CLASS){
+                namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, readClass(is, module)));
+            }else{
+                namespace.getEntries().add(new BinaryNamespace.Entry(name, flags, type));
+            }
         }
 
         return namespace;
     }
 
-    protected Object readObject(DataInputStream is, CModule module) throws IOException, BinaryFormatException {
+    protected Object readObject(DataInputStream is, BinaryModule module) throws IOException, BinaryFormatException {
         final int typeOrdinal = is.readByte();
         try {
-            BinaryConstants.ConstantType type = BinaryConstants.ConstantType.values()[typeOrdinal];
+            ConstantType type = ConstantType.values()[typeOrdinal];
 
             return switch (type) {
-                case NULL -> CNull.instance();
+                case NULL -> null;
                 case BYTE -> is.readByte();
-                case BOOLEAN -> new CBoolean(is.readBoolean());
+                case BOOLEAN -> is.readBoolean();
                 case SHORT -> is.readShort();
-                case INT -> new CInteger(is.readInt());
+                case INT -> is.readInt();
                 case LONG -> is.readLong();
-                case FLOAT -> new CFloat(is.readFloat());
+                case FLOAT -> is.readFloat();
                 case DOUBLE -> is.readDouble();
-                case STRING -> new CString(is.readUTF());
+                case STRING -> is.readUTF();
                 case METHOD -> readMethod(is, module);
                 case CLASS -> readClass(is, module);
             };
@@ -198,25 +181,22 @@ public class BinaryReader {
         }
     }
 
-    protected CMethod readMethod(DataInputStream is, CModule module) throws IOException, BinaryFormatException {
-        CMethod method = new CMethod();
+    protected BinaryMethod readMethod(DataInputStream is, BinaryModule module) throws IOException, BinaryFormatException {
 
-        CMethodCode code = new CMethodCode();
-        code.setConstantPool(module.getConstants().toArray());
+        BinaryMethod method = new BinaryMethod();
 
-        code.setDebugSymbol(is.readUTF());
-        code.setLocalCount(is.readInt());
-        code.setArgCount(is.readInt());
-        code.setDefaultArgCount(is.readInt());
+        method.setDeclarationSymbol(is.readUTF());
+        method.setLocalCount(is.readInt());
+        method.setArgCount(is.readInt());
+        method.setDefaultArgCount(is.readInt());
 
         final int codeSize = is.readInt();
         checkBufferSize(codeSize);
 
-        code.setCode(is.readNBytes(codeSize));
-        code.setExceptionTable(readExceptionTable(is));
-        code.setDebugTable(readDebugTable(is));
+        method.setCode(is.readNBytes(codeSize));
+        method.setExceptionTable(readExceptionTable(is));
+        method.setDebugTable(readDebugTable(is));
 
-        method.setCode(code);
         method.setModule(module);
 
         return method;
@@ -261,46 +241,14 @@ public class BinaryReader {
         return exceptionTable;
     }
 
-    protected CClass readClass(DataInputStream is, CModule module) throws IOException, BinaryFormatException {
+    protected BinaryClass readClass(DataInputStream is, BinaryModule module) throws IOException, BinaryFormatException {
 
         final String name = is.readUTF();
-        CClass cls = new CClass(name, module);
+        BinaryClass cls = new BinaryClass(name, module);
 
-        cls.setSharedInitializer(readMethod(is, module));
+        cls.setSharedNamespace(readNameSpace(is, module));
 
-        BinaryNamespace sharedNamespace = readNameSpace(is, module);
-        for(BinaryNamespace.Entry entry : sharedNamespace.getEntries()){
-            final String symbolName = entry.getName();
-            final int flags = entry.getFlags();
-
-            cls.getAttributes().set(symbolName, entry.getValue());
-
-            if(entry.getValue() instanceof CMethod){
-                ((CMethod) entry.getValue()).bind(module);
-            }
-
-            if((flags & BinaryConstants.FINAL_FLAG) != 0){
-                cls.getAttributes().markFinal(symbolName);
-            }
-        }
-
-        cls.setInstanceInitializer(readMethod(is, module));
-
-        BinaryNamespace namespace = readNameSpace(is, module);
-        for(BinaryNamespace.Entry entry : namespace.getEntries()){
-            final String symbolName = entry.getName();
-            final int flags = entry.getFlags();
-
-            cls.getInstanceAttributes().set(symbolName, entry.getValue());
-
-            if((flags & BinaryConstants.FINAL_FLAG) != 0){
-                cls.getInstanceAttributes().markFinal(symbolName);
-            }
-
-            if((flags & BinaryConstants.TRAIT_FLAG) != 0){
-                cls.getInstanceAttributes().markTrait(symbolName);
-            }
-        }
+        cls.setInstanceNamespace(readNameSpace(is, module));
 
         return cls;
     }

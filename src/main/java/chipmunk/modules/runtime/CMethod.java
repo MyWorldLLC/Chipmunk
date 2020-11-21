@@ -20,10 +20,9 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
+import chipmunk.vm.ChipmunkVM;
 
-public class CMethod implements RuntimeObject, CCallable {
+public class CMethod implements CCallable {
 	
 	protected Object self;
 	protected CMethodCode code;
@@ -121,7 +120,8 @@ public class CMethod implements RuntimeObject, CCallable {
 	
 	@Override
 	public Object call(ChipmunkVM vm, Object[] params) {
-		return vm.dispatch(this, params);
+		//return vm.dispatch(this, params);
+		return null;
 	}
 
 	public CMethod duplicate(){

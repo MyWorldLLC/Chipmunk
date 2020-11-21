@@ -22,11 +22,9 @@ package chipmunk.modules.runtime;
 
 import java.util.List;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.Namespace;
-import chipmunk.RuntimeObject;
+import chipmunk.vm.ChipmunkVM;
 
-public class CObject implements RuntimeObject, Initializable, CallInterceptor {
+public class CObject implements Initializable, CallInterceptor {
 	
 	private final CClass cClass;
 	
@@ -73,7 +71,7 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	}
 	
 	public Object setAttr(ChipmunkVM vm, String name, Object value){
-		vm.traceReference();
+		//vm.traceReference();
 		attributes.set(name, value);
 		return value;
 	}
@@ -92,7 +90,7 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 	
 	public CBoolean instanceOf(ChipmunkVM vm, CClass clazz) {
 		if(clazz == cClass) {
-			vm.traceBoolean();
+			//vm.traceBoolean();
 			return new CBoolean(true);
 		}else {
 			List<Object> traitAttributes = attributes.traitAttributes();
@@ -101,24 +99,24 @@ public class CObject implements RuntimeObject, Initializable, CallInterceptor {
 				if(trait instanceof CObject) {
 					CBoolean isInstance = ((CObject) trait).instanceOf(vm, clazz);
 					if(isInstance.booleanValue()) {
-						vm.traceBoolean();
+						//vm.traceBoolean();
 						return isInstance;
 					}
 				}else if(trait instanceof CClass) {
 					CBoolean isInstance = ((CClass) trait).instanceOf(vm, clazz);
 					if(isInstance.booleanValue()) {
-						vm.traceBoolean();
+						//vm.traceBoolean();
 						return isInstance;
 					}
 				}
 			}
 		}
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(false);
 	}
 
 	public CBoolean equals(ChipmunkVM vm, Object other){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(other == this);
 	}
 	

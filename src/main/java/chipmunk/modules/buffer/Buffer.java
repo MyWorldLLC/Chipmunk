@@ -20,8 +20,7 @@
 
 package chipmunk.modules.buffer;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.CBoolean;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CInteger;
@@ -29,7 +28,7 @@ import chipmunk.modules.runtime.CNull;
 
 import java.util.Arrays;
 
-public class Buffer implements RuntimeObject {
+public class Buffer {
 
     protected final BufferCClass cClass;
     private byte[] data;
@@ -55,7 +54,7 @@ public class Buffer implements RuntimeObject {
     public CNull resize(ChipmunkVM vm, CInteger newSize){
 
         final int size = newSize.intValue();
-        vm.traceMem(size - data.length); // This will correctly trace size reductions too
+        //vm.traceMem(size - data.length); // This will correctly trace size reductions too
 
         data = Arrays.copyOf(data, size);
 

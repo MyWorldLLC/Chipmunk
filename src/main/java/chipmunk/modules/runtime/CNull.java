@@ -20,10 +20,9 @@
 
 package chipmunk.modules.runtime;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.RuntimeObject;
+import chipmunk.vm.ChipmunkVM;
 
-public class CNull implements RuntimeObject {
+public class CNull {
 	
 	private static CNull instance;
 	
@@ -37,7 +36,7 @@ public class CNull implements RuntimeObject {
 	}
 
 	public CBoolean truth(ChipmunkVM context){
-		context.traceMem(1);
+		//context.traceMem(1);
 		return new CBoolean(false);
 	}
 	
@@ -46,7 +45,7 @@ public class CNull implements RuntimeObject {
 	}
 
 	public CBoolean equals(ChipmunkVM vm, Object other){
-		vm.traceBoolean();
+		//vm.traceBoolean();
 		return new CBoolean(equals(other));
 	}
 	

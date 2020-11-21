@@ -20,7 +20,7 @@
 
 package chipmunk.modules.buffer;
 
-import chipmunk.ChipmunkVM;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.CClass;
 import chipmunk.modules.runtime.CInteger;
 import chipmunk.modules.runtime.CModule;
@@ -41,8 +41,8 @@ public class BufferCClass extends CClass {
             size = ((CInteger) params[0]).intValue();
         }
 
-        vm.traceReference();
-        vm.traceMem(size);
+        //vm.traceReference();
+        //vm.traceMem(size);
         return new Buffer(this, size);
     }
 

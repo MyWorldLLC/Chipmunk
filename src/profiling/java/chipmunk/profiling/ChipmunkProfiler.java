@@ -22,43 +22,37 @@ package chipmunk.profiling;
 
 import java.io.InputStream;
 
-import chipmunk.ChipmunkScript;
-import chipmunk.ChipmunkVM;
-import chipmunk.modules.runtime.CMethod;
+import chipmunk.vm.ChipmunkVM;
+import chipmunk.binary.BinaryModule;
+import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.runtime.ChipmunkModule;
 
 public class ChipmunkProfiler {
-	
-	public static ChipmunkScript compileScript(InputStream is, String name) throws Exception {
-		return ChipmunkVM.compile(is, name);
-	}
-	
-	public static void main(String[] args) throws Exception{
+
+	public static ChipmunkModule compileScript(InputStream is, String name) throws Throwable {
+		ChipmunkCompiler compiler = new ChipmunkCompiler();
+		BinaryModule module = compiler.compile(is, name)[0];
 
 		ChipmunkVM vm = new ChipmunkVM();
-		ChipmunkScript countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
-		vm.run(countToAMillion);
+		return vm.load(module);
+	}
+	
+	public static void main(String[] args) throws Throwable {
 
-		ChipmunkScript fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
-		// Run once to initialize and load all modules
-		vm.run(fibonacci);
+		ChipmunkVM vm = new ChipmunkVM();
+		ChipmunkModule countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
 
-		// After modules are initialized and one run has completed, get the main method and invoke repeatedly
-		CMethod mainMethod = (CMethod) fibonacci
-				.getModules()
-				.get("profiling")
-				.getNamespace()
-				.get("main");
-		
-
+		ChipmunkModule fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+		ChipmunkModule mandelbrot = compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.dispatch(mainMethod, null);
+			value = vm.invoke(mandelbrot, "main");
 			long endTime = System.nanoTime();
 			
-			System.out.println("Value: " + value.toString() + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
+			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}
 		
 	}

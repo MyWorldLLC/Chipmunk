@@ -20,23 +20,15 @@
 
 package chipmunk.modules.uuid;
 
-import chipmunk.ChipmunkVM;
-import chipmunk.modules.buffer.Buffer;
-import chipmunk.modules.buffer.BufferCClass;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.modules.runtime.CCallable;
-import chipmunk.modules.runtime.CClass;
-import chipmunk.modules.runtime.CObject;
-import chipmunk.modules.runtime.CString;
-
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
 public class UUIDFromString implements CCallable {
     @Override
     public Object call(ChipmunkVM vm, Object[] params) {
-        vm.checkArity(params, 1);
+        //vm.checkArity(params, 1);
 
-        CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
+       /* CClass uuidClass = (CClass) vm.getModule("chipmunk.uuid").getNamespace().get("UUID");
         BufferCClass cls = (BufferCClass) vm.getModule("chipmunk.buffer").getNamespace().get("Buffer");
 
         Buffer buf = cls.instantiate();
@@ -52,6 +44,7 @@ public class UUIDFromString implements CCallable {
 
         vm.traceMem(16);
         vm.traceReference();
-        return cUUID;
+        return cUUID;*/
+        return null;
     }
 }

@@ -31,7 +31,7 @@ import java.util.Collection;
 
 public class ChipmunkModuleBuilder {
 
-    public static CModule buildLangModule(){
+/*    public static CModule buildLangModule(){
         CModule lang = new CModule("chipmunk.lang");
 
         return lang;
@@ -63,5 +63,5 @@ public class ChipmunkModuleBuilder {
         math.getNamespace().set("Math", new CMath());
 
         return math;
-    }
+    }*/
 }

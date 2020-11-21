@@ -21,6 +21,8 @@
 package chipmunk.compiler
 
 import chipmunk.compiler.ast.ModuleNode
+import chipmunk.compiler.lexer.ChipmunkLexer
+import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
 
 class ChipmunkParserModuleSpecification extends Specification {

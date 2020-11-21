@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.compiler.ChipmunkAssembler;
+import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.WhileNode;
