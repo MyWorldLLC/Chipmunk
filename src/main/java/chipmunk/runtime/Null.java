@@ -33,4 +33,19 @@ public class Null {
     public static Object wrapNull(Object o){
         return o == null ? instance : o;
     }
+
+    @Override
+    public boolean equals(Object o){
+        return o instanceof Null;
+    }
+
+    @Override
+    public int hashCode(){
+        return getClass().getName().hashCode();
+    }
+
+    @Override
+    public String toString(){
+        return "Null";
+    }
 }
