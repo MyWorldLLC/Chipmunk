@@ -23,6 +23,7 @@ package chipmunk.compiler;
 import java.io.InputStream;
 import java.util.*;
 
+import chipmunk.compiler.imports.NativeImportResolver;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
@@ -49,6 +50,7 @@ public class ChipmunkCompiler {
 
 	protected final AstImportResolver astResolver;
 	protected final BinaryImportResolver binaryResolver;
+	protected final NativeImportResolver nativeResolver;
 	
 	public ChipmunkCompiler(){
 		this(new ModuleLoader());
@@ -57,6 +59,7 @@ public class ChipmunkCompiler {
 	public ChipmunkCompiler(ModuleLoader loader){
 		astResolver = new AstImportResolver();
 		binaryResolver = new BinaryImportResolver(loader);
+		nativeResolver = new NativeImportResolver(loader);
 
 		passes = new HashMap<>();
 		passes.put(Pass.POST_PARSE, Arrays.asList(
@@ -64,7 +67,7 @@ public class ChipmunkCompiler {
 				new InnerMethodRewriteVisitor()));
 
 		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(
-				new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver)),
+				new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)),
 				new DefaultConstructorVisitor()));
 
 		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(new SymbolAccessRewriteVisitor()));
@@ -76,6 +79,7 @@ public class ChipmunkCompiler {
 
 	public void setModuleLoader(ModuleLoader loader){
 		binaryResolver.setModuleLoader(loader);
+		nativeResolver.setModuleLoader(loader);
 	}
 
 	public AstImportResolver getAstResolver(){
@@ -84,6 +88,10 @@ public class ChipmunkCompiler {
 
 	public BinaryImportResolver getBinaryResolver(){
 		return binaryResolver;
+	}
+
+	public NativeImportResolver getNativeResolver() {
+		return nativeResolver;
 	}
 
 	public TokenStream lex(CharSequence src) throws CompileChipmunk {
