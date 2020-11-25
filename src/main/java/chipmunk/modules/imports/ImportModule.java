@@ -18,11 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.java;
+package chipmunk.modules.imports;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.ChipmunkVM;
 
-public class JavaInteropModule implements ChipmunkModule {
+public class ImportModule implements ChipmunkModule {
+
+    public static final String IMPORT_MODULE_NAME = "chipmunk.imports";
+
+    public ChipmunkModule importModule(String moduleName) throws Throwable {
+        ChipmunkScript script = ChipmunkScript.getCurrentScript();
+        ChipmunkVM vm = script.getVM();
+        return vm.getModule(script, moduleName);
+    }
 
     public ClassWrapper importJava(String clsName) throws ClassNotFoundException {
         return new ClassWrapper(Class.forName(clsName));
@@ -30,7 +40,7 @@ public class JavaInteropModule implements ChipmunkModule {
 
     @Override
     public String getName(){
-        return "chipmunk.java";
+        return IMPORT_MODULE_NAME;
     }
 
 }

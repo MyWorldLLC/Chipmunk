@@ -25,8 +25,7 @@ import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
-import chipmunk.modules.java.JavaInteropModule
-import chipmunk.vm.jvm.CompilationUnit
+import chipmunk.modules.imports.ImportModule
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
@@ -40,7 +39,7 @@ class LanguageSpecification extends Specification {
 	
 	def compileAndRun(String scriptName, boolean disassembleOnException = false){
 		ModuleLoader loader = new ModuleLoader()
-		loader.registerNativeFactory("chipmunk.java", { -> new JavaInteropModule()})
+		loader.registerNativeFactory(ImportModule.IMPORT_MODULE_NAME, { -> new ImportModule()})
 
 		compiler.setModuleLoader(loader)
 

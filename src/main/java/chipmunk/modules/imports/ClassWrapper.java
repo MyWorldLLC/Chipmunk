@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.java;
+package chipmunk.modules.imports;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
