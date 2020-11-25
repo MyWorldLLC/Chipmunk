@@ -20,5 +20,5 @@ import chipmunk.imports.importJava
 
 def main(){
     var builderClass = importJava('java.lang.StringBuilder')
-	return builderClass.instantiate(['Chipmunk likes Java!']).toString()
+    return builderClass.instantiate(['Chipmunk likes Java!']).toString()
 }
