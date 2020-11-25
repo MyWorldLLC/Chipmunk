@@ -241,4 +241,30 @@ public class ChipmunkVM {
 		return scriptPool.submit(() -> invoke(script, target, methodName, params));
 	}
 
+	public Future<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
+		scheduler.notifyQueuedForInvocation(script);
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				scheduler.notifyInvocationBegan(script);
+				return task.call();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			} finally {
+				scheduler.notifyInvocationEnded(script);
+			}
+		}, scriptPool);
+	}
+
+	public Future<Void> runInScriptPool(ChipmunkScript script, Runnable task){
+		scheduler.notifyQueuedForInvocation(script);
+		return CompletableFuture.runAsync(() -> {
+			try {
+				scheduler.notifyInvocationBegan(script);
+				task.run();
+			} finally {
+				scheduler.notifyInvocationEnded(script);
+			}
+		}, scriptPool);
+	}
+
 }
