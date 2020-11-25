@@ -38,6 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ModuleLoader {
 
+	protected volatile ModuleLoader delegate;
 	protected final List<ModuleLocator> locators;
 	protected final Map<String, BinaryModule> loadedModules;
 	protected final Map<String, NativeModuleFactory> nativeFactories;
@@ -50,9 +51,26 @@ public class ModuleLoader {
 		classLoader = new ChipmunkClassLoader();
 	}
 
-	public ModuleLoader(Collection<BinaryModule> modules){
+	public ModuleLoader(ModuleLoader delegate){
 		this();
+		setDelegate(delegate);
+	}
+
+	public ModuleLoader(Collection<BinaryModule> modules){
+		this(null, modules);
+	}
+
+	public ModuleLoader(ModuleLoader delegate, Collection<BinaryModule> modules){
+		this(delegate);
 		addToLoaded(modules);
+	}
+
+	public ModuleLoader getDelegate(){
+		return delegate;
+	}
+
+	public void setDelegate(ModuleLoader delegate){
+		this.delegate = delegate;
 	}
 
 	public ChipmunkClassLoader getClassLoader(){
@@ -97,6 +115,9 @@ public class ModuleLoader {
 
 		InputStream is = locate(moduleName);
 		if(is == null){
+			if(delegate != null){
+				return delegate.loadBinary(moduleName);
+			}
 			return null;
 		}
 
@@ -111,6 +132,9 @@ public class ModuleLoader {
 	public ChipmunkModule loadNative(String moduleName){
 		NativeModuleFactory nativeFactory = nativeFactories.get(moduleName);
 		if(nativeFactory == null){
+			if(delegate != null){
+				return delegate.loadNative(moduleName);
+			}
 			return null;
 		}
 		return nativeFactory.createModule();
