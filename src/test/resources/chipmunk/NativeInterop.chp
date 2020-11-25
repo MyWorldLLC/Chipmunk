@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
-import chipmunk.java.importJava
+import chipmunk.imports.importJava
 
 def main(){
     var builderClass = importJava('java.lang.StringBuilder')
