@@ -25,17 +25,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chipmunk.modules.runtime.CObject;
+//import chipmunk.modules.runtime.CObject;
 
 public class Nut {
 	
 	protected Map<String, String> metadata;
-	protected List<CObject> instances;
+	//protected List<CObject> instances;
 	
 	public Nut(){
 		
 		metadata = new HashMap<String, String>();
-		instances = new ArrayList<CObject>();
+		//instances = new ArrayList<CObject>();
 		
 	}
 
@@ -51,12 +51,12 @@ public class Nut {
 		metadata.put(name, value);
 	}
 	
-	public void addInstance(CObject obj){
+	/*public void addInstance(CObject obj){
 		instances.add(obj);
 	}
 	
 	public List<CObject> getInstances(){
 		return instances;
-	}
+	}*/
 	
 }

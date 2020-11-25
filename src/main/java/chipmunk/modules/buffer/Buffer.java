@@ -20,49 +20,33 @@
 
 package chipmunk.modules.buffer;
 
-import chipmunk.vm.ChipmunkVM;
-import chipmunk.modules.runtime.CBoolean;
-import chipmunk.modules.runtime.CClass;
-import chipmunk.modules.runtime.CInteger;
-import chipmunk.modules.runtime.CNull;
-
 import java.util.Arrays;
 
 public class Buffer {
 
-    protected final BufferCClass cClass;
     private byte[] data;
 
-    public Buffer(BufferCClass cls, int initialSize){
-        cClass = cls;
+    public Buffer(int initialSize){
+        // TODO - VM memory usage check
         data = new byte[initialSize];
     }
 
-    public CInteger getAt(ChipmunkVM vm, CInteger index){
-        return new CInteger(data[index.intValue()]);
+    public Integer getAt(Integer index){
+        return (int) data[index];
     }
 
-    public CInteger setAt(ChipmunkVM vm, CInteger index, CInteger value){
-        data[index.intValue()] = (byte) value.intValue();
+    public Integer setAt(Integer index, Integer value){
+        data[index] = (byte) value.intValue();
         return value;
     }
 
-    public CInteger size(ChipmunkVM vm){
-        return new CInteger(data.length);
+    public Integer size(){
+        return data.length;
     }
 
-    public CNull resize(ChipmunkVM vm, CInteger newSize){
-
-        final int size = newSize.intValue();
-        //vm.traceMem(size - data.length); // This will correctly trace size reductions too
-
-        data = Arrays.copyOf(data, size);
-
-        return CNull.instance();
-    }
-
-    public CClass getClass(ChipmunkVM vm){
-        return cClass;
+    public void resize(Integer newSize){
+        // TODO - VM memory usage check
+        data = Arrays.copyOf(data, newSize);
     }
 
     public byte[] getData(){
@@ -73,10 +57,10 @@ public class Buffer {
         this.data = data;
     }
 
-    public CBoolean equals(ChipmunkVM vm, Object other){
+    public boolean equals(Object other){
         if(other instanceof Buffer){
-            return new CBoolean(Arrays.equals(data, ((Buffer) other).data));
+            return Arrays.equals(data, ((Buffer) other).data);
         }
-        return new CBoolean(false);
+        return false;
     }
 }

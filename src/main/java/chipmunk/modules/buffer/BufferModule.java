@@ -18,10 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.runtime;
+package chipmunk.modules.buffer;
 
-public interface Initializable {
+import chipmunk.runtime.ChipmunkModule;
 
-	public CMethod getInitializer();
-	
+public class BufferModule implements ChipmunkModule {
+
+    public static final String BUFFER_MODULE_NAME = "chipmunk.buffer";
+
+    public Buffer create(int size){
+        return new Buffer(size);
+    }
+
+    @Override
+    public String getName(){
+        return BUFFER_MODULE_NAME;
+    }
+
 }

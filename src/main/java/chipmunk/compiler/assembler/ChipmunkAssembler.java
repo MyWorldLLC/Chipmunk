@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.binary.DebugEntry;
-import chipmunk.modules.runtime.*;
 
 public class ChipmunkAssembler {
 	
@@ -111,17 +110,6 @@ public class ChipmunkAssembler {
 	
 	public int getCallSiteCount() {
 		return callSite;
-	}
-	
-	public CMethod makeMethod(){
-		CMethod method = new CMethod();
-		
-		method.getCode().setCode(getCodeSegment());
-		method.getCode().setCallSiteCount(getCallSiteCount());
-		method.getCode().setConstantPool(getConstantPool().toArray());
-		method.getCode().setDebugTable(getDebugTable().toArray(new DebugEntry[debugTable.size()]));
-		
-		return method;
 	}
 	
 	public void onLine(int lineNumber) {

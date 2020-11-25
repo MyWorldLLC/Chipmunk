@@ -22,7 +22,6 @@ package chipmunk.compiler;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
-import chipmunk.modules.runtime.CMethod;
 
 import static chipmunk.compiler.assembler.Opcodes.*;
 

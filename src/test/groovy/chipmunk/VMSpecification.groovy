@@ -23,7 +23,6 @@ package chipmunk
 import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.assembler.ChipmunkAssembler
-import chipmunk.modules.runtime.CInteger
 import chipmunk.vm.ChipmunkVM
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -34,10 +33,10 @@ class VMSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 	
-	CInteger negOne = new CInteger(-1)
-	CInteger one = new CInteger(1)
-	CInteger two = new CInteger(2)
-	CInteger three = new CInteger(3)
+	Integer negOne = new Integer(-1)
+	Integer one = new Integer(1)
+	Integer two = new Integer(2)
+	Integer three = new Integer(3)
 
 	def "push and pop 1 item"(){
 		when:

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import chipmunk.modules.runtime.CObject;
 //import chipmunk.modules.lang.CType;
 
 
@@ -33,16 +32,16 @@ public class NutCracker {
 
 	public static final byte NUT_VERSION = (byte) 0x10;
 	
-	protected List<CObject> instances;
+	//protected List<CObject> instances;
 	protected Deque<Integer> primaries;
 	
 	public NutCracker(){
-		instances = new ArrayList<CObject>();
+		//instances = new ArrayList<CObject>();
 		primaries = new ArrayDeque<Integer>();
 	}
 	
 	public void reset(){
-		instances.clear();
+		//instances.clear();
 		primaries.clear();
 	}
 	

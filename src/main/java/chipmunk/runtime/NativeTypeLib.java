@@ -21,8 +21,6 @@
 package chipmunk.runtime;
 
 import chipmunk.vm.invoke.ChipmunkLibrary;
-import chipmunk.modules.runtime.TypeConversionException;
-import chipmunk.runtime.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -182,7 +180,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
         }else if(otherType == Boolean.class){
             return value;
         }else{
-            throw new TypeConversionException(String.format("Cannot convert boolean to %s", otherType.getSimpleName()), value, otherType);
+            throw new IllegalArgumentException(String.format("Cannot convert boolean to %s", otherType.getSimpleName()));
         }
     }
 

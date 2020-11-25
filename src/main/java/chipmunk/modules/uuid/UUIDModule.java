@@ -20,20 +20,14 @@
 
 package chipmunk.modules.uuid;
 
-public class UUIDSupport {
-    private static final UUIDCreateRandom create = new UUIDCreateRandom();
-    private static final UUIDFromString fromStr = new UUIDFromString();
-    private static final UUIDToString toStr = new UUIDToString();
+import chipmunk.runtime.ChipmunkModule;
 
-    public static UUIDCreateRandom createRandomUUID(){
-        return create;
-    }
+public class UUIDModule implements ChipmunkModule {
 
-    public static UUIDFromString uuidFromString(){
-        return fromStr;
-    }
+    public static final String UUID_MODULE_NAME = "chipmunk.uuid";
 
-    public static UUIDToString uuidToString(){
-        return toStr;
+    @Override
+    public String getName(){
+        return UUID_MODULE_NAME;
     }
 }
