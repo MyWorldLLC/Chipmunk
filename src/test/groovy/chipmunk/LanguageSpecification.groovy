@@ -23,6 +23,9 @@ package chipmunk
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.compiler.ChipmunkSource
+import chipmunk.compiler.Compilation
+import chipmunk.modules.java.JavaInteropModule
 import chipmunk.vm.jvm.CompilationUnit
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
@@ -36,17 +39,20 @@ class LanguageSpecification extends Specification {
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
 	def compileAndRun(String scriptName, boolean disassembleOnException = false){
-		BinaryModule[] modules = compiler.compile(getClass().getResourceAsStream(scriptName), scriptName)
+		ModuleLoader loader = new ModuleLoader()
+		loader.registerNativeFactory("chipmunk.java", { -> new JavaInteropModule()})
 
-		CompilationUnit unit = new CompilationUnit()
-		unit.setEntryModule("test")
-		unit.setEntryMethodName("main")
+		compiler.setModuleLoader(loader)
 
-        ModuleLoader loader = new ModuleLoader()
+		Compilation compilation = new Compilation()
+		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
+
+		BinaryModule[] modules = compiler.compile(compilation)
+
 		loader.addToLoaded(Arrays.asList(modules))
-		unit.setModuleLoader(loader)
 
-		ChipmunkScript script = vm.compileScript(getClass().getResourceAsStream(scriptName), scriptName)
+		ChipmunkScript script = vm.compileScript(modules)
+		script.setModuleLoader(loader)
 		ChipmunkScript.setCurrentScript(script)
 
 		if(!disassembleOnException){
@@ -255,5 +261,13 @@ class LanguageSpecification extends Specification {
 		result == true
 
 	}
-	
+
+	def "Run NativeInterop.chp"(){
+		when:
+		def result = compileAndRun("NativeInterop.chp")
+
+		then:
+		result == 'Chipmunk likes Java!'
+
+	}
 }
