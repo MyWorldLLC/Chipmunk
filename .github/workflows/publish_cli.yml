@@ -41,8 +41,8 @@ jobs:
           settings-path: ${{ github.workspace }}
 
       - name: Get tag
-          id: tag
-          uses: dawidd6/action-get-tag@v1
+        id: tag
+        uses: dawidd6/action-get-tag@v1
 
       - name: Build with Gradle
         run: ./gradlew jpackage -Prelease=${{ steps.tag.outputs.tag }}
