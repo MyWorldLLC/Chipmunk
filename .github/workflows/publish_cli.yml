@@ -9,27 +9,27 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-      strategy:
-        matrix:
-          os: [ ubuntu-latest, windows-2019, macos-10.15 ]
-          include:
-            - os: ubuntu-latest
-              env:
-                PLATFORM: linux
-                INSTALLER_NAME: Debian
-                INSTALLER_EXT: deb
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-2019, macos-10.15 ]
+        include:
+          - os: ubuntu-latest
+            env:
+              PLATFORM: linux
+              INSTALLER_NAME: Debian
+              INSTALLER_EXT: deb
 
-            - os: windows-2019
-              env:
-                PLATFORM: win
-                INSTALLER_NAME: Windows
-                INSTALLER_EXT: exe
+          - os: windows-2019
+            env:
+              PLATFORM: win
+              INSTALLER_NAME: Windows
+              INSTALLER_EXT: exe
 
-            - os: macos-10.15
-              env:
-                PLATFORM: mac
-                INSTALLER_NAME: Mac
-                INSTALLER_EXT: pkg
+          - os: macos-10.15
+            env:
+              PLATFORM: mac
+              INSTALLER_NAME: Mac
+              INSTALLER_EXT: pkg
 
     steps:
       - uses: actions/checkout@v2
