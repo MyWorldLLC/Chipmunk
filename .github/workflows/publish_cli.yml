@@ -1,4 +1,4 @@
-name: build
+name: publish_cli
 
 on:
   push:
