@@ -45,12 +45,12 @@ jobs:
         uses: dawidd6/action-get-tag@v1
 
       - name: Build with Gradle
-        run: gradle jpackage -Prelease="${{ steps.tag.outputs.tag }}"
+        run: ./gradlew :CLI:jpackage -Prelease="${{ steps.tag.outputs.tag }}"
 
       - name: Publish native package
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ steps.tag.outputs.tag }}
-          path: build/Chipmunk-CLI-${{ steps.tag.outputs.tag }}.${{ matrix.env.INSTALLER_EXT }}
+          path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
 
 

@@ -24,10 +24,10 @@ jobs:
         uses: dawidd6/action-get-tag@v1
 
       - name: Build with Gradle
-        run: ./gradlew build -Prelease=${{ steps.tag.outputs.tag }}
+        run: ./gradlew :Lang:build -Prelease=${{ steps.tag.outputs.tag }}
 
       - name: Publish to GitHub Packages
-        run: ./gradlew publish
+        run: ./gradlew :Lang:publish
         env:
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
