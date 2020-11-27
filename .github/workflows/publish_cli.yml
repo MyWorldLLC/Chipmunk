@@ -45,7 +45,7 @@ jobs:
         uses: dawidd6/action-get-tag@v1
 
       - name: Build with Gradle
-        run: ./gradlew jpackage -Prelease=${{ steps.tag.outputs.tag }}
+        run: gradle jpackage -Prelease="${{ steps.tag.outputs.tag }}"
 
       - name: Publish native package
         uses: actions/upload-artifact@v2
