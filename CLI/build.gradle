@@ -23,7 +23,7 @@ sourceCompatibility = JavaVersion.VERSION_14
 targetCompatibility = JavaVersion.VERSION_14
 
 group = 'myworld'
-version = '1.0.0-SNAPSHOT'
+version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
 
 repositories {
     mavenCentral()
