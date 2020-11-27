@@ -25,7 +25,6 @@ import java.util.List;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
-import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 
 public class ClassVisitor implements AstVisitor {

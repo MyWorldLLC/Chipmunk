@@ -22,7 +22,6 @@ package chipmunk.vm;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.*;

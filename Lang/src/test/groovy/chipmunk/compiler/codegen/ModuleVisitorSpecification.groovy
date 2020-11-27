@@ -25,7 +25,6 @@ import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser
 import chipmunk.compiler.ast.AstNode
-import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor
 import spock.lang.Ignore
 import spock.lang.Specification
 

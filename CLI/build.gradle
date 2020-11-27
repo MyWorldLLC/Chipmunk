@@ -1,0 +1,82 @@
+/*
+ * Copyright (C) 2020 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+apply plugin: 'java'
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+group = 'myworld'
+version = '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':Lang')
+    implementation 'info.picocli:picocli:4.5.2'
+    annotationProcessor 'info.picocli:picocli-codegen:4.5.2'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+}
+
+compileJava {
+    options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
+}
+
+jar {
+    baseName 'Chipmunk-CLI'
+    manifest {
+        attributes (
+                'Application-Name' : 'Chipmunk CLI',
+                'Main-Class' : 'chipmunk.cli.ChipmunkCLI'
+        )
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+clean {
+    delete 'build'
+    delete 'dist'
+}
+
+task run(type: JavaExec){
+    main = 'chipmunk.cli.ChipmunkCLI'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task jpackage(type: Exec, dependsOn: build){
+    workingDir = "${buildDir}"
+
+    commandLine 'jpackage',
+            '--input', 'libs',
+            '-n', 'chipmunk',
+            '--main-class', 'chipmunk.cli.ChipmunkCLI',
+            '--main-jar', "${jar.archiveFile.get().asFile.getName()}"
+}
