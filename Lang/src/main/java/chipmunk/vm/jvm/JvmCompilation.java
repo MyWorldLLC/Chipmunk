@@ -21,6 +21,7 @@
 package chipmunk.vm.jvm;
 
 import chipmunk.binary.BinaryModule;
+import chipmunk.vm.ModuleLoader;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -29,17 +30,23 @@ import java.util.stream.Collectors;
 public class JvmCompilation {
 
     protected final BinaryModule module;
+    protected final ModuleLoader loader;
     protected String packagePrefix;
 
     protected final Deque<NamespaceInfo> namespaceInfo;
 
-    public JvmCompilation(BinaryModule module){
+    public JvmCompilation(BinaryModule module, ModuleLoader loader){
         this.module = module;
+        this.loader = loader;
         namespaceInfo = new ArrayDeque<>();
     }
 
     public BinaryModule getModule() {
         return module;
+    }
+
+    public ModuleLoader getLoader(){
+        return loader;
     }
 
     public String getPackagePrefix() {

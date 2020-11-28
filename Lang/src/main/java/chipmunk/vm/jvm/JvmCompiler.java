@@ -27,6 +27,7 @@ import chipmunk.vm.ChipmunkVM;
 import chipmunk.binary.DebugEntry;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
+import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
 import org.objectweb.asm.*;
 
@@ -37,12 +38,6 @@ import java.util.stream.Collectors;
 import static chipmunk.compiler.assembler.Opcodes.*;
 
 public class JvmCompiler {
-
-    private final ChipmunkClassLoader loader;
-
-    public JvmCompiler(){
-        loader = new ChipmunkClassLoader();
-    }
 
     public ChipmunkScript compile(CompilationUnit sources) throws IOException, BinaryFormatException {
 
@@ -114,7 +109,7 @@ public class JvmCompiler {
     }
 
     public ChipmunkModule compileModule(BinaryModule module){
-        return compileModule(new JvmCompilation(module));
+        return compileModule(new JvmCompilation(module, new ModuleLoader()));
     }
 
     public ChipmunkModule compileModule(JvmCompilation compilation){
@@ -187,10 +182,10 @@ public class JvmCompiler {
 
         byte[] bytes = moduleWriter.toByteArray();
 
-        return (ChipmunkModule) instantiate(loadClass(compilation.getPrefixedModuleName(), bytes));
+        return (ChipmunkModule) instantiate(loadClass(compilation.getLoader().getClassLoader(), compilation.getPrefixedModuleName(), bytes));
     }
 
-    protected Class<?> loadClass(String name, byte[] bytes){
+    protected Class<?> loadClass(ChipmunkClassLoader loader, String name, byte[] bytes){
         return loader.define(name, bytes);
     }
 
@@ -395,8 +390,8 @@ public class JvmCompiler {
 
         cInsWriter.visitEnd();
 
-        Class<?> cClass = loadClass(qualifiedCClassName, cClassWriter.toByteArray());
-        loadClass(qualifiedInsName, cInsWriter.toByteArray());
+        Class<?> cClass = loadClass(compilation.getLoader().getClassLoader(), qualifiedCClassName, cClassWriter.toByteArray());
+        loadClass(compilation.getLoader().getClassLoader(), qualifiedInsName, cInsWriter.toByteArray());
 
         return cClass;
     }
