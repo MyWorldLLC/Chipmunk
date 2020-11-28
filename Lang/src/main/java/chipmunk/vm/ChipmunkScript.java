@@ -78,7 +78,7 @@ public abstract class ChipmunkScript {
         tags.remove(tag);
     }
 
-    public <T> T getTag(Class<?> tagType){
+    public <T> T getTag(Class<T> tagType){
         for(Object o : tags){
             if(tagType.isInstance(o)){
                 return (T) o;
