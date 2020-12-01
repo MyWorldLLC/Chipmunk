@@ -25,6 +25,10 @@ import java.lang.reflect.Method;
 
 public interface PolicyEntry {
 
+    default AccessEvaluation allowInstantiation(Class<?> targetClass, Object[] params){
+        return AccessEvaluation.UNSPECIFIED;
+    }
+
     default AccessEvaluation allowMethodCall(Object target, Method method, Object[] params) {
         return AccessEvaluation.UNSPECIFIED;
     }

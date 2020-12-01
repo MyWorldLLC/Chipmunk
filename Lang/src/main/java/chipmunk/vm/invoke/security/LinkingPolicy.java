@@ -56,6 +56,18 @@ public class LinkingPolicy {
         return entries;
     }
 
+    public boolean allowInstantiation(Class<?> targetType, Object[] params){
+
+        for(PolicyEntry e : entries){
+            AccessEvaluation eval = e.allowInstantiation(targetType, params);
+            if(eval != AccessEvaluation.UNSPECIFIED){
+                return eval == AccessEvaluation.ALLOWED;
+            }
+        }
+
+        return mode == SecurityMode.ALLOWING;
+    }
+
     public boolean allowMethodCall(Object target, Method method, Object[] params){
 
         for(PolicyEntry e : entries){
