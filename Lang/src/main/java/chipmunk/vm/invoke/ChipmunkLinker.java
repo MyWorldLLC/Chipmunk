@@ -41,16 +41,16 @@ import java.util.stream.Collectors;
 
 public class ChipmunkLinker implements GuardingDynamicLinker {
 
-    protected final ThreadLocal<ChipmunkLibraries> libraries;
+    protected static final ThreadLocal<ChipmunkLibraries> libraries = new ThreadLocal<>();
 
     protected final MethodHandles.Lookup lookup;
 
     public ChipmunkLinker(){
-
-        libraries = new ThreadLocal<>();
-        libraries.set(new ChipmunkLibraries());
-
         lookup = MethodHandles.lookup();
+    }
+
+    public static void setLibrariesForThread(ChipmunkLibraries libs){
+        libraries.set(libs);
     }
 
     @Override
@@ -118,7 +118,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     public GuardedInvocation resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, Class<?>[] pTypes) throws Exception {
         // Library methods should override type methods, so check them first
         Class<?> expectedReturnType = callType.returnType();
-        MethodHandle callTarget = getLibraries().getMethod(lookup, expectedReturnType, methodName, pTypes);
+        ChipmunkLibraries libs = getLibrariesForThread();
+        MethodHandle callTarget = libs != null ? libs.getMethod(lookup, expectedReturnType, methodName, pTypes) : null;
 
         if (callTarget == null) {
             callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes);
@@ -390,12 +391,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 .bindTo(target);
     }
 
-    public ChipmunkLibraries getLibraries(){
+    public ChipmunkLibraries getLibrariesForThread(){
         return libraries.get();
-    }
-
-    public void setLibraries(ChipmunkLibraries libraries){
-        this.libraries.set(libraries);
     }
 
     protected LinkingPolicy getLinkingPolicy(){

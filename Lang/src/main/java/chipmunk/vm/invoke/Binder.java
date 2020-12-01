@@ -77,8 +77,6 @@ public class Binder {
         DynamicLinkerFactory factory = new DynamicLinkerFactory();
         factory.setPrioritizedLinker(chipmunkLinker);
 
-        chipmunkLinker.getLibraries().registerLibrary(new NativeTypeLib());
-
         return factory.createLinker();
     }
 

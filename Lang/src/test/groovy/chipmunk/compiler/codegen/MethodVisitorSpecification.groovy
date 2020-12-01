@@ -24,9 +24,12 @@ import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.runtime.Null
+import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.runtime.ChipmunkModule
+import chipmunk.vm.ModuleLoader
+import chipmunk.vm.jvm.CompilationUnit
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -286,7 +289,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "For loop over range - 5 iterations")
+			""", "")
 			
 		then:
 		result instanceof Integer
@@ -424,7 +427,16 @@ class MethodVisitorSpecification extends Specification {
 	def parseAndCall(String methodBody, String test = ""){
 
 		BinaryModule binary = compiler.compileMethod(methodBody)
-		ChipmunkModule runnable = vm.load(binary)
+
+		CompilationUnit unit = new CompilationUnit()
+		unit.setEntryModule("exp")
+		unit.setEntryMethodName("method")
+
+		ModuleLoader loader = new ModuleLoader()
+		loader.addToLoaded(binary)
+		unit.setModuleLoader(loader)
+
+		ChipmunkScript script = vm.compileScript(unit)
 		
 		if(test != ""){
 			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
@@ -434,7 +446,7 @@ class MethodVisitorSpecification extends Specification {
 			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
 		}
 		
-		return vm.invoke(runnable, "method")
+		return vm.runAsync(script).get()
 	}
 
 }

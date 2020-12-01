@@ -47,6 +47,7 @@ import jdk.dynalink.linker.GuardedInvocation;
 public class ChipmunkVM {
 
 	protected volatile LinkingPolicy defaultLinkPolicy;
+	protected volatile ChipmunkLibraries defaultLibraries;
 
 	protected final JvmCompiler jvmCompiler;
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
@@ -61,6 +62,8 @@ public class ChipmunkVM {
 	public ChipmunkVM(SecurityMode securityMode) {
 
 		defaultLinkPolicy = new LinkingPolicy(securityMode);
+		defaultLibraries = new ChipmunkLibraries();
+		defaultLibraries.registerLibrary(new NativeTypeLib());
 
 		jvmCompiler = new JvmCompiler();
 
@@ -86,6 +89,14 @@ public class ChipmunkVM {
 
 	public void setDefaultLinkPolicy(LinkingPolicy policy){
 		defaultLinkPolicy = policy;
+	}
+
+	public void setDefaultLibraries(ChipmunkLibraries libraries){
+		defaultLibraries = libraries;
+	}
+
+	public ChipmunkLibraries getDefaultLibraries(){
+		return defaultLibraries;
 	}
 
 	public void start() {
@@ -141,6 +152,7 @@ public class ChipmunkVM {
 		script.setModuleLoader(unit.getModuleLoader());
 		script.setId(scriptIds.incrementAndGet());
 		script.setLinkPolicy(defaultLinkPolicy);
+		script.setLibs(defaultLibraries);
 
 		return script;
 	}
@@ -185,9 +197,7 @@ public class ChipmunkVM {
 	public Object invoke(Object target, String methodName, Object[] params) throws Throwable {
 
 		ChipmunkLinker linker = new ChipmunkLinker();
-		ChipmunkLibraries libs = new ChipmunkLibraries();
-		libs.registerLibrary(new NativeTypeLib());
-		linker.setLibraries(libs);
+		ChipmunkLinker.setLibrariesForThread(defaultLibraries);
 
 		final int pCount = params != null ? params.length : 0;
 		Object[] callParams = new Object[pCount + 1];
@@ -209,7 +219,12 @@ public class ChipmunkVM {
 
 	public Object invoke(ChipmunkScript script, Object target, String methodName, Object[] params){
 		runningScripts.put(script.getId(), script);
+
 		ChipmunkScript.setCurrentScript(script);
+
+		ChipmunkLibraries scriptLibs = script.getLibs();
+		ChipmunkLinker.setLibrariesForThread(scriptLibs != null ? scriptLibs : defaultLibraries);
+
 		scheduler.notifyInvocationBegan(script);
 
 		try{

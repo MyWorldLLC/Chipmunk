@@ -21,6 +21,7 @@
 package chipmunk.vm;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 
@@ -53,6 +54,7 @@ public abstract class ChipmunkScript {
 
     protected volatile ChipmunkVM vm;
     protected volatile ModuleLoader loader;
+    protected volatile ChipmunkLibraries libs;
     protected volatile LinkingPolicy linkPolicy;
 
     public ChipmunkScript(){
@@ -147,6 +149,14 @@ public abstract class ChipmunkScript {
 
     public void resume(){
         yieldFlag = false;
+    }
+
+    public void setLibs(ChipmunkLibraries libs){
+        this.libs = libs;
+    }
+
+    public ChipmunkLibraries getLibs(){
+        return libs;
     }
 
 }
