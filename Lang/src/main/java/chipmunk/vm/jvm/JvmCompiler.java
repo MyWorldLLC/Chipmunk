@@ -409,7 +409,7 @@ public class JvmCompiler {
             }
 
             if(entry.getType() == FieldType.METHOD){
-                visitMethod(namespaceInfo.getWriter(), flags, entry.getName(), entry.getBinaryMethod());
+                visitMethod(compilation, namespaceInfo.getWriter(), flags, entry.getName(), entry.getBinaryMethod());
             }else if(entry.getType() == FieldType.CLASS){
 
                 // Generate class
@@ -470,7 +470,7 @@ public class JvmCompiler {
 
     }
 
-    protected void visitMethod(ClassWriter cw, int flags, String name, BinaryMethod method){
+    protected void visitMethod(JvmCompilation compilation, ClassWriter cw, int flags, String name, BinaryMethod method){
 
         final Type objType = Type.getType(Object.class);
 
@@ -652,7 +652,11 @@ public class JvmCompiler {
                     ip += 6;
                 }
                 case GOTO -> {
-                    generateGoto(mv, fetchInt(instructions, ip + 1), labelMappings);
+                    int jumpTarget = fetchInt(instructions, ip + 1);
+                    if(jumpTarget < ip && !compilation.areBackjumpChecksDisabled()){
+                        generateBackjumpCheckpoint(mv);
+                    }
+                    generateGoto(mv, jumpTarget, labelMappings);
                     ip += 5;
                 }
                 case THROW -> {
@@ -977,6 +981,36 @@ public class JvmCompiler {
                 "<init>",
                 Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
+    }
+
+    protected void generateBackjumpCheckpoint(MethodVisitor mv){
+        // Get the executing script instance
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "getCurrentScript",
+                Type.getMethodType(Type.getType(ChipmunkScript.class)).getDescriptor(),
+                false);
+
+        // Get the yield status
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "isYielded",
+                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
+                false);
+
+        // Generate the yield guard
+        Label ifEnd = new Label();
+        mv.visitJumpInsn(Opcodes.IFEQ, ifEnd);
+
+        // Generate the yield
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(Thread.class).getInternalName(),
+                "yield",
+                Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
+                false);
+
+        // Close the yield guard
+        mv.visitLabel(ifEnd);
     }
 
     protected void generateBoxing(MethodVisitor mv, Object o){

@@ -32,12 +32,14 @@ public class JvmCompilation {
     protected final BinaryModule module;
     protected final ModuleLoader loader;
     protected String packagePrefix;
+    protected boolean disableBackjumpChecks;
 
     protected final Deque<NamespaceInfo> namespaceInfo;
 
     public JvmCompilation(BinaryModule module, ModuleLoader loader){
         this.module = module;
         this.loader = loader;
+        disableBackjumpChecks = false;
         namespaceInfo = new ArrayDeque<>();
     }
 
@@ -63,6 +65,14 @@ public class JvmCompilation {
         }
 
         return packagePrefix + "." + module.getName();
+    }
+
+    public void setIsCompilingBackjumpChecks(boolean useChecks){
+        disableBackjumpChecks = !useChecks;
+    }
+
+    public boolean areBackjumpChecksDisabled(){
+        return disableBackjumpChecks;
     }
 
     public void enterNamespace(NamespaceInfo info){
