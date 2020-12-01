@@ -27,6 +27,7 @@ import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.modules.buffer.BufferModule;
 import chipmunk.modules.imports.ImportModule;
+import chipmunk.modules.imports.JvmImportModule;
 import chipmunk.modules.math.MathModule;
 import chipmunk.modules.system.SystemModule;
 import chipmunk.vm.ChipmunkScript;
@@ -61,7 +62,7 @@ public class ChipmunkCLI implements Callable<Integer> {
     public void registerBuiltins(ModuleLoader loader) {
         // Register all builtin Chipmunk & Native modules
         loader.registerNativeFactory(SystemModule.SYSTEM_MODULE_NAME, () -> new SystemModule(args));
-        loader.registerNativeFactory(ImportModule.IMPORT_MODULE_NAME, ImportModule::new);
+        loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, JvmImportModule::new);
         loader.registerNativeFactory(BufferModule.BUFFER_MODULE_NAME, BufferModule::new);
         loader.registerNativeFactory(MathModule.MATH_MODULE_NAME, MathModule::new);
     }
