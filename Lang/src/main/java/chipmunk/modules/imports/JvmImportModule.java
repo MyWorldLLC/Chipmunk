@@ -20,23 +20,10 @@
 
 package chipmunk.modules.imports;
 
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
+public class JvmImportModule extends ImportModule {
 
-public class ImportModule implements ChipmunkModule {
-
-    public static final String IMPORT_MODULE_NAME = "chipmunk.imports";
-
-    public ChipmunkModule importModule(String moduleName) throws Throwable {
-        ChipmunkScript script = ChipmunkScript.getCurrentScript();
-        ChipmunkVM vm = script.getVM();
-        return vm.getModule(script, moduleName);
-    }
-
-    @Override
-    public String getName(){
-        return IMPORT_MODULE_NAME;
+    public ClassWrapper importJava(String clsName) throws ClassNotFoundException {
+        return new ClassWrapper(Class.forName(clsName));
     }
 
 }

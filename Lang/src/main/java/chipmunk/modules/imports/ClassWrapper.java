@@ -20,8 +20,13 @@
 
 package chipmunk.modules.imports;
 
+import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.invoke.security.AccessEvaluation;
+import chipmunk.vm.invoke.security.LinkingPolicy;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 
 public class ClassWrapper {
@@ -41,7 +46,6 @@ public class ClassWrapper {
     }
 
     public Object instantiate(List<Object> args) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        // TODO - security check
         Constructor<?> constructor;
         if(args == null){
             constructor = wrapped.getConstructor();
@@ -54,6 +58,23 @@ public class ClassWrapper {
             constructor = wrapped.getConstructor(argTypes);
         }
 
-        return constructor.newInstance(args.toArray());
+        Object[] constructorArgs = args != null ? args.toArray() : new Object[]{};
+
+        ChipmunkScript script = ChipmunkScript.getCurrentScript();
+        if(script != null){
+            LinkingPolicy policy = script.getLinkPolicy();
+            if(policy != null){
+                boolean allowed = policy.allowInstantiation(wrapped, constructorArgs);
+                if(!policy.allowInstantiation(wrapped, constructorArgs)){
+                    throw new IllegalAccessException(
+                            String.format("Script %d forbidden from instantiating %s(%s)",
+                                    script.getId(),
+                                    wrapped.getName(),
+                                    Arrays.asList(constructorArgs)));
+                }
+            }
+        }
+
+        return constructor.newInstance(constructorArgs);
     }
 }
