@@ -20,36 +20,25 @@
 
 package chipmunk.profiling;
 
-import java.io.InputStream;
-
+import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
-import chipmunk.binary.BinaryModule;
-import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.runtime.ChipmunkModule;
 
 public class ChipmunkProfiler {
 
-	public static ChipmunkModule compileScript(InputStream is, String name) throws Throwable {
-		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule module = compiler.compile(is, name)[0];
-
-		ChipmunkVM vm = new ChipmunkVM();
-		return vm.load(module);
-	}
 	
 	public static void main(String[] args) throws Throwable {
 
 		ChipmunkVM vm = new ChipmunkVM();
-		ChipmunkModule countToAMillion = compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+		ChipmunkScript countToAMillion = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
 
-		ChipmunkModule fibonacci = compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
-		ChipmunkModule mandelbrot = compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
+		ChipmunkScript fibonacci = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
+		ChipmunkScript mandelbrot = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.invoke(mandelbrot, "main");
+			value = vm.runAsync(fibonacci).get();
 			long endTime = System.nanoTime();
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
