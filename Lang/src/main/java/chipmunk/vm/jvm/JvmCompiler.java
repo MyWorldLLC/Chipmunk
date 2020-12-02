@@ -654,7 +654,7 @@ public class JvmCompiler {
                 case GOTO -> {
                     int jumpTarget = fetchInt(instructions, ip + 1);
                     if(jumpTarget < ip && !compilation.areBackjumpChecksDisabled()){
-                        generateBackjumpCheckpoint(mv);
+                        generateBackjumpCheckpoint(compilation.getYieldType(), mv);
                     }
                     generateGoto(mv, jumpTarget, labelMappings);
                     ip += 5;
@@ -929,7 +929,6 @@ public class JvmCompiler {
             }
             generateBoxing(mv, constant);
         }else{
-            //mv.visitInsn(Opcodes.ACONST_NULL);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                     Type.getInternalName(Null.class),
                     "getInstance",
@@ -983,7 +982,7 @@ public class JvmCompiler {
                 false);
     }
 
-    protected void generateBackjumpCheckpoint(MethodVisitor mv){
+    protected void generateBackjumpCheckpoint(JvmCompilation.YieldType yieldType, MethodVisitor mv){
         // Get the executing script instance
         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                 Type.getType(ChipmunkScript.class).getInternalName(),
@@ -1003,11 +1002,25 @@ public class JvmCompiler {
         mv.visitJumpInsn(Opcodes.IFEQ, ifEnd);
 
         // Generate the yield
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getType(Thread.class).getInternalName(),
-                "yield",
-                Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
-                false);
+        switch (yieldType) {
+            case THREAD_YIELD -> {
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                        Type.getType(Thread.class).getInternalName(),
+                        "yield",
+                        Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
+                        false);
+            }
+            case FORCED_PREEMPT -> {
+                mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ForcedYieldThrowable.class));
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                        Type.getInternalName(ForcedYieldThrowable.class),
+                        "<init>",
+                        Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
+                        false);
+                mv.visitInsn(Opcodes.ATHROW);
+            }
+        }
 
         // Close the yield guard
         mv.visitLabel(ifEnd);
