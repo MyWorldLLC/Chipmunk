@@ -514,7 +514,7 @@ public class JvmCompiler {
                 if(ex.startIndex == ip){
                     Label end = markLabel(ex.endIndex, labelMappings);
                     Label handler = markLabel(ex.catchIndex, labelMappings);
-                    mv.visitTryCatchBlock(label, end, handler, Type.getType(Throwable.class).getInternalName());
+                    mv.visitTryCatchBlock(label, end, handler, Type.getType(Exception.class).getInternalName());
                     exceptionIndex++;
                 }
             }
