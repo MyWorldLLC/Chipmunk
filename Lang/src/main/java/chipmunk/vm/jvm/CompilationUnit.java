@@ -33,6 +33,8 @@ public class CompilationUnit {
     protected String entryModule;
     protected String entryMethod;
 
+    protected JvmCompilerConfig jvmCompilerConfig;
+
     public ModuleLoader getModuleLoader() {
         return loader;
     }
@@ -60,5 +62,13 @@ public class CompilationUnit {
     public BinaryMethod getEntryMethod() throws IOException, BinaryFormatException {
         BinaryModule mainModule = loader.loadBinary(entryModule);
         return (BinaryMethod) mainModule.getNamespace().get(entryMethod);
+    }
+
+    public JvmCompilerConfig getJvmCompilerConfig() {
+        return jvmCompilerConfig;
+    }
+
+    public void setJvmCompilerConfig(JvmCompilerConfig jvmCompilerConfig) {
+        this.jvmCompilerConfig = jvmCompilerConfig;
     }
 }

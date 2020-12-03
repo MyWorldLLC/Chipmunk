@@ -29,23 +29,15 @@ import java.util.stream.Collectors;
 
 public class JvmCompilation {
 
-    public enum YieldType {
-        THREAD_YIELD, FORCED_PREEMPT
-    }
-
     protected final BinaryModule module;
     protected final ModuleLoader loader;
     protected String packagePrefix;
-    protected boolean disableBackjumpChecks;
-    protected YieldType yieldType;
 
     protected final Deque<NamespaceInfo> namespaceInfo;
 
     public JvmCompilation(BinaryModule module, ModuleLoader loader){
         this.module = module;
         this.loader = loader;
-        disableBackjumpChecks = false;
-        yieldType = YieldType.THREAD_YIELD;
         namespaceInfo = new ArrayDeque<>();
     }
 
@@ -71,22 +63,6 @@ public class JvmCompilation {
         }
 
         return packagePrefix + "." + module.getName();
-    }
-
-    public void setIsCompilingBackjumpChecks(boolean useChecks){
-        disableBackjumpChecks = !useChecks;
-    }
-
-    public boolean areBackjumpChecksDisabled(){
-        return disableBackjumpChecks;
-    }
-
-    public YieldType getYieldType() {
-        return yieldType;
-    }
-
-    public void setYieldType(YieldType yieldType) {
-        this.yieldType = yieldType;
     }
 
     public void enterNamespace(NamespaceInfo info){

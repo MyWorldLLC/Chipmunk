@@ -18,35 +18,36 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.vm.jvm;
 
-import chipmunk.vm.jvm.JvmCompilerConfig;
+public class JvmCompilerConfig {
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class Compilation {
-
-    protected final List<ChipmunkSource> sources;
-    protected JvmCompilerConfig jvmCompilerConfig;
-
-    public Compilation(){
-        sources = new ArrayList<>();
+    public enum YieldType {
+        THREAD_YIELD, FORCED_PREEMPT
     }
 
-    public List<ChipmunkSource> getSources(){
-        return sources;
+    protected volatile boolean disableBackjumpChecks;
+    protected volatile YieldType yieldType;
+
+    public JvmCompilerConfig(){
+        disableBackjumpChecks = false;
+        yieldType = YieldType.THREAD_YIELD;
     }
 
-    public void addSource(ChipmunkSource source){
-        sources.add(source);
+    public void setIsCompilingBackjumpChecks(boolean useChecks){
+        disableBackjumpChecks = !useChecks;
     }
 
-    public JvmCompilerConfig getJvmCompilerConfig() {
-        return jvmCompilerConfig;
+    public boolean areBackjumpChecksDisabled(){
+        return disableBackjumpChecks;
     }
 
-    public void setJvmCompilerConfig(JvmCompilerConfig jvmCompilerConfig) {
-        this.jvmCompilerConfig = jvmCompilerConfig;
+    public YieldType getYieldType() {
+        return yieldType;
     }
+
+    public void setYieldType(YieldType yieldType) {
+        this.yieldType = yieldType;
+    }
+
 }

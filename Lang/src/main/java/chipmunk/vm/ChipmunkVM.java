@@ -38,8 +38,10 @@ import chipmunk.vm.invoke.*;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.CompilationUnit;
+import chipmunk.vm.jvm.JvmCompilation;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.jvm.JvmCompilerConfig;
 import chipmunk.vm.scheduler.Scheduler;
 import jdk.dynalink.linker.GuardedInvocation;
 
@@ -48,8 +50,8 @@ public class ChipmunkVM {
 
 	protected volatile LinkingPolicy defaultLinkPolicy;
 	protected volatile ChipmunkLibraries defaultLibraries;
+	protected volatile JvmCompilerConfig defaultJvmCompilerConfig;
 
-	protected final JvmCompiler jvmCompiler;
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
 	protected final AtomicLong scriptIds;
 	protected final ForkJoinPool scriptPool;
@@ -65,8 +67,6 @@ public class ChipmunkVM {
 		defaultLibraries = new ChipmunkLibraries();
 		defaultLibraries.registerLibrary(new NativeTypeLib());
 
-		jvmCompiler = new JvmCompiler();
-
 		runningScripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
 		// TODO - make configurable
@@ -81,6 +81,8 @@ public class ChipmunkVM {
 				60,
 				TimeUnit.SECONDS);
 		scheduler = new Scheduler();
+
+		defaultJvmCompilerConfig = new JvmCompilerConfig();
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){
@@ -99,6 +101,14 @@ public class ChipmunkVM {
 		return defaultLibraries;
 	}
 
+	public JvmCompilerConfig getDefaultJvmCompilerConfig() {
+		return defaultJvmCompilerConfig;
+	}
+
+	public void setDefaultJvmCompilerConfig(JvmCompilerConfig defaultJvmCompilerConfig) {
+		this.defaultJvmCompilerConfig = defaultJvmCompilerConfig;
+	}
+
 	public void start() {
 		scheduler.start();
 	}
@@ -112,10 +122,25 @@ public class ChipmunkVM {
 		return scheduler;
 	}
 
+	public JvmCompiler createDefaultJvmCompiler(){
+		return createJvmCompiler(defaultJvmCompilerConfig);
+	}
+
+	public JvmCompiler createJvmCompiler(JvmCompilerConfig config){
+		if(config == null){
+			config = defaultJvmCompilerConfig;
+		}
+		return new JvmCompiler(config);
+	}
+
 	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
+		return compileScript(createJvmCompiler(compilation.getJvmCompilerConfig()), compilation);
+	}
+
+	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule[] modules = compiler.compile(compilation);
-		return compileScript(modules);
+		return compileScript(jvmCompiler, modules);
 	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
@@ -124,7 +149,13 @@ public class ChipmunkVM {
 		return compileScript(compilation);
 	}
 
-	public ChipmunkScript compileScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+		Compilation compilation = new Compilation();
+		compilation.addSource(new ChipmunkSource(is, fileName));
+		return compileScript(jvmCompiler, compilation);
+	}
+
+	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, BinaryModule[] modules) throws IOException, BinaryFormatException {
 
 		BinaryModule mainModule = null;
 		for (BinaryModule module : modules) {
@@ -143,16 +174,25 @@ public class ChipmunkVM {
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 
-		return compileScript(unit);
+		return compileScript(jvmCompiler, unit);
+	}
+
+	public ChipmunkScript compileScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
+		return compileScript(createDefaultJvmCompiler(), modules);
 	}
 
 	public ChipmunkScript compileScript(CompilationUnit unit) throws IOException, BinaryFormatException {
+		return compileScript(createJvmCompiler(unit.getJvmCompilerConfig()), unit);
+	}
+
+	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, CompilationUnit unit) throws IOException, BinaryFormatException {
 		ChipmunkScript script = jvmCompiler.compile(unit);
 		script.setVM(this);
 		script.setModuleLoader(unit.getModuleLoader());
 		script.setId(scriptIds.incrementAndGet());
 		script.setLinkPolicy(defaultLinkPolicy);
 		script.setLibs(defaultLibraries);
+		script.setJvmCompilerConfig(jvmCompiler.getConfig());
 
 		return script;
 	}
@@ -161,7 +201,7 @@ public class ChipmunkVM {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
-		ChipmunkModule compiled = jvmCompiler.compileModule(expModule);
+		ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
 		return invoke(compiled, "evaluate");
 	}
 
@@ -175,7 +215,11 @@ public class ChipmunkVM {
 			return module;
 		}
 
-		module = script.getModuleLoader().load(moduleName, jvmCompiler);
+		JvmCompilerConfig compilerConfig = script.getJvmCompilerConfig();
+		if(compilerConfig == null){
+			compilerConfig = defaultJvmCompilerConfig;
+		}
+		module = script.getModuleLoader().load(moduleName, new JvmCompiler(compilerConfig));
 
 		if(module == null){
 			throw new ModuleLoadException(String.format("Module %s not found", moduleName));
@@ -186,8 +230,13 @@ public class ChipmunkVM {
 		return module;
 	}
 
-	public ChipmunkModule load(BinaryModule module) throws Throwable {
-		return jvmCompiler.compileModule(module);
+	public ChipmunkModule load(BinaryModule module) {
+		return load(createDefaultJvmCompiler(), module);
+	}
+
+	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
+		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader());
+		return jvmCompiler.compileModule(compilation);
 	}
 
 	public Object invoke(Object target, String methodName) throws Throwable {

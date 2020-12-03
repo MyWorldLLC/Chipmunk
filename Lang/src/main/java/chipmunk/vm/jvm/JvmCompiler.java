@@ -39,6 +39,20 @@ import static chipmunk.compiler.assembler.Opcodes.*;
 
 public class JvmCompiler {
 
+    protected final JvmCompilerConfig config;
+
+    public JvmCompiler(){
+        this(new JvmCompilerConfig());
+    }
+
+    public JvmCompiler(JvmCompilerConfig config){
+        this.config = config;
+    }
+
+    public JvmCompilerConfig getConfig(){
+        return config;
+    }
+
     public ChipmunkScript compile(CompilationUnit sources) throws IOException, BinaryFormatException {
 
         BinaryModule mainBin = sources.getModuleLoader().loadBinary(sources.getEntryModule());
@@ -653,8 +667,8 @@ public class JvmCompiler {
                 }
                 case GOTO -> {
                     int jumpTarget = fetchInt(instructions, ip + 1);
-                    if(jumpTarget < ip && !compilation.areBackjumpChecksDisabled()){
-                        generateBackjumpCheckpoint(compilation.getYieldType(), mv);
+                    if(jumpTarget < ip && !config.areBackjumpChecksDisabled()){
+                        generateBackjumpCheckpoint(config.getYieldType(), mv);
                     }
                     generateGoto(mv, jumpTarget, labelMappings);
                     ip += 5;
@@ -982,7 +996,7 @@ public class JvmCompiler {
                 false);
     }
 
-    protected void generateBackjumpCheckpoint(JvmCompilation.YieldType yieldType, MethodVisitor mv){
+    protected void generateBackjumpCheckpoint(JvmCompilerConfig.YieldType yieldType, MethodVisitor mv){
         // Get the executing script instance
         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                 Type.getType(ChipmunkScript.class).getInternalName(),
