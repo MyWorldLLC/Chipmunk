@@ -94,7 +94,7 @@ public class NativeImportResolver implements ImportResolver {
             symbols.add(makeMethodSymbol(m));
         }
 
-        return null;
+        return symbols;
     }
 
     protected Symbol makeFieldSymbol(Field f){
