@@ -48,6 +48,10 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return Math.abs(a);
     }
 
+    public static Integer neg(Integer a){
+        return -a;
+    }
+
     public static Integer inc(Integer a){
         return a + 1;
     }
@@ -144,6 +148,10 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Float pos(Float a){
         return Math.abs(a);
+    }
+
+    public static Float neg(Float a){
+        return -a;
     }
 
     public static Float inc(Float a){
