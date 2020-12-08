@@ -88,6 +88,10 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return (int) Math.pow(a, b);
     }
 
+    public static Float pow(Integer a, Float b) {
+        return (float) Math.pow(a, b);
+    }
+
     public static Integer mod(Integer a, Integer b){
         return a % b;
     }
@@ -148,6 +152,14 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Float dec(Float a){
         return a - 1;
+    }
+
+    public static Float pow(Float a, Integer b){
+        return (float) Math.pow(a, b);
+    }
+
+    public static Float pow(Float a, Float b){
+        return (float) Math.pow(a, b);
     }
 
     public static Integer compare(Float a, Float b){
