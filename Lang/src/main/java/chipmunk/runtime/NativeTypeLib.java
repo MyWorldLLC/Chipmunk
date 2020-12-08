@@ -231,6 +231,11 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return Null.wrapNull(a.put(key, value));
     }
 
+    // ================================ List Operations ================================
+    public static Object remove(ArrayList<Object> a, Integer index){
+        return a.remove(index.intValue());
+    }
+
     // ================================ Object Operations ================================
 
     public static ChipmunkClass getClass(ChipmunkObject o){
