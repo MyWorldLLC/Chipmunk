@@ -269,4 +269,12 @@ class LanguageSpecification extends Specification {
 		result == 'Chipmunk likes Java!'
 
 	}
+
+	def "Run DefaultModuleName.chp"(){
+		when:
+		def result = compileAndRun("DefaultModuleName.chp")
+
+		then:
+		result == 5
+	}
 }

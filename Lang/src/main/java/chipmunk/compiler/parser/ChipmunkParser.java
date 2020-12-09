@@ -225,7 +225,7 @@ public class ChipmunkParser {
 			}
 			module.setName(moduleName.toString());
 		}else{
-			module.setName("");
+			module.setName("default");
 		}
 		
 		skipNewlinesAndComments();
