@@ -230,6 +230,14 @@ public class ChipmunkVM {
 		return module;
 	}
 
+	public boolean isModuleLoaded(String moduleName) {
+		return isModuleLoaded(ChipmunkScript.getCurrentScript(), moduleName);
+	}
+
+	public boolean isModuleLoaded(ChipmunkScript script, String moduleName){
+		return script.modules.containsKey(moduleName);
+	}
+
 	public ChipmunkModule load(BinaryModule module) {
 		return load(createDefaultJvmCompiler(), module);
 	}
