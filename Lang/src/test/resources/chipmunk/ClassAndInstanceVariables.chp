@@ -20,6 +20,8 @@ module test
 class Foo {
 	shared var bar = 5
 	var age = 2
+
+	var x = 5
 	
 	def Foo(){
 		age = 6
@@ -30,7 +32,8 @@ class Foo {
 	}
 	
 	def addAgeAndBar(){
-		return age + bar
+	    var localX = x
+		return age + bar + localX
 	}
 }
 

@@ -104,7 +104,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("ClassAndInstanceVariables.chp")
 		
 		then:
-		result == 11
+		result == 16
 	}
 	
 	def "Run SetClassAndInstanceVariables.chp"(){

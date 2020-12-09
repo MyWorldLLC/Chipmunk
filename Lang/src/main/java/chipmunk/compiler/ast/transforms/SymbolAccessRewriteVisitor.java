@@ -50,10 +50,13 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             scope = ((BlockNode) node).getSymbolTable();
             node.visitChildren(this);
             scope = scope.getParent();
-        }else if(node instanceof OperatorNode || node instanceof FlowControlNode){
+        }else if(node instanceof OperatorNode || node instanceof FlowControlNode || node instanceof VarDecNode){
             // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
             // that are non-local
-            for(int i = 0; i < node.getChildren().size(); i++){
+
+            // If visiting a variable declaration, don't rewrite the variable name being declared!
+            int startIndex = node instanceof VarDecNode ? 1 : 0;
+            for(int i = startIndex; i < node.getChildren().size(); i++){
                 AstNode child = node.getChildren().get(i);
 
                 if(child instanceof IdNode && !isQualified(node, child)){
@@ -90,7 +93,6 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         if (symbol == null) {
             throw new UnresolvedSymbolException(scope.getModuleScope().getDebugSymbol(), symbolName);
         }
-
 
         if (symbol.getTable().isMethodScope()) {
             // No rewrite needed because this is a local variable
