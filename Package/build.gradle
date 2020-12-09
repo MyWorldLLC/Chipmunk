@@ -21,6 +21,10 @@
 
 apply plugin: 'java'
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation project(':Lang')
 }
