@@ -20,10 +20,57 @@
 
 package chipmunk.modules.imports;
 
+import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.invoke.security.LinkingPolicy;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.List;
+
 public class JvmImportModule extends ImportModule {
 
-    public ClassWrapper importJava(String clsName) throws ClassNotFoundException {
-        return new ClassWrapper(Class.forName(clsName));
+    public Class<?> importJava(String clsName) throws ClassNotFoundException {
+        return Class.forName(clsName);
+    }
+
+    public Object newJava(String clsName) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        return newJava(clsName, null);
+    }
+
+    public Object newJava(String clsName, List<Object> args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Class<?> cls = importJava(clsName);
+
+        Constructor<?> constructor;
+        if(args == null){
+            constructor = cls.getConstructor();
+        }else{
+            Class<?>[] argTypes = new Class<?>[args.size()];
+            for(int i = 0; i < args.size(); i++){
+                Object arg = args.get(i);
+                argTypes[i] = arg == null ? null : arg.getClass();
+            }
+            constructor = cls.getConstructor(argTypes);
+        }
+
+        Object[] constructorArgs = args != null ? args.toArray() : new Object[]{};
+
+        ChipmunkScript script = ChipmunkScript.getCurrentScript();
+        if(script != null){
+            LinkingPolicy policy = script.getLinkPolicy();
+            if(policy != null){
+                boolean allowed = policy.allowInstantiation(cls, constructorArgs);
+                if(!policy.allowInstantiation(cls, constructorArgs)){
+                    throw new IllegalAccessException(
+                            String.format("Script %d forbidden from instantiating %s(%s)",
+                                    script.getId(),
+                                    cls.getName(),
+                                    Arrays.asList(constructorArgs)));
+                }
+            }
+        }
+
+        return constructor.newInstance(constructorArgs);
     }
 
 }
