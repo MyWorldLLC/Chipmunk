@@ -30,6 +30,7 @@ public class PackageProperties {
     public static final String AUTHOR_KEY = "author";
     public static final String COPYRIGHT_KEY = "copyright";
     public static final String LICENSE_KEY = "license";
+    public static final String VERSION_KEY = "license";
 
     protected Properties properties;
 
