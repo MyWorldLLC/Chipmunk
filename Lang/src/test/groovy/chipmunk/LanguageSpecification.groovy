@@ -277,4 +277,12 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 5
 	}
+
+	def "Run IsOperator.chp"(){
+		when:
+		def result = compileAndRun("IsOperator.chp")
+
+		then:
+		result == true
+	}
 }

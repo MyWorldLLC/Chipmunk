@@ -26,7 +26,7 @@ public class EqualityOperatorParselet extends BaseBinaryOperatorParselet {
 
 	@Override
 	public int getPrecedence() {
-		return OperatorPrecedence.EQUAL_NEQUAL;
+		return OperatorPrecedence.EQUAL_NEQUAL_IS;
 	}
 
 }

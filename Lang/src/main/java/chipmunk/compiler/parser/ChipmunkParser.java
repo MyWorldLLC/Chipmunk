@@ -110,7 +110,8 @@ public class ChipmunkParser {
 		register(Token.Type.MORETHAN, new LesserGreaterInstanceOfOperatorParselet());
 		register(Token.Type.MOREEQUALS, new LesserGreaterInstanceOfOperatorParselet());
 		register(Token.Type.INSTANCEOF, new LesserGreaterInstanceOfOperatorParselet());
-		
+
+		register(Token.Type.IS, new EqualityOperatorParselet());
 		register(Token.Type.DOUBLEEQUAlS, new EqualityOperatorParselet());
 		register(Token.Type.EXCLAMATIONEQUALS, new EqualityOperatorParselet());
 		

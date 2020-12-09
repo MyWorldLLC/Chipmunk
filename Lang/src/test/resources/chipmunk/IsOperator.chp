@@ -1,0 +1,7 @@
+module test
+
+def main(){
+    var x = []
+    var y = x
+    return x is y
+}

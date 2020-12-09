@@ -80,6 +80,7 @@ public class Token {
 		CATCH("catch(?![a-zA-Z0-9_])", true, false), FINALLY("finally(?![a-zA-Z0-9_])"), THROW("throw(?![a-zA-Z0-9_])", true, false), DEF("def(?![a-zA-Z0-9_])", true, false),
 		VAR("var(?![a-zA-Z0-9_])", true, false), TRAIT("trait(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
 		INSTANCEOF("instanceof(?![a-zA-Z0-9_])", true, false),
+		IS("is(?![a-zA-Z0-9_])", true, false),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
 		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),

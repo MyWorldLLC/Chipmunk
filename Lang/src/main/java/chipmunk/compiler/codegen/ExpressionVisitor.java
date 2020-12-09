@@ -291,6 +291,11 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.eq();
 				assembler.not();
 				break;
+			case IS:
+				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
+				assembler.is();
+				break;
 			case LESSEQUALS:
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
