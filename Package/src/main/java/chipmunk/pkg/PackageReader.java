@@ -18,4 +18,25 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include 'Lang', 'CLI', 'Package'
+package chipmunk.pkg;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+
+public interface PackageReader extends Closeable {
+
+    PackageProperties getPackageProperties() throws IOException;
+
+    default Collection<PackageEntry> getEntries() throws IOException {
+        return getEntriesIn("/");
+    }
+
+    Collection<PackageEntry> getEntriesIn(String directory) throws IOException;
+
+    PackageEntry getEntry(String entryPath) throws IOException;
+
+    InputStream getInputStream(PackageEntry entry) throws IOException;
+
+}

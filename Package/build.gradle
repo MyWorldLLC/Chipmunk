@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2020 MyWorld, LLC
  * All rights reserved.
@@ -18,4 +19,14 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include 'Lang', 'CLI', 'Package'
+apply plugin: 'java'
+
+dependencies {
+    implementation project(':Lang')
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+
+group = 'myworld'
+version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion

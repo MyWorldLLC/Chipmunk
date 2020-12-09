@@ -18,4 +18,17 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include 'Lang', 'CLI', 'Package'
+package chipmunk.pkg;
+
+import java.io.IOException;
+
+public interface PackageEntry {
+
+    String getPath();
+
+    default boolean isDirectory(){
+        return getPath().endsWith("/");
+    }
+
+    long getSize() throws IOException;
+}

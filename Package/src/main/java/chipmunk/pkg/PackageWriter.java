@@ -18,4 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include 'Lang', 'CLI', 'Package'
+package chipmunk.pkg;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+public interface PackageWriter {
+
+    void writePackageProperties(PackageProperties props) throws IOException;
+    OutputStream writeEntry(PackageEntry entry) throws IOException;
+    void close() throws IOException;
+
+}

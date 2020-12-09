@@ -18,4 +18,29 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-include 'Lang', 'CLI', 'Package'
+package chipmunk.pkg.fs;
+
+import chipmunk.pkg.PackageEntry;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class FsPackageEntry implements PackageEntry {
+
+    protected final Path path;
+
+    protected FsPackageEntry(Path path){
+        this.path = path;
+    }
+
+    @Override
+    public String getPath() {
+        return path.toString();
+    }
+
+    @Override
+    public long getSize() throws IOException {
+        return Files.size(path);
+    }
+}
