@@ -23,16 +23,31 @@ package chipmunk.modules.system;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class SystemModule implements ChipmunkModule {
 
     public static final String SYSTEM_MODULE_NAME = "chipmunk.system";
 
     public final List<String> args;
+    public final Map<String, String> env;
 
     public SystemModule(String[] args){
+        this(args, null);
+    }
+
+    public SystemModule(String[] args, Map<String, String> env){
+        if(args == null){
+            args = new String[]{};
+        }
+        if(env == null){
+            env = Collections.emptyMap();
+        }
+
         this.args = Arrays.asList(args);
+        this.env = env;
     }
 
     public void println(Object msg){
