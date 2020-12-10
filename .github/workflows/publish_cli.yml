@@ -82,6 +82,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./CLI/build/chipmunk-*"]'
+          asset_paths: '["./CLI/build/chipmunk*"]'
 
 
