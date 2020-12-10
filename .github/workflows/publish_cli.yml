@@ -85,12 +85,12 @@ jobs:
 #          asset_paths: '["./CLI/build/chipmunk*"]'
 
       - name: Publish release asset
-          id: publish_release_assets
-          uses: dwenegar/upload-release-assets@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            release_id: ${{ jobs.draft_release.outputs.id }}
-            assets_path: CLI/build
+        id: publish_release_assets
+        uses: dwenegar/upload-release-assets@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ jobs.draft_release.outputs.id }}
+          assets_path: CLI/build
 
 
