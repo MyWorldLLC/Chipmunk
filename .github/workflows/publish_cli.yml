@@ -77,13 +77,6 @@ jobs:
           name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ steps.tag.outputs.tag }}
           path: CLI/build/installer/*.${{ matrix.env.INSTALLER_EXT }}
 
-#      - name: Publish release artifact
-#        uses: alexellis/upload-assets@0.2.2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          asset_paths: '["./CLI/build/chipmunk*"]'
-
       - name: Publish release asset
         id: publish_release_assets
         uses: dwenegar/upload-release-assets@v1
