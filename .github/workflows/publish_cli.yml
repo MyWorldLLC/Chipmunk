@@ -91,6 +91,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           release_id: ${{ needs.draft_release.outputs.id }}
-          assets_path: CLI/build
+          assets_path: CLI/build/installer
 
 

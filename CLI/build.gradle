@@ -77,6 +77,7 @@ task jpackage(type: Exec, dependsOn: build){
     commandLine 'jpackage',
             '--input', 'libs',
             '-n', 'chipmunk',
+            '-d', 'installer',
             '--main-class', 'chipmunk.cli.ChipmunkCLI',
             '--main-jar', "${jar.archiveFile.get().asFile.getName()}"
 }
