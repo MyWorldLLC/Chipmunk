@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get tag
-          id: tag
-          uses: dawidd6/action-get-tag@v1
+        id: tag
+        uses: dawidd6/action-get-tag@v1
 
       - name: Create Draft Release
         uses: actions/create-release@v1
