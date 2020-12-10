@@ -7,28 +7,28 @@ on:
       - ci*
 
 jobs:
-  draft_release:
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.draft_release.outputs.upload_url }}
-    steps:
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-
-      - name: Create Draft Release
-        id: draft_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: CLI - ${{ steps.tag.outputs.tag }}
-          draft: true
-          prerelease: false
+#  draft_release:
+#    runs-on: ubuntu-latest
+#    outputs:
+#      upload_url: ${{ steps.draft_release.outputs.upload_url }}
+#    steps:
+#      - name: Get tag
+#        id: tag
+#        uses: dawidd6/action-get-tag@v1
+#
+#      - name: Create Draft Release
+#        id: draft_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ steps.tag.outputs.tag }}
+#          release_name: CLI - ${{ steps.tag.outputs.tag }}
+#          draft: true
+#          prerelease: false
 
   build:
-    needs: draft_release
+    #needs: draft_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -78,13 +78,10 @@ jobs:
           path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
 
       - name: Publish release artifact
-        uses: actions/upload-release-asset@v1.0.1
+        uses: alexellis/upload-assets@0.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.draft_release.outputs.upload_url }}
-          asset_path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
-          asset_name: chipmunk-${{ steps.tag.outputs.tag }}.${{ matrix.env.INSTALLER_EXT }}
-          asset_content_type: ${{ matrix.env.INSTALLER_MEDIA_TYPE }}
+          asset_paths: '["CLI/build/*.${{ matrix.env.INSTALLER_EXT }}"]'
 
 
