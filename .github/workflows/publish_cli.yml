@@ -7,28 +7,28 @@ on:
       - ci*
 
 jobs:
-#  draft_release:
-#    runs-on: ubuntu-latest
-#    outputs:
-#      upload_url: ${{ steps.draft_release.outputs.upload_url }}
-#    steps:
-#      - name: Get tag
-#        id: tag
-#        uses: dawidd6/action-get-tag@v1
-#
-#      - name: Create Draft Release
-#        id: draft_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ steps.tag.outputs.tag }}
-#          release_name: CLI - ${{ steps.tag.outputs.tag }}
-#          draft: true
-#          prerelease: false
+  draft_release:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.draft_release.outputs.id }}
+    steps:
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+
+      - name: Create Draft Release
+        id: draft_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: CLI - ${{ steps.tag.outputs.tag }}
+          draft: true
+          prerelease: false
 
   build:
-    #needs: draft_release
+    needs: draft_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -77,11 +77,20 @@ jobs:
           name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ steps.tag.outputs.tag }}
           path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
 
-      - name: Publish release artifact
-        uses: alexellis/upload-assets@0.2.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          asset_paths: '["./CLI/build/chipmunk*"]'
+#      - name: Publish release artifact
+#        uses: alexellis/upload-assets@0.2.2
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          asset_paths: '["./CLI/build/chipmunk*"]'
+
+      - name: Publish release asset
+          id: publish_release_assets
+          uses: dwenegar/upload-release-assets@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            release_id: ${{ jobs.draft_release.outputs.id }}
+            assets_path: CLI/build
 
 
