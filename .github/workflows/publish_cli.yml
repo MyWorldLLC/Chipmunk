@@ -15,6 +15,7 @@ jobs:
         uses: dawidd6/action-get-tag@v1
 
       - name: Create Draft Release
+        id: draft_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,7 +80,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
           asset_path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
           asset_name: chipmunk-${{ steps.tag.outputs.tag }}.${{ matrix.env.INSTALLER_EXT }}
           asset_content_type: ${{ matrix.env.INSTALLER_MEDIA_TYPE }}
