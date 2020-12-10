@@ -80,7 +80,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.draft_release.steps.draft_release.outputs.upload_url }}
+          upload_url: ${{ needs.draft_release.steps.draft_release.outputs.upload_url }}
           asset_path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
           asset_name: chipmunk-${{ steps.tag.outputs.tag }}.${{ matrix.env.INSTALLER_EXT }}
           asset_content_type: ${{ matrix.env.INSTALLER_MEDIA_TYPE }}
