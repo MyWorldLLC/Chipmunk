@@ -7,7 +7,25 @@ on:
       - ci*
 
 jobs:
+  draft_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get tag
+          id: tag
+          uses: dawidd6/action-get-tag@v1
+
+      - name: Create Draft Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: CLI - ${{ steps.tag.outputs.tag }}
+          draft: true
+          prerelease: false
+
   build:
+    needs: draft_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -18,18 +36,21 @@ jobs:
               PLATFORM: linux
               INSTALLER_NAME: Debian
               INSTALLER_EXT: deb
+              INSTALLER_MEDIA_TYPE: application/vnd.debian.binary-package
 
           - os: windows-2019
             env:
               PLATFORM: win
               INSTALLER_NAME: Windows
               INSTALLER_EXT: exe
+              INSTALLER_MEDIA_TYPE: application/vnd.microsoft.portable-executable
 
           - os: macos-10.15
             env:
               PLATFORM: mac
               INSTALLER_NAME: Mac
               INSTALLER_EXT: dmg
+              INSTALLER_MEDIA_TYPE: application/x-apple-diskimage
 
     steps:
       - uses: actions/checkout@v2
@@ -47,10 +68,20 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew :CLI:jpackage -Prelease="${{ steps.tag.outputs.tag }}"
 
-      - name: Publish native package
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ steps.tag.outputs.tag }}
           path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
+
+      - name: Publish release artifact
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: CLI/build/*.${{ matrix.env.INSTALLER_EXT }}
+          asset_name: chipmunk-${{ steps.tag.outputs.tag }}.${{ matrix.env.INSTALLER_EXT }}
+          asset_content_type: ${{ matrix.env.INSTALLER_MEDIA_TYPE }}
 
 
