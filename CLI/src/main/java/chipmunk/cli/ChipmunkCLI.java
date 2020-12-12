@@ -30,11 +30,15 @@ import chipmunk.modules.imports.ImportModule;
 import chipmunk.modules.imports.JvmImportModule;
 import chipmunk.modules.math.MathModule;
 import chipmunk.modules.system.SystemModule;
+import chipmunk.pkg.Entrypoint;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.jvm.CompilationUnit;
+import chipmunk.vm.jvm.JvmCompilation;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.io.BufferedInputStream;
@@ -53,6 +57,9 @@ public class ChipmunkCLI implements Callable<Integer> {
 
     protected static final String NO_SOURCE = "";
 
+    @Option(names = {"-e", "-entrypoint"})
+    protected String entryPoint;
+
     @Parameters(index = "0", defaultValue = NO_SOURCE, description = "Chipmunk source or bytecode to run")
     protected String codePath;
 
@@ -61,7 +68,7 @@ public class ChipmunkCLI implements Callable<Integer> {
 
     public void registerBuiltins(ModuleLoader loader) {
         // Register all builtin Chipmunk & Native modules
-        loader.registerNativeFactory(SystemModule.SYSTEM_MODULE_NAME, () -> new SystemModule(args));
+        loader.registerNativeFactory(SystemModule.SYSTEM_MODULE_NAME, () -> new SystemModule(args, System.getenv()));
         loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, JvmImportModule::new);
         loader.registerNativeFactory(BufferModule.BUFFER_MODULE_NAME, BufferModule::new);
         loader.registerNativeFactory(MathModule.MATH_MODULE_NAME, MathModule::new);
@@ -113,7 +120,18 @@ public class ChipmunkCLI implements Callable<Integer> {
             }
             loader.addToLoaded(Arrays.asList(modules));
 
-            ChipmunkScript script = vm.compileScript(modules);
+            CompilationUnit unit = new CompilationUnit();
+            unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
+            unit.setEntryModule("main");
+            unit.setEntryMethodName("main");
+
+            if(entryPoint != null){
+                Entrypoint newEntrypoint = Entrypoint.fromString(entryPoint);
+                unit.setEntryModule(newEntrypoint.getModule());
+                unit.setEntryMethodName(newEntrypoint.getMethod());
+            }
+
+            ChipmunkScript script = vm.compileScript(unit);
             script.setModuleLoader(loader);
             vm.runAsync(script).get();
 
