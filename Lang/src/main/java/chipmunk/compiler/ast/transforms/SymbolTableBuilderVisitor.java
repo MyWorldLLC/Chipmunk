@@ -20,36 +20,12 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import chipmunk.compiler.ModuleNotFoundException;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
-import chipmunk.compiler.UnresolvedSymbolException;
-import chipmunk.compiler.imports.ImportResolver;
 import chipmunk.compiler.symbols.SymbolType;
 
 public class SymbolTableBuilderVisitor implements AstVisitor {
-
-	protected List<ImportResolver> resolvers;
-
-	public SymbolTableBuilderVisitor(){
-		this(new ArrayList<>());
-	}
-
-	public SymbolTableBuilderVisitor(List<ImportResolver> resolvers){
-		this.resolvers = resolvers;
-	}
-
-	public List<ImportResolver> getResolvers(){
-		return resolvers;
-	}
-
-	public void setResolvers(List<ImportResolver> resolvers){
-		this.resolvers = resolvers;
-	}
 	
 	protected SymbolTable currentScope;
 
@@ -89,84 +65,12 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 			currentScope = blockTable;
 			
 		}
-		
-		if(node instanceof ImportNode){
-			ImportNode importNode = (ImportNode) node;
-			
-			List<Symbol> symbols;
 
-			if(importNode.isImportAll()){
-				symbols = getModuleSymbols(importNode.getModule());
-			}else if(importNode.hasAliases()){
-				symbols = new ArrayList<>();
-
-				List<String> importedSymbols = importNode.getSymbols();
-				List<String> aliases = importNode.getAliases();
-				for(int s = 0; s < importedSymbols.size(); s++){
-
-					Symbol symbol = getModuleSymbol(importNode.getModule(), importedSymbols.get(s));
-					if(symbol == null){
-						throw new UnresolvedSymbolException(importNode.getModule(), aliases.get(s));
-					}
-
-					symbol.setName(aliases.get(s));
-					symbol.setImport(new Symbol.Import(importNode.getModule(), importedSymbols.get(s)));
-					symbols.add(symbol);
-				}
-			}else{
-				symbols = new ArrayList<>();
-
-				for(String s : importNode.getSymbols()){
-
-					Symbol symbol = getModuleSymbol(importNode.getModule(), s);
-					if(symbol == null){
-						throw new UnresolvedSymbolException(importNode.getModule(), s);
-					}
-
-					symbols.add(symbol);
-				}
-			}
-
-			if(symbols == null){
-				throw new ModuleNotFoundException(importNode.getModule());
-			}
-			
-			for(Symbol symbol : symbols){
-				currentScope.setSymbol(symbol);
-			}
-		}
-		
 		node.visitChildren(this);
 		
 		if(currentScope != null && node instanceof BlockNode){
 			currentScope = currentScope.getParent();
 		}
-	}
-
-	protected List<Symbol> getModuleSymbols(String moduleName){
-
-		for(ImportResolver resolver : resolvers){
-			List<Symbol> symbols = resolver.resolveSymbols(moduleName);
-			if(symbols != null){
-				symbols.forEach(s -> s.setImport(new Symbol.Import(moduleName)));
-				return symbols;
-			}
-		}
-
-		return null;
-	}
-
-	protected Symbol getModuleSymbol(String moduleName, String name){
-
-		for(ImportResolver resolver : resolvers){
-			Symbol symbol = resolver.resolve(moduleName, name);
-			if(symbol != null){
-				symbol.setImport(new Symbol.Import(moduleName));
-				return symbol;
-			}
-		}
-
-		return null;
 	}
 
 }

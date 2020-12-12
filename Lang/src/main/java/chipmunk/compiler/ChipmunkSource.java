@@ -60,4 +60,9 @@ public class ChipmunkSource {
 
         return builder;
     }
+
+    @Override
+    public String toString() {
+        return "[ChipmunkSource: " + fileName + "]";
+    }
 }

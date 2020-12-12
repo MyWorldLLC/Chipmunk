@@ -42,7 +42,7 @@ import chipmunk.compiler.parser.ChipmunkParser;
 public class ChipmunkCompiler {
 
 	public enum Pass {
-		POST_PARSE, SYMBOL_RESOLUTION, PRE_ASSEMBLY
+		POST_PARSE, SYMBOL_RESOLUTION, IMPORT_RESOLUTION, PRE_ASSEMBLY
 	}
 
 	protected Map<Pass, List<AstVisitor>> passes;
@@ -67,8 +67,12 @@ public class ChipmunkCompiler {
 				new InnerMethodRewriteVisitor()));
 
 		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(
-				new SymbolTableBuilderVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)),
+				new SymbolTableBuilderVisitor(),
 				new DefaultConstructorVisitor()));
+
+		passes.put(Pass.IMPORT_RESOLUTION, Arrays.asList(
+				new ImportResolverVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)))
+		);
 
 		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(new SymbolAccessRewriteVisitor()));
 	}
@@ -136,6 +140,7 @@ public class ChipmunkCompiler {
 
 		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.POST_PARSE)));
 		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.SYMBOL_RESOLUTION)));
+		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.IMPORT_RESOLUTION)));
 		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.PRE_ASSEMBLY)));
 
 		BinaryModule[] modules = new BinaryModule[asts.size()];
