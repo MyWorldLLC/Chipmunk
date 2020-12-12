@@ -31,6 +31,7 @@ repositories {
 
 dependencies {
     implementation project(':Lang')
+    implementation project(':Package')
     implementation 'info.picocli:picocli:4.5.2'
     annotationProcessor 'info.picocli:picocli-codegen:4.5.2'
 }
