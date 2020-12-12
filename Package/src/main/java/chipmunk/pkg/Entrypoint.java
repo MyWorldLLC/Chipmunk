@@ -97,7 +97,7 @@ public class Entrypoint {
         }
 
         String module = entrypoint.substring(0, splitIndex);
-        String method = entrypoint.substring(splitIndex + 2, entrypoint.length() - 1);
+        String method = entrypoint.substring(splitIndex + 2);
 
         return new Entrypoint(module, method);
     }
