@@ -24,10 +24,14 @@ import java.io.IOException;
 
 public interface PackageEntry {
 
-    String getPath();
+    PackagePath getPath();
 
     default boolean isDirectory(){
-        return getPath().endsWith("/");
+        return getPath().isDirectory();
+    }
+
+    default boolean isFile(){
+        return getPath().isFile();
     }
 
     long getSize() throws IOException;

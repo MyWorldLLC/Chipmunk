@@ -30,13 +30,17 @@ public interface PackageReader extends Closeable {
     PackageProperties getPackageProperties() throws IOException;
 
     default Collection<PackageEntry> getEntries() throws IOException {
-        return getEntriesIn("/");
+        return getEntriesIn(PackagePath.fromString("/"));
     }
 
-    Collection<PackageEntry> getEntriesIn(String directory) throws IOException;
+    Collection<PackageEntry> getEntriesIn(PackagePath directory) throws IOException;
 
-    PackageEntry getEntry(String entryPath) throws IOException;
+    PackageEntry getEntry(PackagePath path) throws IOException;
 
     InputStream getInputStream(PackageEntry entry) throws IOException;
+
+    default InputStream getInputStream(PackagePath path) throws IOException {
+        return getInputStream(getEntry(path));
+    }
 
 }

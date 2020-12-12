@@ -62,7 +62,7 @@ public class FsPackageWriter implements PackageWriter {
 
     @Override
     public OutputStream writeEntry(PackageEntry entry) throws IOException {
-        Path entryPath = fs.getPath(entry.getPath());
+        Path entryPath = fs.getPath(entry.getPath().toString());
         return Files.newOutputStream(entryPath);
     }
 

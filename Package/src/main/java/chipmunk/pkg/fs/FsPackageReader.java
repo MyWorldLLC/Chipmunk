@@ -21,6 +21,7 @@
 package chipmunk.pkg.fs;
 
 import chipmunk.pkg.PackageEntry;
+import chipmunk.pkg.PackagePath;
 import chipmunk.pkg.PackageProperties;
 import chipmunk.pkg.PackageReader;
 
@@ -76,10 +77,10 @@ public class FsPackageReader implements PackageReader {
     }
 
     @Override
-    public Collection<PackageEntry> getEntriesIn(String directory) throws IOException {
+    public Collection<PackageEntry> getEntriesIn(PackagePath directory) throws IOException {
 
         List<PackageEntry> entries = new ArrayList<>();
-        for(Path p : Files.newDirectoryStream(fs.getPath(directory))){
+        for(Path p : Files.newDirectoryStream(fs.getPath(directory.toString()))){
             if(!Files.isDirectory(p)){
                 entries.add(new FsPackageEntry(p));
             }
@@ -89,13 +90,13 @@ public class FsPackageReader implements PackageReader {
     }
 
     @Override
-    public PackageEntry getEntry(String entryPath) {
-        return new FsPackageEntry(fs.getPath(entryPath));
+    public PackageEntry getEntry(PackagePath path) {
+        return new FsPackageEntry(fs.getPath(path.toString()));
     }
 
     @Override
     public InputStream getInputStream(PackageEntry entry) throws IOException {
-        return Files.newInputStream(fs.getPath(entry.getPath()));
+        return Files.newInputStream(fs.getPath(entry.getPath().toString()));
     }
 
     @Override

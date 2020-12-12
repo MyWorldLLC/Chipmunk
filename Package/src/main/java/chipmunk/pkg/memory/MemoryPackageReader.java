@@ -21,6 +21,7 @@
 package chipmunk.pkg.memory;
 
 import chipmunk.pkg.PackageEntry;
+import chipmunk.pkg.PackagePath;
 import chipmunk.pkg.PackageProperties;
 import chipmunk.pkg.PackageReader;
 
@@ -36,7 +37,7 @@ import java.util.zip.ZipInputStream;
 
 public class MemoryPackageReader implements PackageReader {
 
-    protected final Map<String, byte[]> entries;
+    protected final Map<PackagePath, byte[]> entries;
 
     protected MemoryPackageReader() {
         entries = new HashMap<>();
@@ -50,9 +51,10 @@ public class MemoryPackageReader implements PackageReader {
 
             ZipEntry zipEntry = zipStream.getNextEntry();
 
+            assert zipEntry != null;
             byte[] data = zipStream.readNBytes((int)zipEntry.getSize());
 
-            entries.put(zipEntry.getName(), data);
+            entries.put(PackagePath.fromString(zipEntry.getName()), data);
 
             zipStream.closeEntry();
         }
@@ -63,7 +65,7 @@ public class MemoryPackageReader implements PackageReader {
     @Override
     public PackageProperties getPackageProperties() throws IOException {
 
-        byte[] propsData = entries.get(PackageProperties.PACKAGE_FILE);
+        byte[] propsData = entries.get(PackagePath.fromString(PackageProperties.PACKAGE_FILE));
         if(propsData == null){
             return null;
         }
@@ -75,7 +77,7 @@ public class MemoryPackageReader implements PackageReader {
     }
 
     @Override
-    public Collection<PackageEntry> getEntriesIn(String directory) throws IOException {
+    public Collection<PackageEntry> getEntriesIn(PackagePath directory) throws IOException {
         return entries.entrySet()
                 .stream()
                 .filter(e -> e.getKey().startsWith(directory))
@@ -84,13 +86,13 @@ public class MemoryPackageReader implements PackageReader {
     }
 
     @Override
-    public PackageEntry getEntry(String entryPath) {
-        byte[] data = entries.get(entryPath);
+    public PackageEntry getEntry(PackagePath path) {
+        byte[] data = entries.get(path);
         if(data == null){
             return null;
         }
 
-        return new MemoryPackageEntry(entryPath, data.length);
+        return new MemoryPackageEntry(path, data.length);
     }
 
     @Override

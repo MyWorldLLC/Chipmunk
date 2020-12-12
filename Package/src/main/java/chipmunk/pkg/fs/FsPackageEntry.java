@@ -21,6 +21,7 @@
 package chipmunk.pkg.fs;
 
 import chipmunk.pkg.PackageEntry;
+import chipmunk.pkg.PackagePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,14 +30,16 @@ import java.nio.file.Path;
 public class FsPackageEntry implements PackageEntry {
 
     protected final Path path;
+    protected final PackagePath packagePath;
 
     protected FsPackageEntry(Path path){
         this.path = path;
+        packagePath = PackagePath.fromString(path.toString());
     }
 
     @Override
-    public String getPath() {
-        return path.toString();
+    public PackagePath getPath() {
+        return packagePath;
     }
 
     @Override

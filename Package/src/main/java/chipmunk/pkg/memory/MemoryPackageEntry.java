@@ -21,19 +21,20 @@
 package chipmunk.pkg.memory;
 
 import chipmunk.pkg.PackageEntry;
+import chipmunk.pkg.PackagePath;
 
 public class MemoryPackageEntry implements PackageEntry {
 
-    protected final String path;
+    protected final PackagePath path;
     protected final long size;
 
-    protected MemoryPackageEntry(String path, long size){
+    protected MemoryPackageEntry(PackagePath path, long size){
         this.path = path;
         this.size = size;
     }
 
     @Override
-    public String getPath() {
+    public PackagePath getPath() {
         return path;
     }
 

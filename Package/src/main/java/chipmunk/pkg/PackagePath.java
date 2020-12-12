@@ -20,47 +20,89 @@
 
 package chipmunk.pkg;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class PackagePath {
+public class PackagePath implements Comparable<PackagePath> {
 
     public static final String PATH_SEPARATOR = "/";
 
-    public static final String SOURCE_DIR = "src";
-    public static final String BIN_DIR = "bin";
-    public static final String RESOURCE_DIR = "resources";
-    public static final String NATIVE_DIR = "native";
+    public static final String SOURCE_EXT = "chp";
+    public static final String BIN_EXT = "chpb";
 
-    protected List<String> parts;
+    public static final PackagePath SOURCE_DIR = PackagePath.fromString("src/");
+    public static final PackagePath BIN_DIR = PackagePath.fromString("bin/");
+    public static final PackagePath RESOURCE_DIR = PackagePath.fromString("resources/");
+    public static final PackagePath NATIVE_DIR = PackagePath.fromString("native/");
 
-    public PackagePath(){
-        parts = new ArrayList<>();
-    }
+    protected final boolean directory;
+    protected final List<String> parts;
+    protected final String pathString;
 
     public PackagePath(String[] parts){
-        this();
-        this.parts.addAll(Arrays.asList(parts));
+        this(parts, false);
     }
 
-    public PackagePath(List<String> parts){
-        Objects.requireNonNull(parts);
-        this.parts = parts;
+    public PackagePath(String[] parts, boolean directory){
+        this(Arrays.asList(parts), directory);
+    }
+
+    private PackagePath(List<String> parts, boolean directory){
+        this.parts = Collections.unmodifiableList(parts);
+        this.directory = directory;
+        pathString = PATH_SEPARATOR + String.join(PATH_SEPARATOR, parts) + (directory ? PATH_SEPARATOR : "");
+    }
+
+    public boolean isDirectory(){
+        return directory;
+    }
+
+    public boolean isFile(){
+        return !isDirectory();
+    }
+
+    public List<String> getParts(){
+        return parts;
+    }
+
+    public boolean startsWith(PackagePath other){
+        return pathString.startsWith(other.pathString);
+    }
+
+    public boolean startsWith(String prefix){
+        return pathString.startsWith(prefix);
+    }
+
+    public boolean endsWith(PackagePath other){
+        return pathString.endsWith(other.pathString);
+    }
+
+    public boolean endsWith(String ext){
+        return pathString.endsWith(ext);
+    }
+
+    public PackagePath join(PackagePath other){
+        if(!isDirectory()){
+            throw new IllegalStateException("This is not a directory path: " + pathString);
+        }
+
+        List<String> newParts = new ArrayList<>(parts.size() + other.parts.size());
+        newParts.addAll(parts);
+        newParts.addAll(other.parts);
+
+        return new PackagePath(newParts, other.isDirectory());
     }
 
     @Override
     public String toString() {
-        return PATH_SEPARATOR + String.join(PATH_SEPARATOR, parts);
+        return pathString;
     }
 
     @Override
     public boolean equals(Object o){
         if(o instanceof PackagePath){
             PackagePath p = (PackagePath) o;
-            return parts.equals(p.parts);
+            return parts.equals(p.parts) && directory == p.directory;
         }
         return false;
     }
@@ -70,13 +112,21 @@ public class PackagePath {
         return parts.hashCode();
     }
 
-    public PackagePath fromString(String path){
+    public static PackagePath fromString(String path){
         path = path.trim();
 
+        boolean directory = path.endsWith(PATH_SEPARATOR);
         String[] parts = path.split(PATH_SEPARATOR);
+
         return new PackagePath(
                 Arrays.stream(parts)
                         .filter(s -> s.length() != 0)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList())
+                        .toArray(new String[]{}), directory);
+    }
+
+    @Override
+    public int compareTo(PackagePath o) {
+        return pathString.compareTo(o.pathString);
     }
 }
