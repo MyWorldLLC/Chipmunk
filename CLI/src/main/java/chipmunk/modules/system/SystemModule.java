@@ -22,6 +22,9 @@ package chipmunk.modules.system;
 
 import chipmunk.runtime.ChipmunkModule;
 
+import java.io.Console;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +33,11 @@ import java.util.Map;
 public class SystemModule implements ChipmunkModule {
 
     public static final String SYSTEM_MODULE_NAME = "chipmunk.system";
+
+    public final InputStream stdin = System.in;
+    public final PrintStream stdout = System.out;
+    public final PrintStream stderr = System.err;
+    public final Console console = System.console();
 
     public final List<String> args;
     public final Map<String, String> env;
