@@ -160,7 +160,7 @@ public class ChipmunkCLI implements Callable<Integer> {
                 // Verify default entrypoint is findable, search compiled modules for
                 // main module if not
                 BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
-                if(mainModule == null){
+                if(mainModule == null || !(mainModule.getNamespace().has("main") && mainModule.getNamespace().getEntry("main").getType() == FieldType.METHOD)){
                     for(BinaryModule module : modules){
                         BinaryNamespace.Entry entry = module.getNamespace().getEntry("main");
                         if(entry != null && entry.getType() == FieldType.METHOD){
