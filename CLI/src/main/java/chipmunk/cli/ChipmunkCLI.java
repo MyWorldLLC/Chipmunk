@@ -56,7 +56,7 @@ public class ChipmunkCLI implements Callable<Integer> {
 
     protected static final String NO_SOURCE = "";
 
-    @Option(names = {"-e", "-entrypoint"}, defaultValue = "main::main", description = "Entrypoint in the form module.name::method")
+    @Option(names = {"-e", "-entrypoint"}, description = "Entrypoint in the form module.name::method")
     protected String entryPoint;
 
     @Option(names = {"-s", "-srcdirs"}, defaultValue = "./", description = "Comma separated list of directories of sources to compile")
