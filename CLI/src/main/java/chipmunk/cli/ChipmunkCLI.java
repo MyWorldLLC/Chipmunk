@@ -112,7 +112,17 @@ public class ChipmunkCLI implements Callable<Integer> {
                     return 1;
                 }
                 // Find all source files in the directory containing the source
-                sourcePaths.addAll(CLIUtil.collectSources(sourcePath.toAbsolutePath().getParent()));
+                sourcePaths.add(sourcePath);
+                List<Path> auxilaryPaths = CLIUtil.collectSources(sourcePath.toAbsolutePath().getParent());
+                Iterator<Path> it = auxilaryPaths.iterator();
+                while(it.hasNext()){
+                    Path p = it.next();
+                    if(Files.isSameFile(p, sourcePath)){
+                        it.remove();
+                        break;
+                    }
+                }
+                sourcePaths.addAll(auxilaryPaths);
 
             }
 
