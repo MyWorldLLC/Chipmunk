@@ -21,26 +21,48 @@
 package chipmunk.pkg.memory;
 
 import chipmunk.pkg.PackageEntry;
+import chipmunk.pkg.PackagePath;
 import chipmunk.pkg.PackageProperties;
 import chipmunk.pkg.PackageWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class MemoryPackageWriter implements PackageWriter {
 
-    @Override
-    public void writePackageProperties(PackageProperties props) throws IOException {
+    protected ZipOutputStream zip;
 
+    protected MemoryPackageWriter(OutputStream os) {
+        zip = new ZipOutputStream(os);
+    }
+
+    public MemoryPackageWriter create(OutputStream os) {
+        return new MemoryPackageWriter(os);
     }
 
     @Override
-    public OutputStream writeEntry(PackageEntry entry) throws IOException {
-        return null;
+    public void writePackageProperties(PackageProperties props) throws IOException {
+        PackagePath path = PackagePath.fromString(PackageProperties.PACKAGE_FILE);
+        ZipEntry entry = new ZipEntry(path.toString());
+        zip.putNextEntry(entry);
+        props.getProperties().store(zip, null);
+        zip.closeEntry();
+    }
+
+    @Override
+    public ZipOutputStream writeEntry(PackageEntry entry) throws IOException {
+
+        ZipEntry zipEntry = new ZipEntry(entry.getPath().toString());
+        zip.putNextEntry(zipEntry);
+
+        return zip;
     }
 
     @Override
     public void close() throws IOException {
-
+        zip.flush();
+        zip.close();
     }
 }
