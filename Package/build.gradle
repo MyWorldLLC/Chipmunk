@@ -19,7 +19,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java-library'
+apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 repositories {
