@@ -43,7 +43,7 @@ public class MemoryPackageReader implements PackageReader {
         entries = new HashMap<>();
     }
 
-    public MemoryPackageReader create(InputStream pkgStream) throws IOException {
+    public static MemoryPackageReader create(InputStream pkgStream) throws IOException {
         MemoryPackageReader reader = new MemoryPackageReader();
 
         ZipInputStream zipStream = new ZipInputStream(pkgStream);
@@ -54,7 +54,7 @@ public class MemoryPackageReader implements PackageReader {
             assert zipEntry != null;
             byte[] data = zipStream.readNBytes((int)zipEntry.getSize());
 
-            entries.put(PackagePath.fromString(zipEntry.getName()), data);
+            reader.entries.put(PackagePath.fromString(zipEntry.getName()), data);
 
             zipStream.closeEntry();
         }

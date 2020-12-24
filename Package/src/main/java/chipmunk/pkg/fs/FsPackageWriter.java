@@ -43,11 +43,11 @@ public class FsPackageWriter implements PackageWriter {
         this.fs = fs;
     }
 
-    public FsPackageWriter create(FileSystem fs) {
+    public static FsPackageWriter create(FileSystem fs) {
         return new FsPackageWriter(fs);
     }
 
-    public FsPackageWriter create(Path filePath) throws IOException {
+    public static FsPackageWriter create(Path filePath) throws IOException {
         return new FsPackageWriter(FileSystems.newFileSystem(filePath));
     }
 

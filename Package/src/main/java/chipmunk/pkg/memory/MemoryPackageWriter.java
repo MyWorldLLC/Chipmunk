@@ -38,7 +38,7 @@ public class MemoryPackageWriter implements PackageWriter {
         zip = new ZipOutputStream(os);
     }
 
-    public MemoryPackageWriter create(OutputStream os) {
+    public static MemoryPackageWriter create(OutputStream os) {
         return new MemoryPackageWriter(os);
     }
 

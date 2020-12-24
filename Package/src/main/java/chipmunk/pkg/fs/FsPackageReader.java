@@ -49,11 +49,11 @@ public class FsPackageReader implements PackageReader {
         this.fs = fs;
     }
 
-    public FsPackageReader create(FileSystem fs) {
+    public static FsPackageReader create(FileSystem fs) {
         return new FsPackageReader(fs);
     }
 
-    public FsPackageReader create(Path filePath) throws IOException {
+    public static FsPackageReader create(Path filePath) throws IOException {
         return new FsPackageReader(FileSystems.newFileSystem(filePath));
     }
 
