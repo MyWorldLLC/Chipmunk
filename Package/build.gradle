@@ -19,7 +19,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -34,3 +35,30 @@ targetCompatibility = JavaVersion.VERSION_14
 
 group = 'myworld'
 version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication){
+            artifactId = 'chipmunk-pkg'
+
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/MyWorldLLC/Chipmunk")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+}
