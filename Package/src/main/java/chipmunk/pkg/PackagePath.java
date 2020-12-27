@@ -93,6 +93,10 @@ public class PackagePath implements Comparable<PackagePath> {
         return new PackagePath(newParts, other.isDirectory());
     }
 
+    public String getName(){
+        return parts.get(parts.size() - 1);
+    }
+
     @Override
     public String toString() {
         return pathString;
