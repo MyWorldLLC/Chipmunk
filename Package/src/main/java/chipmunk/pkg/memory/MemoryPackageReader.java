@@ -48,16 +48,14 @@ public class MemoryPackageReader implements PackageReader {
         MemoryPackageReader reader = new MemoryPackageReader();
 
         ZipInputStream zipStream = new ZipInputStream(pkgStream);
-        while(zipStream.available() == 1){
 
-            ZipEntry zipEntry = zipStream.getNextEntry();
+        ZipEntry zipEntry;
+        while((zipEntry = zipStream.getNextEntry()) != null){
 
             ByteArrayOutputStream accumulator = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
 
-            assert zipEntry != null;
-
-            int read = 0;
+            int read;
             while((read = zipStream.read(buf)) > 0){
                 accumulator.write(buf, 0, read);
             }
@@ -86,6 +84,7 @@ public class MemoryPackageReader implements PackageReader {
 
     @Override
     public Collection<PackageEntry> getEntriesIn(PackagePath directory) throws IOException {
+        System.out.println(entries.entrySet());
         return entries.entrySet()
                 .stream()
                 .filter(e -> e.getKey().startsWith(directory))

@@ -20,6 +20,7 @@
  */
 
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 repositories {
@@ -28,6 +29,8 @@ repositories {
 
 dependencies {
     implementation project(':Lang')
+
+    testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 
 sourceCompatibility = JavaVersion.VERSION_14

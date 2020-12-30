@@ -62,11 +62,12 @@ public class MemoryPackageWriter implements PackageWriter {
 
     public void write(PackagePath path, byte[] data) throws IOException {
         MemoryPackageEntry entry = new MemoryPackageEntry(path, data.length);
-        writeEntry(entry);
+        writeEntry(entry).write(data);
     }
 
     @Override
     public void close() throws IOException {
+        zip.closeEntry();
         zip.flush();
         zip.close();
     }

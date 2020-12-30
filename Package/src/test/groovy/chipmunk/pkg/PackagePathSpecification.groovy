@@ -18,34 +18,31 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.pkg.memory;
+package chipmunk.pkg
 
-import chipmunk.pkg.PackageEntry;
-import chipmunk.pkg.PackagePath;
+import spock.lang.Specification
 
-public class MemoryPackageEntry implements PackageEntry {
+class PackagePathSpecification extends Specification {
 
-    protected final PackagePath path;
-    protected final long size;
+	def "/foo is a file"() {
+		when:
+		def path = PackagePath.fromString("/foo")
 
-    protected MemoryPackageEntry(PackagePath path, long size){
-        this.path = path;
-        this.size = size;
-    }
+		then:
+		path.isFile()
+		!path.isDirectory()
+		path.getParts().size() == 1
+		path.toString() == "/foo"
+	}
 
-    @Override
-    public PackagePath getPath() {
-        return path;
-    }
+	def "/foo/ is a directory"() {
+		when:
+		def path = PackagePath.fromString("/foo/")
 
-    @Override
-    public long getSize() {
-        return size;
-    }
-
-    @Override
-    public String toString(){
-        return "MemoryPackageEntry[" + path.toString() + ":" + size + "]";
-    }
-
+		then:
+		!path.isFile()
+		path.isDirectory()
+		path.getParts().size() == 1
+		path.toString() == "/foo/"
+	}
 }
