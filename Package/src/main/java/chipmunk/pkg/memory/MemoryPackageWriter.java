@@ -60,6 +60,11 @@ public class MemoryPackageWriter implements PackageWriter {
         return zip;
     }
 
+    public void write(PackagePath path, byte[] data) throws IOException {
+        MemoryPackageEntry entry = new MemoryPackageEntry(path, data.length);
+        writeEntry(entry);
+    }
+
     @Override
     public void close() throws IOException {
         zip.flush();
