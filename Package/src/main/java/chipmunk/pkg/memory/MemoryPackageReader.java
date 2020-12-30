@@ -26,6 +26,7 @@ import chipmunk.pkg.PackageProperties;
 import chipmunk.pkg.PackageReader;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -51,10 +52,17 @@ public class MemoryPackageReader implements PackageReader {
 
             ZipEntry zipEntry = zipStream.getNextEntry();
 
-            assert zipEntry != null;
-            byte[] data = zipStream.readNBytes((int)zipEntry.getSize());
+            ByteArrayOutputStream accumulator = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
 
-            reader.entries.put(PackagePath.fromString(zipEntry.getName()), data);
+            assert zipEntry != null;
+
+            int read = 0;
+            while((read = zipStream.read(buf)) > 0){
+                accumulator.write(buf, 0, read);
+            }
+
+            reader.entries.put(PackagePath.fromString(zipEntry.getName()), accumulator.toByteArray());
 
             zipStream.closeEntry();
         }
