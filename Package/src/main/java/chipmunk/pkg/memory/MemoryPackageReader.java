@@ -83,8 +83,7 @@ public class MemoryPackageReader implements PackageReader {
     }
 
     @Override
-    public Collection<PackageEntry> getEntriesIn(PackagePath directory) throws IOException {
-        System.out.println(entries.entrySet());
+    public Collection<PackageEntry> getEntriesIn(PackagePath directory) {
         return entries.entrySet()
                 .stream()
                 .filter(e -> e.getKey().startsWith(directory))
