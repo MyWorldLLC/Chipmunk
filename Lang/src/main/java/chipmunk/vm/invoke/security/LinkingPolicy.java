@@ -20,6 +20,10 @@
 
 package chipmunk.vm.invoke.security;
 
+import chipmunk.runtime.ChipmunkClass;
+import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.ChipmunkObject;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -58,6 +62,10 @@ public class LinkingPolicy {
 
     public boolean allowInstantiation(Class<?> targetType, Object[] params){
 
+        if(ChipmunkClass.class.isAssignableFrom(targetType)){
+            return true;
+        }
+
         for(PolicyEntry e : entries){
             AccessEvaluation eval = e.allowInstantiation(targetType, params);
             if(eval != AccessEvaluation.UNSPECIFIED){
@@ -69,6 +77,10 @@ public class LinkingPolicy {
     }
 
     public boolean allowMethodCall(Object target, Method method, Object[] params){
+
+        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+            return true;
+        }
 
         for(PolicyEntry e : entries){
             AccessEvaluation eval = e.allowMethodCall(target, method, params);
@@ -82,6 +94,10 @@ public class LinkingPolicy {
 
     public boolean allowFieldSet(Object target, Field field, Object value){
 
+        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+            return true;
+        }
+
         for(PolicyEntry e : entries){
             AccessEvaluation eval = e.allowFieldSet(target, field, value);
             if(eval != AccessEvaluation.UNSPECIFIED){
@@ -93,6 +109,10 @@ public class LinkingPolicy {
     }
 
     public boolean allowFieldGet(Object target, Field field){
+
+        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+            return true;
+        }
 
         for(PolicyEntry e : entries){
             AccessEvaluation eval = e.allowFieldGet(target, field);
