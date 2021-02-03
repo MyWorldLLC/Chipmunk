@@ -59,21 +59,21 @@ public class ClassPolicyEntry extends BasePolicyEntry {
 
     @Override
     public AccessEvaluation allowMethodCall(Object receiver, Method m, Object[] params){
-        return super.evaluateMethodAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateMethodAccess(isSpecifiedByPolicy(m.getDeclaringClass()));
     }
 
     @Override
     public AccessEvaluation allowFieldSet(Object receiver, Field f, Object value){
-        return super.evaluateFieldSetAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateFieldSetAccess(isSpecifiedByPolicy(f.getDeclaringClass()));
     }
 
     @Override
     public AccessEvaluation allowFieldGet(Object receiver, Field f){
-        return super.evaluateFieldGetAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateFieldGetAccess(isSpecifiedByPolicy(f.getDeclaringClass()));
     }
 
-    protected boolean isSpecifiedByPolicy(Object receiver){
-        return packages.contains(receiver.getClass());
+    protected boolean isSpecifiedByPolicy(Class<?> receiverType){
+        return packages.contains(receiverType);
     }
 
 }
