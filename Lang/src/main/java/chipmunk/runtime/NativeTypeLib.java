@@ -24,6 +24,7 @@ import chipmunk.vm.invoke.ChipmunkLibrary;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class NativeTypeLib implements ChipmunkLibrary {
 

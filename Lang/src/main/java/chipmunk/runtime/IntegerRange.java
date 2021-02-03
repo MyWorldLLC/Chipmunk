@@ -20,8 +20,11 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+
 import java.util.Iterator;
 
+@AllowChipmunkLinkage
 public class IntegerRange implements Range<Integer, Integer> {
 
 	private final int start;
@@ -55,7 +58,8 @@ public class IntegerRange implements Range<Integer, Integer> {
 	public Iterator<Integer> iterator(){
 		return new IntegerRangeIterator();
 	}
-	
+
+	@AllowChipmunkLinkage
 	protected class IntegerRangeIterator implements Iterator<Integer> {
 		
 		private int current;

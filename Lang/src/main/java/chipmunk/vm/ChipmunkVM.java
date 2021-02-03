@@ -35,6 +35,7 @@ import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.invoke.*;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.CompilationUnit;
@@ -44,7 +45,6 @@ import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.jvm.JvmCompilerConfig;
 import chipmunk.vm.scheduler.Scheduler;
 import jdk.dynalink.linker.GuardedInvocation;
-
 
 public class ChipmunkVM {
 
@@ -205,6 +205,7 @@ public class ChipmunkVM {
 		return invoke(compiled, "evaluate");
 	}
 
+	@AllowChipmunkLinkage
 	public ChipmunkModule getModule(String moduleName) throws Throwable {
 		return getModule(ChipmunkScript.getCurrentScript(), moduleName);
 	}

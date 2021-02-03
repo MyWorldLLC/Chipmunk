@@ -24,6 +24,7 @@ import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.ChipmunkObject;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -78,7 +79,8 @@ public class LinkingPolicy {
 
     public boolean allowMethodCall(Object target, Method method, Object[] params){
 
-        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+        if(method.getAnnotation(AllowChipmunkLinkage.class) != null ||
+                method.getDeclaringClass().getDeclaredAnnotation(AllowChipmunkLinkage.class) != null){
             return true;
         }
 
@@ -94,7 +96,8 @@ public class LinkingPolicy {
 
     public boolean allowFieldSet(Object target, Field field, Object value){
 
-        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+        if(field.getAnnotation(AllowChipmunkLinkage.class) != null ||
+            field.getDeclaringClass().getDeclaredAnnotation(AllowChipmunkLinkage.class) != null){
             return true;
         }
 
@@ -110,7 +113,8 @@ public class LinkingPolicy {
 
     public boolean allowFieldGet(Object target, Field field){
 
-        if(target instanceof ChipmunkObject || target instanceof ChipmunkModule || target instanceof ChipmunkClass) {
+        if(field.getAnnotation(AllowChipmunkLinkage.class) != null ||
+                field.getDeclaringClass().getDeclaredAnnotation(AllowChipmunkLinkage.class) != null){
             return true;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2021 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,16 +18,19 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.runtime;
+package chipmunk.vm.invoke.security;
 
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@AllowChipmunkLinkage
-public interface ChipmunkObject {
-
-    ChipmunkClass getChipmunkClass();
-
-    default ChipmunkModule getModule(){
-        return getChipmunkClass().getModule();
-    }
+@Target(value={
+        ElementType.TYPE,
+        ElementType.CONSTRUCTOR,
+        ElementType.METHOD,
+        ElementType.FIELD
+})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AllowChipmunkLinkage {
 }

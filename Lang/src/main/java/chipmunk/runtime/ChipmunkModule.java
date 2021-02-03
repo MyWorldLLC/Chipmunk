@@ -21,16 +21,20 @@
 package chipmunk.runtime;
 
 import chipmunk.vm.ChipmunkVM;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 public interface ChipmunkModule {
 
+    @AllowChipmunkLinkage
     default String getName() {
         return getClass().getName();
     }
+
     default void initialize(ChipmunkVM vm){}
+
+    @AllowChipmunkLinkage
     default ChipmunkModule getModule(){
         return this;
     }
-    //String[] getDependencies();
 
 }

@@ -30,6 +30,7 @@ import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -142,6 +143,7 @@ public class JvmCompiler {
                         Type.getInternalName(ChipmunkModule.class)
                 });
         moduleWriter.visitSource(module.getFileName(), null);
+        moduleWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Implement ChipmunkModule interface
 
@@ -237,6 +239,7 @@ public class JvmCompiler {
                         Type.getInternalName(ChipmunkClass.class)
                 });
         cClassWriter.visitSource(cls.getModule().getFileName(), null);
+        cClassWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class constructor
         MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
@@ -268,6 +271,7 @@ public class JvmCompiler {
                 Type.getInternalName(ChipmunkObject.class)
         });
         cInsWriter.visitSource(cls.getModule().getFileName(), null);
+        cInsWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class field
         cInsWriter.visitField(Opcodes.ACC_PUBLIC, "$cClass", Type.getType(ChipmunkClass.class).getDescriptor(), null, null)

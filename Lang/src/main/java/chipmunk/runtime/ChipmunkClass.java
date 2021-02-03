@@ -20,12 +20,16 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+
 public interface ChipmunkClass {
 
+    @AllowChipmunkLinkage
     default String getSimpleName(){
         return getClass().getSimpleName();
     }
 
+    @AllowChipmunkLinkage
     default String getName() {
         return getClass().getName();
     }
@@ -38,6 +42,7 @@ public interface ChipmunkClass {
         return null;
     }
 
+    @AllowChipmunkLinkage
     ChipmunkModule getModule();
 
 }
