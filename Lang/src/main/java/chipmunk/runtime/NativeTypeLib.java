@@ -210,10 +210,35 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a + b;
     }
 
-    // ================================ Collection Operations ================================
+    // ================================ Map Operations ================================
+    public static Object getAt(HashMap<Object, Object> a, Object key){
+        return Null.wrapNull(a.get(key));
+    }
+
+    public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
+        return Null.wrapNull(a.put(key, value));
+    }
+
+    public static Object remove(HashMap<Object, Object> a, Object key){
+        return Null.wrapNull(a.remove(key));
+    }
+
+    public static Boolean remove(HashMap<Object, Object> a, Object key, Object value){
+        return a.remove(key, value);
+    }
+
+    public static String toString(HashMap<Object, Object> a){
+        return a.toString();
+    }
+
+    // ================================ List Operations ================================
 
     public static void add(ArrayList<Object> a, Object element){
         a.add(element);
+    }
+
+    public static void add(ArrayList<Object> a, Integer i, Object element){
+        a.add(i, element);
     }
 
     public static Object getAt(ArrayList<Object> a, Integer element){
@@ -224,17 +249,12 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a.set(index, element);
     }
 
-    public static Object getAt(HashMap<Object, Object> a, Object key){
-        return Null.wrapNull(a.get(key));
-    }
-
-    public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
-        return Null.wrapNull(a.put(key, value));
-    }
-
-    // ================================ List Operations ================================
     public static Object remove(ArrayList<Object> a, Integer index){
         return a.remove(index.intValue());
+    }
+
+    public static String toString(ArrayList<Object> a){
+        return a.toString();
     }
 
     // ================================ Object Operations ================================
