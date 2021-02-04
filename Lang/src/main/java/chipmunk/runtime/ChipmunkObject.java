@@ -22,11 +22,12 @@ package chipmunk.runtime;
 
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
-@AllowChipmunkLinkage
+
 public interface ChipmunkObject {
 
     ChipmunkClass getChipmunkClass();
 
+    @AllowChipmunkLinkage
     default ChipmunkModule getModule(){
         return getChipmunkClass().getModule();
     }
