@@ -64,13 +64,13 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         if(op.getBaseOperation().equals(StandardOperation.CALL)){
             // Bind method calls
-            return getInvocationHandle(lookup, receiver, callType, (String)op.getName(), params);
+            return getInvocationHandle(lookup, receiver, callType, (String)op.getName(), params, true);
         }else if(op.getBaseOperation().equals(StandardOperation.GET)){
             // Bind field access
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            GuardedInvocation fieldHandle = getField(target, linkRequest, (String) op.getName(), false);
+            GuardedInvocation fieldHandle = getField(target, linkRequest, (String) op.getName(), false, true);
             if(fieldHandle == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
@@ -82,7 +82,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             Object target = linkRequest.getReceiver();
             Objects.requireNonNull(target, "Cannot access fields on a null reference");
 
-            GuardedInvocation fieldHandle = getField(target, linkRequest, (String) op.getName(), true);
+            GuardedInvocation fieldHandle = getField(target, linkRequest, (String) op.getName(), true, true);
             if(fieldHandle == null){
                 throw new NoSuchFieldException(target.getClass().getName() + "." + op.getName());
             }
@@ -94,6 +94,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     }
 
     public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params) throws Exception {
+        return getInvocationHandle(lookup, receiver, callType, methodName, params, true);
+    }
+
+    public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, boolean enforceLinkagePolicy) throws Exception {
 
         if(receiver == null){
             throw new NullPointerException("Invocation target is null");
@@ -104,7 +108,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             pTypes[i] = params[i] != null ? params[i].getClass() : null;
         }
 
-        GuardedInvocation invocation = resolveCallTarget(lookup, receiver, callType, methodName, params, pTypes);
+        GuardedInvocation invocation = resolveCallTarget(lookup, receiver, callType, methodName, params, pTypes, enforceLinkagePolicy);
 
         if(invocation == null){
             // Failed to resolve method or a trait providing the method
@@ -115,14 +119,14 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return invocation;
     }
 
-    public GuardedInvocation resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, Class<?>[] pTypes) throws Exception {
+    public GuardedInvocation resolveCallTarget(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws Exception {
         // Library methods should override type methods, so check them first
         Class<?> expectedReturnType = callType.returnType();
         ChipmunkLibraries libs = getLibrariesForThread();
         MethodHandle callTarget = libs != null ? libs.getMethod(lookup, expectedReturnType, methodName, pTypes) : null;
 
         if (callTarget == null) {
-            callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes);
+            callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes, enforceLinkagePolicy);
         }
 
         if (callTarget != null) {
@@ -152,7 +156,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                         continue;
                     }
 
-                    GuardedInvocation invocation = resolveCallTarget(lookup, traitReceiver, callType, methodName, params, pTypes);
+                    GuardedInvocation invocation = resolveCallTarget(lookup, traitReceiver, callType, methodName, params, pTypes, enforceLinkagePolicy);
 
                     if (invocation != null) {
 
@@ -179,7 +183,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes) throws IllegalAccessException {
+    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException {
 
         Class<?> receiverType = receiver.getClass();
 
@@ -216,7 +220,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if (paramsMatch) {
                     // We have a match!
                     LinkingPolicy linkPolicy = getLinkingPolicy();
-                    if(linkPolicy != null && !linkPolicy.allowMethodCall(receiver, m, params)){
+                    if(linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m, params)){
                         throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
                     }
                     m.setAccessible(true);
@@ -228,7 +232,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    public GuardedInvocation getField(Object receiver, LinkRequest linkRequest, String fieldName, boolean set) throws Exception {
+    public GuardedInvocation getField(Object receiver, LinkRequest linkRequest, String fieldName, boolean set, boolean enforceLinkagePolicy) throws Exception {
 
         final Class<?>  receiverType = receiver.getClass();
         Field[] fields = receiverType.getFields();
@@ -236,7 +240,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             if(f.getName().equals(fieldName)){
 
                 LinkingPolicy linkPolicy = getLinkingPolicy();
-                if(linkPolicy != null){
+                if(linkPolicy != null && enforceLinkagePolicy){
                     if(set){
                         if(!linkPolicy.allowFieldSet(receiver, f, linkRequest.getArguments()[1])){
                             throw new IllegalAccessException(receiverType.getName() + "." + fieldName + ": policy forbids set to " + linkRequest.getArguments()[1]);
@@ -306,7 +310,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     continue;
                 }
 
-                GuardedInvocation invocation = getField(traitReceiver, linkRequest, fieldName, set);
+                GuardedInvocation invocation = getField(traitReceiver, linkRequest, fieldName, set, true);
                 if(invocation != null){
                     Class<?> rootReceiverType = linkRequest.getReceiver().getClass();
 

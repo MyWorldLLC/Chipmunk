@@ -266,7 +266,7 @@ public class ChipmunkVM {
 		}
 
 		GuardedInvocation invoker = linker
-				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams);
+				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams, false);
 
 		return invoker.getInvocation().invokeWithArguments(callParams);
 	}
