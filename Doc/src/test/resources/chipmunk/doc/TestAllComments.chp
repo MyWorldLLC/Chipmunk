@@ -1,0 +1,19 @@
+##This is a test module
+module test.all.comments
+
+##This is a class
+class AThing {
+
+    ##This is a class method
+    def aClassMethod(){}
+
+    ##This is a class variable
+    var aClassVariable
+}
+
+##This is a module method
+## with two doc lines
+def aModuleMethod(){}
+
+##This is a module variable
+var aModuleVariable

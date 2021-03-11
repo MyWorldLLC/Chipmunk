@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2021 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':Lang')
+    implementation 'org.freemarker:freemarker:2.3.31'
+
+    testImplementation 'org.spockframework:spock-core:2.0-M4-groovy-3.0'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+    test {
+        groovy {
+            srcDir 'src/test/groovy'
+        }
+    }
+}
+
+clean {
+    delete 'build'
+    delete 'dist'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task genTestFiles(type: JavaExec, dependsOn: compileTestGroovy) {
+    classpath = sourceSets.test.runtimeClasspath
+    main = 'chipmunk.doc.TestFileGenerator'
+    workingDir = "$projectDir/src/test/groovy/chipmunk/doc"
+    args './generated'
+}
