@@ -92,7 +92,7 @@ public class DocAstVisitor implements AstVisitor {
         // Seek backwards, skipping newlines & accumulating doc comments until
         // we hit a token that's not a doc comment
         Token last = null;
-        System.out.println(tokens.peek(-1));
+
         while(newlineOrDocComment(tokens.peek(-1)) && tokens.peek(-1) != last){
             Token token = tokens.peek(-1);
             tokens.rewind(1);
