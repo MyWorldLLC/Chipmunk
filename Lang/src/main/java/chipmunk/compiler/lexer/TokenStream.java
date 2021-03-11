@@ -29,7 +29,7 @@ public class TokenStream {
 	protected int cursor;
 	
 	public TokenStream(){
-		tokens = new ArrayList<Token>();
+		tokens = new ArrayList<>();
 		cursor = 0;
 	}
 	
@@ -53,7 +53,7 @@ public class TokenStream {
 	public Token get(){
 		
 		Token token = tokens.get(cursor);
-		cursor++;
+		cursor = Math.min(cursor + 1, tokens.size() - 1);
 		
 		return token;
 	}
