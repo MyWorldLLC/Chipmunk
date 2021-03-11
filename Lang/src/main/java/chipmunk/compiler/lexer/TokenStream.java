@@ -46,13 +46,7 @@ public class TokenStream {
 	}
 	
 	public Token peek(int count){
-		
-		int index = cursor + count;
-		
-		if(index >= tokens.size()){
-			index = tokens.size() - 1;
-		}
-		
+		int index = Math.min(Math.max(cursor + count, 0), tokens.size() - 1);
 		return tokens.get(index);
 	}
 	
@@ -84,23 +78,15 @@ public class TokenStream {
 	}
 	
 	public void rewind(int places){
-		
-		cursor -= places;
-		
-		if(cursor < 0){
-			cursor = 0;
-		}
-		
+		cursor = Math.max(cursor - places, 0);
 	}
 	
 	public void skip(int places){
-		
-		cursor += places;
-		
-		if(cursor >= tokens.size()){
-			cursor = tokens.size() - 1;
-		}
-		
+		cursor = Math.min(cursor + places, tokens.size() - 1);
+	}
+
+	public void seek(int index){
+		cursor = Math.min(Math.max(index, 0), tokens.size() - 1);
 	}
 	
 	public String toString(){
