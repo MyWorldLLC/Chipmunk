@@ -85,14 +85,13 @@ public class DocAstVisitor implements AstVisitor {
 
     protected DocNode enterDocNode(AstNode astNode){
 
-        System.out.println(astNode.getBeginTokenIndex());
         tokens.seek(astNode.getBeginTokenIndex() - 1);
 
         Deque<Token> comments = new ArrayDeque<>();
+
         // Seek backwards, skipping newlines & accumulating doc comments until
         // we hit a token that's not a doc comment
         Token last = null;
-
         while(newlineOrDocComment(tokens.peek(-1)) && tokens.peek(-1) != last){
             Token token = tokens.peek(-1);
             tokens.rewind(1);
