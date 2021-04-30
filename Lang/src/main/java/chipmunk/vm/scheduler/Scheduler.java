@@ -63,8 +63,12 @@ public class Scheduler {
     private void schedule(){
         while(!Thread.interrupted()){
             // TODO - yield scripts that have run for too long
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
-        Thread.currentThread().interrupt();
     }
 
 }
