@@ -273,19 +273,23 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     public static void add(ArrayList<Object> a, Integer i, Object element){
-        a.add(i, element);
+        if (i < 0) {
+            a.add(a.size() - i, element);
+        } else {
+            a.add(i, element);
+        }
     }
 
-    public static Object getAt(ArrayList<Object> a, Integer element){
-        return a.get(element);
+    public static Object getAt(ArrayList<Object> a, Integer i){
+        return i < 0 ? a.get(a.size() - i) : a.get(i);
     }
 
-    public static Object setAt(ArrayList<Object> a, Integer index, Object element){
-        return a.set(index, element);
+    public static Object setAt(ArrayList<Object> a, Integer i, Object element){
+        return i < 0 ? a.set(a.size() - i, element) : a.set(i, element);
     }
 
-    public static Object remove(ArrayList<Object> a, Integer index){
-        return a.remove(index.intValue());
+    public static Object remove(ArrayList<Object> a, Integer i){
+        return i < 0 ? a.remove(a.size() - i) : a.remove(i);
     }
 
     public static String toString(ArrayList<Object> a){
