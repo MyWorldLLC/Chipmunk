@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2021 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,22 +20,13 @@
 
 package chipmunk.compiler.parser.parselets;
 
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
-import chipmunk.compiler.lexer.Token;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.OperatorNode;
 
-public class PostIncDecParselet implements InfixParselet {
+public class CastOperatorParselet extends BaseBinaryOperatorParselet {
 
-	@Override
-	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
-		return new OperatorNode(token, left);
-	}
-
-	@Override
-	public int getPrecedence() {
-		return OperatorPrecedence.POST_INC_DEC_CAST;
-	}
+    @Override
+    public int getPrecedence() {
+        return OperatorPrecedence.POST_INC_DEC_CAST;
+    }
 
 }

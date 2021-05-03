@@ -311,6 +311,11 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.onLine(node.getLineNumber());
 				assembler._instanceof();
 				break;
+			case AS:
+				op.visitChildren(this);
+				assembler.onLine(node.getLineNumber());
+				assembler.as();
+				break;
 			default:
 				throw new SyntaxError(
 						String.format("Unsupported operator %s at %d:%d",

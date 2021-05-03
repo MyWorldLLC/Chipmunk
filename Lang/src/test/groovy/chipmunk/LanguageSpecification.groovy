@@ -285,4 +285,12 @@ class LanguageSpecification extends Specification {
 		then:
 		result == true
 	}
+
+	def "Run Casts.chp"(){
+		when:
+		def result = compileAndRun("Casts.chp")
+
+		then:
+		result == true
+	}
 }

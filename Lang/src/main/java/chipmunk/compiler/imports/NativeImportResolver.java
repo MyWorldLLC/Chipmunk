@@ -24,6 +24,7 @@ import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolType;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.invoke.ChipmunkName;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -98,20 +99,20 @@ public class NativeImportResolver implements ImportResolver {
     }
 
     protected Symbol makeFieldSymbol(Field f){
-        Symbol s = new Symbol(f.getName(), Modifier.isFinal(f.getModifiers()));
+        Symbol s = new Symbol(getFieldName(f), Modifier.isFinal(f.getModifiers()));
         s.setType(SymbolType.VAR);
         return s;
     }
 
     protected Symbol makeMethodSymbol(Method m){
-        Symbol s = new Symbol(m.getName(), Modifier.isFinal(m.getModifiers()));
+        Symbol s = new Symbol(getMethodName(m), Modifier.isFinal(m.getModifiers()));
         s.setType(SymbolType.METHOD);
         return s;
     }
 
     protected Field find(Field[] fields, String name){
         for(Field f : fields){
-            if(f.getName().equals(name)){
+            if(getFieldName(f).equals(name)){
                 return f;
             }
         }
@@ -120,11 +121,21 @@ public class NativeImportResolver implements ImportResolver {
 
     protected Method find(Method[] methods, String name){
         for(Method m : methods){
-            if(m.getName().equals(name)){
+            if(getMethodName(m).equals(name)){
                 return m;
             }
         }
         return null;
+    }
+
+    protected String getFieldName(Field f){
+        ChipmunkName override = f.getAnnotation(ChipmunkName.class);
+        return override != null ? override.value() : f.getName();
+    }
+
+    protected String getMethodName(Method m){
+        ChipmunkName override = m.getAnnotation(ChipmunkName.class);
+        return override != null ? override.value() : m.getName();
     }
 
 }

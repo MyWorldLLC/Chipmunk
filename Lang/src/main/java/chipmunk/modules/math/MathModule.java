@@ -21,7 +21,9 @@
 package chipmunk.modules.math;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
+@AllowChipmunkLinkage
 public class MathModule implements ChipmunkModule {
 
     public static final String MATH_MODULE_NAME = "chipmunk.math";

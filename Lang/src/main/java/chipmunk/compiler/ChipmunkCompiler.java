@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import chipmunk.compiler.imports.NativeImportResolver;
+import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ast.AstVisitor;
@@ -60,6 +61,7 @@ public class ChipmunkCompiler {
 		astResolver = new AstImportResolver();
 		binaryResolver = new BinaryImportResolver(loader);
 		nativeResolver = new NativeImportResolver(loader);
+		loader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 
 		passes = new HashMap<>();
 		passes.put(Pass.POST_PARSE, Arrays.asList(
@@ -84,6 +86,7 @@ public class ChipmunkCompiler {
 	public void setModuleLoader(ModuleLoader loader){
 		binaryResolver.setModuleLoader(loader);
 		nativeResolver.setModuleLoader(loader);
+		loader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 	}
 
 	public AstImportResolver getAstResolver(){

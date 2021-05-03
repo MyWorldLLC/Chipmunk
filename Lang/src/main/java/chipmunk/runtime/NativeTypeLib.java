@@ -29,6 +29,26 @@ import java.util.Objects;
 public class NativeTypeLib implements ChipmunkLibrary {
 
     // ================================ Integer Math ================================
+    public static Object as(Integer a, Class<?> type){
+        switch (type.getName()){
+            case "java.lang.Integer" -> {
+                return a;
+            }
+            case "java.lang.Float" -> {
+                return Float.valueOf(a);
+            }
+            case "java.lang.Boolean" -> {
+                return a != 0;
+            }
+            case "java.lang.String" -> {
+                return a.toString();
+            }
+            default -> {
+                throw new IllegalArgumentException("Cannot cast integer to " + type.getName());
+            }
+        }
+    }
+
     public static Integer plus(Integer a, Integer b){
         return a + b;
     }
@@ -114,7 +134,22 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     // ================================ Float Math ================================
-
+    public static Object as(Float a, Class<?> type){
+        switch (type.getName()){
+            case "java.lang.Integer" -> {
+                return a.intValue();
+            }
+            case "java.lang.Float" -> {
+                return a;
+            }
+            case "java.lang.String" -> {
+                return a.toString();
+            }
+            default -> {
+                throw new IllegalArgumentException("Cannot cast float to " + type.getName());
+            }
+        }
+    }
     public static Float plus(Float a, Float b){
         return a + b;
     }

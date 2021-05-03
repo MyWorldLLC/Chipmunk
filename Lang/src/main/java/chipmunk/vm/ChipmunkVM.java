@@ -33,6 +33,7 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
+import chipmunk.modules.lang.LangModule;
 import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.invoke.*;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
@@ -171,6 +172,7 @@ public class ChipmunkVM {
 
 		CompilationUnit unit = new CompilationUnit();
 		unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
+		unit.getModuleLoader().registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 

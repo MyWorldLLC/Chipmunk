@@ -194,7 +194,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 continue;
             }
 
-            if (!m.getName().equals(methodName)) {
+            if (!getMethodName(m).equals(methodName)) {
                 continue;
             }
 
@@ -237,7 +237,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         final Class<?>  receiverType = receiver.getClass();
         Field[] fields = receiverType.getFields();
         for(Field f : fields){
-            if(f.getName().equals(fieldName)){
+            if(getFieldName(f).equals(fieldName)){
 
                 LinkingPolicy linkPolicy = getLinkingPolicy();
                 if(linkPolicy != null && enforceLinkagePolicy){
@@ -292,7 +292,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if (receiverField == null) {
                     Class<?> receiverClass = receiver.getClass();
                     for(Field f : receiverClass.getFields()){
-                        if(f.getName().equals(trait.getField())){
+                        if(getFieldName(f).equals(trait.getField())){
                             receiverField = f;
                             receiverField.setAccessible(true);
                             trait.setReflectedField(receiverField);
@@ -434,6 +434,16 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         }
 
         return null;
+    }
+
+    protected String getFieldName(Field f){
+        ChipmunkName override = f.getAnnotation(ChipmunkName.class);
+        return override != null ? override.value() : f.getName();
+    }
+
+    protected String getMethodName(Method m){
+        ChipmunkName override = m.getAnnotation(ChipmunkName.class);
+        return override != null ? override.value() : m.getName();
     }
 
     public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
