@@ -22,20 +22,25 @@ package chipmunk.modules.lang;
 
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.invoke.ChipmunkName;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 public class LangModule implements ChipmunkModule {
 
     public static final String MODULE_NAME = "chipmunk.lang";
 
+    @AllowChipmunkLinkage
     @ChipmunkName("int")
     public final Class<Integer> _int;
 
+    @AllowChipmunkLinkage
     @ChipmunkName("float")
     public final Class<Float> _float;
 
+    @AllowChipmunkLinkage
     @ChipmunkName("boolean")
     public final Class<Boolean> _boolean;
 
+    @AllowChipmunkLinkage
     @ChipmunkName("String")
     public final Class<String> _string;
 
