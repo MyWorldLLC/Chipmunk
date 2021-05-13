@@ -38,9 +38,6 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'org.asciidoctor.convert'
 
-sourceCompatibility = JavaVersion.VERSION_14
-targetCompatibility = JavaVersion.VERSION_14
-
 group = 'myworld'
 version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
 
@@ -54,6 +51,12 @@ dependencies {
 
     testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
     jmh 'org.openjdk.jmh:jmh-core:1.26'
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(16)
+	}
 }
 
 sourceSets {
