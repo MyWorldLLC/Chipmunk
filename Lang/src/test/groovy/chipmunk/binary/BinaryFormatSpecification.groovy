@@ -40,7 +40,7 @@ class BinaryFormatSpecification  extends Specification {
 
         module = writeAndRead(module)
         def script = vm.compileScript(module)
-        def result = script.run()
+        def result = vm.runAsync(script).get()
 
         then:
         noExceptionThrown()
