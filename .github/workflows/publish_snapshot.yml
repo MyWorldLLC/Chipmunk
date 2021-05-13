@@ -19,6 +19,9 @@ jobs:
           server-id: github
           settings-path: ${{ github.workspace }}
 
+      - name: Gradle Clean
+        run: ./gradlew clean
+
       - name: Build with Gradle
         run: ./gradlew build
 

@@ -23,6 +23,9 @@ jobs:
         id: tag
         uses: dawidd6/action-get-tag@v1
 
+      - name: Gradle Clean
+        run: ./gradlew clean
+
       - name: Build with Gradle
         run: ./gradlew build -Prelease=${{ steps.tag.outputs.tag }}
 
