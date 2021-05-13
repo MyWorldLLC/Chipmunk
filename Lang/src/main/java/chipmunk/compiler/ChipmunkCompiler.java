@@ -65,6 +65,7 @@ public class ChipmunkCompiler {
 
 		passes = new HashMap<>();
 		passes.put(Pass.POST_PARSE, Arrays.asList(
+				new LangImportVisitor(),
 				new InitializerBuilderVisitor(),
 				new InnerMethodRewriteVisitor()));
 

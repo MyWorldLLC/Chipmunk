@@ -23,6 +23,7 @@ package chipmunk.vm;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
+import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
 import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
@@ -49,6 +50,8 @@ public class ModuleLoader {
 		loadedModules = new ConcurrentHashMap<>();
 		nativeFactories = new ConcurrentHashMap<>();
 		classLoader = new ChipmunkClassLoader();
+
+		registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 	}
 
 	public ModuleLoader(ModuleLoader delegate){

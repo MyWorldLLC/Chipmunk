@@ -172,7 +172,6 @@ public class ChipmunkVM {
 
 		CompilationUnit unit = new CompilationUnit();
 		unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
-		unit.getModuleLoader().registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 
