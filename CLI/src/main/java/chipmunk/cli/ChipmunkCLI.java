@@ -91,7 +91,7 @@ public class ChipmunkCLI implements Callable<Integer> {
             ModuleLoader loader = new ModuleLoader();
             registerBuiltins(loader);
 
-            Set<Path> sourcePaths = new HashSet<>();
+            List<Path> sourcePaths = new ArrayList<>();
             List<ChipmunkSource> sources = new ArrayList<>();
 
 
