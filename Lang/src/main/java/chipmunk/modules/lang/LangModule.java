@@ -24,6 +24,9 @@ import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
+import java.util.List;
+import java.util.Map;
+
 public class LangModule implements ChipmunkModule {
 
     public static final String MODULE_NAME = "chipmunk.lang";
@@ -44,11 +47,22 @@ public class LangModule implements ChipmunkModule {
     @ChipmunkName("String")
     public final Class<String> _string;
 
+    @AllowChipmunkLinkage
+    @ChipmunkName("List")
+    public final Class<List> _list;
+
+    @AllowChipmunkLinkage
+    @ChipmunkName("Map")
+    public final Class<Map> _map;
+
     public LangModule(){
         _int = Integer.class;
         _float = Float.class;
         _boolean = Boolean.class;
         _string = String.class;
+
+        _list = List.class;
+        _map = Map.class;
     }
 
     @Override
