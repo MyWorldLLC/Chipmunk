@@ -21,10 +21,11 @@
 package chipmunk.runtime;
 
 import chipmunk.vm.invoke.ChipmunkLibrary;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
+import java.util.Iterator;
 
 public class NativeTypeLib implements ChipmunkLibrary {
 
@@ -290,6 +291,25 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static Object remove(ArrayList<Object> a, Integer i){
         return i < 0 ? a.remove(a.size() - i) : a.remove(i);
+    }
+
+    public static Iterator<Object> iterator(ArrayList<Object> a){
+        return new Iterator<>() {
+
+            private Iterator<Object> it = a.iterator();
+
+            @AllowChipmunkLinkage
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @AllowChipmunkLinkage
+            @Override
+            public Object next() {
+                return it.next();
+            }
+        };
     }
 
     public static String toString(ArrayList<Object> a){
