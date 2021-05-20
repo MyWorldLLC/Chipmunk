@@ -294,4 +294,20 @@ class LanguageSpecification extends Specification {
 		then:
 		result == true
 	}
+
+	def "Run ListSort.chp"(){
+		when:
+		def result = compileAndRun("ListSort.chp")
+
+		then:
+		result == [1, 2, 3]
+	}
+
+	def "Run ListSortWithComparator.chp"(){
+		when:
+		def result = compileAndRun("ListSortWithComparator.chp")
+
+		then:
+		result == [1, 2, 3]
+	}
 }

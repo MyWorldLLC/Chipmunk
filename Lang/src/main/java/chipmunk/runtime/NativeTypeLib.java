@@ -20,12 +20,12 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.ChipmunkLibrary;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 public class NativeTypeLib implements ChipmunkLibrary {
 
@@ -230,11 +230,11 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     public static Object as(Boolean value, Class<?> otherType){
-        if(otherType == Integer.class){
+        if(otherType.equals(Integer.class)){
             return value ? 1 : 0;
-        }else if(otherType == Float.class){
+        }else if(otherType.equals(Float.class)){
             return value ? 1.0f : 0.0f;
-        }else if(otherType == Boolean.class){
+        }else if(otherType.equals(Boolean.class)){
             return value;
         }else{
             throw new IllegalArgumentException(String.format("Cannot convert boolean to %s", otherType.getSimpleName()));
@@ -329,6 +329,20 @@ public class NativeTypeLib implements ChipmunkLibrary {
                 return it.next();
             }
         };
+    }
+
+    public static <T extends Comparable> ArrayList<T> sort(ArrayList<T> a){
+        Collections.sort(a, Comparator.naturalOrder());
+        return a;
+    }
+
+    public static ArrayList<Object> sort(ArrayList<Object> a, Object comparator){
+        ChipmunkScript script = ChipmunkScript.getCurrentScript();
+        ChipmunkVM vm = script.getVM();
+        Collections.sort(a, (b, c) ->
+            (Integer) vm.invoke(script, comparator, "compare", new Object[]{b, c})
+        );
+        return a;
     }
 
     public static String toString(ArrayList<Object> a){
