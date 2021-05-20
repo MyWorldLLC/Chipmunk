@@ -263,6 +263,25 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a.remove(key, value);
     }
 
+    public static Iterator<Object> iterator(HashMap<Object, Object> a){
+        return new Iterator<>() {
+
+            private Iterator<Object> it = a.keySet().iterator();
+
+            @AllowChipmunkLinkage
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @AllowChipmunkLinkage
+            @Override
+            public Object next() {
+                return it.next();
+            }
+        };
+    }
+
     public static String toString(HashMap<Object, Object> a){
         return a.toString();
     }
