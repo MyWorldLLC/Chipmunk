@@ -34,14 +34,22 @@ public class MapParselet implements PrefixParselet {
 		
 		TokenStream tokens = parser.getTokens();
 		while(tokens.peek().getType() != Token.Type.RBRACE){
-			
+
+			parser.skipNewlinesAndComments();
+
 			AstNode key = parser.parseExpression();
+
+			parser.skipNewlinesAndComments();
+
 			parser.forceNext(Token.Type.COLON);
+
+			parser.skipNewlinesAndComments();
+
 			AstNode value = parser.parseExpression();
 			
 			map.addMapping(key, value);
 			
-			parser.skipNewlines();
+			parser.skipNewlinesAndComments();
 			
 			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACE))){
 				parser.syntaxError("Error parsing map", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACE);

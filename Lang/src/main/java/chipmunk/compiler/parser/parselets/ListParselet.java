@@ -34,9 +34,10 @@ public class ListParselet implements PrefixParselet {
 		
 		TokenStream tokens = parser.getTokens();
 		while(!parser.peek(Token.Type.RBRACKET)){
-			
+
+			parser.skipNewlinesAndComments();
 			list.addChild(parser.parseExpression());
-			parser.skipNewlines();
+			parser.skipNewlinesAndComments();
 			
 			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACKET))){
 				parser.syntaxError("Error parsing list", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACKET);
