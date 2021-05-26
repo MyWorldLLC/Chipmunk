@@ -85,6 +85,14 @@ public class JvmCompiler {
 
         run.visitCode();
 
+        // Make this script current
+        run.visitVarInsn(Opcodes.ALOAD, 0);
+        run.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getType(ChipmunkScript.class).getInternalName(),
+                "setCurrentScript",
+                Type.getMethodType(Type.VOID_TYPE, Type.getType(ChipmunkScript.class)).getDescriptor(),
+                false);
+
         // Get the module instance
         run.visitVarInsn(Opcodes.ALOAD, 0);
         run.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
@@ -302,6 +310,24 @@ public class JvmCompiler {
         final NamespaceInfo insNamespace = new NamespaceInfo(cInsWriter, insConstructor, className);
         compilation.enterNamespace(insNamespace);
         visitNamespace(compilation, cls.getInstanceNamespace());
+
+        // Generate toString() that Java recognizes
+        if(cls.getInstanceNamespace().has("toString")
+                && cls.getInstanceNamespace().getEntry("toString").getType() == FieldType.METHOD){
+
+            MethodVisitor toString = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "toString", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null);
+            toString.visitCode();
+
+            // Invoke the toString() method defined in Chipmunk code
+            toString.visitVarInsn(Opcodes.ALOAD, 0);
+            toString.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), "toString", Type.getMethodType(Type.getType(Object.class)).getDescriptor(), false);
+            toString.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(String.class).getInternalName());
+            toString.visitInsn(Opcodes.ARETURN);
+
+            toString.visitMaxs(0, 0);
+            toString.visitEnd();
+
+        }
         compilation.exitNamespace();
 
         // Store the $cClass
