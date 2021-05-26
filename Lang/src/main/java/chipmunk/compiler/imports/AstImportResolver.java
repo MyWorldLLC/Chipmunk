@@ -58,11 +58,11 @@ public class AstImportResolver implements ImportResolver {
         }
 
         Symbol symbol = node.get().getSymbolTable().getSymbol(name);
-        if(symbol != null){
-            symbol = symbol.clone();
+        if(symbol == null || symbol.isImported()){
+            return null;
         }
 
-        return symbol;
+        return symbol.clone();
     }
 
     @Override
@@ -76,6 +76,7 @@ public class AstImportResolver implements ImportResolver {
         return node.get().getSymbolTable()
                 .getSymbolsUnmodifiable()
                 .stream()
+                .filter(s -> !s.isImported())
                 .map(Symbol::clone)
                 .collect(Collectors.toList());
     }
