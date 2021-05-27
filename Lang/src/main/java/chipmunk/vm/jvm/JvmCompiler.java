@@ -286,7 +286,8 @@ public class JvmCompiler {
                 .visitEnd();
 
         // Generate instance constructor
-        BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry(className).getBinaryMethod();
+        final String constructorName = "$" + className;
+        BinaryMethod binaryConstructor = cls.getInstanceNamespace().getEntry(constructorName).getBinaryMethod();
 
         // The self parameter is always implicit and is not reflected in the binaryConstructor.getArgCount() call.
         // The <init> params then are:
@@ -344,7 +345,7 @@ public class JvmCompiler {
         for(int i = 0; i < constructorTypes.length; i++){
             insConstructor.visitVarInsn(Opcodes.ALOAD, i + 2);
         }
-        insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), className, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
+        insConstructor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, jvmName(qualifiedInsName), constructorName, Type.getMethodType(Type.getType(Object.class), constructorTypes).getDescriptor(), false);
 
 
         // Close constructors *after* visiting the class namespaces

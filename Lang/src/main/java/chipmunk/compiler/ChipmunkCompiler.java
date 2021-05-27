@@ -71,7 +71,7 @@ public class ChipmunkCompiler {
 
 		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(
 				new SymbolTableBuilderVisitor(),
-				new DefaultConstructorVisitor()));
+				new ConstructorVisitor()));
 
 		passes.put(Pass.IMPORT_RESOLUTION, Arrays.asList(
 				new ImportResolverVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)))

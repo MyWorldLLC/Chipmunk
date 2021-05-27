@@ -27,7 +27,7 @@ import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
-public class DefaultConstructorVisitor implements AstVisitor {
+public class ConstructorVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
@@ -35,13 +35,15 @@ public class DefaultConstructorVisitor implements AstVisitor {
             ClassNode clsNode = (ClassNode) node;
             Symbol constructorSymbol = clsNode.getSymbolTable().getSymbolLocal(clsNode.getName());
             if(constructorSymbol == null){
-                MethodNode constructor = new MethodNode(clsNode.getName());
+                MethodNode constructor = new MethodNode("$" + clsNode.getName());
 
                 clsNode.addChild(constructor);
                 clsNode.getSymbolTable().setSymbol(constructor.getSymbol());
                 constructor.getSymbolTable().setScope(SymbolTable.Scope.CLASS);
                 constructor.getSymbolTable().setParent(clsNode.getSymbolTable());
 
+            }else{
+                constructorSymbol.setName("$" + constructorSymbol.getName());
             }
         }
 
