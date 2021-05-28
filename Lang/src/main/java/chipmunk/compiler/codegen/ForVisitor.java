@@ -21,11 +21,8 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.SymbolTable;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ForNode;
-import chipmunk.compiler.ast.VarDecNode;
 
 public class ForVisitor implements AstVisitor {
 
@@ -46,15 +43,17 @@ public class ForVisitor implements AstVisitor {
 			LoopLabels labels = codegen.pushLoop();
 			
 			assembler.setLabelTarget(labels.getStartLabel());
+
+			IteratorNode iter = loop.getIterator();
 			
-			VarDecNode id = loop.getID();
+			VarDecNode id = iter.getID();
 			id.getSymbol().setFinal(true);
 			assembler.onLine(id.getLineNumber());
 			
 			codegen.enterScope(symbols);
 			
 			// visit iterator expression and push the iterator
-			loop.getIter().visit(new ExpressionVisitor(codegen));
+			iter.getIter().visit(new ExpressionVisitor(codegen));
 			assembler.iter();
 			
 			// the "next" bytecode operates as the guard in the for loop
@@ -68,7 +67,7 @@ public class ForVisitor implements AstVisitor {
 			assembler.closeLine();
 
 			// generate body
-			loop.visitChildren(codegen, 2);
+			loop.visitChildren(codegen, 1);
 			codegen.exitScope();
 			
 			// jump to iterator

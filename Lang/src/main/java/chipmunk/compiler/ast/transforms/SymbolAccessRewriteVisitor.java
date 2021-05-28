@@ -50,7 +50,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             scope = ((BlockNode) node).getSymbolTable();
             node.visitChildren(this);
             scope = scope.getParent();
-        }else if(node instanceof OperatorNode || node instanceof FlowControlNode || node instanceof VarDecNode){
+        }else if(node instanceof OperatorNode || node instanceof FlowControlNode
+                || node instanceof VarDecNode || node instanceof IteratorNode){
             // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
             // that are non-local
 

@@ -700,20 +700,30 @@ public class ChipmunkParser {
 		
 		skipNewlines();
 		dropNext(Token.Type.VAR);
+
+		IteratorNode iter = new IteratorNode();
+		startNode(iter);
 		
 		IdNode varID = new IdNode(getNext(Token.Type.IDENTIFIER));
 		varID.setLineNumber(varID.getID().getLine());
-		
+		varID.setBeginTokenIndex(varID.getID().getIndex());
+		varID.setEndTokenIndex(varID.getID().getIndex() + 1);
+
 		forceNext(Token.Type.IN);
 		
 		AstNode expr = parseExpression();
 		
 		VarDecNode decl = new VarDecNode(varID);
 		decl.setLineNumber(varID.getLineNumber());
-		
-		node.setID(decl);
-		
-		node.setIter(expr);
+		decl.setBeginTokenIndex(varID.getID().getIndex());
+		decl.setEndTokenIndex(varID.getID().getIndex() + 1);
+
+		iter.setID(decl);
+		iter.setIter(expr);
+
+		endNode(iter);
+
+		node.setIterator(iter);
 		
 		skipNewlines();
 		forceNext(Token.Type.RPAREN);
