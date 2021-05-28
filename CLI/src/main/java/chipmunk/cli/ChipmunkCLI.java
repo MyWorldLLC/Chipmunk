@@ -181,7 +181,6 @@ public class ChipmunkCLI implements Callable<Integer> {
             }
 
             ChipmunkScript script = vm.compileScript(unit);
-            script.setModuleLoader(loader);
             vm.runAsync(script).get();
 
             return 0;
