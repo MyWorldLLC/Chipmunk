@@ -246,6 +246,14 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a + b;
     }
 
+    public static String format(String a, ArrayList<Object> args){
+        return a.formatted(args.toArray());
+    }
+
+    public static String mod(String a, ArrayList<Object> args){
+        return format(a, args);
+    }
+
     // ================================ Map Operations ================================
     public static Object getAt(HashMap<Object, Object> a, Object key){
         return Null.wrapNull(a.get(key));
@@ -294,22 +302,32 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     public static void add(ArrayList<Object> a, Integer i, Object element){
         if (i < 0) {
-            a.add(a.size() - i, element);
+            a.add(a.size() + i, element);
         } else {
             a.add(i, element);
         }
     }
 
     public static Object getAt(ArrayList<Object> a, Integer i){
-        return i < 0 ? a.get(a.size() - i) : a.get(i);
+        return i < 0 ? a.get(a.size() + i) : a.get(i);
+    }
+
+    public static ArrayList<Object> getAt(ArrayList<Object> a, IntegerRange r) {
+        int beginIndex = r.getStart();
+        int endIndex = r.isInclusive() ? r.getEnd() + 1 : r.getEnd();
+        ArrayList<Object> newList = new ArrayList<>(endIndex - beginIndex);
+        for(int i = beginIndex; i < endIndex; i++){
+            newList.add(a.get(i));
+        }
+        return newList;
     }
 
     public static Object setAt(ArrayList<Object> a, Integer i, Object element){
-        return i < 0 ? a.set(a.size() - i, element) : a.set(i, element);
+        return i < 0 ? a.set(a.size() + i, element) : a.set(i, element);
     }
 
     public static Object remove(ArrayList<Object> a, Integer i){
-        return i < 0 ? a.remove(a.size() - i) : a.remove(i);
+        return i < 0 ? a.remove(a.size() + i) : a.remove(i);
     }
 
     public static Iterator<Object> iterator(ArrayList<Object> a){

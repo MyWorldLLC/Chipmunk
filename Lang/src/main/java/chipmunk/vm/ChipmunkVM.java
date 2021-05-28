@@ -292,7 +292,7 @@ public class ChipmunkVM {
 			throw new RuntimeException(t);
 		}finally{
 			runningScripts.remove(script.getId());
-			ChipmunkScript.setCurrentScript(null);
+			//ChipmunkScript.setCurrentScript(null);
 			scheduler.notifyInvocationEnded(script);
 		}
 	}
@@ -311,7 +311,11 @@ public class ChipmunkVM {
 
 	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName, Object[] params){
 		scheduler.notifyQueuedForInvocation(script);
-		return scriptPool.submit(() -> invoke(script, target, methodName, params));
+		return scriptPool.submit(() -> {
+			Object value = invoke(script, target, methodName, params);
+			ChipmunkScript.setCurrentScript(null);
+			return value;
+		});
 	}
 
 	public Future<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
