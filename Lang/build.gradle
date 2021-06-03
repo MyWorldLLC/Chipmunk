@@ -129,7 +129,14 @@ jmh {
 	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler'] // Ensure Graal is enabled
 }
 
+tasks.named("processProfilingResources") {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 task runProfiler(type:JavaExec) {
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(16)
+	}
     main = 'chipmunk.profiling.ChipmunkProfiler'
 	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler']
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
