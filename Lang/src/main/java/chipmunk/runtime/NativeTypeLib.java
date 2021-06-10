@@ -256,15 +256,15 @@ public class NativeTypeLib implements ChipmunkLibrary {
 
     // ================================ Map Operations ================================
     public static Object getAt(HashMap<Object, Object> a, Object key){
-        return Null.wrapNull(a.get(key));
+        return a.get(key);
     }
 
     public static Object setAt(HashMap<Object, Object> a, Object key, Object value){
-        return Null.wrapNull(a.put(key, value));
+        return a.put(key, value);
     }
 
     public static Object remove(HashMap<Object, Object> a, Object key){
-        return Null.wrapNull(a.remove(key));
+        return a.remove(key);
     }
 
     public static Boolean remove(HashMap<Object, Object> a, Object key, Object value){
@@ -373,8 +373,8 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return o.getChipmunkClass();
     }
 
-    public static Boolean equals(Null n, Object o){
-        return o == null || o instanceof Null;
+    public static Boolean equals(Object a, Object b){
+        return a == null ? b == null : a.equals(b);
     }
 
 }

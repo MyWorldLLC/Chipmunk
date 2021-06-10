@@ -99,10 +99,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params, boolean enforceLinkagePolicy) throws Exception {
 
-        if(receiver == null){
-            throw new NullPointerException("Invocation target is null");
-        }
-
         Class<?>[] pTypes = new Class<?>[params.length];
         for(int i = 0; i < params.length; i++){
             pTypes[i] = params[i] != null ? params[i].getClass() : null;
@@ -113,7 +109,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         if(invocation == null){
             // Failed to resolve method or a trait providing the method
             throw new NoSuchMethodException(
-                    formatMethodSignature(receiver.getClass(), methodName, pTypes));
+                    formatMethodSignature(receiver != null ? receiver.getClass() : null, methodName, pTypes));
         }
 
         return invocation;
@@ -185,7 +181,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException {
 
-        Class<?> receiverType = receiver.getClass();
+        Class<?> receiverType = receiver != null ? receiver.getClass() : Object.class;
 
         for (Method m : receiverType.getMethods()) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
@@ -211,7 +207,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     Class<?> callPType = pTypes[i + 1];
                     Class<?> candidatePType = candidatePTypes[i];
 
-                    if (!candidatePType.isAssignableFrom(callPType)) {
+                    if (!candidatePType.isAssignableFrom(callPType != null ? callPType : Object.class)) {
                         paramsMatch = false;
                         break;
                     }

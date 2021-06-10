@@ -55,6 +55,9 @@ public class ChipmunkLibraries {
     public MethodHandle getMethod(MethodHandles.Lookup lookup, Class<?> returnType, String name, Class<?>[] argTypes) throws Exception {
 
         Class<?> receiverType = argTypes[0];
+        if(receiverType == null){
+            receiverType = Object.class;
+        }
 
         List<LibraryMethod> candidates = libraries.get(receiverType);
 

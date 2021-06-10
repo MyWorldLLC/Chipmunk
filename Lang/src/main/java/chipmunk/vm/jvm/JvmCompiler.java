@@ -978,11 +978,7 @@ public class JvmCompiler {
             }
             generateBoxing(mv, constant);
         }else{
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    Type.getInternalName(Null.class),
-                    "getInstance",
-                    Type.getMethodType(Type.getType(Null.class)).getDescriptor(),
-                    false);
+            mv.visitInsn(Opcodes.ACONST_NULL);
         }
     }
 
