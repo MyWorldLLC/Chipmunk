@@ -72,16 +72,16 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.push(Boolean.parseBoolean(literal.getText()));
 					return;
 				case INTLITERAL:
-					assembler.push(Integer.parseInt(literal.getText(), 10));
+					assembler.push(Integer.parseInt(literal.getText().replace("_", ""), 10));
 					return;
 				case HEXLITERAL:
-					assembler.push(Integer.parseInt(literal.getText().substring(2), 16));
+					assembler.push(Integer.parseInt(literal.getText().replace("_", "").substring(2), 16));
 					return;
 				case OCTLITERAL:
-					assembler.push(Integer.parseInt(literal.getText().substring(2), 8));
+					assembler.push(Integer.parseInt(literal.getText().replace("_", "").substring(2), 8));
 					return;
 				case BINARYLITERAL:
-					assembler.push(Integer.parseInt(literal.getText().substring(2), 2));
+					assembler.push(Integer.parseInt(literal.getText().replace("_", "").substring(2), 2));
 					return;
 				case FLOATLITERAL:
 					assembler.push(Float.parseFloat(literal.getText()));
