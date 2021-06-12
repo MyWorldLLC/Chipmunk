@@ -158,7 +158,8 @@ public class ChipmunkDisassembler {
 		builder.append("]:\n");
 
 		byte[] codeSegment = method.getCode();
-		disassemble(codeSegment, method.getConstantPool(), false, padding + INDENTATION);
+		builder.append(disassemble(codeSegment, method.getConstantPool(), false, padding + INDENTATION));
+		builder.append("\n");
 	}
 	
 	public static String disassemble(byte[] codeSegment){
