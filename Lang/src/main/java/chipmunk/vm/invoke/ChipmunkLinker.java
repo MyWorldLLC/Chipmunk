@@ -443,7 +443,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     }
 
     public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
-        return receiverType.getName() + "." + methodName + "(" +
+        return receiverType != null ? receiverType.getName() : "null" + "." + methodName + "(" +
                 Arrays.stream(pTypes)
                         .skip(1) // Skip self reference
                         .map(c -> c != null ? c.getName() : "null")

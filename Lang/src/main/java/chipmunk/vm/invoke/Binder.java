@@ -20,8 +20,8 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.runtime.NativeTypeLib;
 import jdk.dynalink.*;
+import jdk.dynalink.support.ChainedCallSite;
 import jdk.dynalink.support.SimpleRelinkableCallSite;
 
 import java.lang.invoke.*;
@@ -36,7 +36,7 @@ public class Binder {
     protected static final DynamicLinker dynaLink = createDynamicLinker();
 
     public static CallSite bootstrapCallsite(MethodHandles.Lookup lookup, String name, MethodType callType) throws NoSuchMethodException, IllegalAccessException {
-        return dynaLink.link(new SimpleRelinkableCallSite(
+        return dynaLink.link(new ChainedCallSite(
                 new CallSiteDescriptor(lookup, chipmunkCallOp(name), callType)
         ));
     }
