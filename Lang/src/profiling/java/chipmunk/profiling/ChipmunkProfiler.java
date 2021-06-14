@@ -30,6 +30,7 @@ public class ChipmunkProfiler {
 
 		ChipmunkVM vm = new ChipmunkVM();
 		ChipmunkScript countToAMillion = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+		ChipmunkScript countingForLoop = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop");
 
 		ChipmunkScript fibonacci = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
 		ChipmunkScript mandelbrot = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
@@ -38,7 +39,7 @@ public class ChipmunkProfiler {
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.runAsync(fibonacci).get();
+			value = vm.runAsync(countingForLoop).get();
 			long endTime = System.nanoTime();
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
