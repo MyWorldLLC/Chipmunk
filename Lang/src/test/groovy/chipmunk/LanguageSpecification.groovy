@@ -231,7 +231,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run NestedRangeLoops.chp"(){
 		when:
-		def result = compileAndRun("NestedRangeLoops.chp")
+		def result = compileAndRun("NestedRangeLoops.chp", true)
 		
 		then:
 		result == 9

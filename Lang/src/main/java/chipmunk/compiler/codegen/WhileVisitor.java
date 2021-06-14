@@ -41,23 +41,28 @@ public class WhileVisitor implements AstVisitor {
 			WhileNode loop = (WhileNode) node;
 			
 			LoopLabels labels = codegen.pushLoop();
-			
+
+			// Jump past the body, enter the guard
+			assembler._goto(labels.getGuardLabel());
+
+			// Mark the start of the body
 			assembler.setLabelTarget(labels.getStartLabel());
+
+			codegen.enterScope(loop.getSymbolTable());
+			// Generate body
+			loop.visitChildren(codegen, 1);
+			codegen.exitScope();
+
+			// Mark and generate the guard
 			assembler.setLabelTarget(labels.getGuardLabel());
-			
 			loop.getGuard().visit(new ExpressionVisitor(codegen));
 			assembler.closeLine();
 			
-			// if guard does not evaluate true, jump to end
+			// If guard evaluates false, jump to end
 			assembler._if(labels.getEndLabel());
 			
-			codegen.enterScope(loop.getSymbolTable());
-			// generate body
-			loop.visitChildren(codegen, 1);
-			codegen.exitScope();
-			
-			// jump to guard
-			assembler._goto(labels.getGuardLabel());
+			// Jump back to start if guard evaluates true
+			assembler._goto(labels.getStartLabel());
 			
 			// set end label target
 			assembler.setLabelTarget(labels.getEndLabel());

@@ -41,41 +41,43 @@ public class ForVisitor implements AstVisitor {
 			
 			SymbolTable symbols = loop.getSymbolTable();
 			LoopLabels labels = codegen.pushLoop();
-			
-			assembler.setLabelTarget(labels.getStartLabel());
 
 			IteratorNode iter = loop.getIterator();
+
+			codegen.enterScope(symbols);
 			
+			// Visit iterator expression and push the iterator
+			iter.getIter().visit(new ExpressionVisitor(codegen));
+			assembler.iter();
+
+			assembler._goto(labels.getGuardLabel());
+
+			// Mark the start of the body
+			assembler.setLabelTarget(labels.getStartLabel());
+
+			// Generate body
+			loop.visitChildren(codegen, 1);
+			codegen.exitScope();
+
+			// Generate the guard - the "next" bytecode operates as the guard
 			VarDecNode id = iter.getID();
 			id.getSymbol().setFinal(true);
 			assembler.onLine(id.getLineNumber());
-			
-			codegen.enterScope(symbols);
-			
-			// visit iterator expression and push the iterator
-			iter.getIter().visit(new ExpressionVisitor(codegen));
-			assembler.iter();
-			
-			// the "next" bytecode operates as the guard in the for loop
 			assembler.setLabelTarget(labels.getGuardLabel());
 			assembler.next(labels.getEndLabel());
 			
-			// set the next value in the iterator as a local variable
+			// Set the next value returned by the iterator as a local variable
 			assembler.setLocal(symbols.getLocalIndex(id.getVarName()));
-			//assembler.pop();
 			
 			assembler.closeLine();
-
-			// generate body
-			loop.visitChildren(codegen, 1);
-			codegen.exitScope();
 			
-			// jump to iterator
-			assembler._goto(labels.getGuardLabel());
+			// Jump to iterator
+			assembler._goto(labels.getStartLabel());
 			
-			// set end label target
+			// Set end label target
 			assembler.setLabelTarget(labels.getEndLabel());
-			// pop the iterator
+
+			// Pop the iterator
 			assembler.pop();
 			
 			codegen.exitLoop();
