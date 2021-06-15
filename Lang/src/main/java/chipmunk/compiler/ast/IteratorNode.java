@@ -20,14 +20,20 @@
 
 package chipmunk.compiler.ast;
 
-public class IteratorNode extends AstNode {
+import chipmunk.compiler.symbols.Symbol;
+
+public class IteratorNode extends AstNode implements SymbolNode {
 
     protected boolean hasIter;
     protected boolean hasID;
 
+    protected final Symbol symbol;
+
     public IteratorNode(){
         hasIter = false;
         hasID = false;
+
+        symbol = new Symbol();
     }
 
     public boolean hasIter(){
@@ -76,6 +82,7 @@ public class IteratorNode extends AstNode {
         if(id == null){
             if(hasID){
                 children.remove(0);
+                symbol.setName(null);
             }
             hasID = false;
         }else{
@@ -83,6 +90,7 @@ public class IteratorNode extends AstNode {
                 children.remove(0);
             }
             children.add(0, id);
+            symbol.setName(id.getVarName() + "$it");
             hasID = true;
         }
     }
@@ -93,5 +101,10 @@ public class IteratorNode extends AstNode {
         }else{
             return null;
         }
+    }
+
+    @Override
+    public Symbol getSymbol(){
+        return symbol;
     }
 }

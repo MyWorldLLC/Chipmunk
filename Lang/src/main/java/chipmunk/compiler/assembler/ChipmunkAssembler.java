@@ -402,17 +402,6 @@ public class ChipmunkAssembler {
 		writeByte(Opcodes.ITER);
 	}
 	
-	public void next(Label label){
-		next(label.getName());
-	}
-	
-	public void next(String label){
-		writeByte(Opcodes.NEXT);
-		label(label);
-		
-		writeInt(0);
-	}
-	
 	public void range(boolean inclusive){
 		writeByte(Opcodes.RANGE);
 		writeByte(inclusive ? 1 : 0);

@@ -768,11 +768,6 @@ public class JvmCompiler {
                     generateDynamicInvocation(mv, "iterator", 1);
                     ip++;
                 }
-                case NEXT -> {
-                    generateDup(mv);
-                    generateIteratorNext(mv, fetchInt(instructions, ip + 1), labelMappings);
-                    ip += 5;
-                }
                 case RANGE -> {
                     generatePush(mv, instructions[ip + 1] != 0);
                     generateDynamicInvocation(mv, "range", 3);
@@ -988,21 +983,6 @@ public class JvmCompiler {
 
     protected void generateSwap(MethodVisitor mv){
         mv.visitInsn(Opcodes.SWAP);
-    }
-
-    protected void generateIteratorNext(MethodVisitor mv, int jumpTarget, Map<Integer, Label> labelMappings){
-
-        generateDynamicInvocation(mv, "hasNext", 1);
-
-        generateUnboxing(mv, Boolean.class);
-
-        // Jump if there's no next
-        Label loopEnd = markLabel(jumpTarget, labelMappings);
-        mv.visitJumpInsn(Opcodes.IFEQ, loopEnd);
-
-        mv.visitInsn(Opcodes.DUP);
-        // There is a next element, so fetch it
-        generateDynamicInvocation(mv, "next", 1);
     }
 
     protected void generateList(MethodVisitor mv, int elementCount){

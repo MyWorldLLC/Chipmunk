@@ -49,6 +49,7 @@ public class ForVisitor implements AstVisitor {
 			// Visit iterator expression and push the iterator
 			iter.getIter().visit(new ExpressionVisitor(codegen));
 			assembler.iter();
+			assembler.setLocal(symbols.getLocalIndex(iter.getSymbol()));
 
 			assembler._goto(labels.getGuardLabel());
 
@@ -64,7 +65,13 @@ public class ForVisitor implements AstVisitor {
 			id.getSymbol().setFinal(true);
 			assembler.onLine(id.getLineNumber());
 			assembler.setLabelTarget(labels.getGuardLabel());
-			assembler.next(labels.getEndLabel());
+
+			assembler.getLocal(symbols.getLocalIndex(iter.getSymbol()));
+			assembler.callAt("hasNext", (byte)0);
+			assembler._if(labels.getEndLabel());
+
+			assembler.getLocal(symbols.getLocalIndex(iter.getSymbol()));
+			assembler.callAt("next", (byte) 0);
 			
 			// Set the next value returned by the iterator as a local variable
 			assembler.setLocal(symbols.getLocalIndex(id.getVarName()));
@@ -78,7 +85,7 @@ public class ForVisitor implements AstVisitor {
 			assembler.setLabelTarget(labels.getEndLabel());
 
 			// Pop the iterator
-			assembler.pop();
+			//assembler.pop();
 			
 			codegen.exitLoop();
 		}

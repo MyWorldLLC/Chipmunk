@@ -403,11 +403,6 @@ public class ChipmunkDisassembler {
 				builder.append("iter");
 				ip++;
 				break;
-			case NEXT:
-				builder.append("next ");
-				builder.append(fetchInt(codeSegment, ip + 1));
-				ip += 5;
-				break;
 			case RANGE:
 				builder.append("range ");
 				builder.append(fetchByte(codeSegment, ip + 1));
