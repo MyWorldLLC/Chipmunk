@@ -1,0 +1,7 @@
+module test
+
+from chipmunk.imports import importJava
+
+def main(){
+  var server = importJava('com.sun.net.httpserver.HttpServer').create()
+}

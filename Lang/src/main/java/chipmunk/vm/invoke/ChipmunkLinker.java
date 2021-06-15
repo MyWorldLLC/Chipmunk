@@ -35,6 +35,7 @@ import jdk.dynalink.linker.LinkerServices;
 import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -109,7 +110,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         if(invocation == null){
             // Failed to resolve method or a trait providing the method
             throw new NoSuchMethodException(
-                    formatMethodSignature(receiver != null ? receiver.getClass() : null, methodName, pTypes));
+                    formatMethodSignature(receiver, methodName, pTypes));
         }
 
         return invocation;
@@ -181,7 +182,14 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException {
 
-        Class<?> receiverType = receiver != null ? receiver.getClass() : Object.class;
+        Class<?> receiverType;
+        if(receiver == null){
+            receiverType = Object.class;
+        }else if(receiver instanceof Class){
+            receiverType = (Class<?>) receiver;
+        }else{
+            receiverType = receiver.getClass();
+        }
 
         for (Method m : receiverType.getMethods()) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
@@ -200,6 +208,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             if (retType.equals(void.class) || expectedReturnType.isAssignableFrom(retType) || retType.isPrimitive()) {
 
                 boolean paramsMatch = true;
+                boolean isStatic = Modifier.isStatic(m.getModifiers());
                 for (int i = 0; i < candidatePTypes.length; i++) {
 
                     // Need to offset by 1 because the incoming types include the receiver type
@@ -217,14 +226,17 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     // We have a match!
                     LinkingPolicy linkPolicy = getLinkingPolicy();
                     if(linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m, params)){
-                        throw new IllegalAccessException(formatMethodSignature(receiverType, methodName, pTypes) + ": policy forbids call");
+                        throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
                     }
                     m.setAccessible(true);
-                    return lookup.unreflect(m);
+                    return isStatic
+                            ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Class.class)
+                            : lookup.unreflect(m);
                 }
 
             }
         }
+
         return null;
     }
 
@@ -442,8 +454,16 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return override != null ? override.value() : m.getName();
     }
 
-    public String formatMethodSignature(Class<?> receiverType, String methodName, Class<?>[] pTypes){
-        return receiverType != null ? receiverType.getName() : "null" + "." + methodName + "(" +
+    public String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){
+        String receiverName;
+        if(receiver == null){
+            receiverName = "null";
+        }else if(receiver instanceof Class){
+            receiverName = ((Class<?>) receiver).getName();
+        }else{
+            receiverName = receiver.getClass().getName();
+        }
+        return receiverName + "." + methodName + "(" +
                 Arrays.stream(pTypes)
                         .skip(1) // Skip self reference
                         .map(c -> c != null ? c.getName() : "null")

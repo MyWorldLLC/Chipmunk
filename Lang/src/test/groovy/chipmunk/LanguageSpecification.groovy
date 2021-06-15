@@ -287,6 +287,14 @@ class LanguageSpecification extends Specification {
 		result == true
 	}
 
+	def "Run JavaStatics.chp"(){
+		when:
+		def result = compileAndRun("JavaStatics.chp")
+
+		then:
+		noExceptionThrown()
+	}
+
 	def "Run Casts.chp"(){
 		when:
 		def result = compileAndRun("Casts.chp")
