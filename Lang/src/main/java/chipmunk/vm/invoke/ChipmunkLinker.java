@@ -242,7 +242,17 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
     public GuardedInvocation getField(Object receiver, LinkRequest linkRequest, String fieldName, boolean set, boolean enforceLinkagePolicy) throws Exception {
 
-        final Class<?>  receiverType = receiver.getClass();
+        Class<?> receiverType;
+        if(receiver == null){
+            receiverType = Object.class;
+        }else if(receiver instanceof Class){
+            receiverType = (Class<?>) receiver;
+        }else{
+            receiverType = receiver.getClass();
+        }
+
+        boolean isStatic = receiver instanceof Class;
+
         Field[] fields = receiverType.getFields();
         for(Field f : fields){
             if(getFieldName(f).equals(fieldName)){
@@ -263,6 +273,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 MethodHandle accessor = lookup.unreflectVarHandle(f)
                         .toMethodHandle(set ? VarHandle.AccessMode.SET : VarHandle.AccessMode.GET);
+                
+                if(isStatic){
+                    accessor = MethodHandles.dropArguments(accessor, 0, Class.class);
+                }
 
                 // If this field is a trait and we're setting, invalidate the trait switch point
                 if(set){
@@ -298,8 +312,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 Field receiverField = trait.getReflectedField();
                 if (receiverField == null) {
-                    Class<?> receiverClass = receiver.getClass();
-                    for(Field f : receiverClass.getFields()){
+                    for(Field f : receiverType.getFields()){
                         if(getFieldName(f).equals(trait.getField())){
                             receiverField = f;
                             receiverField.setAccessible(true);

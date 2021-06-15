@@ -4,4 +4,11 @@ from chipmunk.imports import importJava
 
 def main(){
   var server = importJava('com.sun.net.httpserver.HttpServer').create()
+
+  var staticAccessCls = importJava('chipmunk.StaticAccess')
+
+  var getValue = staticAccessCls.FIELD
+  staticAccessCls.FIELD = 5
+
+  return getValue
 }

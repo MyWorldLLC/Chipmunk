@@ -33,6 +33,12 @@ import chipmunk.vm.ModuleLoader
 import spock.lang.Ignore
 import spock.lang.Specification
 
+class StaticAccess {
+
+	public static int FIELD = 1234;
+
+}
+
 class LanguageSpecification extends Specification {
 	
 	ChipmunkVM vm = new ChipmunkVM()
@@ -292,6 +298,8 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("JavaStatics.chp")
 
 		then:
+		result == 1234
+		StaticAccess.FIELD == 5
 		noExceptionThrown()
 	}
 
