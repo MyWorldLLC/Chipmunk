@@ -30,7 +30,7 @@ buildscript {
 }
 
 plugins {
-	id 'me.champeau.gradle.jmh' version '0.5.2'
+	//id 'me.champeau.gradle.jmh' version '0.5.3'
 	id 'maven-publish'
 }
 
@@ -45,12 +45,18 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	jmh
+}
+
 dependencies {
 
 	implementation 'org.ow2.asm:asm:9.0'
 
     testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
-    jmh 'org.openjdk.jmh:jmh-core:1.26'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.32'
+	jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.32'
 }
 
 java {
@@ -80,6 +86,10 @@ sourceSets {
 	jmh {
 		java {
 			srcDir 'src/jmh/java'
+			compileClasspath += main.compileClasspath + main.output + project.configurations.jmh
+			runtimeClasspath += main.output
+			annotationProcessorPath = project.configurations.jmh
+
 		}
 		resources {
 			srcDir 'src/jmh/resources'
@@ -124,9 +134,28 @@ clean {
 	delete 'dist'
 }
 
-jmh {
-	fork = 1
-	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler'] // Ensure Graal is enabled
+task jmhCompile(type: JavaCompile, dependsOn: jmhClasses) {
+	source file('build/generated/sources/annotationProcessor/java/jmh/')
+	classpath = sourceSets.jmh.runtimeClasspath +
+			sourceSets.jmh.compileClasspath +
+			sourceSets.jmh.output
+
+	destinationDirectory.set(file('build/classes/java/jmh'))
+}
+
+task jmh(type: JavaExec, dependsOn: jmhCompile) {
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(16)
+	}
+	main = 'chipmunk.benchmark.ChipmunkBenchmarks'
+
+	classpath = sourceSets.jmh.runtimeClasspath +
+			sourceSets.jmh.compileClasspath +
+			sourceSets.jmh.output
+}
+
+tasks.named("processJmhResources") {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 tasks.named("processProfilingResources") {
@@ -138,6 +167,5 @@ task runProfiler(type:JavaExec) {
 		languageVersion = JavaLanguageVersion.of(16)
 	}
     main = 'chipmunk.profiling.ChipmunkProfiler'
-	//jvmArgs = ['-XX:+UnlockExperimentalVMOptions', '-XX:+EnableJVMCI', '-XX:+UseJVMCICompiler']
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }
