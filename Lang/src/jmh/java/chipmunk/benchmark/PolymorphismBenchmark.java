@@ -49,10 +49,10 @@ public class PolymorphismBenchmark {
         return vm.runAsync(scripts.polymorphic).get();
     }
 
-    @Benchmark
+    /*@Benchmark
     @BenchmarkMode(Mode.SampleTime)
     public Object nonpolymorphic(PolymorphismBenchmark.ChipmunkScripts scripts) throws Throwable {
         ChipmunkVM vm = scripts.vm;
         return vm.runAsync(scripts.nonpolymorphic).get();
-    }
+    }*/
 }

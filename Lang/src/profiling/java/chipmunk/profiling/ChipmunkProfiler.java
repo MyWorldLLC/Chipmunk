@@ -34,12 +34,16 @@ public class ChipmunkProfiler {
 
 		ChipmunkScript fibonacci = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
 		ChipmunkScript mandelbrot = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
+
+
+		ChipmunkScript polymorphism = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("PolymorphicCalling.chp"), "polymorphism");
+		ChipmunkScript nonpolymorphism = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism");
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.runAsync(countingForLoop).get();
+			value = vm.runAsync(polymorphism).get();
 			long endTime = System.nanoTime();
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
