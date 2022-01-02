@@ -92,5 +92,7 @@ jpackage {
     mainClass = 'chipmunk.cli.ChipmunkCLI'
     mainJar = "${jar.archiveFile.get().asFile.getName()}"
     verbose = "verbose"
+
+    winConsole = true
 }
 tasks.jpackage.dependsOn = [build]
