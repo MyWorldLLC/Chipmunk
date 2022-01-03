@@ -39,7 +39,7 @@ public class CLIUtil {
             return Collections.emptyList();
         }
 
-        List<Path> contents = Files.list(directory).collect(Collectors.toList());
+        List<Path> contents = Files.list(directory).toList();
         for(Path p : contents){
             if(Files.isDirectory(p)){
                 sources.addAll(collectSources(p));
@@ -59,7 +59,7 @@ public class CLIUtil {
             return Collections.emptyList();
         }
 
-        List<Path> contents = Files.list(directory).collect(Collectors.toList());
+        List<Path> contents = Files.list(directory).toList();
         for(Path p : contents){
             if(Files.isDirectory(p)){
                 paths.addAll(collectSubDirs(p));

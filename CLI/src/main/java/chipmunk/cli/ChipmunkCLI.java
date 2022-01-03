@@ -59,10 +59,10 @@ public class ChipmunkCLI implements Callable<Integer> {
     @Option(names = {"-e", "-entrypoint"}, description = "Entrypoint in the form module.name::method")
     protected String entryPoint;
 
-    @Option(names = {"-s", "-srcdirs"}, defaultValue = "./", description = "Comma separated list of directories of sources to compile")
+    @Option(names = {"-s", "-srcdirs"}, defaultValue = "", description = "Comma separated list of directories of sources to compile")
     protected String srcDirs;
 
-    @Option(names = {"-b", "-binDirs"}, defaultValue = "./", description = "Comma separated list of directories to load binary modules from")
+    @Option(names = {"-b", "-binDirs"}, defaultValue = "", description = "Comma separated list of directories to load binary modules from")
     protected String binDirs;
 
     @Parameters(index = "0", defaultValue = NO_SOURCE, description = "Chipmunk source or bytecode to run")
@@ -111,32 +111,24 @@ public class ChipmunkCLI implements Callable<Integer> {
                     System.out.println(codePath + " is a directory");
                     return 1;
                 }
-                // Find all source files in the directory containing the source
                 sourcePaths.add(sourcePath);
-                List<Path> auxilaryPaths = CLIUtil.collectSources(sourcePath.toAbsolutePath().getParent());
-                Iterator<Path> it = auxilaryPaths.iterator();
-                while(it.hasNext()){
-                    Path p = it.next();
-                    if(Files.isSameFile(p, sourcePath)){
-                        it.remove();
-                        break;
-                    }
-                }
-                sourcePaths.addAll(auxilaryPaths);
-
             }
 
-            for(String src : srcDirs.split(",")){
-                Path path = Paths.get(src);
-                sourcePaths.addAll(CLIUtil.collectSources(path));
+            if(!srcDirs.equals("")){
+                for(String src : srcDirs.split(",")){
+                    Path path = Paths.get(src);
+                    sourcePaths.addAll(CLIUtil.collectSources(path));
+                }
             }
 
             FileModuleLocator locator = new FileModuleLocator();
-            for(String s : binDirs.split(",")){
-                Path path = Paths.get(s);
-                locator.getPaths().addAll(CLIUtil.collectSubDirs(path));
-            }
             loader.addLocator(locator);
+            if(!binDirs.equals("")){
+                for(String s : binDirs.split(",")){
+                    Path path = Paths.get(s);
+                    locator.getPaths().addAll(CLIUtil.collectSubDirs(path));
+                }
+            }
 
             for(Path sourcePath : sourcePaths){
                 sources.add(new ChipmunkSource(Files.newInputStream(sourcePath), sourcePath.getFileName().toString()));
