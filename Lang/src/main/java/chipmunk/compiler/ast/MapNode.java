@@ -22,12 +22,41 @@ package chipmunk.compiler.ast;
 
 public class MapNode extends AstNode {
 
+	public static class KeyValueNode extends AstNode {
+
+		public KeyValueNode(AstNode key, AstNode value){
+			super();
+			addChild(key);
+			addChild(value);
+		}
+
+		public AstNode getKey(){
+			return getChildren().get(0);
+		}
+
+		public AstNode getValue(){
+			return getChildren().get(1);
+		}
+
+		@Override
+		public String toString(){
+			StringBuilder builder = new StringBuilder();
+			builder.append("(keyvalue ");
+
+			builder.append(getKey());
+			builder.append(getValue());
+			builder.append(')');
+
+			return builder.toString();
+		}
+	}
+
 	public MapNode(){
 		super();
 	}
 	
 	public void addMapping(AstNode key, AstNode value){
-		this.addChild(new AstNode(key, value));
+		this.addChild(new KeyValueNode(key, value));
 	}
 
 	@Override

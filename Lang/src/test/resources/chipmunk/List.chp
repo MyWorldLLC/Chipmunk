@@ -17,8 +17,11 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
+var outer = 3
+
 def main(){
-	var list = [1, 2, 3]
+    var local = 2
+	var list = [1, local, outer]
 	list.add(4)
 	list[2] = 5
 	var x = 0

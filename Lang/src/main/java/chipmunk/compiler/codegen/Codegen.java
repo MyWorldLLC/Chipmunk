@@ -122,7 +122,7 @@ public class Codegen implements AstVisitor {
 
 		SymbolTable table = trace.getLast();
 		if(table.getLocalIndex(name) == -1){
-			throw new IllegalStateException(name + " is not a local");
+			throw new IllegalStateException(name + " is not a local. This is a compiler bug.");
 		}
 
 		if(assign){
