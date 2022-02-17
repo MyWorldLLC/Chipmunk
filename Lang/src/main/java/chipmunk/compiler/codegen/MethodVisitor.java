@@ -27,18 +27,9 @@ import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.FlowControlNode;
-import chipmunk.compiler.ast.ForNode;
-import chipmunk.compiler.ast.IfElseNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.OperatorNode;
-import chipmunk.compiler.ast.TryCatchNode;
-import chipmunk.compiler.ast.VarDecNode;
-import chipmunk.compiler.ast.WhileNode;
 
 public class MethodVisitor implements AstVisitor {
 
@@ -97,6 +88,10 @@ public class MethodVisitor implements AstVisitor {
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
+			// TODO - this will handle any id nodes that are floating around on their own lines
+			// However, this construct will never do anything except push and immediately pop the value of that ID (and
+			// some id nodes may not be resolved to symbols), so this is probably not a good solution long term
+			codegen.setVisitorForNode(IdNode.class, expStatVisitor);
 			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
 			//codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
