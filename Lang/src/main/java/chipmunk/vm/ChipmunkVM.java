@@ -324,7 +324,7 @@ public class ChipmunkVM {
 			try {
 				scheduler.notifyInvocationBegan(script);
 				return task.call();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			} finally {
 				scheduler.notifyInvocationEnded(script);
