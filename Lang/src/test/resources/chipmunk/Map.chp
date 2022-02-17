@@ -17,8 +17,11 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
+var outer = 3
+
 def main(){
-	var map = {"one":1, "two":2, "three":3}
+    var local = 2
+	var map = {"one":1, "two":local, "three":outer}
 	map.put("four", 4)
 	map['five'] = 5
 	return map['one'] + map['four'] + map["five"]
