@@ -80,14 +80,6 @@ public class SymbolTable {
 		}
 		return null;
 	}
-	
-	public void clearSymbol(Symbol symbol){
-		int symbolIndex = symbols.indexOf(symbol);
-		
-		if(symbolIndex != -1){
-			symbols.remove(symbolIndex);
-		}
-	}
 
 	public List<Symbol> getSymbolsUnmodifiable(){
 		return Collections.unmodifiableList(symbols);
