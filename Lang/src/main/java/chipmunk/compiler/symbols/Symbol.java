@@ -111,8 +111,8 @@ public class Symbol {
 		return isClosure;
 	}
 	
-	public void setClosure(boolean isClosure) {
-		this.isClosure = isClosure;
+	public void markAsClosure() {
+		isClosure = true;
 	}
 
 	public boolean isTrait() {

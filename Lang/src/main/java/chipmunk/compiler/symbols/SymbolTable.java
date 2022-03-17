@@ -230,6 +230,18 @@ public class SymbolTable {
 		return symbols.getParent().getScope();
 	}
 
+	public boolean isClosured(Symbol symbol){
+		SymbolTable symbols = this;
+		boolean crossedMethodBoundary = false;
+		while(symbols.isMethodScope() && symbols != symbol.getTable()){
+			if(symbols.getScope() == Scope.METHOD){
+				crossedMethodBoundary = true;
+			}
+			symbols = symbols.getParent();
+		}
+		return symbols.isMethodScope() && crossedMethodBoundary;
+	}
+
 	public SymbolTable getMethodTable(){
 		SymbolTable symbols = this;
 		while(symbols.getScope() == Scope.LOCAL){
