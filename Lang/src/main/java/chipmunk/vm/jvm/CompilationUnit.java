@@ -26,6 +26,8 @@ import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CompilationUnit {
 

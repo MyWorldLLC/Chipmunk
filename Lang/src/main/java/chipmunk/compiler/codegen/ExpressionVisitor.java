@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.codegen;
 
+import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.*;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
@@ -132,8 +133,14 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(node instanceof MethodNode){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
+
+			codegen.getModule().getNamespace().addEntry(
+					BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, visitor.getMethod()));
+
 			assembler.onLine(node.getLineNumber());
-			assembler.push(visitor.getMethod());
+			// TODO - push closure locals
+			// TODO - have to get correct number of method params
+			assembler.bind(visitor.getMethodSymbol().getName(), 0, 0); // TODO - have to push closure locals & create a method binding here
 		}
 		/*else if(node instanceof ClassNode) {
 			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());

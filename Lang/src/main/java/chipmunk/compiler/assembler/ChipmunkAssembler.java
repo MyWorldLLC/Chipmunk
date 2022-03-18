@@ -246,11 +246,20 @@ public class ChipmunkAssembler {
 	public void getLocal(int localIndex){
 		writeByte(Opcodes.GETLOCAL);
 		writeByte(localIndex);
-		
 	}
 	
 	public void setLocal(int localIndex){
 		writeByte(Opcodes.SETLOCAL);
+		writeByte(localIndex);
+	}
+
+	public void getClosure(int localIndex){
+		writeByte(Opcodes.GETCLOSURE);
+		writeByte(localIndex);
+	}
+
+	public void setClosure(int localIndex){
+		writeByte(Opcodes.SETCLOSURE);
 		writeByte(localIndex);
 	}
 	
@@ -327,6 +336,13 @@ public class ChipmunkAssembler {
 		label(label);
 		
 		writeInt(0);
+	}
+
+	public void bind(String methodName, int closureCount, int paramCount){
+		writeByte(Opcodes.BIND);
+		writeInt(getConstantPoolEntry(methodName));
+		writeByte(closureCount);
+		writeByte(paramCount);
 	}
 	
 	public void _throw(){

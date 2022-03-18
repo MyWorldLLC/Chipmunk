@@ -91,6 +91,9 @@ public class Opcodes {
 	public static final byte GETCLOSURE = 0x37;
 	public static final byte SETCLOSURE = 0x38;
 
+	// Method bindings
+	public static final byte BIND = 0x39;
+
 	//public static final byte INITMODULE = 0x39;
 	//public static final byte IMPORT = 0x40;
 	

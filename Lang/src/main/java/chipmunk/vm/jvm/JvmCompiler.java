@@ -781,6 +781,20 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
+                case BIND -> {
+                    int methodNameIndex = fetchInt(instructions, ip + 1);
+                    int closureCount = instructions[ip + 5];
+                    int paramCount = instructions[ip + 6];
+
+                    // TODO - create/get binding class, instantiate binding
+                    String methodName = (String) compilation.getModule().getConstantPool()[methodNameIndex];
+                    String bindingName = compilation.qualifiedContainingName()
+                            + methodName
+                            + "$binding$"
+                            + closureCount + "" + paramCount;
+                    ensureBindingExists(compilation, bindingName, methodName, closureCount, paramCount);
+                    ip += 7;
+                }
                 default -> throw new InvalidOpcodeChipmunk(op);
             }
 
@@ -1155,6 +1169,42 @@ public class JvmCompiler {
             unresolved.put(chpTarget, new Label());
         }
         return unresolved.get(chpTarget);
+    }
+
+    protected void ensureBindingExists(JvmCompilation compilation, String bindingSignature, String methodName, int closureCount, int paramCount){
+        if(!compilation.isBindingDefined(bindingSignature)){
+            compilation.defineBinding(bindingSignature);
+
+            ClassWriter gen = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+            gen.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, jvmName(bindingSignature), null, Type.getInternalName(Object.class), null);
+            gen.visitSource(jvmName(bindingSignature), null);
+            gen.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
+
+            // TODO - accept/set closure parameters
+            MethodVisitor constructor = gen.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+            constructor.visitCode();
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
+            constructor.visitInsn(Opcodes.RETURN);
+            constructor.visitMaxs(0, 0);
+            constructor.visitEnd();
+
+            MethodVisitor call = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", Type.getMethodType(Type.VOID_TYPE, paramTypes(paramCount)).getDescriptor(), null, null);
+            call.visitCode();
+
+            // TODO - get target from closure value 0, push closure values, push parameter values
+            //generateDynamicInvocation(call, methodName, paramCount);
+            //call.visitInsn(Opcodes.ARETURN);
+            call.visitInsn(Opcodes.RETURN);
+
+            call.visitMaxs(0, 0);
+            call.visitEnd();
+
+            gen.visitEnd();
+
+            loadClass(compilation.getLoader().getClassLoader(), bindingSignature, gen.toByteArray());
+        }
     }
 
     public String jvmName(String moduleName){

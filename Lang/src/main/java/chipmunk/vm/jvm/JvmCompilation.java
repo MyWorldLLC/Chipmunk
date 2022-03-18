@@ -25,6 +25,8 @@ import chipmunk.vm.ModuleLoader;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JvmCompilation {
@@ -33,12 +35,14 @@ public class JvmCompilation {
     protected final ModuleLoader loader;
     protected String packagePrefix;
 
+    protected final Set<String> bindings;
     protected final Deque<NamespaceInfo> namespaceInfo;
 
     public JvmCompilation(BinaryModule module, ModuleLoader loader){
         this.module = module;
         this.loader = loader;
         namespaceInfo = new ArrayDeque<>();
+        bindings = new HashSet<>();
     }
 
     public BinaryModule getModule() {
@@ -82,5 +86,13 @@ public class JvmCompilation {
                 .map(NamespaceInfo::getName)
                 .collect(Collectors.joining("."));
         return packagePrefix != null ? packagePrefix + "." + containingName : containingName;
+    }
+
+    public boolean isBindingDefined(String bindingSignature) {
+        return bindings.contains(bindingSignature);
+    }
+
+    public void defineBinding(String bindingSignature){
+        bindings.add(bindingSignature);
     }
 }

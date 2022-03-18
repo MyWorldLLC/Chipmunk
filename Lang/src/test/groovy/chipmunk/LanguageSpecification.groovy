@@ -81,7 +81,6 @@ class LanguageSpecification extends Specification {
 		}
 	}
 
-	@Ignore
 	def "Run SimpleMethod.chp"(){
 		when:
 		def result = compileAndRun("SimpleMethod.chp", true)
