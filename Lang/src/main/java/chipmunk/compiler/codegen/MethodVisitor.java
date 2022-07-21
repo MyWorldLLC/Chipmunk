@@ -88,10 +88,7 @@ public class MethodVisitor implements AstVisitor {
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
 			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			// TODO - this will handle any id nodes that are floating around on their own lines
-			// However, this construct will never do anything except push and immediately pop the value of that ID (and
-			// some id nodes may not be resolved to symbols), so this is probably not a good solution long term
-			codegen.setVisitorForNode(IdNode.class, expStatVisitor);
+			codegen.setVisitorForNode(IdNode.class, new NoOpVisitor()); // Handle id nodes that are on their own lines
 			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
 			//codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
 			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
