@@ -20,51 +20,36 @@
 
 package chipmunk.compiler.ast.transforms;
 
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.lexer.Token;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.IdNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.SymbolNode;
-import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.symbols.SymbolTable;
 
+/**
+ * Re-writes nested method declarations (either named methods or lambda methods),
+ * hoisting them to the nearest class or module scope with a mangled name. This
+ * must run *after* the symbol table has been built, as it uses the symbol table
+ * to find the proper parent to insert the method declaration.
+ *
+ * Named methods are re-written at declaration site to an AST equivalent to
+ * "var namedMethod = self::mangledMethodName", lambda methods are rewritten
+ * to an expression of the form "self::mangledMethodName".
+ */
 public class InnerMethodRewriteVisitor implements AstVisitor {
-	
-	private int nestingDepth;
-	
-	public InnerMethodRewriteVisitor() {
-		nestingDepth = 0;
-	}
 
 	@Override
 	public void visit(AstNode node) {
 
-		for(int i = 0; i < node.getChildren().size(); i++) {
-			AstNode nextChild = node.getChildren().get(i);
-			final boolean rewrite = nextChild instanceof MethodNode && !((MethodNode) nextChild).getName().equals("") && nestingDepth > 0;
-			
-			
-			if(nextChild instanceof MethodNode) {
-				nestingDepth++;
+		if(node instanceof MethodNode methodNode){
+			var parent = methodNode.getSymbolTable().getParent();
+			if(parent != null && parent.isMethodScope()){
+				// TODO - determine if this is a lambda or statement-style rewrite
+				// & perform rewrite
 			}
-			
-			nextChild.visit(this);
-			
-			if(rewrite) {
-				VarDecNode dec = new VarDecNode();
-				Symbol symbol = ((SymbolNode) nextChild).getSymbol();
-				dec.getSymbol().setName(symbol.getName());
-				dec.setVar(new IdNode(new Token(symbol.getName(), Token.Type.IDENTIFIER)));
-				dec.setAssignExpr(nextChild);
-				node.getChildren().set(i, dec);
-				symbol.setName("");
-			}
-				
-			if(nextChild instanceof MethodNode) {
-				nestingDepth--;
-			}
+
 		}
+
+		node.visitChildren(this);
 	}
 
 }

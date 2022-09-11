@@ -66,8 +66,7 @@ public class ChipmunkCompiler {
 		passes = new HashMap<>();
 		passes.put(Pass.POST_PARSE, Arrays.asList(
 				new LangImportVisitor(),
-				new InitializerBuilderVisitor(),
-				new InnerMethodRewriteVisitor()));
+				new InitializerBuilderVisitor()));
 
 		passes.put(Pass.SYMBOL_RESOLUTION, Arrays.asList(
 				new SymbolTableBuilderVisitor(),
@@ -77,7 +76,9 @@ public class ChipmunkCompiler {
 				new ImportResolverVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)))
 		);
 
-		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(new SymbolAccessRewriteVisitor()));
+		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(
+				new InnerMethodRewriteVisitor(),
+				new SymbolAccessRewriteVisitor()));
 	}
 
 	public ModuleLoader getModuleLoader(){
