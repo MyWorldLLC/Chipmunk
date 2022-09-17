@@ -140,7 +140,7 @@ public class ExpressionVisitor implements AstVisitor {
 			assembler.onLine(node.getLineNumber());
 			// TODO - push closure locals
 			// TODO - have to get correct number of method params
-			assembler.bind(visitor.getMethodSymbol().getName(), 0, 0); // TODO - have to push closure locals & create a method binding here
+			assembler.bind(visitor.getMethodSymbol().getName()); // TODO - have to push closure locals & create a method binding here
 		}
 		/*else if(node instanceof ClassNode) {
 			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
@@ -156,7 +156,7 @@ public class ExpressionVisitor implements AstVisitor {
 			AstNode rhs = op.getRight();
 
 			switch (operator.getType()) {
-			case PLUS:
+			case PLUS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
@@ -164,13 +164,13 @@ public class ExpressionVisitor implements AstVisitor {
 				} else {
 					assembler.add();
 				}
-				return;
-			case DOUBLEPLUS:
+			}
+			case DOUBLEPLUS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.inc();
-				return;
-			case MINUS:
+			}
+			case MINUS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
@@ -178,152 +178,164 @@ public class ExpressionVisitor implements AstVisitor {
 				} else {
 					assembler.sub();
 				}
-				return;
-			case DOUBLEMINUS:
+			}
+			case DOUBLEMINUS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.dec();
-			case STAR:
+			}
+			case STAR -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mul();
-				return;
-			case DOUBLESTAR:
+			}
+			case DOUBLESTAR -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.pow();
-				return;
-			case FSLASH:
+			}
+			case FSLASH -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.div();
-				return;
-			case DOUBLEFSLASH:
+			}
+			case DOUBLEFSLASH -> {
 				op.visitChildren(this);
 				assembler.fdiv();
-				return;
-			case PERCENT:
+			}
+			case PERCENT -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mod();
-				return;
-			case DOUBLEDOTLESS:
+			}
+			case DOUBLEDOTLESS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(false);
-				return;
-			case DOUBLEDOT:
+			}
+			case DOUBLEDOT -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(true);
-				return;
-			case BAR:
+			}
+			case BAR -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bor();
-				return;
-			case DOUBLEBAR:
+			}
+			case DOUBLEBAR -> {
 				emitLogicalOr(op);
-				return;
-			case EXCLAMATION:
+			}
+			case DOUBLECOLON -> {
+				lhs.visit(this);
+				if(rhs instanceof IdNode idNode){
+					assembler.onLine(node.getLineNumber());
+					assembler.bind(idNode.getName());
+				}else{
+					System.out.println(op);
+					throw new SyntaxError("Binding operator requires a compile-time static method name");
+				}
+
+			}
+			case EXCLAMATION -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.not();
-				return;
-			case TILDE:
+			}
+			case TILDE -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bneg();
-				return;
-			case CARET:
+			}
+			case CARET -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bxor();
-				return;
-			case DOUBLELESSTHAN:
+			}
+			case DOUBLELESSTHAN -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lshift();
-				return;
-			case LESSTHAN:
+			}
+			case LESSTHAN -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lt();
-				return;
-			case TRIPLEMORETHAN:
+			}
+			case TRIPLEMORETHAN -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.urshift();
-				return;
-			case DOUBLEMORETHAN:
+			}
+			case DOUBLEMORETHAN -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.rshift();
-				return;
-			case MORETHAN:
+			}
+			case MORETHAN -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.gt();
-				return;
-			case DOUBLEAMPERSAND:
+			}
+			case DOUBLEAMPERSAND -> {
 				emitLogicalAnd(op);
-				return;
-			case AMPERSAND:
+			}
+			case AMPERSAND -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.band();
-				return;
-			case LBRACKET:
+			}
+			case LBRACKET -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.getat();
-				return;
-			case LPAREN:
+			}
+			case LPAREN -> {
 				emitCall(op);
-				return;
-			case DOT:
+			}
+			case DOT -> {
 				emitDotGet(op);
-				return;
-			case EQUALS:
+			}
+			case EQUALS -> {
 				emitAssignment(op);
-				return;
-			case DOUBLEEQUAlS:
+			}
+			case DOUBLEEQUAlS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
-				break;
-			case EXCLAMATIONEQUALS:
+			}
+			case EXCLAMATIONEQUALS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				assembler.not();
-				break;
-			case IS:
+			}
+			case IS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.is();
-				break;
-			case LESSEQUALS:
+			}
+			case LESSEQUALS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.le();
-				break;
-			case MOREEQUALS:
+			}
+			case MOREEQUALS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.ge();
-				break;
-			case INSTANCEOF:
+			}
+			case INSTANCEOF -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler._instanceof();
-				break;
-			case AS:
+			}
+			case AS -> {
 				op.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.as();
-				break;
-			default:
+			}
+			default ->
 				throw new SyntaxError(
 						String.format("Unsupported operator %s at %d:%d",
 								operator.getText(),

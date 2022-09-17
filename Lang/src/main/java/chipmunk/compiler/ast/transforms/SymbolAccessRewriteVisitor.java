@@ -62,8 +62,10 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 AstNode child = node.getChildren().get(i);
 
                 if(child instanceof IdNode && !isQualified(node, child)){
-                    child = rewriteQualified(child);
-                    node.getChildren().set(i, child);
+                    if(!isMethodBindTarget(node, i)){
+                        child = rewriteQualified(child);
+                        node.getChildren().set(i, child);
+                    }
                 }else{
                     child.visit(this);
                 }
@@ -186,5 +188,14 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
         }
         return child;
+    }
+
+    protected boolean isMethodBindTarget(AstNode node, int index){
+        if(index == 1 && node instanceof OperatorNode op){
+            if(op.getOperator().getType().equals(Token.Type.DOUBLECOLON)){
+                return true;
+            }
+        }
+        return false;
     }
 }

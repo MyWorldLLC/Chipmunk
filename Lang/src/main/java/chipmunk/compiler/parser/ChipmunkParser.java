@@ -122,6 +122,7 @@ public class ChipmunkParser {
 		
 		register(Token.Type.DOUBLEAMPERSAND, new AndOperatorParselet());
 		register(Token.Type.DOUBLEBAR, new OrOperatorParselet());
+		register(Token.Type.DOUBLECOLON, new BindingOperatorParselet());
 		
 		register(Token.Type.EQUALS, new AssignOperatorParselet());
 		register(Token.Type.DOUBLEPLUSEQUALS, new AssignOperatorParselet());

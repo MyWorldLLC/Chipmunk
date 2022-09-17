@@ -22,7 +22,7 @@ package chipmunk.compiler;
 
 public class OperatorPrecedence {
 	
-	public static final int DOT_INDEX_CALL = 14;
+	public static final int DOT_BIND_INDEX_CALL = 14;
 	public static final int POW = 13;
 	public static final int POST_INC_DEC_CAST = 12;
 	public static final int PRE_OP = 11;

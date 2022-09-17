@@ -30,10 +30,13 @@ import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
+import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -783,17 +786,10 @@ public class JvmCompiler {
                 }
                 case BIND -> {
                     int methodNameIndex = fetchInt(instructions, ip + 1);
-                    int closureCount = instructions[ip + 5];
-                    int paramCount = instructions[ip + 6];
 
-                    // TODO - create/get binding class, instantiate binding
                     String methodName = (String) compilation.getModule().getConstantPool()[methodNameIndex];
-                    String bindingName = compilation.qualifiedContainingName()
-                            + methodName
-                            + "$binding$"
-                            + closureCount + "" + paramCount;
-                    ensureBindingExists(compilation, bindingName, methodName, closureCount, paramCount);
-                    ip += 7;
+                    generateBinding(mv, methodName);
+                    ip += 5;
                 }
                 default -> throw new InvalidOpcodeChipmunk(op);
             }
@@ -1171,7 +1167,23 @@ public class JvmCompiler {
         return unresolved.get(chpTarget);
     }
 
-    protected void ensureBindingExists(JvmCompilation compilation, String bindingSignature, String methodName, int closureCount, int paramCount){
+    protected void generateBinding(MethodVisitor mv, String methodName){
+
+        mv.visitTypeInsn(Opcodes.NEW, Type.getType(MethodBinding.class).getInternalName());
+        mv.visitInsn(Opcodes.DUP_X1);
+        mv.visitInsn(Opcodes.DUP_X1);
+        mv.visitInsn(Opcodes.SWAP);
+        generatePush(mv, methodName);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                Type.getType(MethodBinding.class).getInternalName(),
+                "<init>",
+                Type.getMethodType(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)).getDescriptor(),
+                false);
+        mv.visitInsn(Opcodes.SWAP);
+        mv.visitInsn(Opcodes.POP);
+    }
+
+/*    protected void ensureBindingExists(JvmCompilation compilation, String bindingSignature, String methodName){
         if(!compilation.isBindingDefined(bindingSignature)){
             compilation.defineBinding(bindingSignature);
 
@@ -1205,7 +1217,7 @@ public class JvmCompiler {
 
             loadClass(compilation.getLoader().getClassLoader(), bindingSignature, gen.toByteArray());
         }
-    }
+    }*/
 
     public String jvmName(String moduleName){
         return moduleName.replace('.', '/');

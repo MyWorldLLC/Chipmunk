@@ -325,4 +325,20 @@ class LanguageSpecification extends Specification {
 		then:
 		result == [1, 2, 3]
 	}
+
+	def "Run ClassMethodBinding.chp"(){
+		when:
+		def result = compileAndRun("ClassMethodBinding.chp")
+
+		then:
+		result == 5
+	}
+
+	def "Run ModuleMethodBinding.chp"(){
+		when:
+		def result = compileAndRun("ModuleMethodBinding.chp")
+
+		then:
+		result == 5
+	}
 }

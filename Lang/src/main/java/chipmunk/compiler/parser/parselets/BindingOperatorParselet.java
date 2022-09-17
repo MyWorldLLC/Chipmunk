@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2022 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,35 +20,11 @@
 
 package chipmunk.compiler.parser.parselets;
 
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
-import chipmunk.compiler.lexer.Token;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.OperatorNode;
 
-public class CallOperatorParselet implements InfixParselet {
-
-	@Override
-	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
-		
-		OperatorNode node = new OperatorNode(token, left);
-		
-		while(parser.getTokens().peek().getType() != Token.Type.RPAREN){
-			AstNode arg = parser.parseExpression();
-			node.addOperand(arg);
-			
-			if(parser.peek(Token.Type.COMMA)){
-				parser.dropNext();
-			}
-		}
-		parser.forceNext(Token.Type.RPAREN);
-		
-		return node;
-	}
-
-	@Override
-	public int getPrecedence() {
-		return OperatorPrecedence.DOT_BIND_INDEX_CALL;
-	}
-
+public class BindingOperatorParselet extends BaseBinaryOperatorParselet {
+    @Override
+    public int getPrecedence() {
+        return OperatorPrecedence.DOT_BIND_INDEX_CALL;
+    }
 }

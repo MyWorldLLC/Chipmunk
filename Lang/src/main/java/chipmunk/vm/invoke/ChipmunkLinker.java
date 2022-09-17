@@ -94,6 +94,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
+    public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, String methodName, Object[] params) throws Exception {
+        return getInvocationHandle(lookup, receiver, null, methodName, params, true);
+    }
+
     public GuardedInvocation getInvocationHandle(MethodHandles.Lookup lookup, Object receiver, MethodType callType, String methodName, Object[] params) throws Exception {
         return getInvocationHandle(lookup, receiver, callType, methodName, params, true);
     }
@@ -103,6 +107,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         Class<?>[] pTypes = new Class<?>[params.length];
         for(int i = 0; i < params.length; i++){
             pTypes[i] = params[i] != null ? params[i].getClass() : null;
+        }
+
+        if(callType == null){
+            callType = MethodType.methodType(Object.class, pTypes);
         }
 
         GuardedInvocation invocation = resolveCallTarget(lookup, receiver, callType, methodName, params, pTypes, enforceLinkagePolicy);
@@ -122,6 +130,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         ChipmunkLibraries libs = getLibrariesForThread();
         MethodHandle callTarget = libs != null ? libs.getMethod(lookup, expectedReturnType, methodName, pTypes) : null;
 
+        // TODO - need to be able to adapt the call type for variadic targets
         if (callTarget == null) {
             callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes, enforceLinkagePolicy);
         }
@@ -194,7 +203,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         for (Method m : receiverType.getMethods()) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
 
-            if (candidatePTypes.length != pTypes.length - 1) {
+            if (candidatePTypes.length != pTypes.length - 1 && !m.isVarArgs()) {
                 continue;
             }
 
@@ -222,16 +231,20 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     }
                 }
 
-                if (paramsMatch) {
+                if (paramsMatch || m.isVarArgs()) {
                     // We have a match!
                     LinkingPolicy linkPolicy = getLinkingPolicy();
                     if(linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m, params)){
                         throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
                     }
                     m.setAccessible(true);
-                    return isStatic
+                    var handle = isStatic
                             ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Class.class)
                             : lookup.unreflect(m);
+                    if(m.isVarArgs()){
+                        handle = handle.asVarargsCollector(Object[].class);
+                    }
+                    return handle;
                 }
 
             }

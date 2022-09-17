@@ -338,11 +338,9 @@ public class ChipmunkAssembler {
 		writeInt(0);
 	}
 
-	public void bind(String methodName, int closureCount, int paramCount){
+	public void bind(String methodName){
 		writeByte(Opcodes.BIND);
 		writeInt(getConstantPoolEntry(methodName));
-		writeByte(closureCount);
-		writeByte(paramCount);
 	}
 	
 	public void _throw(){

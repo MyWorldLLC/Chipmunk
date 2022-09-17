@@ -37,7 +37,7 @@ public class IndexOperatorParselet implements InfixParselet {
 
 	@Override
 	public int getPrecedence() {
-		return OperatorPrecedence.DOT_INDEX_CALL;
+		return OperatorPrecedence.DOT_BIND_INDEX_CALL;
 	}
 
 }
