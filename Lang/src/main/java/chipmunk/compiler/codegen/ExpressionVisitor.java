@@ -396,8 +396,7 @@ public class ExpressionVisitor implements AstVisitor {
 			
 		}else{
 			int argCount = op.getChildren().size() - 1;
-			op.getLeft().visit(this);
-			op.visitChildren(this, 1);
+			op.visitChildren(this);
 			assembler.onLine(op.getLineNumber());
 			assembler.call((byte) argCount);
 		}
