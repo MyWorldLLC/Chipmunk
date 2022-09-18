@@ -232,7 +232,6 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.onLine(node.getLineNumber());
 					assembler.bind(idNode.getName());
 				}else{
-					System.out.println(op);
 					throw new SyntaxError("Binding operator requires a compile-time static method name");
 				}
 
@@ -397,10 +396,8 @@ public class ExpressionVisitor implements AstVisitor {
 			
 		}else{
 			int argCount = op.getChildren().size() - 1;
-			// visit parameters first
-			op.visitChildren(this, 1);
-			// visit call target, then emit call
 			op.getLeft().visit(this);
+			op.visitChildren(this, 1);
 			assembler.onLine(op.getLineNumber());
 			assembler.call((byte) argCount);
 		}
