@@ -79,6 +79,9 @@ public class ChipmunkCLI implements Callable<Integer> {
         loader.registerNativeFactory(MathModule.MATH_MODULE_NAME, MathModule::new);
     }
 
+    /**
+     * Default behavior - run script if no subcommand is specified
+     */
     @Override
     public Integer call() {
 
@@ -180,6 +183,14 @@ public class ChipmunkCLI implements Callable<Integer> {
             e.printStackTrace();
             return 1;
         }
+    }
+
+    @Command(name = "test")
+    public int test(){
+
+        System.out.println("Someday soon I will run tests for you");
+
+        return 0;
     }
 
     public static void main(String[] args) {

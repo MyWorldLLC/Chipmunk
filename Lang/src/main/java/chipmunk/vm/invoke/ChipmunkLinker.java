@@ -239,7 +239,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     }
                     m.setAccessible(true);
                     var handle = isStatic
-                            ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Class.class)
+                            ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Object.class)
                             : lookup.unreflect(m);
                     if(m.isVarArgs()){
                         handle = handle.asVarargsCollector(Object[].class);
@@ -264,8 +264,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             receiverType = receiver.getClass();
         }
 
-        boolean isStatic = receiver instanceof Class;
-
         Field[] fields = receiverType.getFields();
         for(Field f : fields){
             if(getFieldName(f).equals(fieldName)){
@@ -284,11 +282,12 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                 }
 
+
                 MethodHandle accessor = lookup.unreflectVarHandle(f)
                         .toMethodHandle(set ? VarHandle.AccessMode.SET : VarHandle.AccessMode.GET);
                 
-                if(isStatic){
-                    accessor = MethodHandles.dropArguments(accessor, 0, Class.class);
+                if(Modifier.isStatic(f.getModifiers())){
+                    accessor = MethodHandles.dropArguments(accessor, 0, Object.class);
                 }
 
                 // If this field is a trait and we're setting, invalidate the trait switch point

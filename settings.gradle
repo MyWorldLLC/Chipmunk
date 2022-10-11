@@ -19,3 +19,5 @@
  */
 
 include 'CLI', 'Doc', 'Lang', 'Package'
+include 'Test'
+

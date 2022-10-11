@@ -34,8 +34,8 @@ public class SystemModule implements ChipmunkModule {
 
     public static final String SYSTEM_MODULE_NAME = "chipmunk.system";
 
-    public final InputStream stdin = System.in;
-    public final PrintStream stdout = System.out;
+    public static final InputStream stdin = System.in;
+    public static final PrintStream stdout = System.out;
     public final PrintStream stderr = System.err;
     public final Console console = System.console();
 
@@ -58,7 +58,7 @@ public class SystemModule implements ChipmunkModule {
         this.env = env;
     }
 
-    public void println(Object msg){
+    public static void println(Object msg){
         System.out.println(msg);
     }
 

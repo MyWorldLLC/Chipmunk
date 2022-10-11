@@ -77,7 +77,10 @@ clean {
 }
 
 task run(type: JavaExec){
-    main = 'chipmunk.cli.ChipmunkCLI'
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+    mainClass = 'chipmunk.cli.ChipmunkCLI'
     classpath = sourceSets.main.runtimeClasspath
 }
 
