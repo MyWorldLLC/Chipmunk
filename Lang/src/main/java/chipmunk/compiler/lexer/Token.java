@@ -95,34 +95,34 @@ public class Token {
 		
 		// keywords - (?![a-zA-Z0-9_]) checks that the following character is not alphanumeric or an underscore, the
 		// presence of which would make the token an identifier instead of a keyword
-		MODULE("module(?![a-zA-Z0-9_])", true),
-		FROM("from(?![a-zA-Z0-9_])", true),
-		IMPORT("import(?![a-zA-Z0-9_])", true),
-		AS("as(?![a-zA-Z0-9_])", true),
-		IN("in(?![a-zA-Z0-9_])", true),
-		CLASS("class(?![a-zA-Z0-9_])", true),
-		SHARED("shared(?![a-zA-Z0-9_])", true),
-		NULL("null(?![a-zA-Z0-9_])", true),
-		IF("if(?![a-zA-Z0-9_])", true),
-		ELSE("else(?![a-zA-Z0-9_])", true),
-		FOR("for(?![a-zA-Z0-9_])", true),
-		WHILE("while(?![a-zA-Z0-9_])", true),
-		BREAK("break(?![a-zA-Z0-9_])", true),
-		CONTINUE("continue(?![a-zA-Z0-9_])", true),
-		RETURN("return(?![a-zA-Z0-9_])", true),
-		TRY("try(?![a-zA-Z0-9_])", true),
-		CATCH("catch(?![a-zA-Z0-9_])", true),
-		FINALLY("finally(?![a-zA-Z0-9_])", true),
-		THROW("throw(?![a-zA-Z0-9_])", true),
-		DEF("def(?![a-zA-Z0-9_])", true),
-		VAR("var(?![a-zA-Z0-9_])", true),
-		TRAIT("trait(?![a-zA-Z0-9_])", true),
-		FINAL("final(?![a-zA-Z0-9_])", true),
-		INSTANCEOF("instanceof(?![a-zA-Z0-9_])", true),
-		IS("is(?![a-zA-Z0-9_])", true),
-		MATCH("match(?![a-zA-Z0-9_])", true),
-		CASE("case(?![a-zA-Z0-9_])", true),
-		WHEN("when(?![a-zA-Z0-9_])", true),
+		MODULE("module", true),
+		FROM("from", true),
+		IMPORT("import", true),
+		AS("as", true),
+		IN("in", true),
+		CLASS("class", true),
+		SHARED("shared", true),
+		NULL("null", true),
+		IF("if", true),
+		ELSE("else", true),
+		FOR("for", true),
+		WHILE("while", true),
+		BREAK("break", true),
+		CONTINUE("continue", true),
+		RETURN("return", true),
+		TRY("try", true),
+		CATCH("catch", true),
+		FINALLY("finally", true),
+		THROW("throw", true),
+		DEF("def", true),
+		VAR("var", true),
+		TRAIT("trait", true),
+		FINAL("final", true),
+		INSTANCEOF("instanceof", true),
+		IS("is", true),
+		MATCH("match", true),
+		CASE("case", true),
+		WHEN("when", true),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
 		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
@@ -142,7 +142,7 @@ public class Token {
 		}
 		
 		Type(String regex, boolean keyword, boolean literal){
-			pattern = Pattern.compile(regex);
+			pattern = Pattern.compile(keyword ? regex + "(?![a-zA-Z0-9_])" : regex);
 			this.keyword = keyword;
 			this.literal = literal;
 		}
