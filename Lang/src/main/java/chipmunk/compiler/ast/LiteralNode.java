@@ -43,15 +43,10 @@ public class LiteralNode extends AstNode {
 		literal = literalValue;
 		setLineNumber(literal.getLine());
 	}
-	
+
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		
-		builder.append("(literal ");
-		builder.append(literal.getText());
-		builder.append(')');
-		
-		return builder.toString();
+	public String getDebugName(){
+		return "literal " + literal.getText();
 	}
+
 }

@@ -23,6 +23,7 @@ package chipmunk.compiler.ast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AstNode {
 	
@@ -85,7 +86,7 @@ public class AstNode {
 	public void setLineNumber(int line) {
 		lineNumber = line;
 	}
-	
+
 	public void visit(AstVisitor visitor){
 		visitor.visit(this);
 	}
@@ -107,15 +108,30 @@ public class AstNode {
 			visitor.visit(children.get(i));
 		}
 	}
+
+	public String getDebugName(){
+		return null;
+	}
 	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		builder.append('(');
-		
-		for(AstNode child : children){
-			builder.append(child.toString());
+
+		String debugSymbol = getDebugName();
+		if(debugSymbol != null){
+			builder.append(debugSymbol);
 		}
+
+		if(!children.isEmpty()){
+			builder.append(' ');
+		}
+
+		builder.append(
+				children.stream()
+						.map(AstNode::toString)
+						.collect(Collectors.joining(" "))
+		);
 		
 		builder.append(')');
 		return builder.toString();

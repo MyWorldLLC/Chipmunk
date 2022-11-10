@@ -74,19 +74,10 @@ public class ModuleNode extends BlockNode implements SymbolNode {
 	public void addMethodDef(MethodNode node){
 		addChild(node);
 	}
-	
+
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		builder.append("(module ");
-		builder.append(symbol.getName());
-		
-		for(AstNode child : children){
-			builder.append(' ');
-			builder.append(child.toString());
-		}
-		
-		builder.append(')');
-		return builder.toString();
+	public String getDebugName(){
+		return "module " + symbol.getName();
 	}
+
 }

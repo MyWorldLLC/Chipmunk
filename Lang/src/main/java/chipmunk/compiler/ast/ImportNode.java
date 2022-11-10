@@ -86,9 +86,9 @@ public class ImportNode extends AstNode {
 	}
 	
 	@Override
-	public String toString(){
+	public String getDebugName(){
 		StringBuilder builder = new StringBuilder();
-		builder.append("(import ");
+		builder.append("import ");
 		
 		int symbol = 0;
 		while(symbol < symbols.size()){
@@ -122,7 +122,7 @@ public class ImportNode extends AstNode {
 			builder.append("from ");
 		}
 		builder.append(module);
-		builder.append(")");
+
 		return builder.toString();
 	}
 }

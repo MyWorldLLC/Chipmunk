@@ -31,15 +31,7 @@ public class ListNode extends AstNode {
 	}
 
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		builder.append("(list ");
-		
-		for(AstNode child : children){
-			builder.append(child.toString());
-		}
-		
-		builder.append(')');
-		return builder.toString();
+	public String getDebugName(){
+		return "list";
 	}
 }

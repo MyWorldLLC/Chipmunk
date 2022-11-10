@@ -39,15 +39,8 @@ public class MapNode extends AstNode {
 		}
 
 		@Override
-		public String toString(){
-			StringBuilder builder = new StringBuilder();
-			builder.append("(keyvalue ");
-
-			builder.append(getKey());
-			builder.append(getValue());
-			builder.append(')');
-
-			return builder.toString();
+		public String getDebugName(){
+			return "keyvalue";
 		}
 	}
 
@@ -60,15 +53,7 @@ public class MapNode extends AstNode {
 	}
 
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		builder.append("(map ");
-		
-		for(AstNode child : children){
-			builder.append(child.toString());
-		}
-		
-		builder.append(')');
-		return builder.toString();
+	public String getDebugName(){
+		return "map";
 	}
 }

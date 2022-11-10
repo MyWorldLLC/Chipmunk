@@ -62,20 +62,10 @@ public class OperatorNode extends AstNode {
 	public void addOperand(AstNode operand){
 		super.addChild(operand);
 	}
-	
+
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		builder.append('(');
-		builder.append(op.getText());
-		builder.append(' ');
-		
-		for(AstNode child : children){
-			builder.append(child.toString());
-		}
-		
-		builder.append(')');
-		return builder.toString();
+	public String getDebugName(){
+		return op.getText();
 	}
 
 }

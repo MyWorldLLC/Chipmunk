@@ -86,26 +86,10 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	public String getVarName(){
 		return hasVar ? getIDNode().getID().getText() : null;
 	}
-	
+
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		
-		builder.append("(vardec ");
-		
-		if(hasVar){
-			builder.append(getIDNode().getID().getText());
-			
-			if(hasAssignExpr){
-				builder.append(' ');
-			}
-		}
-		
-		if(hasAssignExpr){
-			builder.append(getAssignExpr().toString());
-		}
-		builder.append(")");
-		return builder.toString();
+	public String getDebugName(){
+		return "vardec";
 	}
 
 	@Override

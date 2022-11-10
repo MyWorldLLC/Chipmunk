@@ -52,16 +52,10 @@ public class IdNode extends AstNode {
 		this.id = id;
 		setLineNumber(id.getLine());
 	}
-	
+
 	@Override
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		
-		builder.append("(id ");
-		builder.append(id.getText());
-		builder.append(')');
-		
-		return builder.toString();
+	public String getDebugName(){
+		return "id " + id.getText();
 	}
 
 }
