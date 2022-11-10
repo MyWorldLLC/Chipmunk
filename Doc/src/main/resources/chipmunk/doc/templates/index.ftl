@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <title>Chipmunk Docs</title>
     </head>
     <body id="body">
     <h1>Modules</h1>

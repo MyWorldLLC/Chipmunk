@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2021 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':Lang')
+
+    testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
+}
+
+group = 'myworld'
+version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication){
+            artifactId = 'chipmunk-test'
+
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/MyWorldLLC/Chipmunk")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+}
