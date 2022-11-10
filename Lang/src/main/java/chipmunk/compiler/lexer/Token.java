@@ -55,44 +55,90 @@ public class Token {
 		STRINGLITERAL("\"(\\\\\"|[^\"])*\"|'(\\\\\'|[^\'])*'", false, true),
 		
 		// blocks, indexing, grouping, and calling
-		LBRACE("\\{"), RBRACE("\\}"), LBRACKET("\\["), RBRACKET("\\]"), LPAREN("\\("), RPAREN("\\)"), COMMA(","),
+		LBRACE("\\{"), RBRACE("\\}"),
+		LBRACKET("\\["), RBRACKET("\\]"),
+		LPAREN("\\("), RPAREN("\\)"),
+		COMMA(","),
 		
 		// symbols - multiple and single forms
-		DOUBLEPLUSEQUALS("\\+\\+\\="), PLUSEQUALS("\\+\\="), DOUBLEMINUSEQUALS("\\-\\-\\="), MINUSEQUALS("\\-\\="), DOUBLESTAREQUALS("\\*\\*\\="), STAREQUALS("\\*="),
-		DOUBLEFSLASHEQUALS("//\\="), FSLASHEQUALS("/\\="), PERCENTEQUALS("%\\="), DOUBLEAMPERSANDEQUALS("&&\\="), AMPERSANDEQUALS("&\\="),
-		CARETEQUALS("\\^\\="), DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="), DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="), TRIPLEMOREQUALS(">>>\\="),
-		DOUBLEMOREEQUALS(">>\\="), MOREEQUALS(">\\="), EXCLAMATIONEQUALS("\\!\\="), TILDEEQUALS("~\\="), DOUBLECOLON("::"), COLON(":"),
-		DOUBLEEQUAlS("\\=\\="), EQUALS("\\="), DOUBLEDOTLESS("\\.\\.<"), DOUBLEDOT("\\.\\."), DOT("\\."), DOUBLESTAR("\\*\\*"),
-		STAR("\\*"), DOUBLEPLUS("\\+\\+"),PLUS("\\+"), DOUBLEMINUS("\\-\\-"), MINUS("\\-"), DOUBLEFSLASH("//"), FSLASH("/"),
-		DOUBLEBAR("\\|\\|"), BAR("\\|"), EXCLAMATION("\\!"), TILDE("~"), CARET("\\^"),
-		DOUBLELESSTHAN("<<"), LESSTHAN("<"), TRIPLEMORETHAN(">>>"), DOUBLEMORETHAN(">>"), MORETHAN(">"),
-		PERCENT("%"), DOUBLEAMPERSAND("&&"), AMPERSAND("&"),
+		DOUBLEPLUSEQUALS("\\+\\+\\="), PLUSEQUALS("\\+\\="),
+		DOUBLEMINUSEQUALS("\\-\\-\\="), MINUSEQUALS("\\-\\="),
+		DOUBLESTAREQUALS("\\*\\*\\="), STAREQUALS("\\*="),
+		DOUBLEFSLASHEQUALS("//\\="), FSLASHEQUALS("/\\="),
+		PERCENTEQUALS("%\\="),
+		DOUBLEAMPERSANDEQUALS("&&\\="), AMPERSANDEQUALS("&\\="),
+		CARETEQUALS("\\^\\="),
+		DOUBLEBAREQUALS("\\|\\|\\="), BAREQUALS("\\|\\="),
+		DOUBLELESSEQUALS("<<\\="), LESSEQUALS("<\\="),
+		TRIPLEMOREQUALS(">>>\\="), DOUBLEMOREEQUALS(">>\\="), MOREEQUALS(">\\="),
+		EXCLAMATIONEQUALS("\\!\\="),
+		TILDEEQUALS("~\\="),
+		DOUBLECOLON("::"),
+		COLON(":"),
+		DOUBLEEQUAlS("\\=\\="),
+		EQUALS("\\="),
+		DOUBLEDOTLESS("\\.\\.<"),
+		DOUBLEDOT("\\.\\."), DOT("\\."),
+		DOUBLESTAR("\\*\\*"), STAR("\\*"),
+		DOUBLEPLUS("\\+\\+"),PLUS("\\+"),
+		DOUBLEMINUS("\\-\\-"), MINUS("\\-"),
+		DOUBLEFSLASH("//"), FSLASH("/"),
+		DOUBLEBAR("\\|\\|"), BAR("\\|"),
+		EXCLAMATION("\\!"),
+		TILDE("~"),
+		CARET("\\^"),
+		DOUBLELESSTHAN("<<"), LESSTHAN("<"),
+		TRIPLEMORETHAN(">>>"), DOUBLEMORETHAN(">>"), MORETHAN(">"),
+		PERCENT("%"),
+		DOUBLEAMPERSAND("&&"), AMPERSAND("&"),
 		
 		
 		// keywords - (?![a-zA-Z0-9_]) checks that the following character is not alphanumeric or an underscore, the
 		// presence of which would make the token an identifier instead of a keyword
-		MODULE("module(?![a-zA-Z0-9_])", true, false),
-		FROM("from(?![a-zA-Z0-9_])", true, false), IMPORT("import(?![a-zA-Z0-9_])", true, false), AS("as(?![a-zA-Z0-9_])", true, false),
-		IN("in(?![a-zA-Z0-9_])", true, false), CLASS("class(?![a-zA-Z0-9_])", true, false), SHARED("shared(?![a-zA-Z0-9_])", true, false),
-		NULL("null(?![a-zA-Z0-9_])", true, false), IF("if(?![a-zA-Z0-9_])", true, false), ELSE("else(?![a-zA-Z0-9_])", true, false),
-		FOR("for(?![a-zA-Z0-9_])", true, false), WHILE("while(?![a-zA-Z0-9_])", true, false), BREAK("break(?![a-zA-Z0-9_])", true, false),
-		CONTINUE("continue(?![a-zA-Z0-9_])", true, false), RETURN("return(?![a-zA-Z0-9_])", true, false), TRY("try(?![a-zA-Z0-9_])", true, false),
-		CATCH("catch(?![a-zA-Z0-9_])", true, false), FINALLY("finally(?![a-zA-Z0-9_])"), THROW("throw(?![a-zA-Z0-9_])", true, false), DEF("def(?![a-zA-Z0-9_])", true, false),
-		VAR("var(?![a-zA-Z0-9_])", true, false), TRAIT("trait(?![a-zA-Z0-9_])", true, false), FINAL("final(?![a-zA-Z0-9_])", true, false),
-		INSTANCEOF("instanceof(?![a-zA-Z0-9_])", true, false),
-		IS("is(?![a-zA-Z0-9_])", true, false),
+		MODULE("module(?![a-zA-Z0-9_])", true),
+		FROM("from(?![a-zA-Z0-9_])", true),
+		IMPORT("import(?![a-zA-Z0-9_])", true),
+		AS("as(?![a-zA-Z0-9_])", true),
+		IN("in(?![a-zA-Z0-9_])", true),
+		CLASS("class(?![a-zA-Z0-9_])", true),
+		SHARED("shared(?![a-zA-Z0-9_])", true),
+		NULL("null(?![a-zA-Z0-9_])", true),
+		IF("if(?![a-zA-Z0-9_])", true),
+		ELSE("else(?![a-zA-Z0-9_])", true),
+		FOR("for(?![a-zA-Z0-9_])", true),
+		WHILE("while(?![a-zA-Z0-9_])", true),
+		BREAK("break(?![a-zA-Z0-9_])", true),
+		CONTINUE("continue(?![a-zA-Z0-9_])", true),
+		RETURN("return(?![a-zA-Z0-9_])", true),
+		TRY("try(?![a-zA-Z0-9_])", true),
+		CATCH("catch(?![a-zA-Z0-9_])", true),
+		FINALLY("finally(?![a-zA-Z0-9_])", true),
+		THROW("throw(?![a-zA-Z0-9_])", true),
+		DEF("def(?![a-zA-Z0-9_])", true),
+		VAR("var(?![a-zA-Z0-9_])", true),
+		TRAIT("trait(?![a-zA-Z0-9_])", true),
+		FINAL("final(?![a-zA-Z0-9_])", true),
+		INSTANCEOF("instanceof(?![a-zA-Z0-9_])", true),
+		IS("is(?![a-zA-Z0-9_])", true),
+		MATCH("match(?![a-zA-Z0-9_])", true),
+		CASE("case(?![a-zA-Z0-9_])", true),
+		WHEN("when(?![a-zA-Z0-9_])", true),
 		
 		// identifiers go second to last so that they don't interfere with matching keywords
 		IDENTIFIER("[a-zA-Z_][a-zA-Z0-9_]*"),
 		// EOF goes last
 		EOF("");
 		
-		protected Pattern pattern;
-		protected boolean keyword;
-		protected boolean literal;
+		protected final Pattern pattern;
+		protected final boolean keyword;
+		protected final boolean literal;
 		
 		Type(String regex){
 			this(regex, false, false);
+		}
+
+		Type(String regex, boolean keyword){
+			this(regex, keyword, false);
 		}
 		
 		Type(String regex, boolean keyword, boolean literal){
