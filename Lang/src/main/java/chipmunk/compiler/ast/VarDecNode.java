@@ -45,7 +45,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 		this();
 		hasVar = true;
 		super.addChild(id);
-		symbol.setName(id.getID().getText());
+		symbol.setName(id.getID().text());
 	}
 	
 	public void setVar(IdNode id){
@@ -55,7 +55,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 		
 		if(id != null){
 			this.addChildFirst(id);
-			symbol.setName(id.getID().getText());
+			symbol.setName(id.getID().text());
 			hasVar = true;
 		}else{
 			hasVar = false;
@@ -84,7 +84,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	}
 	
 	public String getVarName(){
-		return hasVar ? getIDNode().getID().getText() : null;
+		return hasVar ? getIDNode().getID().text() : null;
 	}
 
 	@Override

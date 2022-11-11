@@ -78,7 +78,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
     protected boolean isQualified(AstNode parent, AstNode child){
         if(parent instanceof OperatorNode){
             OperatorNode opNode = (OperatorNode) parent;
-            return opNode.getOperator().getText().equals(".") && opNode.getRight() == child;
+            return opNode.getOperator().text().equals(".") && opNode.getRight() == child;
         }
         return false;
     }
@@ -90,9 +90,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         String symbolName = varId.getName();
         Symbol symbol = scope.getSymbol(symbolName);
 
-        final int index = varId.getID().getIndex();
-        final int line = varId.getID().getLine();
-        final int column = varId.getID().getColumn();
+        final int index = varId.getID().index();
+        final int line = varId.getID().line();
+        final int column = varId.getID().column();
 
         if (symbol == null) {
             throw new UnresolvedSymbolException(scope.getModuleScope().getDebugSymbol(), symbolName);
@@ -192,7 +192,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
     protected boolean isMethodBindTarget(AstNode node, int index){
         if(index == 1 && node instanceof OperatorNode op){
-            if(op.getOperator().getType().equals(Token.Type.DOUBLECOLON)){
+            if(op.getOperator().type().equals(Token.Type.DOUBLECOLON)){
                 return true;
             }
         }

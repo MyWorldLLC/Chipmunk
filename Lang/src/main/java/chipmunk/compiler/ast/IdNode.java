@@ -45,17 +45,17 @@ public class IdNode extends AstNode {
 	}
 
 	public String getName(){
-		return id.getText();
+		return id.text();
 	}
 	
 	public void setID(Token id){
 		this.id = id;
-		setLineNumber(id.getLine());
+		setLineNumber(id.line());
 	}
 
 	@Override
 	public String getDebugName(){
-		return "id " + id.getText();
+		return "id " + id.text();
 	}
 
 }

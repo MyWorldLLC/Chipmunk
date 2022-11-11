@@ -41,7 +41,7 @@ public class FlowControlNode extends AstNode {
 	
 	public void setControlToken(Token controlToken){
 		token = controlToken;
-		setLineNumber(controlToken.getLine());
+		setLineNumber(controlToken.line());
 	}
 	
 	public void addControlExpression(AstNode expression){
@@ -50,7 +50,7 @@ public class FlowControlNode extends AstNode {
 
 	@Override
 	public String getDebugName(){
-		return token.getText();
+		return token.text();
 	}
 
 }

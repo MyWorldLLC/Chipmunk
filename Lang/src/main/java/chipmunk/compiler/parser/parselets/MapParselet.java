@@ -33,7 +33,7 @@ public class MapParselet implements PrefixParselet {
 		MapNode map = new MapNode();
 		
 		TokenStream tokens = parser.getTokens();
-		while(tokens.peek().getType() != Token.Type.RBRACE){
+		while(tokens.peek().type() != Token.Type.RBRACE){
 
 			parser.skipNewlinesAndComments();
 

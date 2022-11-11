@@ -22,14 +22,7 @@ package chipmunk.compiler.lexer;
 
 import java.util.regex.Pattern;
 
-public class Token {
-	
-	protected String text;
-	protected Type type;
-
-	protected final int index;
-	protected final int line;
-	protected final int column;
+public record Token(String text, Type type, int index, int line, int column) {
 	
 	/**
 	 * Defines the token types that the lexer will produce. NOTE: certain tokens, such as the floating point literal 1.23,
@@ -163,34 +156,6 @@ public class Token {
 	
 	public Token(String token, Type tokenType){
 		this(token, tokenType, -1, -1, -1);
-	}
-	
-	public Token(String token, Type tokenType, int index, int line, int column){
-		text = token;
-		type = tokenType;
-		this.index = index;
-		this.line = line;
-		this.column = column;
-	}
-	
-	public String getText(){
-		return text;
-	}
-	
-	public Type getType(){
-		return type;
-	}
-
-	public int getIndex() {
-		return index;
-	}
-
-	public int getLine() {
-		return line;
-	}
-
-	public int getColumn() {
-		return column;
 	}
 	
 	@Override

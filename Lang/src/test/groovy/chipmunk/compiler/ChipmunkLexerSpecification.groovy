@@ -37,10 +37,10 @@ class ChipmunkLexerSpecification extends Specification {
 		
 		then:
 			notThrown(SyntaxError)
-			tokens.get().getText() == "3"
-			tokens.get().getText() == "+"
-			tokens.get().getText() == "4"
-			tokens.get().getType() == Token.Type.EOF
+			tokens.get().text() == "3"
+			tokens.get().text() == "+"
+			tokens.get().text() == "4"
+			tokens.get().type() == Token.Type.EOF
 	}
 	
 	def "Tokenize 3 + 4 and verify types"(){
@@ -52,10 +52,10 @@ class ChipmunkLexerSpecification extends Specification {
 		
 		then:
 		notThrown(SyntaxError)
-		tokens.get().getType() == Token.Type.INTLITERAL
-		tokens.get().getType() == Token.Type.PLUS
-		tokens.get().getType() == Token.Type.INTLITERAL
-		tokens.get().getType() == Token.Type.EOF
+		tokens.get().type() == Token.Type.INTLITERAL
+		tokens.get().type() == Token.Type.PLUS
+		tokens.get().type() == Token.Type.INTLITERAL
+		tokens.get().type() == Token.Type.EOF
 	}
 	
 	def "Tokenize some floats"(String src, String expect){
@@ -64,8 +64,8 @@ class ChipmunkLexerSpecification extends Specification {
 		def token = lexer.lex(src).get()
 
 		expect:
-		token.getText() == expect
-		token.getType() == Token.Type.FLOATLITERAL
+		token.text() == expect
+		token.type() == Token.Type.FLOATLITERAL
 
 		where:
 		src       || expect
@@ -90,20 +90,20 @@ class ChipmunkLexerSpecification extends Specification {
 		notThrown(SyntaxError)
 		
 		def tok = tokens.get()
-		tok.getText() == "3"
-		tok.getType() == Token.Type.INTLITERAL
+		tok.text() == "3"
+		tok.type() == Token.Type.INTLITERAL
 		
 		def tok1 = tokens.get()
-		tok1.getText() == "# This is a comment."
-		tok1.getType() == Token.Type.COMMENT
+		tok1.text() == "# This is a comment."
+		tok1.type() == Token.Type.COMMENT
 		
 		def tok2 = tokens.get()
-		tok2.getText() == "\n"
-		tok2.getType() == Token.Type.NEWLINE
+		tok2.text() == "\n"
+		tok2.type() == Token.Type.NEWLINE
 		
 		def tok3 = tokens.get()
-		tok3.getText() == "4"
-		tok3.getType() == Token.Type.INTLITERAL
+		tok3.text() == "4"
+		tok3.type() == Token.Type.INTLITERAL
 	}
 	
 	def "Tokenize empty module def"(){
@@ -115,9 +115,9 @@ class ChipmunkLexerSpecification extends Specification {
 		
 		then:
 		notThrown(SyntaxError)
-		tokens.get().getType() == Token.Type.MODULE
-		tokens.get().getType() == Token.Type.IDENTIFIER
-		tokens.get().getType() == Token.Type.EOF
+		tokens.get().type() == Token.Type.MODULE
+		tokens.get().type() == Token.Type.IDENTIFIER
+		tokens.get().type() == Token.Type.EOF
 	}
 	
 	def "Tokenize oct literal 0o12"(){
@@ -129,8 +129,8 @@ class ChipmunkLexerSpecification extends Specification {
 		def token = tokens.get()
 		
 		then:
-		token.getType() == Token.Type.OCTLITERAL
-		token.getText() == "0o12"
+		token.type() == Token.Type.OCTLITERAL
+		token.text() == "0o12"
 	}
 	
 	def "Tokenize and verify line and column numbers"(){
@@ -149,14 +149,14 @@ class ChipmunkLexerSpecification extends Specification {
 		def token3 = tokens.get()
 		
 		then:
-		token1.getLine() == 1
-		token1.getColumn() == 1
+		token1.line() == 1
+		token1.column() == 1
 		
-		token2.getLine() == 2
-		token2.getColumn() == 2
+		token2.line() == 2
+		token2.column() == 2
 		
-		token3.getLine() == 3
-		token3.getColumn() == 5
+		token3.line() == 3
+		token3.column() == 5
 	}
 
 	def "Tokenize some identifiers"(){
@@ -172,14 +172,14 @@ class ChipmunkLexerSpecification extends Specification {
 		def token4 = tokens.get()
 
 		then:
-		token1.getText() == "foo"
-		token1.getType() == Token.Type.IDENTIFIER
-		token2.getText() == "foo2"
-		token2.getType() == Token.Type.IDENTIFIER
-		token3.getText() == "_foo3"
-		token3.getType() == Token.Type.IDENTIFIER
-		token4.getText() == "_foo_4_"
-		token4.getType() == Token.Type.IDENTIFIER
+		token1.text() == "foo"
+		token1.type() == Token.Type.IDENTIFIER
+		token2.text() == "foo2"
+		token2.type() == Token.Type.IDENTIFIER
+		token3.text() == "_foo3"
+		token3.type() == Token.Type.IDENTIFIER
+		token4.text() == "_foo_4_"
+		token4.type() == Token.Type.IDENTIFIER
 	}
 
 }

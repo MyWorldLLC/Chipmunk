@@ -217,10 +217,10 @@ public class ChipmunkParser {
 			// piece module name back together
 			StringBuilder moduleName = new StringBuilder();
 			if(identifiers.size() == 1){
-				moduleName.append(identifiers.get(0).getText());
+				moduleName.append(identifiers.get(0).text());
 			}else{
 				for(int i = 0; i < identifiers.size(); i++){
-					moduleName.append(identifiers.get(i).getText());
+					moduleName.append(identifiers.get(i).text());
 					if (i < identifiers.size() - 1) {
 						moduleName.append('.');
 					}
@@ -234,7 +234,7 @@ public class ChipmunkParser {
 		skipNewlinesAndComments();
 		
 		Token next = tokens.peek();
-		Token.Type nextType = next.getType();
+		Token.Type nextType = next.type();
 		while(nextType != Token.Type.EOF){
 			if(checkImport()){
 				
@@ -268,7 +268,7 @@ public class ChipmunkParser {
 			skipNewlinesAndComments();
 			
 			next = tokens.peek();
-			nextType = next.getType();
+			nextType = next.type();
 		}
 		endNode(module);
 		return module;
@@ -295,7 +295,7 @@ public class ChipmunkParser {
 		forceNext(Token.Type.CLASS);
 		Token id = getNext(Token.Type.IDENTIFIER);
 		
-		node.setName(id.getText());
+		node.setName(id.text());
 		
 		forceNext(Token.Type.LBRACE);
 		skipNewlinesAndComments();
@@ -326,7 +326,7 @@ public class ChipmunkParser {
 			}else if(peek(Token.Type.RBRACE)){
 				break;
 			}else{
-				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
 			}
 			
 			// TODO - symbol search rules
@@ -335,7 +335,7 @@ public class ChipmunkParser {
 			skipNewlines();
 			
 			if(peek(Token.Type.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().line(), peek().column()), peek());
 			}
 		}
 		forceNext(Token.Type.RBRACE);
@@ -380,7 +380,7 @@ public class ChipmunkParser {
 			}else if(peek(Token.Type.RBRACE)){
 				break;
 			}else{
-				syntaxError(String.format("Error parsing class body: %s", tokens.peek().getText()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), tokens.peek(), Token.Type.FINAL, Token.Type.VAR, Token.Type.DEF);
 			}
 			
 			// TODO - symbol search rules
@@ -389,7 +389,7 @@ public class ChipmunkParser {
 			skipNewlines();
 			
 			if(peek(Token.Type.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().getLine(), peek().getColumn()), peek());
+				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().line(), peek().column()), peek());
 			}
 		}
 		forceNext(Token.Type.RBRACE);
@@ -420,7 +420,7 @@ public class ChipmunkParser {
 		}
 		
 		forceNext(Token.Type.DEF);
-		node.setName(getNext(Token.Type.IDENTIFIER).getText());
+		node.setName(getNext(Token.Type.IDENTIFIER).text());
 		
 		forceNext(Token.Type.LPAREN);
 		while(peek(Token.Type.IDENTIFIER)){
@@ -455,7 +455,7 @@ public class ChipmunkParser {
 		
 		MethodNode node = new MethodNode();
 		startNode(node);
-		node.setName("anonL" + peek().getLine() + "C" + peek().getColumn());
+		node.setName("anonL" + peek().line() + "C" + peek().column());
 		
 		forceNext(Token.Type.LPAREN);
 		while(peek(Token.Type.IDENTIFIER)){
@@ -513,7 +513,7 @@ public class ChipmunkParser {
 		}
 		Token id = getNext(Token.Type.IDENTIFIER);
 		IdNode idNode = new IdNode(id);
-		idNode.setLineNumber(id.getLine());
+		idNode.setLineNumber(id.line());
 		dec.setVar(idNode);
 		
 		
@@ -564,10 +564,10 @@ public class ChipmunkParser {
 		//else if(checkClassDef()){
 		//	return parseClassDef();
 		//}
-		else if(peek().getType().isKeyword()){
+		else if(peek().type().isKeyword()){
 			// parse block or keyword statement
 			Token token = peek();
-			Token.Type type = token.getType();
+			Token.Type type = token.type();
 			
 			switch(type){
 			case IF:
@@ -707,9 +707,9 @@ public class ChipmunkParser {
 		startNode(iter);
 		
 		IdNode varID = new IdNode(getNext(Token.Type.IDENTIFIER));
-		varID.setLineNumber(varID.getID().getLine());
-		varID.setBeginTokenIndex(varID.getID().getIndex());
-		varID.setEndTokenIndex(varID.getID().getIndex() + 1);
+		varID.setLineNumber(varID.getID().line());
+		varID.setBeginTokenIndex(varID.getID().index());
+		varID.setEndTokenIndex(varID.getID().index() + 1);
 
 		forceNext(Token.Type.IN);
 		
@@ -717,8 +717,8 @@ public class ChipmunkParser {
 		
 		VarDecNode decl = new VarDecNode(varID);
 		decl.setLineNumber(varID.getLineNumber());
-		decl.setBeginTokenIndex(varID.getID().getIndex());
-		decl.setEndTokenIndex(varID.getID().getIndex() + 1);
+		decl.setBeginTokenIndex(varID.getID().index());
+		decl.setEndTokenIndex(varID.getID().index() + 1);
 
 		iter.setID(decl);
 		iter.setIter(expr);
@@ -804,7 +804,7 @@ public class ChipmunkParser {
 	 * @return true if the next token sequence should be parsed as an import, false if not
 	 */
 	public boolean checkImport(){
-		Token.Type nextType = tokens.peek().getType();
+		Token.Type nextType = tokens.peek().type();
 		return nextType == Token.Type.FROM || nextType == Token.Type.IMPORT;
 	}
 	
@@ -832,17 +832,17 @@ public class ChipmunkParser {
 					node.setImportAll(true);
 					break;
 				}else{
-					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().getText());
+					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().text());
 				}
 			}
 			
 			// piece module name back together
 			StringBuilder moduleName = new StringBuilder();
 			if(identifiers.size() == 1){
-				moduleName.append(identifiers.get(0).getText());
+				moduleName.append(identifiers.get(0).text());
 			}else{
 				for(int i = 0; i < identifiers.size() - 1; i++){
-					moduleName.append(identifiers.get(i).getText());
+					moduleName.append(identifiers.get(i).text());
 					if (i < identifiers.size() - 2) {
 						moduleName.append('.');
 					}
@@ -850,7 +850,7 @@ public class ChipmunkParser {
 			}
 			
 			if(identifiers.size() > 1){
-				node.addSymbol(identifiers.get(identifiers.size() - 1).getText());
+				node.addSymbol(identifiers.get(identifiers.size() - 1).text());
 			}
 			
 			node.setModule(moduleName.toString());
@@ -869,13 +869,13 @@ public class ChipmunkParser {
 					identifiers.add(getNext(Token.Type.STAR));
 					node.setImportAll(true);
 				}else{
-					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().getText());
+					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().text());
 				}
 			}
 			
 			StringBuilder moduleName = new StringBuilder();
 			for(int i = 0; i < identifiers.size(); i++){
-				moduleName.append(identifiers.get(i).getText());
+				moduleName.append(identifiers.get(i).text());
 				if(i < identifiers.size() - 1){
 					moduleName.append('.');
 				}
@@ -886,10 +886,10 @@ public class ChipmunkParser {
 			forceNext(Token.Type.IMPORT);
 			
 			if(peek(Token.Type.IDENTIFIER)){
-				node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+				node.addSymbol(getNext(Token.Type.IDENTIFIER).text());
 				while(peek(Token.Type.COMMA)){
 					dropNext(Token.Type.COMMA);
-					node.addSymbol(getNext(Token.Type.IDENTIFIER).getText());
+					node.addSymbol(getNext(Token.Type.IDENTIFIER).text());
 				}
 			}else{
 				forceNext(Token.Type.STAR);
@@ -909,11 +909,11 @@ public class ChipmunkParser {
 			
 			dropNext();
 			// parse aliases
-			node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+			node.addAlias(getNext(Token.Type.IDENTIFIER).text());
 			
 			while(peek(Token.Type.COMMA)){
 				dropNext(Token.Type.COMMA);
-				node.addAlias(getNext(Token.Type.IDENTIFIER).getText());
+				node.addAlias(getNext(Token.Type.IDENTIFIER).text());
 			}
 			
 			if(node.getSymbols().size() < node.getAliases().size()){
@@ -937,27 +937,27 @@ public class ChipmunkParser {
 		
 		Token token = tokens.get();
 		
-		PrefixParselet prefixParser = prefix.get(token.getType());
+		PrefixParselet prefixParser = prefix.get(token.type());
 		
 		if(prefixParser == null){
 			syntaxError("expression", "literal, id, or unary operator", token);
 		}
 		
 		AstNode left = prefixParser.parse(this, token);
-		left.setLineNumber(token.getLine());
+		left.setLineNumber(token.line());
 		
 		token = tokens.peek();
 		while(minPrecedence < getPrecedence(token)){
 			token = tokens.get();
 			
-			InfixParselet infixParser = infix.get(token.getType());
+			InfixParselet infixParser = infix.get(token.type());
 			
 			if(infixParser == null){
 				syntaxError("expression", "literal, id, or binary operator", token);
 			}
 			
 			left = infixParser.parse(this, left, token);
-			left.setLineNumber(token.getLine());
+			left.setLineNumber(token.line());
 			token = tokens.peek();
 		}
 		
@@ -965,7 +965,7 @@ public class ChipmunkParser {
 	}
 	
 	private int getPrecedence(Token token){
-		InfixParselet parselet = infix.get(token.getType());
+		InfixParselet parselet = infix.get(token.type());
 		if(parselet != null){
 			return parselet.getPrecedence();
 		}else{
@@ -976,7 +976,7 @@ public class ChipmunkParser {
 	public Token getNext(Token.Type type){
 		Token token = tokens.get();
 		
-		if(token.getType() != type){
+		if(token.type() != type){
 			syntaxError("", token, type);
 		}
 		
@@ -986,7 +986,7 @@ public class ChipmunkParser {
 	public void forceNext(Token.Type type){
 		Token token = tokens.get();
 		
-		if(token.getType() != type){
+		if(token.type() != type){
 			syntaxError("", token, type);
 		}
 	}
@@ -1022,16 +1022,16 @@ public class ChipmunkParser {
 	public boolean peek(Token.Type type){
 		Token token = tokens.peek();
 		
-		return token.getType() == type;
+		return token.type() == type;
 	}
 	
 	public boolean peek(int places, Token.Type type){
-		return tokens.peek(places).getType() == type;
+		return tokens.peek(places).type() == type;
 	}
 	
 	public boolean peek(Token.Type... types){
 		for(int i = 0; i < types.length; i++){
-			if(peek(i).getType() != types[i]){
+			if(peek(i).type() != types[i]){
 				return false;
 			}
 		}
@@ -1040,7 +1040,7 @@ public class ChipmunkParser {
 	
 	private void startNode(AstNode node){
 		node.setBeginTokenIndex(tokens.getStreamPosition());
-		node.setLineNumber(tokens.peek().getLine());
+		node.setLineNumber(tokens.peek().line());
 	}
 	
 	private void endNode(AstNode node){
@@ -1061,7 +1061,7 @@ public class ChipmunkParser {
 		}
 		
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				context, fileName, got.getLine(), got.getColumn(), expectedTypes.toString(), got.getText());
+				context, fileName, got.line(), got.column(), expectedTypes.toString(), got.text());
 		
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(expected);
@@ -1071,7 +1071,7 @@ public class ChipmunkParser {
 	
 	public void syntaxError(String context, String expected, Token got) throws SyntaxError {
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				context, fileName, got.getLine(), got.getColumn(), expected, got.getText());
+				context, fileName, got.line(), got.column(), expected, got.text());
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(new Token.Type[]{});
 		error.setGot(got);

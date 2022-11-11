@@ -41,12 +41,12 @@ public class LiteralNode extends AstNode {
 	
 	public void setLiteral(Token literalValue){
 		literal = literalValue;
-		setLineNumber(literal.getLine());
+		setLineNumber(literal.line());
 	}
 
 	@Override
 	public String getDebugName(){
-		return "literal " + literal.getText();
+		return "literal " + literal.text();
 	}
 
 }

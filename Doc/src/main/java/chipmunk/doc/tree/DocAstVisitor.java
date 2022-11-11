@@ -95,7 +95,7 @@ public class DocAstVisitor implements AstVisitor {
         while(newlineOrDocComment(tokens.peek(-1)) && tokens.peek(-1) != last){
             Token token = tokens.peek(-1);
             tokens.rewind(1);
-            if(token.getType() == Token.Type.COMMENT){
+            if(token.type() == Token.Type.COMMENT){
                 comments.push(token);
             }
             last = token;
@@ -104,7 +104,7 @@ public class DocAstVisitor implements AstVisitor {
         String lexicalName = ((SymbolNode) astNode).getSymbol().getName();
 
         String comment = comments.stream()
-                .map(Token::getText)
+                .map(Token::text)
                 .map(String::trim)
                 .map(s -> s.substring(2))
                 .collect(Collectors.joining(" "));
@@ -121,8 +121,8 @@ public class DocAstVisitor implements AstVisitor {
     }
 
     protected boolean newlineOrDocComment(Token t){
-        return t.getType() == Token.Type.NEWLINE ||
-                (t.getType() == Token.Type.COMMENT && t.getText().startsWith("##"));
+        return t.type() == Token.Type.NEWLINE ||
+                (t.type() == Token.Type.COMMENT && t.text().startsWith("##"));
     }
 
 }

@@ -48,7 +48,7 @@ public class OperatorNode extends AstNode {
 	
 	public void setOperator(Token op) {
 		this.op = op;
-		setLineNumber(op.getLine());
+		setLineNumber(op.line());
 	}
 	
 	public AstNode getLeft(){
@@ -65,7 +65,7 @@ public class OperatorNode extends AstNode {
 
 	@Override
 	public String getDebugName(){
-		return op.getText();
+		return op.text();
 	}
 
 }

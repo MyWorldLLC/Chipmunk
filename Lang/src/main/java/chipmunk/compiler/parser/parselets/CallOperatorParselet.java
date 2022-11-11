@@ -33,7 +33,7 @@ public class CallOperatorParselet implements InfixParselet {
 		
 		OperatorNode node = new OperatorNode(token, left);
 		
-		while(parser.getTokens().peek().getType() != Token.Type.RPAREN){
+		while(parser.getTokens().peek().type() != Token.Type.RPAREN){
 			AstNode arg = parser.parseExpression();
 			node.addOperand(arg);
 			
