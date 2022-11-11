@@ -21,6 +21,7 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.UnresolvedSymbolException;
@@ -112,13 +113,13 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol
-            OperatorNode getModuleCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
-            OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
-            OperatorNode varDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+            OperatorNode getModuleCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
+            OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+            OperatorNode varDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
 
-            IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
+            IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
 
-            IdNode getModule = new IdNode(new Token("getModule", Token.Type.IDENTIFIER, index, line, column));
+            IdNode getModule = new IdNode(new Token("getModule", TokenType.IDENTIFIER, index, line, column));
 
             selfDotNode.getChildren().add(self);
             selfDotNode.getChildren().add(getModule);
@@ -129,13 +130,13 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             if (symbol.isImported()) {
                 // If this symbol is imported, we have to rewrite access to
                 // self.getModule().$module_field_name.symbol
-                OperatorNode importDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                OperatorNode importDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
 
                 final String moduleFieldName = ChipmunkCompiler.importedModuleName(symbol.getImport().getModule());
-                IdNode importedModuleName = new IdNode(new Token(moduleFieldName, Token.Type.IDENTIFIER, index, line, column));
+                IdNode importedModuleName = new IdNode(new Token(moduleFieldName, TokenType.IDENTIFIER, index, line, column));
 
                 if (symbol.getImport().isAliased()) {
-                    varId = new IdNode(new Token(symbol.getImport().getAliasedSymbol(), Token.Type.IDENTIFIER, index, line, column));
+                    varId = new IdNode(new Token(symbol.getImport().getAliasedSymbol(), TokenType.IDENTIFIER, index, line, column));
                 }
 
                 varDotNode.getChildren().add(importedModuleName);
@@ -156,13 +157,13 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 // Symbol is a shared field AND we are not accessing it from a shared method
                 // Rewrite to self.getChipmunkClass().symbol
 
-                OperatorNode getClassCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
-                OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
-                OperatorNode varDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                OperatorNode getClassCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
+                OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+                OperatorNode varDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
 
-                IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
+                IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
 
-                IdNode getClass = new IdNode(new Token("getChipmunkClass", Token.Type.IDENTIFIER, index, line, column));
+                IdNode getClass = new IdNode(new Token("getChipmunkClass", TokenType.IDENTIFIER, index, line, column));
 
                 selfDotNode.getChildren().add(self);
                 selfDotNode.getChildren().add(getClass);
@@ -177,9 +178,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 // Symbol is an instance field
                 // Rewrite to self.symbol
 
-                OperatorNode selfDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
 
-                IdNode self = new IdNode(new Token("self", Token.Type.IDENTIFIER, index, line, column));
+                IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
                 selfDotNode.getChildren().add(self);
                 selfDotNode.getChildren().add(varId);
 
@@ -192,7 +193,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
     protected boolean isMethodBindTarget(AstNode node, int index){
         if(index == 1 && node instanceof OperatorNode op){
-            if(op.getOperator().type().equals(Token.Type.DOUBLECOLON)){
+            if(op.getOperator().type().equals(TokenType.DOUBLECOLON)){
                 return true;
             }
         }

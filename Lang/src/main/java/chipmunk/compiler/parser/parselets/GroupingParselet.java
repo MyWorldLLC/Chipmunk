@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
@@ -29,7 +30,7 @@ public class GroupingParselet implements PrefixParselet {
 	@Override
 	public AstNode parse(ChipmunkParser parser, Token token) {
 		AstNode expr = parser.parseExpression();
-		parser.forceNext(Token.Type.RPAREN);
+		parser.forceNext(TokenType.RPAREN);
 		return expr;
 	}
 

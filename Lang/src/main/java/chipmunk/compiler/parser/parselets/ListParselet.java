@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
@@ -33,17 +34,17 @@ public class ListParselet implements PrefixParselet {
 		ListNode list = new ListNode();
 		
 		TokenStream tokens = parser.getTokens();
-		while(!parser.peek(Token.Type.RBRACKET)){
+		while(!parser.peek(TokenType.RBRACKET)){
 
 			parser.skipNewlinesAndComments();
 			list.addChild(parser.parseExpression());
 			parser.skipNewlinesAndComments();
 			
-			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACKET))){
-				parser.syntaxError("Error parsing list", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACKET);
+			if(!(parser.dropNext(TokenType.COMMA) || parser.peek(TokenType.RBRACKET))){
+				parser.syntaxError("Error parsing list", tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
 			}
 		}
-		parser.dropNext(Token.Type.RBRACKET);
+		parser.dropNext(TokenType.RBRACKET);
 		return list;
 	}
 

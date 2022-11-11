@@ -21,6 +21,7 @@
 package chipmunk.compiler.ast;
 
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
 
 public class IdNode extends AstNode {
 	
@@ -37,7 +38,7 @@ public class IdNode extends AstNode {
 
 	public IdNode(String id){
 		super();
-		setID(new Token(id, Token.Type.IDENTIFIER));
+		setID(new Token(id, TokenType.IDENTIFIER));
 	}
 	
 	public Token getID(){

@@ -23,6 +23,7 @@ package chipmunk.compiler.ast.transforms;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
+import chipmunk.compiler.lexer.TokenType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,13 +64,13 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(im.getModule()));
 
-                OperatorNode getModuleCallNode = new OperatorNode(new Token("(", Token.Type.LPAREN, index, line, column));
-                OperatorNode vmDotNode = new OperatorNode(new Token(".", Token.Type.DOT, index, line, column));
+                OperatorNode getModuleCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
+                OperatorNode vmDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
                 vmDotNode.getChildren().add(new IdNode("vm"));
                 vmDotNode.getChildren().add(new IdNode("getModule"));
 
                 getModuleCallNode.getChildren().add(vmDotNode);
-                getModuleCallNode.getChildren().add(new LiteralNode(new Token("\"" + im.getModule() + "\"", Token.Type.STRINGLITERAL)));
+                getModuleCallNode.getChildren().add(new LiteralNode(new Token("\"" + im.getModule() + "\"", TokenType.STRINGLITERAL)));
 
                 dec.setAssignExpr(getModuleCallNode);
                 moduleNode.getChildren().add(dec);
@@ -105,14 +106,14 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             // Rewrite empty assign expression to null assignment
             if(assignExpression == null){
-                assignExpression = new LiteralNode(new Token("null", Token.Type.NULL));
+                assignExpression = new LiteralNode(new Token("null", TokenType.NULL));
             }
 
             BlockNode owner = modulesAndClasses.peek();
 
             IdNode id = new IdNode(varDec.getIDNode().getID());
 
-            OperatorNode assignStatement = new OperatorNode(new Token("=", Token.Type.EQUALS));
+            OperatorNode assignStatement = new OperatorNode(new Token("=", TokenType.EQUALS));
             assignStatement.getChildren().add(id);
             assignStatement.getChildren().add(assignExpression);
 

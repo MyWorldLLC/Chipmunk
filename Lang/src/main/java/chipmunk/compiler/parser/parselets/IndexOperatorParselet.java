@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
 import chipmunk.compiler.lexer.Token;
@@ -31,7 +32,7 @@ public class IndexOperatorParselet implements InfixParselet {
 	@Override
 	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
 		OperatorNode node = new OperatorNode(token, left, parser.parseExpression());
-		parser.forceNext(Token.Type.RBRACKET);
+		parser.forceNext(TokenType.RBRACKET);
 		return node;
 	}
 

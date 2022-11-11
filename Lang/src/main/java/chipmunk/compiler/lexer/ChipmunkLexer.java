@@ -47,11 +47,11 @@ public class ChipmunkLexer {
 		int cursor = 0;
 		
 		// fill matcher cache
-		Map<Token.Type, Matcher> matchers = new HashMap<Token.Type, Matcher>();
+		Map<TokenType, Matcher> matchers = new HashMap<TokenType, Matcher>();
 		
-		Token.Type[] tokenTypes = Token.Type.values();
+		TokenType[] tokenTypes = TokenType.values();
 		for(int i = 0; i < tokenTypes.length; i++){
-			Token.Type type = tokenTypes[i];
+			TokenType type = tokenTypes[i];
 			matchers.put(type, type.getPattern().matcher(src));
 		}
 		
@@ -91,7 +91,7 @@ public class ChipmunkLexer {
 			// try to match correct token
 			for(int i = 0; i < tokenTypes.length - 1; i++){
 				
-				Token.Type type = tokenTypes[i];
+				TokenType type = tokenTypes[i];
 
 				Matcher matcher = matchers.get(type);
 				matcher.region(cursor, src.length());
@@ -101,7 +101,7 @@ public class ChipmunkLexer {
 					stream.append(new Token(subStr, type, matcher.start(), line, column));
 					cursor = matcher.end();
 
-					if (type == Token.Type.NEWLINE) {
+					if (type == TokenType.NEWLINE) {
 						column = 1;
 						line += 1;
 					} else {
@@ -120,7 +120,7 @@ public class ChipmunkLexer {
 			}
 		}
 
-		stream.append(new Token("", Token.Type.EOF, source.length() - 1, line, column));
+		stream.append(new Token("", TokenType.EOF, source.length() - 1, line, column));
 		return stream;
 	}
 	

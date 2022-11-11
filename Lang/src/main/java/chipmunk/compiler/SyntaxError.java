@@ -21,12 +21,13 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
 
 public class SyntaxError extends CompileChipmunk {
 
 	private static final long serialVersionUID = 1758610427119118408L;
 	
-	private Token.Type[] expected;
+	private TokenType[] expected;
 	private Token got;
 
 	public SyntaxError(){
@@ -46,11 +47,11 @@ public class SyntaxError extends CompileChipmunk {
 		super(msg, cause);
 	}
 
-	public Token.Type[] getExpected() {
+	public TokenType[] getExpected() {
 		return expected;
 	}
 
-	public void setExpected(Token.Type[] expected) {
+	public void setExpected(TokenType[] expected) {
 		this.expected = expected;
 	}
 

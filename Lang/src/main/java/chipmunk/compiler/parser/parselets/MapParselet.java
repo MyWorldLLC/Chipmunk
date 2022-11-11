@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
@@ -33,7 +34,7 @@ public class MapParselet implements PrefixParselet {
 		MapNode map = new MapNode();
 		
 		TokenStream tokens = parser.getTokens();
-		while(tokens.peek().type() != Token.Type.RBRACE){
+		while(tokens.peek().type() != TokenType.RBRACE){
 
 			parser.skipNewlinesAndComments();
 
@@ -41,7 +42,7 @@ public class MapParselet implements PrefixParselet {
 
 			parser.skipNewlinesAndComments();
 
-			parser.forceNext(Token.Type.COLON);
+			parser.forceNext(TokenType.COLON);
 
 			parser.skipNewlinesAndComments();
 
@@ -51,11 +52,11 @@ public class MapParselet implements PrefixParselet {
 			
 			parser.skipNewlinesAndComments();
 			
-			if(!(parser.dropNext(Token.Type.COMMA) || parser.peek(Token.Type.RBRACE))){
-				parser.syntaxError("Error parsing map", tokens.peek(), Token.Type.COMMA, Token.Type.RBRACE);
+			if(!(parser.dropNext(TokenType.COMMA) || parser.peek(TokenType.RBRACE))){
+				parser.syntaxError("Error parsing map", tokens.peek(), TokenType.COMMA, TokenType.RBRACE);
 			}
 		}
-		parser.dropNext(Token.Type.RBRACE);
+		parser.dropNext(TokenType.RBRACE);
 		return map;
 	}
 

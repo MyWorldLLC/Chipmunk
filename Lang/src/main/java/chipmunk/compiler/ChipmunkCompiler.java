@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import chipmunk.compiler.imports.NativeImportResolver;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.binary.BinaryModule;
@@ -169,7 +170,7 @@ public class ChipmunkCompiler {
 		module.setFileName("runtimeExpression");
 
 		MethodNode method = new MethodNode("evaluate");
-		FlowControlNode ret = new FlowControlNode(new Token("return", Token.Type.RETURN));
+		FlowControlNode ret = new FlowControlNode(new Token("return", TokenType.RETURN));
 
 		TokenStream tokens = lex(exp);
 		ChipmunkParser parser = new ChipmunkParser(tokens);

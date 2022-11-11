@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.lexer.Token;
 
@@ -38,7 +39,7 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	}
 
 	public VarDecNode(String id){
-		this(new IdNode(new Token(id, Token.Type.IDENTIFIER)));
+		this(new IdNode(new Token(id, TokenType.IDENTIFIER)));
 	}
 	
 	public VarDecNode(IdNode id){

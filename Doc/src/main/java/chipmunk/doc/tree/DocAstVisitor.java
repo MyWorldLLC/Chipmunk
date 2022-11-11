@@ -23,6 +23,7 @@ package chipmunk.doc.tree;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
+import chipmunk.compiler.lexer.TokenType;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -95,7 +96,7 @@ public class DocAstVisitor implements AstVisitor {
         while(newlineOrDocComment(tokens.peek(-1)) && tokens.peek(-1) != last){
             Token token = tokens.peek(-1);
             tokens.rewind(1);
-            if(token.type() == Token.Type.COMMENT){
+            if(token.type() == TokenType.COMMENT){
                 comments.push(token);
             }
             last = token;
@@ -121,8 +122,8 @@ public class DocAstVisitor implements AstVisitor {
     }
 
     protected boolean newlineOrDocComment(Token t){
-        return t.type() == Token.Type.NEWLINE ||
-                (t.type() == Token.Type.COMMENT && t.text().startsWith("##"));
+        return t.type() == TokenType.NEWLINE ||
+                (t.type() == TokenType.COMMENT && t.text().startsWith("##"));
     }
 
 }

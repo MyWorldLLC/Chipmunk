@@ -34,6 +34,7 @@ import chipmunk.compiler.ast.MethodNode;
 import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.SymbolTable;
 
 public class ExpressionVisitor implements AstVisitor {
@@ -349,7 +350,7 @@ public class ExpressionVisitor implements AstVisitor {
 		AstNode lhs = op.getLeft();
 		if(lhs instanceof OperatorNode){
 			OperatorNode lOp = (OperatorNode) lhs;
-			if(lOp.getOperator().type() == Token.Type.DOT){
+			if(lOp.getOperator().type() == TokenType.DOT){
 				assembler.onLine(lhs.getLineNumber());
 				lOp.getLeft().visit(this);
 				String attr = ((IdNode) lOp.getRight()).getID().text();
@@ -359,7 +360,7 @@ public class ExpressionVisitor implements AstVisitor {
 
 				assembler.onLine(lhs.getLineNumber());
 				assembler.setattr(attr);
-			}else if(lOp.getOperator().type() == Token.Type.LBRACKET){
+			}else if(lOp.getOperator().type() == TokenType.LBRACKET){
 				lOp.getLeft().visit(this);
 				lOp.getRight().visit(this);
 				op.getRight().visit(this);
@@ -380,7 +381,7 @@ public class ExpressionVisitor implements AstVisitor {
 	
 	private void emitCall(OperatorNode op){
 		if(op.getLeft() instanceof OperatorNode 
-				&& ((OperatorNode) op.getLeft()).getOperator().type() == Token.Type.DOT
+				&& ((OperatorNode) op.getLeft()).getOperator().type() == TokenType.DOT
 				&& ((OperatorNode)op.getLeft()).getRight() instanceof IdNode){
 			
 			OperatorNode dotOp = (OperatorNode) op.getLeft();
