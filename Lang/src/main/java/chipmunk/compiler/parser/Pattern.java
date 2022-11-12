@@ -18,27 +18,24 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.types;
+package chipmunk.compiler.parser;
 
 import java.util.List;
+import java.util.function.Function;
 
-public record ObjectType(String name, boolean isPrimitive, boolean isType, List<ObjectType> superTypes) {
+public record Pattern<S, T, R>(List<T> pattern, Function<S, R> action) {
 
-    public static final ObjectType ANY = new ObjectType("Any", false, true, List.of());
-
-    public ObjectType typeOf(){
-        return classOf(name, superTypes);
+    public static <S, T, R> Pattern<S, T, R> of(List<T> pattern, Function<S, R> action){
+        return new Pattern<>(pattern, action);
     }
 
-    public static ObjectType primitive(String name){
-        return new ObjectType(name, true, false, List.of());
+    @SafeVarargs
+    public static <S, T, R> Pattern<S, T, R> when(T... pattern){
+        return new Pattern<>(List.of(pattern), null);
     }
 
-    public static ObjectType classBased(String name){
-        return new ObjectType(name, false, false, List.of());
+    public Pattern<S, T, R> then(Function<S, R> action){
+        return Pattern.of(pattern, action);
     }
 
-    public static ObjectType classOf(String name, List<ObjectType> superTypes){
-        return new ObjectType(name, false, true, List.copyOf(superTypes));
-    }
 }

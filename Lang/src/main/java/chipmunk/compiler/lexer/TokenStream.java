@@ -21,16 +21,33 @@
 package chipmunk.compiler.lexer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TokenStream {
 
 	protected List<Token> tokens;
 	protected int cursor;
+	protected int mark;
 	
 	public TokenStream(){
 		tokens = new ArrayList<>();
 		cursor = 0;
+		mark = 0;
+	}
+
+	private TokenStream(List<Token> tokens, int cursor, int mark){
+		this.tokens = tokens;
+		this.cursor = cursor;
+		this.mark = mark;
+	}
+
+	public TokenStream duplicate(){
+		return new TokenStream(tokens, cursor, mark);
+	}
+
+	public TokenStream frozen(){
+		return new TokenStream(Collections.unmodifiableList(tokens), cursor, mark);
 	}
 	
 	public int getStreamPosition(){
@@ -75,6 +92,16 @@ public class TokenStream {
 	
 	public void reset(){
 		cursor = 0;
+		mark = 0;
+	}
+
+	public int mark(){
+		mark = cursor;
+		return mark;
+	}
+
+	public void rewind(){
+		cursor = mark;
 	}
 	
 	public void rewind(int places){

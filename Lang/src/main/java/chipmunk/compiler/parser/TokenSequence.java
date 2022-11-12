@@ -18,27 +18,28 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.types;
+package chipmunk.compiler.parser;
 
-import java.util.List;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenStream;
 
-public record ObjectType(String name, boolean isPrimitive, boolean isType, List<ObjectType> superTypes) {
+public class TokenSequence {
 
-    public static final ObjectType ANY = new ObjectType("Any", false, true, List.of());
+    protected final int start;
+    protected final TokenStream tokens;
 
-    public ObjectType typeOf(){
-        return classOf(name, superTypes);
+    public TokenSequence(TokenStream tokens, int start){
+        this.tokens = tokens;
+        this.start = start;
     }
 
-    public static ObjectType primitive(String name){
-        return new ObjectType(name, true, false, List.of());
+    public Token get(int index){
+        var streamIndex = tokens.getStreamPosition();
+        return tokens.peek(-(streamIndex - start) + index);
     }
 
-    public static ObjectType classBased(String name){
-        return new ObjectType(name, false, false, List.of());
+    public Token peek(){
+        return tokens.peek();
     }
 
-    public static ObjectType classOf(String name, List<ObjectType> superTypes){
-        return new ObjectType(name, false, true, List.copyOf(superTypes));
-    }
 }
