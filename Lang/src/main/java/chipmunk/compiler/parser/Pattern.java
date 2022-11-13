@@ -20,22 +20,16 @@
 
 package chipmunk.compiler.parser;
 
+import chipmunk.util.SeekableSequence;
+import chipmunk.util.Sequence;
+
 import java.util.List;
 import java.util.function.Function;
 
-public record Pattern<S, T, R>(List<T> pattern, Function<S, R> action) {
+public record Pattern<S, SEQ extends SeekableSequence<S>, T, R>(List<T> pattern, Function<SEQ, R> action) {
 
-    public static <S, T, R> Pattern<S, T, R> of(List<T> pattern, Function<S, R> action){
+    public static <S, SEQ extends SeekableSequence<S>, T, R> Pattern<S, SEQ, T, R> of(List<T> pattern, Function<SEQ, R> action){
         return new Pattern<>(pattern, action);
-    }
-
-    @SafeVarargs
-    public static <S, T, R> Pattern<S, T, R> when(T... pattern){
-        return new Pattern<>(List.of(pattern), null);
-    }
-
-    public Pattern<S, T, R> then(Function<S, R> action){
-        return Pattern.of(pattern, action);
     }
 
 }

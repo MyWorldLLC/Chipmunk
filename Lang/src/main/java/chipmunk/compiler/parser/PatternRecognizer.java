@@ -20,23 +20,29 @@
 
 package chipmunk.compiler.parser;
 
-import chipmunk.compiler.lexer.TokenStream;
-import chipmunk.compiler.lexer.TokenType;
+import chipmunk.util.SeekableSequence;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PatternRecognizer<S, T, R> implements Function<S, R> {
+public class PatternRecognizer<S, SEQ extends SeekableSequence<S>, T, R> implements Function<SEQ, R> {
+    protected final Function<S, T> extractor;
+    protected final Set<T> ignore = new HashSet<>();
+    protected final List<Pattern<S, SEQ, T, R>> patterns = new ArrayList<>();
 
-    protected final Supplier<S> supplier;
-    protected final TokenStream tokens = new TokenStream();
-    protected final Set<TokenType> ignore = new HashSet<>();
-    protected final List<Pattern<S, T, R>> patterns = new ArrayList<>();
+    public PatternRecognizer(Function<S, T> extractor){
+        this.extractor = extractor;
+    }
 
-    public R matchAll(){
+    public PatternRecognizer<S, SEQ, T, R> ignore(T t){
+        ignore.add(t);
+        return this;
+    }
+
+    public R matchAll(SeekableSequence<S> source){
         for(var pattern : patterns){
-            var ast = match(pattern);
+            var ast = match(source, pattern);
             if(ast != null){
                 return ast;
             }
@@ -44,33 +50,32 @@ public class PatternRecognizer<S, T, R> implements Function<S, R> {
         return null;
     }
 
-    public <T extends Throwable> R matchAll(Supplier<T> noneMatch) throws T {
-        var ast = matchAll();
+    public <E extends Throwable> R matchAll(SeekableSequence<S> source, Supplier<E> noneMatch) throws E {
+        var ast = matchAll(source);
         if(ast == null){
             throw noneMatch.get();
         }
         return ast;
     }
 
-    public R match(Pattern<S, T, R> pattern){
-        var index = tokens.mark();
-        for(var type : pattern.pattern()){
-            var token = tokens.get();
-            if(!token.type().equals(type) && !ignore.contains(token.type())){
-                tokens.rewind();
+    public R match(SeekableSequence<S> source, Pattern<S, SEQ, T, R> pattern){
+        var dup = source.duplicate();
+        for(var t : pattern.pattern()){
+            var s = extractor.apply(dup.get());
+            if(!s.equals(t) && !ignore.contains(s)){
                 return null;
             }
         }
-        return pattern.action().apply(new TokenSequence(tokens, index));
+        return pattern.action().apply(source.duplicate());
     }
 
-    public PatternRecognizer<S, T, R> define(Pattern<S, T, R> p){
+    public PatternRecognizer<S, SEQ, T, R> define(Pattern<S, SEQ, T, R> p){
         patterns.add(p);
         return this;
     }
 
     @Override
-    public R apply(S source) {
-        return matchAll();
+    public R apply(SEQ source) {
+        return matchAll(source);
     }
 }

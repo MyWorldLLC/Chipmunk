@@ -23,10 +23,11 @@ package chipmunk.compiler.parser;
 import chipmunk.compiler.ast.uniform.AstNode;
 import chipmunk.compiler.ast.uniform.NodeType;
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenStream;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.types.ObjectType;
 
-import static chipmunk.compiler.parser.Pattern.when;
 import static chipmunk.compiler.lexer.TokenType.*;
 
 import java.util.List;
@@ -36,19 +37,20 @@ import static chipmunk.compiler.lexer.TokenType.EQUALS;
 
 public class RecognizerExperiment {
 
-    public void register(PatternRecognizer recognizer) {
-        recognizer.define(when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(2), true)))
-                .define(when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(1), false)));
+    public void register(PatternRecognizer<Token, TokenStream, TokenType, AstNode> recognizer) {
+        var f = new PatternFactory<Token, TokenStream, TokenType, AstNode>();
+        recognizer.define(f.when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(2), true)))
+                .define(f.when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(2), false)));
     }
 
-    protected AstNode parseVarDec(TokenSequence t, Token identifier, boolean isFinal) {
+    protected AstNode parseVarDec(TokenStream t, Token identifier, boolean isFinal) {
         return new AstNode(
                 NodeType.VAR_DEC, ObjectType.ANY, identifier,
                 Optional.of(new Symbol(identifier.text(), isFinal)),
                 t.peek().type() == EQUALS ? List.of(parseExpression(t)) : List.of());
     }
 
-    protected AstNode parseExpression(TokenSequence t) {
+    protected AstNode parseExpression(TokenStream t) {
         return null;
     }
 }
