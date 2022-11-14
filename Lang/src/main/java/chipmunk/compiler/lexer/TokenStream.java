@@ -20,19 +20,35 @@
 
 package chipmunk.compiler.lexer;
 
+import chipmunk.util.SeekableSequence;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class TokenStream {
+public class TokenStream implements SeekableSequence<Token> {
 
 	protected List<Token> tokens;
 	protected int cursor;
+	protected int mark;
 	
 	public TokenStream(){
 		tokens = new ArrayList<>();
 		cursor = 0;
+		mark = 0;
 	}
-	
+
+	private TokenStream(List<Token> tokens, int cursor, int mark){
+		this.tokens = tokens;
+		this.cursor = cursor;
+		this.mark = mark;
+	}
+
+	public TokenStream duplicate(){
+		return new TokenStream(Collections.unmodifiableList(tokens), cursor, mark);
+	}
+
+
 	public int getStreamPosition(){
 		return cursor;
 	}
@@ -44,7 +60,12 @@ public class TokenStream {
 	public Token peek(){
 		return tokens.get(cursor);
 	}
-	
+
+	@Override
+	public boolean hasMore() {
+		return remaining() > 0;
+	}
+
 	public Token peek(int count){
 		int index = Math.min(Math.max(cursor + count, 0), tokens.size() - 1);
 		return tokens.get(index);
@@ -58,15 +79,8 @@ public class TokenStream {
 		return token;
 	}
 	
-	public Token[] get(int count){
-		
-		Token[] getTokens = new Token[count];
-		
-		for(int i = 0; i < count && cursor < tokens.size(); i++, cursor++){
-			getTokens[i] = tokens.get(i);
-		}
-		
-		return getTokens;
+	public Token get(int skip){
+		return skip(skip).get();
 	}
 	
 	public int remaining(){
@@ -75,18 +89,30 @@ public class TokenStream {
 	
 	public void reset(){
 		cursor = 0;
+		mark = 0;
+	}
+
+	public int mark(){
+		mark = cursor;
+		return mark;
+	}
+
+	public void rewind(){
+		cursor = mark;
 	}
 	
 	public void rewind(int places){
 		cursor = Math.max(cursor - places, 0);
 	}
 	
-	public void skip(int places){
+	public TokenStream skip(int places){
 		cursor = Math.min(cursor + places, tokens.size() - 1);
+		return this;
 	}
 
-	public void seek(int index){
+	public TokenStream seek(int index){
 		cursor = Math.min(Math.max(index, 0), tokens.size() - 1);
+		return this;
 	}
 	
 	public String toString(){

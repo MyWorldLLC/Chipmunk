@@ -21,22 +21,28 @@
 package chipmunk.compiler.ast.uniform;
 
 import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.types.ObjectType;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
-public record AstNode(NodeType type, ObjectType expressionType, Token origin, SymbolTable symbols, List<AstNode> children) {
+public record AstNode(NodeType type, ObjectType expressionType, Token origin, Optional<Symbol> symbol, Optional<SymbolTable> symbols, List<AstNode> children) {
 
     public AstNode(NodeType type, ObjectType expressionType, Token origin, List<AstNode> children){
-        this(type, expressionType, origin, null, children);
+        this(type, expressionType, origin, Optional.empty(), Optional.empty(), children);
+    }
+
+    public AstNode(NodeType type, ObjectType expressionType, Token origin, Optional<Symbol> symbol, List<AstNode> children){
+        this(type, expressionType, origin, symbol, Optional.empty(), children);
     }
 
     public static AstNode create(NodeType type, ObjectType expressionType, Token origin, List<AstNode> children){
         return type.isBlock()
-                ? new AstNode(type, expressionType, origin, new SymbolTable(), children)
-                : new AstNode(type, expressionType, origin, null, children);
+                ? new AstNode(type, expressionType, origin, Optional.empty(), Optional.of(new SymbolTable()), children)
+                : new AstNode(type, expressionType, origin, Optional.empty(), Optional.empty(), children);
     }
 
     public boolean is(NodeType type){
