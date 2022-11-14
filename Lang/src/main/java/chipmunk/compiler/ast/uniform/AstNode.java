@@ -54,13 +54,16 @@ public record AstNode(NodeType type, ObjectType expressionType, Token origin, Op
     }
 
     public void visit(Collection<Visitor> visitors){
-        visit(new VisitTrace(), visitors);
+        visitors.forEach(visitor -> visit(new VisitTrace(), visitor));
     }
 
-    private void visit(VisitTrace trace, Collection<Visitor> visitors){
+    private void visit(VisitTrace trace, Visitor visitor){
         trace.enter(this);
-        visitors.forEach(v -> v.visit(trace, this));
-        children.forEach(c -> c.visit(trace, visitors));
+        visitor.visit(trace, this);
         trace.exit();
+    }
+
+    public void visitChildren(VisitTrace trace, Visitor visitor){
+        children.forEach(c -> c.visit(trace, visitor));
     }
 }
