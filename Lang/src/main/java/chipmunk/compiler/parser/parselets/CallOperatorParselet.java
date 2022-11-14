@@ -20,29 +20,31 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public class CallOperatorParselet implements InfixParselet {
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
+	public AstNode parse(ExpressionParser parser, AstNode left, Token token) {
 		
 		OperatorNode node = new OperatorNode(token, left);
-		
-		while(parser.getTokens().peek().type() != TokenType.RPAREN){
+
+		TokenStream tokens = parser.getTokens();
+		while(tokens.peek().type() != TokenType.RPAREN){
 			AstNode arg = parser.parseExpression();
 			node.addOperand(arg);
 			
-			if(parser.peek(TokenType.COMMA)){
-				parser.dropNext();
+			if(tokens.peek(TokenType.COMMA)){
+				tokens.dropNext();
 			}
 		}
-		parser.forceNext(TokenType.RPAREN);
+		tokens.forceNext(TokenType.RPAREN);
 		
 		return node;
 	}

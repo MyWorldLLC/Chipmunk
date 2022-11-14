@@ -21,42 +21,43 @@
 package chipmunk.compiler.parser.parselets;
 
 import chipmunk.compiler.lexer.TokenType;
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.MapNode;
+import chipmunk.compiler.parser.ChipmunkParser;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public class MapParselet implements PrefixParselet {
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, Token token) {
+	public AstNode parse(ExpressionParser parser, Token token) {
 		MapNode map = new MapNode();
 		
 		TokenStream tokens = parser.getTokens();
 		while(tokens.peek().type() != TokenType.RBRACE){
 
-			parser.skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 
 			AstNode key = parser.parseExpression();
 
-			parser.skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 
-			parser.forceNext(TokenType.COLON);
+			tokens.forceNext(TokenType.COLON);
 
-			parser.skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 
 			AstNode value = parser.parseExpression();
 			
 			map.addMapping(key, value);
+
+			tokens.skipNewlinesAndComments();
 			
-			parser.skipNewlinesAndComments();
-			
-			if(!(parser.dropNext(TokenType.COMMA) || parser.peek(TokenType.RBRACE))){
-				parser.syntaxError("Error parsing map", tokens.peek(), TokenType.COMMA, TokenType.RBRACE);
+			if(!(tokens.dropNext(TokenType.COMMA) || tokens.peek(TokenType.RBRACE))){
+				ChipmunkParser.syntaxError("Error parsing map", parser.getContext().getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACE);
 			}
 		}
-		parser.dropNext(TokenType.RBRACE);
+		tokens.dropNext(TokenType.RBRACE);
 		return map;
 	}
 

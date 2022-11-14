@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.lexer;
 
+import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.util.SeekableSequence;
 
 import java.util.ArrayList;
@@ -82,7 +83,63 @@ public class TokenStream implements SeekableSequence<Token> {
 	public Token get(int skip){
 		return skip(skip).get();
 	}
-	
+
+	public Token getNext(TokenType type){
+		Token token = get();
+
+		if(token.type() != type){
+			ChipmunkParser.syntaxError("", "", token, type);
+		}
+
+		return token;
+	}
+
+	public void forceNext(TokenType type){
+		Token token = get();
+
+		if(token.type() != type){
+			ChipmunkParser.syntaxError("", "", token, type);
+		}
+	}
+
+	public void skipNewlines(){
+		while(dropNext(TokenType.NEWLINE)){}
+	}
+
+	public void skipNewlinesAndComments(){
+		while(dropNext(TokenType.NEWLINE) || dropNext(TokenType.COMMENT)){}
+	}
+
+	public boolean dropNext(TokenType type){
+		if(peek(type)){
+			get();
+			return true;
+		}
+		return false;
+	}
+
+	public void dropNext(){
+		get();
+	}
+
+	public boolean peek(TokenType type){
+		Token token = peek();
+		return token.type() == type;
+	}
+
+	public boolean peek(int places, TokenType type){
+		return peek(places).type() == type;
+	}
+
+	public boolean peek(TokenType... types){
+		for(int i = 0; i < types.length; i++){
+			if(peek(i).type() != types[i]){
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public int remaining(){
 		return tokens.size() - cursor;
 	}

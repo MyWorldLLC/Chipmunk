@@ -20,26 +20,23 @@
 
 package chipmunk.compiler.parser;
 
-import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 
-public class TokenSequence {
+public class ParseContext {
 
-    protected final int start;
+    protected final String fileName;
     protected final TokenStream tokens;
 
-    public TokenSequence(TokenStream tokens, int start){
+    public ParseContext(String fileName, TokenStream tokens){
+        this.fileName = fileName;
         this.tokens = tokens;
-        this.start = start;
     }
 
-    public Token get(int index){
-        var streamIndex = tokens.getStreamPosition();
-        return tokens.peek(-(streamIndex - start) + index);
+    public String getFileName() {
+        return fileName;
     }
 
-    public Token peek(){
-        return tokens.peek();
+    public TokenStream getTokens() {
+        return tokens;
     }
-
 }

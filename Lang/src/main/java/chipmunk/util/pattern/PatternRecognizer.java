@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.parser;
+package chipmunk.util.pattern;
 
 import chipmunk.util.SeekableSequence;
 

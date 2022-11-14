@@ -20,15 +20,15 @@
 
 package chipmunk.compiler.parser.parselets;
 
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.parser.ExpressionParser;
 
 /**
  * One of two base parselets used by Pratt parser. Used to parse prefix expressions.
  */
 public interface PrefixParselet {
 	
-	public AstNode parse(ChipmunkParser parser, Token token);
+	AstNode parse(ExpressionParser parser, Token token);
 
 }

@@ -20,15 +20,15 @@
 
 package chipmunk.compiler.parser.parselets;
 
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public class MethodDefParselet implements PrefixParselet {
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, Token token) {
-		return parser.parseAnonMethodDef();
+	public AstNode parse(ExpressionParser parser, Token token) {
+		return null; // TODO - parser.parseAnonMethodDef();
 	}
 
 }

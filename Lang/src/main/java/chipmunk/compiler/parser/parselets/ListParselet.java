@@ -21,30 +21,31 @@
 package chipmunk.compiler.parser.parselets;
 
 import chipmunk.compiler.lexer.TokenType;
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.ListNode;
+import chipmunk.compiler.parser.ChipmunkParser;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public class ListParselet implements PrefixParselet {
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, Token token) {
+	public AstNode parse(ExpressionParser parser, Token token) {
 		ListNode list = new ListNode();
 		
 		TokenStream tokens = parser.getTokens();
-		while(!parser.peek(TokenType.RBRACKET)){
+		while(!tokens.peek(TokenType.RBRACKET)){
 
-			parser.skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 			list.addChild(parser.parseExpression());
-			parser.skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 			
-			if(!(parser.dropNext(TokenType.COMMA) || parser.peek(TokenType.RBRACKET))){
-				parser.syntaxError("Error parsing list", tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
+			if(!(tokens.dropNext(TokenType.COMMA) || tokens.peek(TokenType.RBRACKET))){
+				ChipmunkParser.syntaxError("Error parsing list", parser.getContext().getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
 			}
 		}
-		parser.dropNext(TokenType.RBRACKET);
+		tokens.dropNext(TokenType.RBRACKET);
 		return list;
 	}
 

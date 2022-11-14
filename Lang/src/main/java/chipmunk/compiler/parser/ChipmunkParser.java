@@ -50,122 +50,12 @@ public class ChipmunkParser {
 	protected TokenStream tokens;
 	protected String fileName;
 	
-	private Map<TokenType, InfixParselet> infix;
-	private Map<TokenType, PrefixParselet> prefix;
-	
 	private List<ModuleNode> moduleRoots;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
 		fileName = "";
-		moduleRoots = new ArrayList<ModuleNode>();
-		
-		infix = new HashMap<TokenType, InfixParselet>();
-		prefix = new HashMap<TokenType, PrefixParselet>();
-		
-		// register parselets
-		
-		// identifiers and literals
-		register(TokenType.IDENTIFIER, new NameParselet());
-		register(TokenType.BOOLLITERAL, new LiteralParselet());
-		register(TokenType.BINARYLITERAL, new LiteralParselet());
-		register(TokenType.HEXLITERAL, new LiteralParselet());
-		register(TokenType.OCTLITERAL, new LiteralParselet());
-		register(TokenType.INTLITERAL, new LiteralParselet());
-		register(TokenType.FLOATLITERAL, new LiteralParselet());
-		register(TokenType.STRINGLITERAL, new LiteralParselet());
-		register(TokenType.NULL, new LiteralParselet());
-		register(TokenType.LBRACKET, new ListParselet());
-		register(TokenType.LBRACE, new MapParselet());
-		
-		// prefix operators
-		prefixOp(TokenType.PLUS);
-		prefixOp(TokenType.MINUS);
-		prefixOp(TokenType.DOUBLEPLUS);
-		prefixOp(TokenType.DOUBLEMINUS);
-		prefixOp(TokenType.EXCLAMATION);
-		prefixOp(TokenType.TILDE);
-		
-		// parentheses for grouping in expressions
-		register(TokenType.LPAREN, new GroupingParselet());
-		
-		// binary infix operators
-		register(TokenType.PLUS, new AddSubOperatorParselet());
-		register(TokenType.MINUS, new AddSubOperatorParselet());
-		register(TokenType.STAR, new MulDivOperatorParselet());
-		register(TokenType.FSLASH, new MulDivOperatorParselet());
-		register(TokenType.DOUBLEFSLASH, new MulDivOperatorParselet());
-		register(TokenType.PERCENT, new MulDivOperatorParselet());
-		
-		register(TokenType.DOUBLESTAR, new PowerOperatorParselet());
-		
-		register(TokenType.DOT, new DotOperatorParselet());
-		register(TokenType.AS, new CastOperatorParselet());
-		
-		register(TokenType.DOUBLELESSTHAN, new ShiftRangeOperatorParselet());
-		register(TokenType.DOUBLEMORETHAN, new ShiftRangeOperatorParselet());
-		register(TokenType.DOUBLEDOTLESS, new ShiftRangeOperatorParselet());
-		register(TokenType.DOUBLEDOT, new ShiftRangeOperatorParselet());
-		
-		register(TokenType.LESSTHAN, new LesserGreaterInstanceOfOperatorParselet());
-		register(TokenType.LESSEQUALS, new LesserGreaterInstanceOfOperatorParselet());
-		register(TokenType.MORETHAN, new LesserGreaterInstanceOfOperatorParselet());
-		register(TokenType.MOREEQUALS, new LesserGreaterInstanceOfOperatorParselet());
-		register(TokenType.INSTANCEOF, new LesserGreaterInstanceOfOperatorParselet());
-
-		register(TokenType.IS, new EqualityOperatorParselet());
-		register(TokenType.DOUBLEEQUAlS, new EqualityOperatorParselet());
-		register(TokenType.EXCLAMATIONEQUALS, new EqualityOperatorParselet());
-		
-		register(TokenType.AMPERSAND, new BitAndOperatorParselet());
-		register(TokenType.BAR, new BitOrOperatorParselet());
-		register(TokenType.CARET, new BitXOrOperatorParselet());
-		
-		register(TokenType.DOUBLEAMPERSAND, new AndOperatorParselet());
-		register(TokenType.DOUBLEBAR, new OrOperatorParselet());
-		register(TokenType.DOUBLECOLON, new BindingOperatorParselet());
-		
-		register(TokenType.EQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEPLUSEQUALS, new AssignOperatorParselet());
-		register(TokenType.PLUSEQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEMINUSEQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLESTAREQUALS, new AssignOperatorParselet());
-		register(TokenType.STAREQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEFSLASHEQUALS, new AssignOperatorParselet());
-		register(TokenType.FSLASHEQUALS, new AssignOperatorParselet());
-		register(TokenType.PERCENTEQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEAMPERSANDEQUALS, new AssignOperatorParselet());
-		register(TokenType.AMPERSANDEQUALS, new AssignOperatorParselet());
-		register(TokenType.CARETEQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEBAREQUALS, new AssignOperatorParselet());
-		register(TokenType.BAREQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLELESSEQUALS, new AssignOperatorParselet());
-		register(TokenType.TRIPLEMOREQUALS, new AssignOperatorParselet());
-		register(TokenType.DOUBLEMOREEQUALS, new AssignOperatorParselet());
-		register(TokenType.TILDEEQUALS, new AssignOperatorParselet());
-		
-		// postfix operators
-		register(TokenType.DOUBLEPLUS, new PostIncDecParselet());
-		register(TokenType.DOUBLEMINUS, new PostIncDecParselet());
-		register(TokenType.LPAREN, new CallOperatorParselet());
-		register(TokenType.LBRACKET, new IndexOperatorParselet());
-		
-		// method def operator (allow method definitions in expressions)
-		register(TokenType.DEF, new MethodDefParselet());
-		// class definition operator (allows creating anonymous classes in expressions)
-		//register(Token.Type.CLASS, new ClassDefParselet());
-	}
-	
-	protected void register(TokenType type, InfixParselet parselet){
-		infix.put(type, parselet);
-	}
-	
-	protected void register(TokenType type, PrefixParselet parselet){
-		prefix.put(type, parselet);
-	}
-	
-	protected void prefixOp(TokenType op){
-		prefix.put(op, new PrefixOperatorParselet());
+		moduleRoots = new ArrayList<>();
 	}
 	
 	public TokenStream getTokens(){
@@ -184,7 +74,7 @@ public class ChipmunkParser {
 	 * Parses all modules in the source stream.
 	 */
 	public void parse(){
-		while(!peek(TokenType.EOF)){
+		while(!tokens.peek(TokenType.EOF)){
 			moduleRoots.add(parseModule());
 		}
 	}
@@ -198,20 +88,20 @@ public class ChipmunkParser {
 		module.setFileName(fileName);
 		startNode(module);
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
-		skipNewlinesAndComments();
+		tokens.skipNewlinesAndComments();
 		
-		if(peek(TokenType.MODULE)){
-			forceNext(TokenType.MODULE);
+		if(tokens.peek(TokenType.MODULE)){
+			tokens.forceNext(TokenType.MODULE);
 			
 			List<Token> identifiers = new ArrayList<Token>();
-			identifiers.add(getNext(TokenType.IDENTIFIER));
+			identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
 			
-			while(peek(TokenType.DOT)){
-				dropNext();
-				if(peek(TokenType.IDENTIFIER)){
-					identifiers.add(getNext(TokenType.IDENTIFIER));
+			while(tokens.peek(TokenType.DOT)){
+				tokens.dropNext();
+				if(tokens.peek(TokenType.IDENTIFIER)){
+					identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
 				}else{
-					syntaxError("module", tokens.peek(), TokenType.IDENTIFIER);
+					syntaxError("module", fileName, tokens.peek(), TokenType.IDENTIFIER);
 				}
 			}
 			
@@ -231,8 +121,8 @@ public class ChipmunkParser {
 		}else{
 			module.setName("default");
 		}
-		
-		skipNewlinesAndComments();
+
+		tokens.skipNewlinesAndComments();
 		
 		Token next = tokens.peek();
 		TokenType nextType = next.type();
@@ -257,16 +147,16 @@ public class ChipmunkParser {
 				module.addClassDef(node);
 				node.setParentSymbolTable(module);
 				
-			}else if(peek(TokenType.MODULE)){
+			}else if(tokens.peek(TokenType.MODULE)){
 				// Start of next module. Return this module node.
 				break;
 			}else{
 				// Wuh-oh. Couldn't match one of the above cases. Panic!
-				Token got = peek();
-				syntaxError("module", "module start, class or method def, or variable declaration", got);
+				Token got = tokens.peek();
+				syntaxError("module", fileName,"module start, class or method def, or variable declaration", got);
 			}
-			
-			skipNewlinesAndComments();
+
+			tokens.skipNewlinesAndComments();
 			
 			next = tokens.peek();
 			nextType = next.type();
@@ -281,31 +171,31 @@ public class ChipmunkParser {
 	
 	public boolean checkClassDef(boolean allowFinal){
 		if(allowFinal){
-			return peek(TokenType.FINAL, TokenType.CLASS) || peek(TokenType.CLASS);
+			return tokens.peek(TokenType.FINAL, TokenType.CLASS) || tokens.peek(TokenType.CLASS);
 		}else{
-			return peek(TokenType.CLASS);
+			return tokens.peek(TokenType.CLASS);
 		}
 	}
 	
 	public ClassNode parseClassDef(){
-		skipNewlines();
+		tokens.skipNewlines();
 		
 		ClassNode node = new ClassNode();
 		startNode(node);
-		
-		forceNext(TokenType.CLASS);
-		Token id = getNext(TokenType.IDENTIFIER);
+
+		tokens.forceNext(TokenType.CLASS);
+		Token id = tokens.getNext(TokenType.IDENTIFIER);
 		
 		node.setName(id.text());
-		
-		forceNext(TokenType.LBRACE);
-		skipNewlinesAndComments();
-		while(!peek(TokenType.RBRACE)){
+
+		tokens.forceNext(TokenType.LBRACE);
+		tokens.skipNewlinesAndComments();
+		while(!tokens.peek(TokenType.RBRACE)){
 			// parse class body (only variable declarations and method/class definitions allowed)
-			skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 			
 			boolean shared = false;
-			if(dropNext(TokenType.SHARED)){
+			if(tokens.dropNext(TokenType.SHARED)){
 				shared = true;
 			}
 			
@@ -324,42 +214,42 @@ public class ChipmunkParser {
 				ClassNode classNode = parseClassDef();
 				classNode.getSymbol().setShared(shared);
 				node.addChild(classNode);
-			}else if(peek(TokenType.RBRACE)){
+			}else if(tokens.peek(TokenType.RBRACE)){
 				break;
 			}else{
-				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), tokens.peek(), TokenType.FINAL, TokenType.VAR, TokenType.DEF);
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), fileName, tokens.peek(), TokenType.FINAL, TokenType.VAR, TokenType.DEF);
 			}
 			
 			// TODO - symbol search rules
 			node.getSymbolTable().setSymbol(symbol);
+
+			tokens.skipNewlines();
 			
-			skipNewlines();
-			
-			if(peek(TokenType.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().line(), peek().column()), peek());
+			if(tokens.peek(TokenType.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF", fileName, tokens.peek().line(), tokens.peek().column()), fileName, tokens.peek());
 			}
 		}
-		forceNext(TokenType.RBRACE);
+		tokens.forceNext(TokenType.RBRACE);
 		endNode(node);
 		return node;
 	}
 	
 	public ClassNode parseAnonClassDef(){
-		skipNewlines();
+		tokens.skipNewlines();
 		
 		ClassNode node = new ClassNode();
 		startNode(node);
 		
 		node.setName("");
-		
-		forceNext(TokenType.LBRACE);
-		skipNewlinesAndComments();
-		while(!peek(TokenType.RBRACE)){
+
+		tokens.forceNext(TokenType.LBRACE);
+		tokens.skipNewlinesAndComments();
+		while(!tokens.peek(TokenType.RBRACE)){
 			// parse class body (only variable declarations and method definitions allowed)
-			skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 			
 			boolean shared = false;
-			if(dropNext(TokenType.SHARED)){
+			if(tokens.dropNext(TokenType.SHARED)){
 				shared = true;
 			}
 			
@@ -378,22 +268,22 @@ public class ChipmunkParser {
 				ClassNode classNode = parseClassDef();
 				classNode.getSymbol().setShared(shared);
 				node.addChild(classNode);
-			}else if(peek(TokenType.RBRACE)){
+			}else if(tokens.peek(TokenType.RBRACE)){
 				break;
 			}else{
-				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), tokens.peek(), TokenType.FINAL, TokenType.VAR, TokenType.DEF);
+				syntaxError(String.format("Error parsing class body: %s", tokens.peek().text()), fileName, tokens.peek(), TokenType.FINAL, TokenType.VAR, TokenType.DEF);
 			}
 			
 			// TODO - symbol search rules
 			node.getSymbolTable().setSymbol(symbol);
+
+			tokens.skipNewlines();
 			
-			skipNewlines();
-			
-			if(peek(TokenType.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF",peek().line(), peek().column()), peek());
+			if(tokens.peek(TokenType.EOF)){
+				syntaxError(String.format("Expected } at %d:%d, got EOF", tokens.peek().line(), tokens.peek().column()), fileName, tokens.peek());
 			}
 		}
-		forceNext(TokenType.RBRACE);
+		tokens.forceNext(TokenType.RBRACE);
 		endNode(node);
 		return node;
 	}
@@ -404,43 +294,43 @@ public class ChipmunkParser {
 	
 	public boolean checkMethodDef(boolean allowFinal){
 		if(allowFinal){
-			return peek(TokenType.FINAL, TokenType.DEF) || peek(TokenType.DEF);
+			return tokens.peek(TokenType.FINAL, TokenType.DEF) || tokens.peek(TokenType.DEF);
 		}else{
-			return peek(TokenType.DEF);
+			return tokens.peek(TokenType.DEF);
 		}
 	}
 	
 	public MethodNode parseMethodDef(){
-		skipNewlinesAndComments();
+		tokens.skipNewlinesAndComments();
 		
 		MethodNode node = new MethodNode();
 		startNode(node);
 		
-		if(dropNext(TokenType.FINAL)){
+		if(tokens.dropNext(TokenType.FINAL)){
 			node.getSymbol().setFinal(true);
 		}
-		
-		forceNext(TokenType.DEF);
-		node.setName(getNext(TokenType.IDENTIFIER).text());
-		
-		forceNext(TokenType.LPAREN);
-		while(peek(TokenType.IDENTIFIER)){
+
+		tokens.forceNext(TokenType.DEF);
+		node.setName(tokens.getNext(TokenType.IDENTIFIER).text());
+
+		tokens.forceNext(TokenType.LPAREN);
+		while(tokens.peek(TokenType.IDENTIFIER)){
 			VarDecNode param = new VarDecNode();
-			param.setVar(new IdNode(getNext(TokenType.IDENTIFIER)));
-			if(peek(TokenType.EQUALS)){
-				dropNext();
+			param.setVar(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
+			if(tokens.peek(TokenType.EQUALS)){
+				tokens.dropNext();
 				param.setAssignExpr(parseExpression());
 			}
-			dropNext(TokenType.COMMA);
+			tokens.dropNext(TokenType.COMMA);
 			node.addParam(param);
 		}
-		forceNext(TokenType.RPAREN);
-		skipNewlines();
+		tokens.forceNext(TokenType.RPAREN);
+		tokens.skipNewlines();
 		
 		// If the next token is a block start, parse this as a regular
 		// method. Otherwise, treat it as a single expression method
 		// with an automatic return.
-		if(peek(TokenType.LBRACE)) {
+		if(tokens.peek(TokenType.LBRACE)) {
 			parseBlockBody(node);
 		}else {
 			AstNode expression = parseExpression();
@@ -452,31 +342,31 @@ public class ChipmunkParser {
 	}
 	
 	public MethodNode parseAnonMethodDef(){
-		skipNewlinesAndComments();
+		tokens.skipNewlinesAndComments();
 		
 		MethodNode node = new MethodNode();
 		startNode(node);
-		node.setName("anonL" + peek().line() + "C" + peek().column());
-		
-		forceNext(TokenType.LPAREN);
-		while(peek(TokenType.IDENTIFIER)){
+		node.setName("anonL" + tokens.peek().line() + "C" + tokens.peek().column());
+
+		tokens.forceNext(TokenType.LPAREN);
+		while(tokens.peek(TokenType.IDENTIFIER)){
 			VarDecNode param = new VarDecNode();
-			param.setVar(new IdNode(getNext(TokenType.IDENTIFIER)));
-			if(peek(TokenType.EQUALS)){
-				dropNext();
+			param.setVar(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
+			if(tokens.peek(TokenType.EQUALS)){
+				tokens.dropNext();
 				param.setAssignExpr(parseExpression());
 			}
-			dropNext(TokenType.COMMA);
+			tokens.dropNext(TokenType.COMMA);
 			node.addParam(param);
-			dropNext(TokenType.COMMA);
+			tokens.dropNext(TokenType.COMMA);
 		}
-		forceNext(TokenType.RPAREN);
-		skipNewlines();
+		tokens.forceNext(TokenType.RPAREN);
+		tokens.skipNewlines();
 		
 		// If the next token is a block start, parse this as a regular
 		// method. Otherwise, treat it as a single expression method
 		// with an automatic return.
-		if(peek(TokenType.LBRACE)) {
+		if(tokens.peek(TokenType.LBRACE)) {
 			parseBlockBody(node);
 		}else {
 			AstNode expression = parseExpression();
@@ -488,38 +378,38 @@ public class ChipmunkParser {
 	}
 	
 	public boolean checkVarDec(){
-		return peek(TokenType.VAR) || peek(TokenType.FINAL, TokenType.VAR);
+		return tokens.peek(TokenType.VAR) || tokens.peek(TokenType.FINAL, TokenType.VAR);
 	}
 	
 	public boolean checkVarOrTraitDec() {
-		return peek(TokenType.VAR)
-				|| peek(TokenType.TRAIT)
-				|| peek(TokenType.FINAL, TokenType.VAR)
-				|| peek(TokenType.FINAL, TokenType.TRAIT);
+		return tokens.peek(TokenType.VAR)
+				|| tokens.peek(TokenType.TRAIT)
+				|| tokens.peek(TokenType.FINAL, TokenType.VAR)
+				|| tokens.peek(TokenType.FINAL, TokenType.TRAIT);
 	}
 	
 	public VarDecNode parseVarOrTraitDec() {
 		
 		VarDecNode dec = new VarDecNode();
 		startNode(dec);
-		if(dropNext(TokenType.FINAL)){
+		if(tokens.dropNext(TokenType.FINAL)){
 			dec.getSymbol().setFinal(true);
 		}
 		
-		if(peek(TokenType.TRAIT)) {
-			dropNext();
+		if(tokens.peek(TokenType.TRAIT)) {
+			tokens.dropNext();
 			dec.getSymbol().setTrait(true);
 		}else {
-			forceNext(TokenType.VAR);
+			tokens.forceNext(TokenType.VAR);
 		}
-		Token id = getNext(TokenType.IDENTIFIER);
+		Token id = tokens.getNext(TokenType.IDENTIFIER);
 		IdNode idNode = new IdNode(id);
 		idNode.setLineNumber(id.line());
 		dec.setVar(idNode);
 		
 		
-		if(peek(TokenType.EQUALS)){
-			forceNext(TokenType.EQUALS);
+		if(tokens.peek(TokenType.EQUALS)){
+			tokens.forceNext(TokenType.EQUALS);
 			dec.setAssignExpr(parseExpression());
 		}
 		
@@ -530,17 +420,17 @@ public class ChipmunkParser {
 	public VarDecNode parseVarDec(){
 		VarDecNode dec = new VarDecNode();
 		startNode(dec);
-		if(dropNext(TokenType.FINAL)){
+		if(tokens.dropNext(TokenType.FINAL)){
 			dec.getSymbol().setFinal(true);
 		}
-		
-		forceNext(TokenType.VAR);
-		Token id = getNext(TokenType.IDENTIFIER);
+
+		tokens.forceNext(TokenType.VAR);
+		Token id = tokens.getNext(TokenType.IDENTIFIER);
 		
 		dec.setVar(new IdNode(id));
 		
-		if(peek(TokenType.EQUALS)){
-			forceNext(TokenType.EQUALS);
+		if(tokens.peek(TokenType.EQUALS)){
+			tokens.forceNext(TokenType.EQUALS);
 			dec.setAssignExpr(parseExpression());
 		}
 		
@@ -554,8 +444,8 @@ public class ChipmunkParser {
 		// (b) method definitions
 		// (d) block beginnings
 		// (e) expressions (including assignments of existing variables)
-		
-		skipNewlinesAndComments();
+
+		tokens.skipNewlinesAndComments();
 		
 		if(checkVarDec()){
 			return parseVarDec();
@@ -565,9 +455,9 @@ public class ChipmunkParser {
 		//else if(checkClassDef()){
 		//	return parseClassDef();
 		//}
-		else if(peek().type().isKeyword()){
+		else if(tokens.peek().type().isKeyword()){
 			// parse block or keyword statement
-			Token token = peek();
+			Token token = tokens.peek();
 			TokenType type = token.type();
 			
 			switch(type){
@@ -582,10 +472,10 @@ public class ChipmunkParser {
 			case RETURN:
 				FlowControlNode returnNode = new FlowControlNode();
 				startNode(returnNode);
-				dropNext();
+				tokens.dropNext();
 				returnNode.setControlToken(token);
 				
-				if(!peek(TokenType.NEWLINE)){
+				if(!tokens.peek(TokenType.NEWLINE)){
 					returnNode.addControlExpression(parseExpression());
 				}
 				
@@ -594,26 +484,26 @@ public class ChipmunkParser {
 			case THROW:
 				FlowControlNode throwNode = new FlowControlNode();
 				startNode(throwNode);
-				dropNext();
+				tokens.dropNext();
 				throwNode.setControlToken(token);
 				throwNode.addControlExpression(parseExpression());
 				endNode(throwNode);
 				return throwNode;
 			case BREAK:
 			case CONTINUE:
-				dropNext();
+				tokens.dropNext();
 				
 				FlowControlNode node = new FlowControlNode();
 				startNode(node);
-				dropNext();
+				tokens.dropNext();
 				node.setControlToken(token);
 				endNode(node);
 				return node;
 			default:
-				syntaxError("Unexpected token", token, TokenType.IF, TokenType.WHILE, TokenType.FOR, TokenType.TRY,
+				syntaxError("Unexpected token", fileName, token, TokenType.IF, TokenType.WHILE, TokenType.FOR, TokenType.TRY,
 					TokenType.RETURN, TokenType.THROW, TokenType.BREAK, TokenType.CONTINUE);
 			}
-		}else if(!peek(TokenType.EOF)){
+		}else if(!tokens.peek(TokenType.EOF)){
 			// it's an expression
 			return parseExpression();
 		}
@@ -630,13 +520,13 @@ public class ChipmunkParser {
 			GuardedNode ifBranch = parseIfBranch();
 			
 			node.addGuardedBranch(ifBranch);
+
+			tokens.skipNewlinesAndComments();
 			
-			skipNewlinesAndComments();
-			
-			if(dropNext(TokenType.ELSE)){
-				skipNewlines();
+			if(tokens.dropNext(TokenType.ELSE)){
+				tokens.skipNewlines();
 				// it's the else block
-				if(peek(TokenType.LBRACE)){
+				if(tokens.peek(TokenType.LBRACE)){
 					BlockNode elseBlock = new BlockNode();
 					
 					parseBlockBody(elseBlock);
@@ -659,15 +549,15 @@ public class ChipmunkParser {
 	public GuardedNode parseIfBranch(){
 		GuardedNode ifBranch = new GuardedNode();
 		startNode(ifBranch);
-		
-		forceNext(TokenType.IF);
-		forceNext(TokenType.LPAREN);
-		skipNewlines();
+
+		tokens.forceNext(TokenType.IF);
+		tokens.forceNext(TokenType.LPAREN);
+		tokens.skipNewlines();
 		
 		ifBranch.setGuard(parseExpression());
-		
-		skipNewlines();
-		forceNext(TokenType.RPAREN);
+
+		tokens.skipNewlines();
+		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(ifBranch);
 		
@@ -678,15 +568,15 @@ public class ChipmunkParser {
 	public WhileNode parseWhile(){
 		WhileNode node = new WhileNode();
 		startNode(node);
-		
-		forceNext(TokenType.WHILE);
-		forceNext(TokenType.LPAREN);
-		
-		skipNewlines();
+
+		tokens.forceNext(TokenType.WHILE);
+		tokens.forceNext(TokenType.LPAREN);
+
+		tokens.skipNewlines();
 		node.setGuard(parseExpression());
-		
-		skipNewlines();
-		forceNext(TokenType.RPAREN);
+
+		tokens.skipNewlines();
+		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(node);
 		
@@ -697,22 +587,22 @@ public class ChipmunkParser {
 	public ForNode parseFor(){
 		ForNode node = new ForNode();
 		startNode(node);
-		
-		forceNext(TokenType.FOR);
-		forceNext(TokenType.LPAREN);
-		
-		skipNewlines();
-		dropNext(TokenType.VAR);
+
+		tokens.forceNext(TokenType.FOR);
+		tokens.forceNext(TokenType.LPAREN);
+
+		tokens.skipNewlines();
+		tokens.dropNext(TokenType.VAR);
 
 		IteratorNode iter = new IteratorNode();
 		startNode(iter);
 		
-		IdNode varID = new IdNode(getNext(TokenType.IDENTIFIER));
+		IdNode varID = new IdNode(tokens.getNext(TokenType.IDENTIFIER));
 		varID.setLineNumber(varID.getID().line());
 		varID.setBeginTokenIndex(varID.getID().index());
 		varID.setEndTokenIndex(varID.getID().index() + 1);
 
-		forceNext(TokenType.IN);
+		tokens.forceNext(TokenType.IN);
 		
 		AstNode expr = parseExpression();
 		
@@ -727,9 +617,9 @@ public class ChipmunkParser {
 		endNode(iter);
 
 		node.setIterator(iter);
-		
-		skipNewlines();
-		forceNext(TokenType.RPAREN);
+
+		tokens.skipNewlines();
+		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(node);
 		
@@ -738,30 +628,30 @@ public class ChipmunkParser {
 	}
 	
 	public void parseBlockBody(BlockNode node){
-		skipNewlines();
-		forceNext(TokenType.LBRACE);
+		tokens.skipNewlines();
+		tokens.forceNext(TokenType.LBRACE);
 		
-		while(!peek(TokenType.RBRACE)){
-			skipNewlinesAndComments();
-			if(peek(TokenType.RBRACE)){
+		while(!tokens.peek(TokenType.RBRACE)){
+			tokens.skipNewlinesAndComments();
+			if(tokens.peek(TokenType.RBRACE)){
 				break;
 			}
 			node.addToBody(parseStatement());
-			skipNewlinesAndComments();
+			tokens.skipNewlinesAndComments();
 			
-			if(peek(TokenType.EOF)){
-				syntaxError("block body", peek(), TokenType.RBRACE);
+			if(tokens.peek(TokenType.EOF)){
+				syntaxError("block body", fileName, tokens.peek(), TokenType.RBRACE);
 			}
 		}
 
-		forceNext(TokenType.RBRACE);
+		tokens.forceNext(TokenType.RBRACE);
 	}
 	
 	public AstNode parseTryCatch(){
 		TryCatchNode node = new TryCatchNode();
 		startNode(node);
-		
-		forceNext(TokenType.TRY);
+
+		tokens.forceNext(TokenType.TRY);
 		TryNode tryNode = new TryNode();
 		
 		startNode(tryNode);
@@ -773,19 +663,19 @@ public class ChipmunkParser {
 		// parse and add catch blocks
 		//while(true){
 			// TODO - support finally blocks and typed multi-catch
-		forceNext(TokenType.CATCH);
-		forceNext(TokenType.LPAREN);
+		tokens.forceNext(TokenType.CATCH);
+		tokens.forceNext(TokenType.LPAREN);
 			
 		CatchNode catchNode = new CatchNode();
 		startNode(catchNode);
 			
 		// if catch block has type of exception, include in node
-		if(peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
-			catchNode.setExceptionType(getNext(TokenType.IDENTIFIER));
+		if(tokens.peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
+			catchNode.setExceptionType(tokens.getNext(TokenType.IDENTIFIER));
 		}
 			
-		catchNode.setExceptionName(getNext(TokenType.IDENTIFIER));
-		forceNext(TokenType.RPAREN);
+		catchNode.setExceptionName(tokens.getNext(TokenType.IDENTIFIER));
+		tokens.forceNext(TokenType.RPAREN);
 			
 		parseBlockBody(catchNode);
 			
@@ -814,22 +704,22 @@ public class ChipmunkParser {
 	 * @return the import block for the statement
 	 */
 	public ImportNode parseImport(){
-		skipNewlines();
+		tokens.skipNewlines();
 		ImportNode node = new ImportNode();
 		startNode(node);
 		
-		if(peek(TokenType.IMPORT)){
-			dropNext(TokenType.IMPORT);
+		if(tokens.peek(TokenType.IMPORT)){
+			tokens.dropNext(TokenType.IMPORT);
 			// import single symbol
 			List<Token> identifiers = new ArrayList<Token>();
-			identifiers.add(getNext(TokenType.IDENTIFIER));
+			identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
 			
-			while(peek(TokenType.DOT)){
-				dropNext();
-				if(peek(TokenType.IDENTIFIER)){
-					identifiers.add(getNext(TokenType.IDENTIFIER));
-				}else if(peek(TokenType.STAR)){
-					identifiers.add(getNext(TokenType.STAR));
+			while(tokens.peek(TokenType.DOT)){
+				tokens.dropNext();
+				if(tokens.peek(TokenType.IDENTIFIER)){
+					identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
+				}else if(tokens.peek(TokenType.STAR)){
+					identifiers.add(tokens.getNext(TokenType.STAR));
 					node.setImportAll(true);
 					break;
 				}else{
@@ -855,19 +745,19 @@ public class ChipmunkParser {
 			}
 			
 			node.setModule(moduleName.toString());
-		}else if(peek(TokenType.FROM)){
-			dropNext(TokenType.FROM);
+		}else if(tokens.peek(TokenType.FROM)){
+			tokens.dropNext(TokenType.FROM);
 			
 			// import multiple symbols
 			List<Token> identifiers = new ArrayList<Token>();
-			identifiers.add(getNext(TokenType.IDENTIFIER));
+			identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
 			
-			while(peek(TokenType.DOT)){
-				dropNext(TokenType.DOT);
-				if(peek(TokenType.IDENTIFIER)){
-					identifiers.add(getNext(TokenType.IDENTIFIER));
-				}else if(peek(TokenType.STAR)){
-					identifiers.add(getNext(TokenType.STAR));
+			while(tokens.peek(TokenType.DOT)){
+				tokens.dropNext(TokenType.DOT);
+				if(tokens.peek(TokenType.IDENTIFIER)){
+					identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
+				}else if(tokens.peek(TokenType.STAR)){
+					identifiers.add(tokens.getNext(TokenType.STAR));
 					node.setImportAll(true);
 				}else{
 					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().text());
@@ -883,38 +773,38 @@ public class ChipmunkParser {
 			}
 			
 			node.setModule(moduleName.toString());
+
+			tokens.forceNext(TokenType.IMPORT);
 			
-			forceNext(TokenType.IMPORT);
-			
-			if(peek(TokenType.IDENTIFIER)){
-				node.addSymbol(getNext(TokenType.IDENTIFIER).text());
-				while(peek(TokenType.COMMA)){
-					dropNext(TokenType.COMMA);
-					node.addSymbol(getNext(TokenType.IDENTIFIER).text());
+			if(tokens.peek(TokenType.IDENTIFIER)){
+				node.addSymbol(tokens.getNext(TokenType.IDENTIFIER).text());
+				while(tokens.peek(TokenType.COMMA)){
+					tokens.dropNext(TokenType.COMMA);
+					node.addSymbol(tokens.getNext(TokenType.IDENTIFIER).text());
 				}
 			}else{
-				forceNext(TokenType.STAR);
+				tokens.forceNext(TokenType.STAR);
 				node.setImportAll(true);
 				node.addSymbol("*");
 			}
 			
 		}else{
-			syntaxError("Invalid import", tokens.get(), TokenType.IMPORT, TokenType.FROM);
+			syntaxError("Invalid import", fileName, tokens.get(), TokenType.IMPORT, TokenType.FROM);
 		}
 		
-		if(peek(TokenType.AS)){
+		if(tokens.peek(TokenType.AS)){
 			
 			if(node.getSymbols().contains("*")){
 				throw new IllegalImportException("Cannot alias a * import");
 			}
 			
-			dropNext();
+			tokens.dropNext();
 			// parse aliases
-			node.addAlias(getNext(TokenType.IDENTIFIER).text());
+			node.addAlias(tokens.getNext(TokenType.IDENTIFIER).text());
 			
-			while(peek(TokenType.COMMA)){
-				dropNext(TokenType.COMMA);
-				node.addAlias(getNext(TokenType.IDENTIFIER).text());
+			while(tokens.peek(TokenType.COMMA)){
+				tokens.dropNext(TokenType.COMMA);
+				node.addAlias(tokens.getNext(TokenType.IDENTIFIER).text());
 			}
 			
 			if(node.getSymbols().size() < node.getAliases().size()){
@@ -931,112 +821,7 @@ public class ChipmunkParser {
 	 * @return AST of the expression
 	 */
 	public AstNode parseExpression(){
-		return parseExpression(0);
-	}
-	
-	public AstNode parseExpression(int minPrecedence){
-		
-		Token token = tokens.get();
-		
-		PrefixParselet prefixParser = prefix.get(token.type());
-		
-		if(prefixParser == null){
-			syntaxError("expression", "literal, id, or unary operator", token);
-		}
-		
-		AstNode left = prefixParser.parse(this, token);
-		left.setLineNumber(token.line());
-		
-		token = tokens.peek();
-		while(minPrecedence < getPrecedence(token)){
-			token = tokens.get();
-			
-			InfixParselet infixParser = infix.get(token.type());
-			
-			if(infixParser == null){
-				syntaxError("expression", "literal, id, or binary operator", token);
-			}
-			
-			left = infixParser.parse(this, left, token);
-			left.setLineNumber(token.line());
-			token = tokens.peek();
-		}
-		
-		return left;
-	}
-	
-	private int getPrecedence(Token token){
-		InfixParselet parselet = infix.get(token.type());
-		if(parselet != null){
-			return parselet.getPrecedence();
-		}else{
-			return 0;
-		}
-	}
-	
-	public Token getNext(TokenType type){
-		Token token = tokens.get();
-		
-		if(token.type() != type){
-			syntaxError("", token, type);
-		}
-		
-		return token;
-	}
-	
-	public void forceNext(TokenType type){
-		Token token = tokens.get();
-		
-		if(token.type() != type){
-			syntaxError("", token, type);
-		}
-	}
-	
-	public void skipNewlines(){
-		while(dropNext(TokenType.NEWLINE)){}
-	}
-	
-	public void skipNewlinesAndComments(){
-		while(dropNext(TokenType.NEWLINE) || dropNext(TokenType.COMMENT)){}
-	}
-	
-	public boolean dropNext(TokenType type){
-		if(peek(type)){
-			tokens.get();
-			return true;
-		}
-		return false;
-	}
-	
-	public void dropNext(){
-		tokens.get();
-	}
-	
-	public Token peek(){
-		return tokens.peek();
-	}
-	
-	public Token peek(int places){
-		return tokens.peek(places);
-	}
-	
-	public boolean peek(TokenType type){
-		Token token = tokens.peek();
-		
-		return token.type() == type;
-	}
-	
-	public boolean peek(int places, TokenType type){
-		return tokens.peek(places).type() == type;
-	}
-	
-	public boolean peek(TokenType... types){
-		for(int i = 0; i < types.length; i++){
-			if(peek(i).type() != types[i]){
-				return false;
-			}
-		}
-		return true;
+		return new ExpressionParser(new ParseContext(fileName, tokens)).parseExpression(0);
 	}
 	
 	private void startNode(AstNode node){
@@ -1048,7 +833,7 @@ public class ChipmunkParser {
 		node.setEndTokenIndex(tokens.getStreamPosition());
 	}
 	
-	public void syntaxError(String context, Token got, TokenType... expected) throws SyntaxError {
+	public static void syntaxError(String langElement, String fileName, Token got, TokenType... expected) throws SyntaxError {
 		StringBuilder expectedTypes = new StringBuilder();
 		
 		for(int i = 0; i < expected.length; i++){
@@ -1062,7 +847,7 @@ public class ChipmunkParser {
 		}
 		
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				context, fileName, got.line(), got.column(), expectedTypes.toString(), got.text());
+				langElement, fileName, got.line(), got.column(), expectedTypes.toString(), got.text());
 		
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(expected);
@@ -1070,9 +855,9 @@ public class ChipmunkParser {
 		throw error;
 	}
 	
-	public void syntaxError(String context, String expected, Token got) throws SyntaxError {
+	public static void syntaxError(String langElement, String fileName, String expected, Token got) throws SyntaxError {
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				context, fileName, got.line(), got.column(), expected, got.text());
+				langElement, fileName, got.line(), got.column(), expected, got.text());
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(new TokenType[]{});
 		error.setGot(got);

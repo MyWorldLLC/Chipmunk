@@ -21,18 +21,18 @@
 package chipmunk.compiler.parser.parselets;
 
 import chipmunk.compiler.lexer.TokenType;
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.OperatorPrecedence;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public class IndexOperatorParselet implements InfixParselet {
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
+	public AstNode parse(ExpressionParser parser, AstNode left, Token token) {
 		OperatorNode node = new OperatorNode(token, left, parser.parseExpression());
-		parser.forceNext(TokenType.RBRACKET);
+		parser.getTokens().forceNext(TokenType.RBRACKET);
 		return node;
 	}
 

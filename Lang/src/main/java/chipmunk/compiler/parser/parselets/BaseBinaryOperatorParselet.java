@@ -20,10 +20,10 @@
 
 package chipmunk.compiler.parser.parselets;
 
-import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.parser.ExpressionParser;
 
 public abstract class BaseBinaryOperatorParselet implements InfixParselet {
 	
@@ -38,7 +38,7 @@ public abstract class BaseBinaryOperatorParselet implements InfixParselet {
 	}
 
 	@Override
-	public AstNode parse(ChipmunkParser parser, AstNode left, Token token) {
+	public AstNode parse(ExpressionParser parser, AstNode left, Token token) {
 		AstNode right = parser.parseExpression(leftAssoc ? getPrecedence() : getPrecedence() - 1);
 		return new OperatorNode(token, left, right);
 	}

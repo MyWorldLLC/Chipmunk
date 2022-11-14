@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2022 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,19 +18,24 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.parser.parselets;
+package chipmunk.util.pattern;
 
-import chipmunk.compiler.lexer.Token;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.parser.ExpressionParser;
+import chipmunk.util.SeekableSequence;
 
-/**
- * One of two parselets used by Pratt parser. Used to post infix expressions and postfix
- * operators.
- */
-public interface InfixParselet {
+import java.util.List;
+import java.util.function.Function;
 
-	AstNode parse(ExpressionParser parser, AstNode left, Token token);
-	int getPrecedence();
-	
+public class PatternFactory<S, SEQ extends SeekableSequence<S>, T, R> {
+
+    public record PartialPattern<S, SEQ extends SeekableSequence<S>, T, R>(List<T> pattern){
+
+        public Pattern<S, SEQ, T, R> then(Function<SEQ, R> action){
+            return new Pattern<>(pattern, action);
+        }
+
+    }
+
+    public PartialPattern<S, SEQ, T, R> when(T... pattern){
+        return new PartialPattern<>(List.of(pattern));
+    }
 }
