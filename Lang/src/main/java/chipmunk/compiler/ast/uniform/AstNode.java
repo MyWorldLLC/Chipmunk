@@ -28,6 +28,7 @@ import chipmunk.compiler.types.ObjectType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public record AstNode(NodeType type, ObjectType expressionType, Token origin, Optional<Symbol> symbol, Optional<SymbolTable> symbols, List<AstNode> children) {
 
@@ -47,6 +48,13 @@ public record AstNode(NodeType type, ObjectType expressionType, Token origin, Op
 
     public boolean is(NodeType type){
         return this.type == type;
+    }
+
+    public <T> T ifType(NodeType type, Supplier<T> f){
+        if(is(type)){
+            return f.get();
+        }
+        throw new IllegalArgumentException("Required node type %s, got %s".formatted(type, type()));
     }
 
     public boolean isBlock(){
