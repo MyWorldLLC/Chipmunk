@@ -1,5 +1,35 @@
-module chipmunk.lang {
+open module chipmunk.lang {
     requires jdk.dynalink;
     requires org.objectweb.asm;
     exports chipmunk;
+    exports chipmunk.binary;
+    exports chipmunk.compiler;
+    exports chipmunk.compiler.assembler;
+    exports chipmunk.compiler.ast;
+    exports chipmunk.compiler.ast.transforms;
+    exports chipmunk.compiler.ast.uniform;
+    exports chipmunk.compiler.ast.uniform.util;
+    exports chipmunk.compiler.codegen;
+    exports chipmunk.compiler.imports;
+    exports chipmunk.compiler.lexer;
+    exports chipmunk.compiler.parser;
+    exports chipmunk.compiler.parser.parselets;
+    exports chipmunk.compiler.parser.patterns;
+    exports chipmunk.compiler.symbols;
+    exports chipmunk.compiler.types;
+    exports chipmunk.modules.buffer;
+    exports chipmunk.modules.imports;
+    exports chipmunk.modules.lang;
+    exports chipmunk.modules.math;
+    exports chipmunk.modules.uuid;
+    exports chipmunk.nut;
+    exports chipmunk.runtime;
+    exports chipmunk.util;
+    exports chipmunk.util.pattern;
+    exports chipmunk.vm;
+    exports chipmunk.vm.invoke;
+    exports chipmunk.vm.invoke.security;
+    exports chipmunk.vm.jvm;
+    exports chipmunk.vm.locators;
+    exports chipmunk.vm.scheduler;
 }
