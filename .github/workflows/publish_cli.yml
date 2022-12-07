@@ -70,7 +70,7 @@ jobs:
         uses: dawidd6/action-get-tag@v1
 
       - name: Build with Gradle
-        run: ./gradlew :CLI:jpackage -Prelease="${{ steps.tag.outputs.tag }}" --info
+        run: ./gradlew :CLI:jpackage --info
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2

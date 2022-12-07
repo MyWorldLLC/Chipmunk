@@ -18,4 +18,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-project.ext.snapshotVersion = '1.0.0-SNAPSHOT'
+def getGitVersion(){
+    "git describe --tags --always --first-parent".execute().text.trim()
+}
+
+project.ext.buildVersion = gitVersion

@@ -26,7 +26,7 @@ apply plugin: 'java'
 
 
 group = 'myworld'
-version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
+version = rootProject.ext.buildVersion
 
 repositories {
     mavenCentral()

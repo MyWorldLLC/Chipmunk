@@ -1,9 +1,6 @@
-name: build_snapshot
+name: publish
 
-on:
-  push:
-    branches:
-      - master
+on: push
 
 jobs:
   build:

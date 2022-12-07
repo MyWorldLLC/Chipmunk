@@ -20,7 +20,6 @@
  */
 
 plugins {
-	//id 'me.champeau.gradle.jmh' version '0.5.3'
 	id 'maven-publish'
 	id 'org.asciidoctor.jvm.convert' version '3.1.0'
 }
@@ -29,7 +28,7 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 
 group = 'myworld'
-version = findProperty('release') ? findProperty('release') : rootProject.ext.snapshotVersion
+version = rootProject.ext.buildVersion
 
 repositories {
 	mavenCentral()
