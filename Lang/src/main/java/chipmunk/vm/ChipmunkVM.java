@@ -20,32 +20,33 @@
 
 package chipmunk.vm;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-
-import chipmunk.binary.*;
+import chipmunk.binary.BinaryFormatException;
+import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
-import chipmunk.modules.lang.LangModule;
+import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.NativeTypeLib;
-import chipmunk.vm.invoke.*;
+import chipmunk.vm.invoke.ChipmunkLibraries;
+import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.jvm.JvmCompilation;
 import chipmunk.vm.jvm.JvmCompiler;
-import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.jvm.JvmCompilerConfig;
 import chipmunk.vm.scheduler.Scheduler;
 import jdk.dynalink.linker.GuardedInvocation;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.Arrays;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ChipmunkVM {
 
