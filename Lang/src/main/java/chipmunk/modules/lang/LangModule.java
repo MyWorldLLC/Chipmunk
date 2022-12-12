@@ -32,15 +32,15 @@ public class LangModule implements ChipmunkModule {
     public static final String MODULE_NAME = "chipmunk.lang";
 
     @AllowChipmunkLinkage
-    @ChipmunkName("int")
+    @ChipmunkName("Int")
     public final Class<Integer> _int;
 
     @AllowChipmunkLinkage
-    @ChipmunkName("float")
+    @ChipmunkName("Float")
     public final Class<Float> _float;
 
     @AllowChipmunkLinkage
-    @ChipmunkName("boolean")
+    @ChipmunkName("Boolean")
     public final Class<Boolean> _boolean;
 
     @AllowChipmunkLinkage
