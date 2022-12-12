@@ -32,6 +32,10 @@ public class LangModule implements ChipmunkModule {
     public static final String MODULE_NAME = "chipmunk.lang";
 
     @AllowChipmunkLinkage
+    @ChipmunkName("Any")
+    public final Class<Object> _any;
+
+    @AllowChipmunkLinkage
     @ChipmunkName("Int")
     public final Class<Integer> _int;
 
@@ -56,6 +60,7 @@ public class LangModule implements ChipmunkModule {
     public final Class<Map> _map;
 
     public LangModule(){
+        _any = Object.class;
         _int = Integer.class;
         _float = Float.class;
         _boolean = Boolean.class;
