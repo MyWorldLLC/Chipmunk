@@ -325,14 +325,19 @@ public class ChipmunkParser {
 			node.addParam(param);
 		}
 		tokens.forceNext(TokenType.RPAREN);
-		tokens.skipNewlines();
+		tokens.skipNewlinesAndComments();
 		
 		// If the next token is a block start, parse this as a regular
 		// method. Otherwise, treat it as a single expression method
 		// with an automatic return.
 		if(tokens.peek(TokenType.LBRACE)) {
 			parseBlockBody(node);
-		}else {
+		}else if(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword()){
+			// Call "chipmunk.lang.unimplementedMethod()"
+			AstNode unimplemented = new OperatorNode(new Token("(", TokenType.LPAREN),
+					new IdNode(new Token("unimplementedMethod", TokenType.IDENTIFIER)));
+			node.addToBody(unimplemented);
+		}else{
 			AstNode expression = parseExpression();
 			node.addToBody(expression);
 		}

@@ -27,6 +27,7 @@ import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
 import chipmunk.modules.imports.JvmImportModule
 import chipmunk.modules.lang.LangModule
+import chipmunk.runtime.UnimplementedMethodException
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
@@ -343,5 +344,13 @@ class LanguageSpecification extends Specification {
 
 		then:
 		result == 5
+	}
+
+	def "Run UnimplementedMethod.chp"(){
+		when:
+		def result = compileAndRun("UnimplementedMethod.chp")
+
+		then:
+		thrown(UnimplementedMethodException)
 	}
 }
