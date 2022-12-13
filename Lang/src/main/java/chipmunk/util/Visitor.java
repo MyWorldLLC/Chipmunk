@@ -18,24 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.util.pattern;
+package chipmunk.util;
 
-import chipmunk.util.Visitor;
+public interface Visitor<T> {
 
-import java.util.List;
-import java.util.function.Function;
-
-public class PatternFactory<S, V extends Visitor<S>, T, R> {
-
-    public record PartialPattern<S, V extends Visitor<S>, T, R>(List<T> pattern){
-
-        public Pattern<S, V, T, R> then(Function<V, R> action){
-            return new Pattern<>(pattern, action);
-        }
-
-    }
-
-    public PartialPattern<S, V, T, R> when(T... pattern){
-        return new PartialPattern<>(List.of(pattern));
-    }
+    T get();
+    <U extends Visitor<T>> U duplicate();
+    
 }

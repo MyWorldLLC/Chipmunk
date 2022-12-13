@@ -20,27 +20,27 @@
 
 package chipmunk.util.pattern;
 
-import chipmunk.util.SeekableSequence;
+import chipmunk.util.Visitor;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PatternRecognizer<S, SEQ extends SeekableSequence<S>, T, R> implements Function<SEQ, R> {
+public class PatternRecognizer<S, V extends Visitor<S>, T, R> implements Function<V, R> {
     protected final Function<S, T> extractor;
     protected final Set<T> ignore = new HashSet<>();
-    protected final List<Pattern<S, SEQ, T, R>> patterns = new ArrayList<>();
+    protected final List<Pattern<S, V, T, R>> patterns = new ArrayList<>();
 
     public PatternRecognizer(Function<S, T> extractor){
         this.extractor = extractor;
     }
 
-    public PatternRecognizer<S, SEQ, T, R> ignore(T t){
+    public PatternRecognizer<S, V, T, R> ignore(T t){
         ignore.add(t);
         return this;
     }
 
-    public R matchAll(SeekableSequence<S> source){
+    public R matchAll(V source){
         for(var pattern : patterns){
             var ast = match(source, pattern);
             if(ast != null){
@@ -50,7 +50,7 @@ public class PatternRecognizer<S, SEQ extends SeekableSequence<S>, T, R> impleme
         return null;
     }
 
-    public <E extends Throwable> R matchAll(SeekableSequence<S> source, Supplier<E> noneMatch) throws E {
+    public <E extends Throwable> R matchAll(V source, Supplier<E> noneMatch) throws E {
         var ast = matchAll(source);
         if(ast == null){
             throw noneMatch.get();
@@ -58,7 +58,7 @@ public class PatternRecognizer<S, SEQ extends SeekableSequence<S>, T, R> impleme
         return ast;
     }
 
-    public R match(SeekableSequence<S> source, Pattern<S, SEQ, T, R> pattern){
+    public R match(V source, Pattern<S, V, T, R> pattern){
         var dup = source.duplicate();
         for(var t : pattern.pattern()){
             var s = extractor.apply(dup.get());
@@ -69,13 +69,13 @@ public class PatternRecognizer<S, SEQ extends SeekableSequence<S>, T, R> impleme
         return pattern.action().apply(source.duplicate());
     }
 
-    public PatternRecognizer<S, SEQ, T, R> define(Pattern<S, SEQ, T, R> p){
+    public PatternRecognizer<S, V, T, R> define(Pattern<S, V, T, R> p){
         patterns.add(p);
         return this;
     }
 
     @Override
-    public R apply(SEQ source) {
+    public R apply(V source) {
         return matchAll(source);
     }
 }

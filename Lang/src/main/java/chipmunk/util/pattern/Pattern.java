@@ -20,14 +20,14 @@
 
 package chipmunk.util.pattern;
 
-import chipmunk.util.SeekableSequence;
+import chipmunk.util.Visitor;
 
 import java.util.List;
 import java.util.function.Function;
 
-public record Pattern<S, SEQ extends SeekableSequence<S>, T, R>(List<T> pattern, Function<SEQ, R> action) {
+public record Pattern<S, V extends Visitor<S>, T, R>(List<T> pattern, Function<V, R> action) {
 
-    public static <S, SEQ extends SeekableSequence<S>, T, R> Pattern<S, SEQ, T, R> of(List<T> pattern, Function<SEQ, R> action){
+    public static <S, V extends Visitor<S>, T, R> Pattern<S, V, T, R> of(List<T> pattern, Function<V, R> action){
         return new Pattern<>(pattern, action);
     }
 
