@@ -21,6 +21,7 @@
 package chipmunk.modules.lang;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.UnimplementedMethodException;
 import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
@@ -68,6 +69,11 @@ public class LangModule implements ChipmunkModule {
 
         _list = List.class;
         _map = Map.class;
+    }
+
+    @AllowChipmunkLinkage
+    public void unimplementedMethod() throws UnimplementedMethodException {
+        throw new UnimplementedMethodException();
     }
 
     @Override
