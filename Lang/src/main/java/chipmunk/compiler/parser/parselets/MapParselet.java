@@ -54,7 +54,7 @@ public class MapParselet implements PrefixParselet {
 			tokens.skipNewlinesAndComments();
 			
 			if(!(tokens.dropNext(TokenType.COMMA) || tokens.peek(TokenType.RBRACE))){
-				ChipmunkParser.syntaxError("Error parsing map", parser.getContext().getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACE);
+				ChipmunkParser.syntaxError("Error parsing map", tokens.getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACE);
 			}
 		}
 		tokens.dropNext(TokenType.RBRACE);

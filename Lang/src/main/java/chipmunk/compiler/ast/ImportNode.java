@@ -20,6 +20,8 @@
 
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.lexer.Token;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class ImportNode extends AstNode {
 	protected List<String> aliases;
 	
 	public ImportNode(){
-		super();
+		super(NodeType.IMPORT, null);
 		importAll = false;
 		symbols = new ArrayList<>();
 		aliases = new ArrayList<>();

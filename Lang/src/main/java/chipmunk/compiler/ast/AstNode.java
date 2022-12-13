@@ -20,6 +20,10 @@
 
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,22 +31,53 @@ import java.util.stream.Collectors;
 
 public class AstNode {
 	
-	protected List<AstNode> children;
+	protected final List<AstNode> children;
+	protected final NodeType type;
+	protected final Token token;
+	protected Symbol symbol;
+	protected SymbolTable symbols;
 	protected int beginTokenIndex;
 	protected int endTokenIndex;
 	protected int lineNumber;
-	
+
+	// TODO - remove this. It's a temporary workaround
+	// to allow compiling/testing while overhauling the AST/parser.
 	public AstNode(){
+		this(NodeType.MODULE);
+	}
+
+	// TODO - see above
+	public AstNode(AstNode... children){
+		this(null, null, children);
+	}
+
+	public AstNode(NodeType type){
+		this(type, null);
+	}
+	
+	public AstNode(NodeType type, Token token){
+		this.type = type;
+		this.token = token;
 		children = new ArrayList<>();
 	}
 	
-	public AstNode(AstNode... children){
-		this();
-		for(AstNode child : children){
-			this.children.add(child);
-		}
+	public AstNode(NodeType type, Token token, AstNode... children){
+		this(type, token);
+		this.children.addAll(Arrays.asList(children));
 	}
-	
+
+	public Symbol getSymbol(){
+		return symbol;
+	}
+
+	public void setSymbol(Symbol symbol){
+		this.symbol = symbol;
+	}
+
+	public SymbolTable getSymbolTable(){
+		return symbols;
+	}
+
 	public List<AstNode> getChildren(){
 		return children;
 	}

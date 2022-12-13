@@ -18,25 +18,38 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.parser;
+package chipmunk.compiler.ast;
 
-import chipmunk.compiler.lexer.TokenStream;
+public enum NodeType {
+    MODULE(true),
+    IMPORT(false),
+    CLASS(true),
+    METHOD(true),
+    VAR_DEC(false),
+    ID(false),
+    IF_ELSE(true),
+    ITERATOR(false),
+    LIST(false),
+    LITERAL(false),
+    MAP(false),
+    MATCH(true),
+    CASE(true),
+    WHEN(true),
+    OPERATOR(false),
+    TRY(true),
+    CATCH(true),
+    FINALLY(true),
+    WHILE(true),
+    FOR(true);
 
-public class ParseContext {
+    private final boolean block;
 
-    protected final String fileName;
-    protected final TokenStream tokens;
-
-    public ParseContext(String fileName, TokenStream tokens){
-        this.fileName = fileName;
-        this.tokens = tokens;
+    NodeType(boolean block){
+        this.block = block;
     }
 
-    public String getFileName() {
-        return fileName;
+    public boolean isBlock(){
+        return block;
     }
 
-    public TokenStream getTokens() {
-        return tokens;
-    }
 }

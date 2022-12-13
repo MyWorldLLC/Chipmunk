@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.ast.uniform;
 
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;

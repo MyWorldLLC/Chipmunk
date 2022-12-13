@@ -33,11 +33,10 @@ public class ExpressionParser {
 
     private final Map<TokenType, InfixParselet> infix = new HashMap<>();
     private final Map<TokenType, PrefixParselet> prefix = new HashMap<>();
+    protected final TokenStream tokens;
 
-    protected final ParseContext context;
-
-    public ExpressionParser(ParseContext ctx){
-        context = ctx;
+    public ExpressionParser(TokenStream tokens){
+        this.tokens = tokens;
         // register parselets
 
         // identifiers and literals
@@ -131,6 +130,10 @@ public class ExpressionParser {
         //register(Token.Type.CLASS, new ClassDefParselet());
     }
 
+    public TokenStream getTokens(){
+        return tokens;
+    }
+
     protected void register(TokenType type, InfixParselet parselet){
         infix.put(type, parselet);
     }
@@ -143,14 +146,6 @@ public class ExpressionParser {
         prefix.put(op, new PrefixOperatorParselet());
     }
 
-    public ParseContext getContext(){
-        return context;
-    }
-
-    public TokenStream getTokens(){
-        return context.getTokens();
-    }
-
     /**
      * Parse expressions with precedence climbing algorithm
      * @return AST of the expression
@@ -161,13 +156,12 @@ public class ExpressionParser {
 
     public AstNode parseExpression(int minPrecedence){
 
-        TokenStream tokens = context.getTokens();
         Token token = tokens.get();
 
         PrefixParselet prefixParser = prefix.get(token.type());
 
         if(prefixParser == null){
-            ChipmunkParser.syntaxError("expression", context.getFileName(), "literal, id, or unary operator", token);
+            ChipmunkParser.syntaxError("expression", tokens.getFileName(), "literal, id, or unary operator", token);
         }
 
         AstNode left = prefixParser.parse(this, token);
@@ -180,7 +174,7 @@ public class ExpressionParser {
             InfixParselet infixParser = infix.get(token.type());
 
             if(infixParser == null){
-                ChipmunkParser.syntaxError("expression", context.getFileName(), "literal, id, or binary operator", token);
+                ChipmunkParser.syntaxError("expression", tokens.getFileName(), "literal, id, or binary operator", token);
             }
 
             left = infixParser.parse(this, left, token);

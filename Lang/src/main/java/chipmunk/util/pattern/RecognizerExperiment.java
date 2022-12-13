@@ -21,7 +21,7 @@
 package chipmunk.util.pattern;
 
 import chipmunk.compiler.ast.uniform.AstNode;
-import chipmunk.compiler.ast.uniform.NodeType;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;

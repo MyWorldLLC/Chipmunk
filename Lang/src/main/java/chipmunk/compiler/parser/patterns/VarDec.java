@@ -20,21 +20,17 @@
 
 package chipmunk.compiler.parser.patterns;
 
-import chipmunk.compiler.ast.uniform.AstNode;
-import chipmunk.compiler.ast.uniform.NodeType;
+import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.parser.ExpressionParser;
 import chipmunk.compiler.symbols.Symbol;
-import chipmunk.compiler.types.ObjectType;
 import chipmunk.util.pattern.PatternFactory;
 import chipmunk.util.pattern.PatternRecognizer;
 
-import java.util.List;
-import java.util.Optional;
-
 import static chipmunk.compiler.lexer.TokenType.*;
-import static chipmunk.compiler.lexer.TokenType.EQUALS;
 
 public class VarDec {
 
@@ -45,13 +41,13 @@ public class VarDec {
     }
 
     public static AstNode parseVarDec(TokenStream t, Token identifier, boolean isFinal) {
-        return new AstNode(
-                NodeType.VAR_DEC, ObjectType.ANY, identifier,
-                Optional.of(new Symbol(identifier.text(), isFinal)),
-                t.peek().type() == EQUALS ? List.of(parseExpression(t)) : List.of());
+        var node = new AstNode(NodeType.VAR_DEC, identifier);
+        node.setSymbol(new Symbol(identifier.text(), isFinal));
+        node.getChildren().add(parseExpression(t));
+        return node;
     }
 
     protected static AstNode parseExpression(TokenStream t) {
-        return null;
+        return new ExpressionParser(t).parseExpression();
     }
 }

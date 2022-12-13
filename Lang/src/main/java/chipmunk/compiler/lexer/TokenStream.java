@@ -29,26 +29,37 @@ import java.util.List;
 
 public class TokenStream implements SeekableSequence<Token> {
 
-	protected List<Token> tokens;
+	protected final String fileName;
+	protected final List<Token> tokens;
 	protected int cursor;
 	protected int mark;
 	
 	public TokenStream(){
+		this(null);
+	}
+
+	public TokenStream(String fileName){
+		this.fileName = fileName;
 		tokens = new ArrayList<>();
 		cursor = 0;
 		mark = 0;
 	}
 
-	private TokenStream(List<Token> tokens, int cursor, int mark){
+	private TokenStream(String fileName, List<Token> tokens, int cursor, int mark){
+		this.fileName = fileName;
 		this.tokens = tokens;
 		this.cursor = cursor;
 		this.mark = mark;
 	}
 
+	@Override
 	public TokenStream duplicate(){
-		return new TokenStream(Collections.unmodifiableList(tokens), cursor, mark);
+		return new TokenStream(fileName, Collections.unmodifiableList(tokens), cursor, mark);
 	}
 
+	public String getFileName(){
+		return fileName;
+	}
 
 	public int getStreamPosition(){
 		return cursor;

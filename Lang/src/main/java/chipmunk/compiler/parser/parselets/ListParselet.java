@@ -42,7 +42,7 @@ public class ListParselet implements PrefixParselet {
 			tokens.skipNewlinesAndComments();
 			
 			if(!(tokens.dropNext(TokenType.COMMA) || tokens.peek(TokenType.RBRACKET))){
-				ChipmunkParser.syntaxError("Error parsing list", parser.getContext().getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
+				ChipmunkParser.syntaxError("Error parsing list", tokens.getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
 			}
 		}
 		tokens.dropNext(TokenType.RBRACKET);

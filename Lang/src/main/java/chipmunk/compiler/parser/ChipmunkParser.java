@@ -49,7 +49,7 @@ public class ChipmunkParser {
 	
 	protected TokenStream tokens;
 	protected String fileName;
-	
+
 	private List<ModuleNode> moduleRoots;
 	
 	public ChipmunkParser(TokenStream source){
@@ -827,7 +827,7 @@ public class ChipmunkParser {
 	 * @return AST of the expression
 	 */
 	public AstNode parseExpression(){
-		return new ExpressionParser(new ParseContext(fileName, tokens)).parseExpression(0);
+		return new ExpressionParser(tokens).parseExpression();
 	}
 	
 	private void startNode(AstNode node){

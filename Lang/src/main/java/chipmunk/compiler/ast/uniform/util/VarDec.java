@@ -1,7 +1,7 @@
 package chipmunk.compiler.ast.uniform.util;
 
 import chipmunk.compiler.ast.uniform.AstNode;
-import chipmunk.compiler.ast.uniform.NodeType;
+import chipmunk.compiler.ast.NodeType;
 
 public class VarDec {
 
