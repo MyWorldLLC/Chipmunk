@@ -334,6 +334,7 @@ public class ChipmunkParser {
 			parseBlockBody(node);
 		}else if(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword()){
 			// Call "chipmunk.lang.unimplementedMethod()"
+			// TODO - this should move to the code generator
 			AstNode unimplemented = new OperatorNode(new Token("(", TokenType.LPAREN),
 					new IdNode(new Token("unimplementedMethod", TokenType.IDENTIFIER)));
 			node.addToBody(unimplemented);
