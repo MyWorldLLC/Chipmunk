@@ -28,11 +28,13 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
-	protected Symbol symbol;
-	
-	
+
 	public VarDecNode(){
-		super();
+		this((Token)null);
+	}
+
+	public VarDecNode(Token origin){
+		super(NodeType.VAR_DEC, origin);
 		hasVar = false;
 		hasAssignExpr = false;
 		symbol = new Symbol();

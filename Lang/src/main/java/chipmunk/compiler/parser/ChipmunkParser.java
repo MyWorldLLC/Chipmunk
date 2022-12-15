@@ -21,18 +21,16 @@
 package chipmunk.compiler.parser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import chipmunk.compiler.IllegalImportException;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.parser.subparsers.VarDecParser;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.SyntaxError;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
-import chipmunk.compiler.parser.parselets.*;
 
 /**
  * Parses the Chipmunk language using a Pratt parser design for expressions. Many thanks to 
@@ -424,24 +422,7 @@ public class ChipmunkParser {
 	}
 	
 	public VarDecNode parseVarDec(){
-		VarDecNode dec = new VarDecNode();
-		startNode(dec);
-		if(tokens.dropNext(TokenType.FINAL)){
-			dec.getSymbol().setFinal(true);
-		}
-
-		tokens.forceNext(TokenType.VAR);
-		Token id = tokens.getNext(TokenType.IDENTIFIER);
-		
-		dec.setVar(new IdNode(id));
-		
-		if(tokens.peek(TokenType.EQUALS)){
-			tokens.forceNext(TokenType.EQUALS);
-			dec.setAssignExpr(parseExpression());
-		}
-		
-		endNode(dec);
-		return dec;
+		return new VarDecParser().parse(tokens);
 	}
 	
 	public AstNode parseStatement(){
