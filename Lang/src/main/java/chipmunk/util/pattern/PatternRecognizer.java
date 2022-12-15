@@ -27,7 +27,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> implements Function<V, R> {
+public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> {
 
     protected final Function<S, E> extractor;
     protected final BiPredicate<E, T> matcher;
@@ -98,8 +98,4 @@ public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> implements Func
         return this;
     }
 
-    @Override
-    public R apply(V source) {
-        return matchAll(source);
-    }
 }
