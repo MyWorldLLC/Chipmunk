@@ -54,7 +54,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             for(ImportNode im : imports){
 
-                final int index = im.getBeginTokenIndex();
+                final int index = im.getTokenIndex();
                 final int line = im.getLineNumber();
                 final int column = 0;
 

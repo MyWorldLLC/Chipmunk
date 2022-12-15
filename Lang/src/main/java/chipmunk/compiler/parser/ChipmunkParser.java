@@ -84,7 +84,7 @@ public class ChipmunkParser {
 	public ModuleNode parseModule(){
 		ModuleNode module = new ModuleNode();
 		module.setFileName(fileName);
-		startNode(module);
+
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		tokens.skipNewlinesAndComments();
 		
@@ -159,7 +159,7 @@ public class ChipmunkParser {
 			next = tokens.peek();
 			nextType = next.type();
 		}
-		endNode(module);
+
 		return module;
 	}
 	
@@ -179,7 +179,6 @@ public class ChipmunkParser {
 		tokens.skipNewlines();
 		
 		ClassNode node = new ClassNode();
-		startNode(node);
 
 		tokens.forceNext(TokenType.CLASS);
 		Token id = tokens.getNext(TokenType.IDENTIFIER);
@@ -228,7 +227,7 @@ public class ChipmunkParser {
 			}
 		}
 		tokens.forceNext(TokenType.RBRACE);
-		endNode(node);
+
 		return node;
 	}
 	
@@ -236,7 +235,6 @@ public class ChipmunkParser {
 		tokens.skipNewlines();
 		
 		ClassNode node = new ClassNode();
-		startNode(node);
 		
 		node.setName("");
 
@@ -282,7 +280,7 @@ public class ChipmunkParser {
 			}
 		}
 		tokens.forceNext(TokenType.RBRACE);
-		endNode(node);
+
 		return node;
 	}
 	
@@ -302,7 +300,6 @@ public class ChipmunkParser {
 		tokens.skipNewlinesAndComments();
 		
 		MethodNode node = new MethodNode();
-		startNode(node);
 		
 		if(tokens.dropNext(TokenType.FINAL)){
 			node.getSymbol().setFinal(true);
@@ -333,15 +330,14 @@ public class ChipmunkParser {
 		}else if(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword()){
 			// Call "chipmunk.lang.unimplementedMethod()"
 			// TODO - this should move to the code generator
-			AstNode unimplemented = new OperatorNode(new Token("(", TokenType.LPAREN, node.getBeginTokenIndex(), node.getLineNumber(), 0),
+			AstNode unimplemented = new OperatorNode(new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
 					new IdNode(new Token("unimplementedMethod", TokenType.IDENTIFIER)));
 			node.addToBody(unimplemented);
 		}else{
 			AstNode expression = parseExpression();
 			node.addToBody(expression);
 		}
-		
-		endNode(node);
+
 		return node;
 	}
 	
@@ -349,7 +345,7 @@ public class ChipmunkParser {
 		tokens.skipNewlinesAndComments();
 		
 		MethodNode node = new MethodNode();
-		startNode(node);
+
 		node.setName("anonL" + tokens.peek().line() + "C" + tokens.peek().column());
 
 		tokens.forceNext(TokenType.LPAREN);
@@ -376,8 +372,7 @@ public class ChipmunkParser {
 			AstNode expression = parseExpression();
 			node.addToBody(expression);
 		}
-		
-		endNode(node);
+
 		return node;
 	}
 	
@@ -395,7 +390,7 @@ public class ChipmunkParser {
 	public VarDecNode parseVarOrTraitDec() {
 		
 		VarDecNode dec = new VarDecNode();
-		startNode(dec);
+
 		if(tokens.dropNext(TokenType.FINAL)){
 			dec.getSymbol().setFinal(true);
 		}
@@ -408,7 +403,6 @@ public class ChipmunkParser {
 		}
 		Token id = tokens.getNext(TokenType.IDENTIFIER);
 		IdNode idNode = new IdNode(id);
-		idNode.setLineNumber(id.line());
 		dec.setVar(idNode);
 		
 		
@@ -416,8 +410,7 @@ public class ChipmunkParser {
 			tokens.forceNext(TokenType.EQUALS);
 			dec.setAssignExpr(parseExpression());
 		}
-		
-		endNode(dec);
+
 		return dec;
 	}
 	
@@ -458,33 +451,32 @@ public class ChipmunkParser {
 				return parseTryCatch();
 			case RETURN:
 				FlowControlNode returnNode = new FlowControlNode();
-				startNode(returnNode);
+
 				tokens.dropNext();
 				returnNode.setControlToken(token);
 				
 				if(!tokens.peek(TokenType.NEWLINE)){
 					returnNode.addControlExpression(parseExpression());
 				}
-				
-				endNode(returnNode);
+
 				return returnNode;
 			case THROW:
 				FlowControlNode throwNode = new FlowControlNode();
-				startNode(throwNode);
+
 				tokens.dropNext();
 				throwNode.setControlToken(token);
 				throwNode.addControlExpression(parseExpression());
-				endNode(throwNode);
+
 				return throwNode;
 			case BREAK:
 			case CONTINUE:
 				tokens.dropNext();
 				
 				FlowControlNode node = new FlowControlNode();
-				startNode(node);
+
 				tokens.dropNext();
 				node.setControlToken(token);
-				endNode(node);
+
 				return node;
 			default:
 				syntaxError("Unexpected token", fileName, token, TokenType.IF, TokenType.WHILE, TokenType.FOR, TokenType.TRY,
@@ -499,7 +491,6 @@ public class ChipmunkParser {
 	
 	public IfElseNode parseIfElse(){
 		IfElseNode node = new IfElseNode();
-		startNode(node);
 		
 		// keep parsing if & else-if branches until something causes this to break
 		while(true){
@@ -528,14 +519,12 @@ public class ChipmunkParser {
 				break;
 			}
 		}
-		
-		endNode(node);
+
 		return node;
 	}
 	
 	public GuardedNode parseIfBranch(){
 		GuardedNode ifBranch = new GuardedNode();
-		startNode(ifBranch);
 
 		tokens.forceNext(TokenType.IF);
 		tokens.forceNext(TokenType.LPAREN);
@@ -547,14 +536,12 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(ifBranch);
-		
-		endNode(ifBranch);
+
 		return ifBranch;
 	}
 	
 	public WhileNode parseWhile(){
 		WhileNode node = new WhileNode();
-		startNode(node);
 
 		tokens.forceNext(TokenType.WHILE);
 		tokens.forceNext(TokenType.LPAREN);
@@ -566,14 +553,12 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(node);
-		
-		endNode(node);
+
 		return node;
 	}
 	
 	public ForNode parseFor(){
 		ForNode node = new ForNode();
-		startNode(node);
 
 		tokens.forceNext(TokenType.FOR);
 		tokens.forceNext(TokenType.LPAREN);
@@ -582,26 +567,17 @@ public class ChipmunkParser {
 		tokens.dropNext(TokenType.VAR);
 
 		IteratorNode iter = new IteratorNode();
-		startNode(iter);
 		
 		IdNode varID = new IdNode(tokens.getNext(TokenType.IDENTIFIER));
-		varID.setLineNumber(varID.getID().line());
-		varID.setBeginTokenIndex(varID.getID().index());
-		varID.setEndTokenIndex(varID.getID().index() + 1);
 
 		tokens.forceNext(TokenType.IN);
 		
 		AstNode expr = parseExpression();
 		
 		VarDecNode decl = new VarDecNode(varID);
-		decl.setLineNumber(varID.getLineNumber());
-		decl.setBeginTokenIndex(varID.getID().index());
-		decl.setEndTokenIndex(varID.getID().index() + 1);
 
 		iter.setID(decl);
 		iter.setIter(expr);
-
-		endNode(iter);
 
 		node.setIterator(iter);
 
@@ -609,8 +585,7 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.RPAREN);
 		
 		parseBlockBody(node);
-		
-		endNode(node);
+
 		return node;
 	}
 	
@@ -636,14 +611,11 @@ public class ChipmunkParser {
 	
 	public AstNode parseTryCatch(){
 		TryCatchNode node = new TryCatchNode();
-		startNode(node);
 
 		tokens.forceNext(TokenType.TRY);
 		TryNode tryNode = new TryNode();
-		
-		startNode(tryNode);
+
 		parseBlockBody(tryNode);
-		endNode(tryNode);
 		// add try block to body
 		node.setTryBlock(tryNode);
 		
@@ -654,7 +626,6 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.LPAREN);
 			
 		CatchNode catchNode = new CatchNode();
-		startNode(catchNode);
 			
 		// if catch block has type of exception, include in node
 		if(tokens.peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
@@ -665,15 +636,13 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.RPAREN);
 			
 		parseBlockBody(catchNode);
-			
-		endNode(catchNode);
+
 		node.addCatchBlock(catchNode);
 			
 			//if(!peek(Token.Type.CATCH)){
 			//	break;
 			//}
 		//}
-		endNode(node);
 		return node;
 	}
 	
@@ -693,7 +662,6 @@ public class ChipmunkParser {
 	public ImportNode parseImport(){
 		tokens.skipNewlines();
 		ImportNode node = new ImportNode();
-		startNode(node);
 		
 		if(tokens.peek(TokenType.IMPORT)){
 			tokens.dropNext(TokenType.IMPORT);
@@ -798,8 +766,7 @@ public class ChipmunkParser {
 				throw new IllegalImportException("Cannot have more aliases than imported symbols");
 			}
 		}
-		
-		endNode(node);
+
 		return node;
 	}
 	
@@ -810,15 +777,7 @@ public class ChipmunkParser {
 	public AstNode parseExpression(){
 		return new ExpressionParser(tokens).parseExpression();
 	}
-	
-	private void startNode(AstNode node){
-		node.setBeginTokenIndex(tokens.getStreamPosition());
-		node.setLineNumber(tokens.peek().line());
-	}
-	
-	private void endNode(AstNode node){
-		node.setEndTokenIndex(tokens.getStreamPosition());
-	}
+
 	
 	public static void syntaxError(String langElement, String fileName, Token got, TokenType... expected) throws SyntaxError {
 		StringBuilder expectedTypes = new StringBuilder();

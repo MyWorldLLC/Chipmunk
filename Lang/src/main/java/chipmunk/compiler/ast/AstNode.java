@@ -37,9 +37,6 @@ public class AstNode {
 	protected final Token token;
 	protected Symbol symbol;
 	protected SymbolTable symbols;
-	protected int beginTokenIndex;
-	protected int endTokenIndex;
-	protected int lineNumber;
 
 	// TODO - remove this. It's a temporary workaround
 	// to allow compiling/testing while overhauling the AST/parser.
@@ -141,28 +138,12 @@ public class AstNode {
 		return parent;
 	}
 	
-	public int getBeginTokenIndex(){
-		return beginTokenIndex;
-	}
-	
-	public void setBeginTokenIndex(int index){
-		beginTokenIndex = index;
-	}
-	
-	public int getEndTokenIndex(){
-		return beginTokenIndex;
-	}
-	
-	public void setEndTokenIndex(int index){
-		endTokenIndex = index;
+	public int getTokenIndex(){
+		return token != null ? token.index() : 0;
 	}
 	
 	public int getLineNumber() {
-		return lineNumber;
-	}
-	
-	public void setLineNumber(int line) {
-		lineNumber = line;
+		return token != null ? token.line() : 0;
 	}
 
 	public void visit(AstVisitor visitor){

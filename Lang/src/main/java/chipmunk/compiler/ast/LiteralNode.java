@@ -41,7 +41,6 @@ public class LiteralNode extends AstNode {
 	
 	public void setLiteral(Token literalValue){
 		literal = literalValue;
-		setLineNumber(literal.line());
 	}
 
 	@Override

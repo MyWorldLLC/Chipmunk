@@ -86,7 +86,7 @@ public class DocAstVisitor implements AstVisitor {
 
     protected DocNode enterDocNode(AstNode astNode){
 
-        tokens.seek(astNode.getBeginTokenIndex() - 1);
+        tokens.seek(astNode.getTokenIndex() - 1);
 
         Deque<Token> comments = new ArrayDeque<>();
 

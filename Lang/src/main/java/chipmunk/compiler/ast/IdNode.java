@@ -51,7 +51,6 @@ public class IdNode extends AstNode {
 	
 	public void setID(Token id){
 		this.id = id;
-		setLineNumber(id.line());
 	}
 
 	@Override

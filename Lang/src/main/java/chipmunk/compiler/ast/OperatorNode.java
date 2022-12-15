@@ -48,7 +48,6 @@ public class OperatorNode extends AstNode {
 	
 	public void setOperator(Token op) {
 		this.op = op;
-		setLineNumber(op.line());
 	}
 	
 	public AstNode getLeft(){

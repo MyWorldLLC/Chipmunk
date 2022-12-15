@@ -41,7 +41,6 @@ public class FlowControlNode extends AstNode {
 	
 	public void setControlToken(Token controlToken){
 		token = controlToken;
-		setLineNumber(controlToken.line());
 	}
 	
 	public void addControlExpression(AstNode expression){
