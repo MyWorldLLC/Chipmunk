@@ -18,12 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.util;
+package chipmunk.util.pattern;
 
-public interface Visitor<T> {
+import java.util.function.Function;
 
-    T get();
-    boolean hasMore();
-    <U extends Visitor<T>> U duplicate();
+public class MatchResult {
 
+    public static <V> Function<V, Boolean> success(){
+        return v -> true;
+    }
+
+    public static <V> Function<V, Boolean> failure(){
+        return v -> false;
+    }
+
+    public static <V> Function<V, V> identity(){
+        return v -> v;
+    }
 }

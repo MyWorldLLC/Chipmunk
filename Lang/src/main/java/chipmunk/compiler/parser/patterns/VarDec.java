@@ -34,7 +34,7 @@ import static chipmunk.compiler.lexer.TokenType.*;
 
 public class VarDec {
 
-    public static void register(PatternRecognizer<Token, TokenStream, TokenType, AstNode> recognizer) {
+    public static void register(PatternRecognizer<Token, TokenStream, TokenType, TokenType, AstNode> recognizer) {
         var f = new PatternFactory<Token, TokenStream, TokenType, AstNode>();
         recognizer.define(f.when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(2), true)))
                 .define(f.when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(2), false)));

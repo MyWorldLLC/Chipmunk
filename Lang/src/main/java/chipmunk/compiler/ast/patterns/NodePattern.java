@@ -18,12 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.util;
+package chipmunk.compiler.ast.patterns;
 
-public interface Visitor<T> {
+import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ast.NodeType;
 
-    T get();
-    boolean hasMore();
-    <U extends Visitor<T>> U duplicate();
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+
+public record NodePattern(NodeFetcher fetcher, Predicate<AstNode> predicate) {
+
+    public static final BiPredicate<AstNode, NodePattern> NODE_MATCHER =
+            (node, pattern) -> pattern.predicate().test(pattern.fetcher().apply(node));
+
+    public static NodePattern type(NodeFetcher fetcher, NodeType type){
+        return new NodePattern(fetcher, n -> type.equals(n.getType()));
+    }
 
 }

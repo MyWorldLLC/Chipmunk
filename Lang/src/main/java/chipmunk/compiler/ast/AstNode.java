@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AstNode {
-	
+
+	protected AstNode parent;
 	protected final List<AstNode> children;
 	protected final NodeType type;
 	protected final Token token;
@@ -66,6 +67,10 @@ public class AstNode {
 		this.children.addAll(Arrays.asList(children));
 	}
 
+	public NodeType getType(){
+		return type;
+	}
+
 	public Symbol getSymbol(){
 		return symbol;
 	}
@@ -81,21 +86,59 @@ public class AstNode {
 	public List<AstNode> getChildren(){
 		return children;
 	}
+
+	public AstNode getLeft(){
+		if(hasChildren()){
+			return children.get(0);
+		}
+		return null;
+	}
+
+	public AstNode getRight(){
+		if(hasChildren()){
+			return children.get(children.size() - 1);
+		}
+		return null;
+	}
+
+	public AstNode getChild(){
+		return getLeft();
+	}
+
+	public boolean isBinary(){
+		return children.size() == 2;
+	}
+
+	public boolean isUnary(){
+		return children.size() == 1;
+	}
 	
 	public boolean hasChildren(){
 		return children.size() > 0;
 	}
 	
-	protected void addChild(AstNode child){
+	public void addChild(AstNode child){
 		children.add(child);
+		child.setParent(this);
 	}
 	
 	protected void addChildren(AstNode... children){
-		this.children.addAll(Arrays.asList(children));
+		for(AstNode child : children){
+			addChild(child);
+		}
 	}
 	
 	protected void addChildFirst(AstNode child){
 		children.add(0, child);
+		child.setParent(this);
+	}
+
+	protected void setParent(AstNode parent){
+		this.parent = parent;
+	}
+
+	public AstNode getParent(){
+		return parent;
 	}
 	
 	public int getBeginTokenIndex(){

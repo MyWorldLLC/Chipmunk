@@ -23,19 +23,33 @@ package chipmunk.util.pattern;
 import chipmunk.util.Visitor;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PatternRecognizer<S, V extends Visitor<S>, T, R> implements Function<V, R> {
-    protected final Function<S, T> extractor;
+public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> implements Function<V, R> {
+
+    protected final Function<S, E> extractor;
+    protected final BiPredicate<E, T> matcher;
+
     protected final Set<T> ignore = new HashSet<>();
     protected final List<Pattern<S, V, T, R>> patterns = new ArrayList<>();
 
-    public PatternRecognizer(Function<S, T> extractor){
-        this.extractor = extractor;
+    public PatternRecognizer(Function<S, E> extractor){
+        this(extractor, Object::equals);
     }
 
-    public PatternRecognizer<S, V, T, R> ignore(T t){
+    public PatternRecognizer(Function<S, E> extractor, BiPredicate<E, T> matcher){
+        this.extractor = extractor;
+        this.matcher = matcher;
+    }
+
+    @SuppressWarnings("unchecked")
+    public PatternRecognizer(BiPredicate<E, T> matcher){
+        this(s -> (E) s, matcher);
+    }
+
+    public PatternRecognizer<S, V, E, T, R> ignore(T t){
         ignore.add(t);
         return this;
     }
@@ -50,7 +64,7 @@ public class PatternRecognizer<S, V extends Visitor<S>, T, R> implements Functio
         return null;
     }
 
-    public <E extends Throwable> R matchAll(V source, Supplier<E> noneMatch) throws E {
+    public <EX extends Throwable> R matchAll(V source, Supplier<EX> noneMatch) throws EX {
         var ast = matchAll(source);
         if(ast == null){
             throw noneMatch.get();
@@ -61,15 +75,25 @@ public class PatternRecognizer<S, V extends Visitor<S>, T, R> implements Functio
     public R match(V source, Pattern<S, V, T, R> pattern){
         var dup = source.duplicate();
         for(var t : pattern.pattern()){
-            var s = extractor.apply(dup.get());
-            if(!s.equals(t) && !ignore.contains(s)){
+            var s = nextMatchable(dup);
+            if(!matcher.test(s, t)){
                 return null;
             }
         }
-        return pattern.action().apply(source.duplicate());
+        return pattern.action().apply(source);
     }
 
-    public PatternRecognizer<S, V, T, R> define(Pattern<S, V, T, R> p){
+    protected E nextMatchable(Visitor<S> source){
+        while(source.hasMore()){
+            var s = extractor.apply(source.get());
+            if(ignore.stream().noneMatch(i -> matcher.test(s, i))){
+                return s;
+            }
+        }
+        return null;
+    }
+
+    public PatternRecognizer<S, V, E, T, R> define(Pattern<S, V, T, R> p){
         patterns.add(p);
         return this;
     }
