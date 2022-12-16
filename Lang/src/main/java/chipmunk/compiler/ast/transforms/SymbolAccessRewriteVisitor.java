@@ -47,8 +47,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
-        if(node instanceof BlockNode){
-            scope = ((BlockNode) node).getSymbolTable();
+        if(node.getType().isBlock()){
+            scope = node.getSymbolTable();
             node.visitChildren(this);
             scope = scope.getParent();
         }else if(node instanceof OperatorNode || node instanceof FlowControlNode

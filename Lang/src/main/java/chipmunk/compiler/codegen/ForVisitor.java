@@ -36,13 +36,12 @@ public class ForVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof ForNode){
-			ForNode loop = (ForNode) node;
+		if(node.getType() == NodeType.FOR){
 			
-			SymbolTable symbols = loop.getSymbolTable();
+			SymbolTable symbols = node.getSymbolTable();
 			LoopLabels labels = codegen.pushLoop();
 
-			IteratorNode iter = loop.getIterator();
+			IteratorNode iter = (IteratorNode) node.getChild();
 
 			codegen.enterScope(symbols);
 			
@@ -57,7 +56,7 @@ public class ForVisitor implements AstVisitor {
 			assembler.setLabelTarget(labels.getStartLabel());
 
 			// Generate body
-			loop.visitChildren(codegen, 1);
+			node.visitChildren(codegen, 1);
 			codegen.exitScope();
 
 			// Generate the guard - the "next" bytecode operates as the guard

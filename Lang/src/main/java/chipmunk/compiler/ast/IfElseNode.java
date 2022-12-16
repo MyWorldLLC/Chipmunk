@@ -25,6 +25,7 @@ public class IfElseNode extends AstNode {
 	protected boolean hasElse;
 	
 	public IfElseNode(){
+		super(NodeType.IF_ELSE);
 		hasElse = false;
 	}
 	

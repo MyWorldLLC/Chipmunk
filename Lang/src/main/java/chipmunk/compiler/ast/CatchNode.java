@@ -30,6 +30,7 @@ public class CatchNode extends BlockNode {
 	protected Token exceptionType;
 	
 	public CatchNode(){
+		super(NodeType.CATCH);
 		hasExceptionName = false;
 	}
 	

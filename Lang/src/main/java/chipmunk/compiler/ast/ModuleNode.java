@@ -23,13 +23,12 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
-public class ModuleNode extends BlockNode implements SymbolNode {
+public class ModuleNode extends BlockNode {
 
 	protected String fileName;
-	protected Symbol symbol;
 	
 	public ModuleNode(){
-		super(SymbolTable.Scope.MODULE);
+		super(NodeType.MODULE, SymbolTable.Scope.MODULE);
 		symbol = new Symbol();
 	}
 	
@@ -45,10 +44,6 @@ public class ModuleNode extends BlockNode implements SymbolNode {
 	
 	public String getName() {
 		return symbol.getName();
-	}
-	
-	public Symbol getSymbol() {
-		return symbol;
 	}
 
 	public String getFileName(){

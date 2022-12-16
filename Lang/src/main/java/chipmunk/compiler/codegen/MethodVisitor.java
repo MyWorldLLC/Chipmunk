@@ -30,6 +30,7 @@ import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
+import static chipmunk.compiler.ast.NodeType.*;
 
 public class MethodVisitor implements AstVisitor {
 
@@ -87,16 +88,16 @@ public class MethodVisitor implements AstVisitor {
 			
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 			
-			codegen.setVisitorForNode(OperatorNode.class, expStatVisitor);
-			codegen.setVisitorForNode(IdNode.class, new NoOpVisitor()); // Handle id nodes that are on their own lines
-			codegen.setVisitorForNode(MethodNode.class, new MethodVisitor(codegen, assembler.getConstantPool(), module));
+			codegen.setVisitorForNode(OPERATOR, expStatVisitor);
+			codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
+			codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, assembler.getConstantPool(), module));
 			//codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
-			codegen.setVisitorForNode(VarDecNode.class, new VarDecVisitor(codegen));
-			codegen.setVisitorForNode(IfElseNode.class, new IfElseVisitor(codegen));
-			codegen.setVisitorForNode(WhileNode.class, new WhileVisitor(codegen));
-			codegen.setVisitorForNode(ForNode.class, new ForVisitor(codegen));
-			codegen.setVisitorForNode(FlowControlNode.class, new FlowControlVisitor(codegen));
-			codegen.setVisitorForNode(TryCatchNode.class, new TryCatchVisitor(codegen));
+			codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
+			codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
+			codegen.setVisitorForNode(WHILE, new WhileVisitor(codegen));
+			codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
+			codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
+			codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
 			
 			// The VM sets the locals for arguments for us - we only need to handle default arguments
 			// that aren't supplied in the call.

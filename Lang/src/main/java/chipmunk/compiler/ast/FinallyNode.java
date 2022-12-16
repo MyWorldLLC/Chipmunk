@@ -22,4 +22,7 @@ package chipmunk.compiler.ast;
 
 public class FinallyNode extends BlockNode {
 
+    public FinallyNode(){
+        super(NodeType.FINALLY);
+    }
 }

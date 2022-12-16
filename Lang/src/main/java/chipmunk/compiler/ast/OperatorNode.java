@@ -27,7 +27,7 @@ public class OperatorNode extends AstNode {
 	protected Token op;
 	
 	public OperatorNode(Token op){
-		super();
+		super(NodeType.OPERATOR);
 		setOperator(op);
 	}
 	

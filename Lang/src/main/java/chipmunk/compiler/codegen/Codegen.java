@@ -30,6 +30,7 @@ import java.util.Map;
 import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
@@ -37,7 +38,7 @@ import chipmunk.compiler.ast.AstVisitor;
 
 public class Codegen implements AstVisitor {
 
-	protected Map<Class<? extends AstNode>, AstVisitor> visitors;
+	protected Map<NodeType, AstVisitor> visitors;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
@@ -76,15 +77,15 @@ public class Codegen implements AstVisitor {
 		return module;
 	}
 	
-	public void setVisitorForNode(Class<? extends AstNode> nodeType, AstVisitor visitor){
-		visitors.put(nodeType, visitor);
+	public void setVisitorForNode(NodeType type, AstVisitor visitor){
+		visitors.put(type, visitor);
 	}
 	
 	public void visit(AstNode node){
-		AstVisitor visitor = visitors.get(node.getClass());
+		AstVisitor visitor = visitors.get(node.getType());
 		
 		if(visitor == null){
-			throw new IllegalArgumentException("Unknown node type: " + node.getClass().getSimpleName());
+			throw new IllegalArgumentException("Unknown node type: " + node.getType());
 		}
 		
 		node.visit(visitor);

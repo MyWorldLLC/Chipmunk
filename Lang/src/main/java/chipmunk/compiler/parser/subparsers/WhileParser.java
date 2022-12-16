@@ -22,28 +22,26 @@ package chipmunk.compiler.parser.subparsers;
 
 import chipmunk.compiler.SyntaxError;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.WhileNode;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.Parser;
-import chipmunk.util.pattern.PatternFactory;
 import chipmunk.util.pattern.PatternRecognizer;
 
 import static chipmunk.compiler.lexer.TokenType.*;
 
-public class WhileParser implements Parser<WhileNode> {
+public class WhileParser implements Parser<AstNode> {
 
-    protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, WhileNode> recognizer;
+    protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, AstNode> recognizer;
 
     public WhileParser(){
         recognizer = new PatternRecognizer<>(Token::type);
 
-        var f = new PatternFactory<Token, TokenStream, TokenType, WhileNode>();
+        var f = recognizer.factory();
         recognizer.define(f.when(WHILE, LPAREN).then(this::parseWhile));
     }
 
-    protected WhileNode parseWhile(TokenStream t){
+    protected AstNode parseWhile(TokenStream t){
         var token = t.get();
         t.skip(1);
 
@@ -55,7 +53,7 @@ public class WhileParser implements Parser<WhileNode> {
     }
 
     @Override
-    public WhileNode parse(TokenStream t) throws SyntaxError {
+    public AstNode parse(TokenStream t) throws SyntaxError {
         return recognizer.matchAll(t);
     }
 

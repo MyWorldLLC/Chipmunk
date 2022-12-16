@@ -22,6 +22,10 @@ package chipmunk.compiler.ast;
 
 public class WhileNode extends GuardedNode {
 
+	public WhileNode(){
+		super(NodeType.WHILE);
+	}
+
 	@Override
 	public String getDebugName(){
 		return "while";

@@ -24,8 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import chipmunk.compiler.ast.BlockNode;
-import chipmunk.compiler.ast.SymbolNode;
+import chipmunk.compiler.ast.AstNode;
 
 public class SymbolTable {
 	
@@ -39,15 +38,20 @@ public class SymbolTable {
 	protected Scope scope;
 	protected int localStartIndex;
 	protected int maxChildLocalCount;
-	protected BlockNode node;
+	protected AstNode node;
 	
 	public SymbolTable(){
 		this(Scope.LOCAL);
 	}
-	
+
 	public SymbolTable(SymbolTable.Scope scope){
+		this(scope, null);
+	}
+
+	public SymbolTable(SymbolTable.Scope scope, AstNode node){
 		symbols = new ArrayList<>();
 		setScope(scope);
+		setNode(node);
 	}
 	
 	public void setSymbol(Symbol symbol){
@@ -131,11 +135,11 @@ public class SymbolTable {
 		}
 	}
 	
-	public BlockNode getNode(){
+	public AstNode getNode(){
 		return node;
 	}
 	
-	public void setNode(BlockNode node){
+	public void setNode(AstNode node){
 		this.node = node;
 	}
 	
@@ -253,8 +257,7 @@ public class SymbolTable {
 
 	public boolean isSharedMethodScope(){
 		SymbolTable table = getMethodTable();
-		SymbolNode node = (SymbolNode) table.getNode();
-		return node.getSymbol().isShared();
+		return table.getNode().getSymbol().isShared();
 	}
 
 	public SymbolTable getModuleScope(){

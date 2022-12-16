@@ -28,16 +28,16 @@ public class IdNode extends AstNode {
 	protected Token id;
 	
 	public IdNode(){
-		super();
+		super(NodeType.ID);
 	}
 	
 	public IdNode(Token id){
-		super();
+		super(NodeType.ID);
 		setID(id);
 	}
 
 	public IdNode(String id){
-		super();
+		super(NodeType.ID);
 		setID(new Token(id, TokenType.IDENTIFIER));
 	}
 	

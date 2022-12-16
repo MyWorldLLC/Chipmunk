@@ -32,10 +32,9 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 		
-		if(node instanceof SymbolNode){
-			SymbolNode symbolNode = (SymbolNode) node;
+		if(node.getSymbol() != null){
 			if(currentScope != null){
-				Symbol symbol = symbolNode.getSymbol();
+				Symbol symbol = node.getSymbol();
 				// only set non-empty symbols - otherwise superfluous local slots are created for
 				// anonymous methods/classes
 				if(!symbol.getName().equals("")) {
@@ -43,22 +42,21 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 				}
 			}
 
-			if(symbolNode instanceof ClassNode){
-				symbolNode.getSymbol().setType(SymbolType.CLASS);
-			}else if(symbolNode instanceof MethodNode){
-				symbolNode.getSymbol().setType(SymbolType.METHOD);
-			}else if(symbolNode instanceof VarDecNode){
-				symbolNode.getSymbol().setType(SymbolType.VAR);
+			if(node.getType() == NodeType.CLASS){
+				node.getSymbol().setType(SymbolType.CLASS);
+			}else if(node.getType() == NodeType.METHOD){
+				node.getSymbol().setType(SymbolType.METHOD);
+			}else if(node.getType() == NodeType.VAR_DEC){
+				node.getSymbol().setType(SymbolType.VAR);
 			}
 
 		}
 		
-		if(node instanceof BlockNode){
-			BlockNode block = (BlockNode) node;
-			SymbolTable blockTable = block.getSymbolTable();
+		if(node.getType().isBlock()){
+			SymbolTable blockTable = node.getSymbolTable();
 			blockTable.setParent(currentScope);
 			
-			if(node instanceof MethodNode){
+			if(node.getType() == NodeType.METHOD){
 				blockTable.setSymbol(new Symbol("self", true));
 			}
 
@@ -68,7 +66,7 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 
 		node.visitChildren(this);
 		
-		if(currentScope != null && node instanceof BlockNode){
+		if(currentScope != null && node.getType().isBlock()){
 			currentScope = currentScope.getParent();
 		}
 	}

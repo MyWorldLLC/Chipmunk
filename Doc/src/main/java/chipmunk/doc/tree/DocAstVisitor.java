@@ -102,7 +102,7 @@ public class DocAstVisitor implements AstVisitor {
             last = token;
         }
 
-        String lexicalName = ((SymbolNode) astNode).getSymbol().getName();
+        String lexicalName = astNode.getSymbol().getName();
 
         String comment = comments.stream()
                 .map(Token::text)

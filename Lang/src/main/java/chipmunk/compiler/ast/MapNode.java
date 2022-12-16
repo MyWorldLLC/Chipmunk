@@ -25,7 +25,7 @@ public class MapNode extends AstNode {
 	public static class KeyValueNode extends AstNode {
 
 		public KeyValueNode(AstNode key, AstNode value){
-			super();
+			super(NodeType.KEY_VALUE);
 			addChild(key);
 			addChild(value);
 		}
@@ -45,7 +45,7 @@ public class MapNode extends AstNode {
 	}
 
 	public MapNode(){
-		super();
+		super(NodeType.MAP);
 	}
 	
 	public void addMapping(AstNode key, AstNode value){

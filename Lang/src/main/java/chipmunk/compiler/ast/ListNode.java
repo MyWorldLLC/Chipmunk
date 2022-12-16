@@ -23,7 +23,7 @@ package chipmunk.compiler.ast;
 public class ListNode extends AstNode {
 	
 	public ListNode(){
-		super();
+		super(NodeType.LIST);
 	}
 	
 	public void addChild(AstNode child){

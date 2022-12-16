@@ -38,17 +38,6 @@ public class AstNode {
 	protected Symbol symbol;
 	protected SymbolTable symbols;
 
-	// TODO - remove this. It's a temporary workaround
-	// to allow compiling/testing while overhauling the AST/parser.
-	public AstNode(){
-		this(NodeType.MODULE);
-	}
-
-	// TODO - see above
-	public AstNode(AstNode... children){
-		this(null, null, children);
-	}
-
 	public AstNode(NodeType type){
 		this(type, null);
 	}
@@ -57,6 +46,10 @@ public class AstNode {
 		this.type = type;
 		this.token = token;
 		children = new ArrayList<>();
+		if(type.isBlock()){
+			symbols = new SymbolTable(type.getScope());
+			symbols.setNode(this);
+		}
 	}
 	
 	public AstNode(NodeType type, Token token, AstNode... children){

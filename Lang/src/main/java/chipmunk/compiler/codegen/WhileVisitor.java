@@ -23,7 +23,7 @@ package chipmunk.compiler.codegen;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.WhileNode;
+import chipmunk.compiler.ast.NodeType;
 
 public class WhileVisitor implements AstVisitor {
 
@@ -37,8 +37,7 @@ public class WhileVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof WhileNode){
-			WhileNode loop = (WhileNode) node;
+		if(node.getType() == NodeType.WHILE){
 			
 			LoopLabels labels = codegen.pushLoop();
 
@@ -48,14 +47,14 @@ public class WhileVisitor implements AstVisitor {
 			// Mark the start of the body
 			assembler.setLabelTarget(labels.getStartLabel());
 
-			codegen.enterScope(loop.getSymbolTable());
+			codegen.enterScope(node.getSymbolTable());
 			// Generate body
-			loop.visitChildren(codegen, 1);
+			node.visitChildren(codegen, 1);
 			codegen.exitScope();
 
 			// Mark and generate the guard
 			assembler.setLabelTarget(labels.getGuardLabel());
-			loop.getGuard().visit(new ExpressionVisitor(codegen));
+			node.getChild().visit(new ExpressionVisitor(codegen));
 			assembler.closeLine();
 			
 			// If guard evaluates false, jump to end

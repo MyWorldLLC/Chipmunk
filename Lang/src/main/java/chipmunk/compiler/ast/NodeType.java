@@ -20,36 +20,54 @@
 
 package chipmunk.compiler.ast;
 
+import chipmunk.compiler.symbols.SymbolTable;
+
 public enum NodeType {
-    MODULE(true),
-    IMPORT(false),
-    CLASS(true),
-    METHOD(true),
-    VAR_DEC(false),
-    ID(false),
-    IF_ELSE(true),
-    ITERATOR(false),
-    LIST(false),
-    LITERAL(false),
-    MAP(false),
-    MATCH(true),
-    CASE(true),
-    WHEN(true),
-    OPERATOR(false),
-    TRY(true),
-    CATCH(true),
-    FINALLY(true),
-    WHILE(true),
-    FOR(true);
+    MODULE(SymbolTable.Scope.MODULE),
+    IMPORT(),
+    CLASS(SymbolTable.Scope.CLASS),
+    METHOD(SymbolTable.Scope.METHOD),
+    VAR_DEC(),
+    ID(),
+    IF_ELSE(),
+    IF(SymbolTable.Scope.LOCAL),
+    ELSE(SymbolTable.Scope.LOCAL),
+    FLOW_CONTROL(),
+    KEY_VALUE(),
+    ITERATOR(),
+    LIST(),
+    LITERAL(),
+    MAP(),
+    MATCH(SymbolTable.Scope.LOCAL),
+    CASE(SymbolTable.Scope.LOCAL),
+    WHEN(SymbolTable.Scope.LOCAL),
+    OPERATOR(),
+    TRY_CATCH(),
+    TRY(SymbolTable.Scope.LOCAL),
+    CATCH(SymbolTable.Scope.LOCAL),
+    FINALLY(SymbolTable.Scope.LOCAL),
+    WHILE(SymbolTable.Scope.LOCAL),
+    FOR(SymbolTable.Scope.LOCAL);
 
-    private final boolean block;
+    private final SymbolTable.Scope scope;
 
-    NodeType(boolean block){
-        this.block = block;
+    NodeType(){
+        this(null);
+    }
+
+    NodeType(SymbolTable.Scope scope){
+        this.scope = scope;
     }
 
     public boolean isBlock(){
-        return block;
+        return scope != null;
     }
 
+    public SymbolTable.Scope getScope(){
+        return scope;
+    }
+
+    public String getDebugName(){
+        return name();
+    }
 }

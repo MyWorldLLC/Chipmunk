@@ -24,7 +24,7 @@ import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.lexer.Token;
 
-public class VarDecNode extends AstNode implements SymbolNode {
+public class VarDecNode extends AstNode {
 	
 	protected boolean hasVar;
 	protected boolean hasAssignExpr;
@@ -93,11 +93,6 @@ public class VarDecNode extends AstNode implements SymbolNode {
 	@Override
 	public String getDebugName(){
 		return "vardec";
-	}
-
-	@Override
-	public Symbol getSymbol() {
-		return symbol;
 	}
 
 }

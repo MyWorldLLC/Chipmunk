@@ -22,14 +22,13 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.symbols.Symbol;
 
-public class IteratorNode extends AstNode implements SymbolNode {
+public class IteratorNode extends AstNode {
 
     protected boolean hasIter;
     protected boolean hasID;
 
-    protected final Symbol symbol;
-
     public IteratorNode(){
+        super(NodeType.ITERATOR);
         hasIter = false;
         hasID = false;
 
@@ -103,8 +102,4 @@ public class IteratorNode extends AstNode implements SymbolNode {
         }
     }
 
-    @Override
-    public Symbol getSymbol(){
-        return symbol;
-    }
 }

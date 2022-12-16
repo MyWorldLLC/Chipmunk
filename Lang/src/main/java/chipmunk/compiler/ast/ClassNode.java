@@ -23,12 +23,10 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
-public class ClassNode extends BlockNode implements SymbolNode {
-	
-	protected Symbol symbol;
+public class ClassNode extends BlockNode {
 	
 	public ClassNode(){
-		super(SymbolTable.Scope.CLASS);
+		super(NodeType.CLASS, SymbolTable.Scope.CLASS);
 		symbol = new Symbol();
 	}
 	
@@ -55,8 +53,4 @@ public class ClassNode extends BlockNode implements SymbolNode {
 		return "class " + symbol.getName();
 	}
 
-	@Override
-	public Symbol getSymbol() {
-		return symbol;
-	}
 }

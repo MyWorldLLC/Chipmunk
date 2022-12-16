@@ -22,4 +22,7 @@ package chipmunk.compiler.ast;
 
 public class TryNode extends BlockNode {
 
+    public TryNode(){
+        super(NodeType.TRY);
+    }
 }

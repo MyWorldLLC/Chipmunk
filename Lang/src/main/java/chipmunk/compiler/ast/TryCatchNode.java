@@ -26,6 +26,7 @@ public class TryCatchNode extends AstNode {
 	protected boolean hasFinally;
 	
 	public TryCatchNode(){
+		super(NodeType.TRY_CATCH);
 		hasTry = false;
 		hasFinally = false;
 	}

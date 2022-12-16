@@ -27,11 +27,11 @@ public class FlowControlNode extends AstNode {
 	protected Token token;
 	
 	public FlowControlNode(){
-		super();
+		super(NodeType.FLOW_CONTROL);
 	}
 	
 	public FlowControlNode(Token controlToken){
-		super();
+		super(NodeType.FLOW_CONTROL);
 		setControlToken(controlToken);
 	}
 	

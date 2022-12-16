@@ -249,6 +249,9 @@ public class ChipmunkAssembler {
 	}
 	
 	public void setLocal(int localIndex){
+		if(localIndex == -1){
+			throw new IllegalArgumentException("Invalid local index " + localIndex);
+		}
 		writeByte(Opcodes.SETLOCAL);
 		writeByte(localIndex);
 	}

@@ -25,6 +25,7 @@ public class ForNode extends BlockNode {
 	protected boolean hasIterator;
 	
 	public ForNode(){
+		super(NodeType.FOR);
 		hasIterator = false;
 	}
 	

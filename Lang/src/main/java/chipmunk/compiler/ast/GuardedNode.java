@@ -24,13 +24,13 @@ public class GuardedNode extends BlockNode {
 	
 	protected boolean hasGuard;
 	
-	public GuardedNode(){
-		super();
+	public GuardedNode(NodeType type){
+		super(type);
 		hasGuard = false;
 	}
 	
-	public GuardedNode(AstNode guard, AstNode... children){
-		super(children);
+	public GuardedNode(NodeType type, AstNode guard, AstNode... children){
+		super(type);
 		hasGuard = false;
 		setGuard(guard);
 	}

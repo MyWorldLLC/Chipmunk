@@ -25,29 +25,27 @@ import chipmunk.compiler.symbols.SymbolTable;
 public class BlockNode extends AstNode {
 	
 	protected SymbolTable symTab;
-
-
 	
-	public BlockNode(){
-		super();
+	public BlockNode(NodeType type){
+		super(type);
 		symTab = new SymbolTable();
 		symTab.setNode(this);
 	}
 	
-	public BlockNode(SymbolTable.Scope scope){
-		super();
+	public BlockNode(NodeType type, SymbolTable.Scope scope){
+		super(type);
 		symTab = new SymbolTable(scope);
 		symTab.setNode(this);
 	}
 	
-	public BlockNode(AstNode... children){
-		super(children);
+	public BlockNode(NodeType type, AstNode... children){
+		super(type, null, children);
 		symTab = new SymbolTable();
 		symTab.setNode(this);
 	}
 	
-	public BlockNode(SymbolTable.Scope scope, AstNode... children){
-		super(children);
+	public BlockNode(NodeType type, SymbolTable.Scope scope, AstNode... children){
+		super(type, null, children);
 		symTab = new SymbolTable(scope);
 	}
 	

@@ -27,11 +27,11 @@ public class LiteralNode extends AstNode {
 	protected Token literal;
 	
 	public LiteralNode(){
-		super();
+		super(NodeType.LITERAL);
 	}
 	
 	public LiteralNode(Token literalValue){
-		super();
+		super(NodeType.LITERAL);
 		setLiteral(literalValue);
 	}
 	

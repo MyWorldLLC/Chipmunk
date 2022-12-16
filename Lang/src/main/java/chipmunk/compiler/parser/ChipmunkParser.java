@@ -482,7 +482,7 @@ public class ChipmunkParser {
 				tokens.skipNewlines();
 				// it's the else block
 				if(tokens.peek(TokenType.LBRACE)){
-					BlockNode elseBlock = new BlockNode();
+					BlockNode elseBlock = new BlockNode(NodeType.ELSE);
 					
 					parseBlockBody(elseBlock);
 					node.setElseBranch(elseBlock);
@@ -501,7 +501,7 @@ public class ChipmunkParser {
 	}
 	
 	public GuardedNode parseIfBranch(){
-		GuardedNode ifBranch = new GuardedNode();
+		GuardedNode ifBranch = new GuardedNode(NodeType.IF);
 
 		tokens.forceNext(TokenType.IF);
 		tokens.forceNext(TokenType.LPAREN);
@@ -517,14 +517,13 @@ public class ChipmunkParser {
 		return ifBranch;
 	}
 	
-	public WhileNode parseWhile(){
-		WhileNode node = new WhileNode();
+	public AstNode parseWhile(){
 
-		tokens.forceNext(TokenType.WHILE);
+		AstNode node = new AstNode(NodeType.WHILE, tokens.getNext(TokenType.WHILE));
 		tokens.forceNext(TokenType.LPAREN);
 
 		tokens.skipNewlines();
-		node.setGuard(parseExpression());
+		node.addChild(parseExpression());
 
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.RPAREN);
@@ -566,7 +565,7 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public void parseBlockBody(BlockNode node){
+	public void parseBlockBody(AstNode node){
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.LBRACE);
 		
@@ -575,7 +574,7 @@ public class ChipmunkParser {
 			if(tokens.peek(TokenType.RBRACE)){
 				break;
 			}
-			node.addToBody(parseStatement());
+			node.addChild(parseStatement());
 			tokens.skipNewlinesAndComments();
 			
 			if(tokens.peek(TokenType.EOF)){
