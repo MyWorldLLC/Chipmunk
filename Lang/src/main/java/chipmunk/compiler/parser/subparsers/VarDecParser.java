@@ -38,7 +38,14 @@ public class VarDecParser implements Parser<VarDecNode> {
     protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, VarDecNode> declaration;
     protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, AstNode> assignment;
 
+    protected final boolean acceptTraits;
+
     public VarDecParser(){
+        this(false);
+    }
+
+    public VarDecParser(boolean acceptTraits){
+        this.acceptTraits = acceptTraits;
         declaration = new PatternRecognizer<>(Token::type);
         assignment = new PatternRecognizer<>(Token::type);
         registerDeclaration();
@@ -47,8 +54,12 @@ public class VarDecParser implements Parser<VarDecNode> {
 
     protected void registerDeclaration(){
         var f = new PatternFactory<Token, TokenStream, TokenType, VarDecNode>();
-        declaration.define(f.when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(1), t.get(), true)));
-        declaration.define(f.when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(), t.get(), false)));
+        declaration.define(f.when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(1), t.get(), true, false)));
+        declaration.define(f.when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(), t.get(), false, false)));
+        if(acceptTraits){
+            declaration.define(f.when(FINAL, TRAIT, IDENTIFIER).then(t -> parseVarDec(t, t.get(1), t.get(), true, true)));
+            declaration.define(f.when(TRAIT, IDENTIFIER).then(t -> parseVarDec(t, t.get(), t.get(), false, true)));
+        }
     }
 
     protected void registerAssignment(){
@@ -59,10 +70,11 @@ public class VarDecParser implements Parser<VarDecNode> {
         }));
     }
 
-    protected VarDecNode parseVarDec(TokenStream t, Token dec, Token identifier, boolean isFinal) {
+    protected VarDecNode parseVarDec(TokenStream t, Token dec, Token identifier, boolean isFinal, boolean isTrait) {
         var node = new VarDecNode(dec);
         node.setVar(new IdNode(identifier));
         node.getSymbol().setFinal(isFinal);
+        node.getSymbol().setTrait(isTrait);
 
         var expr = assignment.matchAll(t);
         if(expr != null){

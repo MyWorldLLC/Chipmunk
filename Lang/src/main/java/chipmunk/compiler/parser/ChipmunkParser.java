@@ -388,30 +388,7 @@ public class ChipmunkParser {
 	}
 	
 	public VarDecNode parseVarOrTraitDec() {
-		
-		VarDecNode dec = new VarDecNode();
-
-		if(tokens.dropNext(TokenType.FINAL)){
-			dec.getSymbol().setFinal(true);
-		}
-		
-		if(tokens.peek(TokenType.TRAIT)) {
-			tokens.dropNext();
-			dec.getSymbol().setTrait(true);
-		}else {
-			tokens.forceNext(TokenType.VAR);
-		}
-		Token id = tokens.getNext(TokenType.IDENTIFIER);
-		IdNode idNode = new IdNode(id);
-		dec.setVar(idNode);
-		
-		
-		if(tokens.peek(TokenType.EQUALS)){
-			tokens.forceNext(TokenType.EQUALS);
-			dec.setAssignExpr(parseExpression());
-		}
-
-		return dec;
+		return new VarDecParser(true).parse(tokens);
 	}
 	
 	public VarDecNode parseVarDec(){
