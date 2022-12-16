@@ -99,4 +99,7 @@ public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> {
         return this;
     }
 
+    public PatternFactory<S, V, T, R> factory(){
+        return new PatternFactory<>();
+    }
 }
