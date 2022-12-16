@@ -49,8 +49,9 @@ public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> {
         this(s -> (E) s, matcher);
     }
 
-    public PatternRecognizer<S, V, E, T, R> ignore(T t){
-        ignore.add(t);
+    @SafeVarargs
+    public final PatternRecognizer<S, V, E, T, R> ignore(T... t){
+        ignore.addAll(Arrays.asList(t));
         return this;
     }
 

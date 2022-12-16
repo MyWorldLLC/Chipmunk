@@ -25,6 +25,8 @@ import chipmunk.compiler.symbols.SymbolTable;
 public class BlockNode extends AstNode {
 	
 	protected SymbolTable symTab;
+
+
 	
 	public BlockNode(){
 		super();
