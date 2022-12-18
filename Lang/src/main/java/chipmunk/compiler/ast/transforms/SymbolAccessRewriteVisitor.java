@@ -53,7 +53,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             scope = scope.getParent();
         }else if(node instanceof OperatorNode || node instanceof FlowControlNode
                 || node instanceof VarDecNode || node instanceof IteratorNode
-                || node instanceof ListNode || node instanceof MapNode || node instanceof MapNode.KeyValueNode){
+                || node instanceof ListNode || node.is(NodeType.MAP, NodeType.KEY_VALUE)){
             // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
             // that are non-local
 

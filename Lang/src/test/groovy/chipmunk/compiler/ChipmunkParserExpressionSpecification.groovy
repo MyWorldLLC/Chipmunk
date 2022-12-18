@@ -310,7 +310,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(map)"
+		ast.toString() == "(map {)"
 	}
 	
 	def "parse [a]"(){
@@ -349,7 +349,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(map (keyvalue (id a) (id b)))"
+		ast.toString() == "(map { (key_value : (id a) (id b)))"
 	}
 	
 	def "parse {a:b, b: c}"(){
@@ -362,7 +362,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(map (keyvalue (id a) (id b)) (keyvalue (id b) (id c)))"
+		ast.toString() == "(map { (key_value : (id a) (id b)) (key_value : (id b) (id c)))"
 	}
 
 }

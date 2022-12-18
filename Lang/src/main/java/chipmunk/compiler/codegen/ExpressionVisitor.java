@@ -43,9 +43,9 @@ public class ExpressionVisitor implements AstVisitor {
 	
 	public static boolean isExpressionNode(AstNode node) {
 		return node instanceof IdNode
-				|| node instanceof LiteralNode
+				|| node.is(NodeType.LITERAL)
 				|| node instanceof ListNode
-				|| node instanceof MapNode
+				|| node.is(NodeType.MAP)
 				|| node instanceof MethodNode
 				|| node instanceof ClassNode
 				|| node instanceof OperatorNode;
@@ -104,16 +104,15 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.pop();
 			}
 
-		}else if(node instanceof MapNode){
-			MapNode mapNode = (MapNode) node;
+		}else if(node.is(NodeType.MAP)){
 
 			assembler.onLine(node.getLineNumber());
-			assembler.map(mapNode.getChildren().size());
+			assembler.map(node.getChildren().size());
 
-			for(int i = 0; i < mapNode.getChildren().size(); i++){
+			for(int i = 0; i < node.getChildren().size(); i++){
 				assembler.dup();
 				// visit key & value expressions
-				AstNode keyValue = mapNode.getChildren().get(i);
+				AstNode keyValue = node.getChildren().get(i);
 				// key
 				this.visit(keyValue.getChildren().get(0));
 				// value

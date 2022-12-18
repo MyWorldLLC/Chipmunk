@@ -171,8 +171,9 @@ public class AstNode {
 		}
 	}
 
-	public boolean is(NodeType type){
-		return this.type == type;
+	public boolean is(NodeType... types)
+	{
+		return Arrays.asList(types).contains(type);
 	}
 
 	public <T> T requireType(NodeType type, Supplier<T> f){
@@ -190,7 +191,7 @@ public class AstNode {
 	}
 
 	public String getDebugName(){
-		return null;
+		return type.getDebugName().toLowerCase();
 	}
 	
 	@Override
@@ -201,6 +202,11 @@ public class AstNode {
 		String debugSymbol = getDebugName();
 		if(debugSymbol != null){
 			builder.append(debugSymbol);
+		}
+
+		if(token != null){
+			builder.append(' ');
+			builder.append(token.text());
 		}
 
 		if(!children.isEmpty()){

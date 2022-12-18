@@ -45,9 +45,4 @@ public class IdNode extends AstNode {
 		return token.text();
 	}
 
-	@Override
-	public String getDebugName(){
-		return "id " + token.text();
-	}
-
 }

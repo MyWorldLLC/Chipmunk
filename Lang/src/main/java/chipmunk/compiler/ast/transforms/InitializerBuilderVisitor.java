@@ -70,7 +70,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 vmDotNode.getChildren().add(new IdNode("getModule"));
 
                 getModuleCallNode.getChildren().add(vmDotNode);
-                getModuleCallNode.getChildren().add(new LiteralNode(new Token("\"" + im.getModule() + "\"", TokenType.STRINGLITERAL)));
+                getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + im.getModule() + "\"", TokenType.STRINGLITERAL)));
 
                 dec.setAssignExpr(getModuleCallNode);
                 moduleNode.getChildren().add(dec);
@@ -106,7 +106,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             // Rewrite empty assign expression to null assignment
             if(assignExpression == null){
-                assignExpression = new LiteralNode(new Token("null", TokenType.NULL));
+                assignExpression = new AstNode(NodeType.LITERAL, new Token("null", TokenType.NULL));
             }
 
             BlockNode owner = modulesAndClasses.peek();

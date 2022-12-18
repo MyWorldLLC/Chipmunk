@@ -20,11 +20,11 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.MapNode;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.parser.ExpressionParser;
 
@@ -32,7 +32,7 @@ public class MapParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		MapNode map = new MapNode();
+		AstNode map = new AstNode(NodeType.MAP, token);
 		
 		TokenStream tokens = parser.getTokens();
 		while(tokens.peek().type() != TokenType.RBRACE){
@@ -43,13 +43,13 @@ public class MapParselet implements PrefixParselet {
 
 			tokens.skipNewlinesAndComments();
 
-			tokens.forceNext(TokenType.COLON);
+			var colon = tokens.getNext(TokenType.COLON);
 
 			tokens.skipNewlinesAndComments();
 
 			AstNode value = parser.parseExpression();
 			
-			map.addMapping(key, value);
+			map.addChild(new AstNode(NodeType.KEY_VALUE, colon).withChild(key).withChild(value));
 
 			tokens.skipNewlinesAndComments();
 			

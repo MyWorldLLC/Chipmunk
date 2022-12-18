@@ -90,9 +90,4 @@ public class VarDecNode extends AstNode {
 		return hasVar ? getIDNode().getID().text() : null;
 	}
 
-	@Override
-	public String getDebugName(){
-		return "vardec";
-	}
-
 }

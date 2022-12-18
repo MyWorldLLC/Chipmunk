@@ -20,16 +20,16 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.LiteralNode;
 import chipmunk.compiler.parser.ExpressionParser;
 
 public class LiteralParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		return new LiteralNode(token);
+		return new AstNode(NodeType.LITERAL, token);
 	}
 
 }
