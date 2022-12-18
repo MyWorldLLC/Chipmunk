@@ -533,10 +533,9 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public ForNode parseFor(){
-		ForNode node = new ForNode();
+	public AstNode parseFor(){
+		AstNode node = new AstNode(NodeType.FOR, tokens.getNext(TokenType.FOR));
 
-		tokens.forceNext(TokenType.FOR);
 		tokens.forceNext(TokenType.LPAREN);
 
 		tokens.skipNewlines();
@@ -555,7 +554,7 @@ public class ChipmunkParser {
 		iter.setID(decl);
 		iter.setIter(expr);
 
-		node.setIterator(iter);
+		node.addChild(iter);
 
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.RPAREN);
@@ -586,34 +585,36 @@ public class ChipmunkParser {
 	}
 	
 	public AstNode parseTryCatch(){
-		TryCatchNode node = new TryCatchNode();
+		AstNode node = new AstNode(NodeType.TRY_CATCH);
 
-		tokens.forceNext(TokenType.TRY);
-		TryNode tryNode = new TryNode();
-
+		AstNode tryNode = new AstNode(NodeType.TRY, tokens.getNext(TokenType.TRY));
 		parseBlockBody(tryNode);
-		// add try block to body
-		node.setTryBlock(tryNode);
+
+		node.addChild(tryNode);
 		
 		// parse and add catch blocks
 		//while(true){
 			// TODO - support finally blocks and typed multi-catch
-		tokens.forceNext(TokenType.CATCH);
+		AstNode catchNode = new AstNode(NodeType.CATCH, tokens.getNext(TokenType.CATCH));
 		tokens.forceNext(TokenType.LPAREN);
 			
-		CatchNode catchNode = new CatchNode();
-			
 		// if catch block has type of exception, include in node
-		if(tokens.peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
-			catchNode.setExceptionType(tokens.getNext(TokenType.IDENTIFIER));
-		}
-			
-		catchNode.setExceptionName(tokens.getNext(TokenType.IDENTIFIER));
+		// TODO - this is wrong
+		//if(tokens.peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
+			//catchNode.addChild(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
+		//}
+
+		var id = tokens.getNext(TokenType.IDENTIFIER);
+		var idNode = new AstNode(NodeType.ID, id);
+		idNode.setSymbol(new Symbol(id.text()));
+
+		var dec = new AstNode(NodeType.VAR_DEC, id).withChild(idNode);
+		catchNode.addChild(dec);
 		tokens.forceNext(TokenType.RPAREN);
 			
 		parseBlockBody(catchNode);
 
-		node.addCatchBlock(catchNode);
+		node.addChild(catchNode);
 			
 			//if(!peek(Token.Type.CATCH)){
 			//	break;

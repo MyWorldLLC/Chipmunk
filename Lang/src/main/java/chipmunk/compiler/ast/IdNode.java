@@ -25,37 +25,29 @@ import chipmunk.compiler.lexer.TokenType;
 
 public class IdNode extends AstNode {
 	
-	protected Token id;
-	
 	public IdNode(){
 		super(NodeType.ID);
 	}
 	
 	public IdNode(Token id){
-		super(NodeType.ID);
-		setID(id);
+		super(NodeType.ID, id);
 	}
 
 	public IdNode(String id){
-		super(NodeType.ID);
-		setID(new Token(id, TokenType.IDENTIFIER));
+		super(NodeType.ID, new Token(id, TokenType.IDENTIFIER));
 	}
 	
 	public Token getID(){
-		return id;
+		return token;
 	}
 
 	public String getName(){
-		return id.text();
-	}
-	
-	public void setID(Token id){
-		this.id = id;
+		return token.text();
 	}
 
 	@Override
 	public String getDebugName(){
-		return "id " + id.text();
+		return "id " + token.text();
 	}
 
 }

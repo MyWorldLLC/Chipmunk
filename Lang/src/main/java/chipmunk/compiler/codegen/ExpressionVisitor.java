@@ -23,15 +23,7 @@ package chipmunk.compiler.codegen;
 import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.*;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.IdNode;
-import chipmunk.compiler.ast.ListNode;
-import chipmunk.compiler.ast.LiteralNode;
-import chipmunk.compiler.ast.MapNode;
-import chipmunk.compiler.ast.MethodNode;
-import chipmunk.compiler.ast.OperatorNode;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
@@ -62,35 +54,33 @@ public class ExpressionVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 
-		if(node instanceof IdNode){
-			IdNode id = (IdNode) node;
+		if(node.is(NodeType.ID)){
 			assembler.onLine(node.getLineNumber());
-			codegen.emitLocalAccess(id.getID().text());
-		}else if(node instanceof LiteralNode){
-			Token literal = ((LiteralNode) node).getLiteral();
+			codegen.emitLocalAccess(node.getToken().text());
+		}else if(node.is(NodeType.LITERAL)){
 			assembler.onLine(node.getLineNumber());
-			switch (literal.type()) {
+			switch (node.getToken().type()) {
 				case BOOLLITERAL:
-					assembler.push(Boolean.parseBoolean(literal.text()));
+					assembler.push(Boolean.parseBoolean(node.getToken().text()));
 					return;
 				case INTLITERAL:
-					assembler.push(Integer.parseInt(literal.text().replace("_", ""), 10));
+					assembler.push(Integer.parseInt(node.getToken().text().replace("_", ""), 10));
 					return;
 				case HEXLITERAL:
-					assembler.push(Integer.parseInt(literal.text().replace("_", "").substring(2), 16));
+					assembler.push(Integer.parseInt(node.getToken().text().replace("_", "").substring(2), 16));
 					return;
 				case OCTLITERAL:
-					assembler.push(Integer.parseInt(literal.text().replace("_", "").substring(2), 8));
+					assembler.push(Integer.parseInt(node.getToken().text().replace("_", "").substring(2), 8));
 					return;
 				case BINARYLITERAL:
-					assembler.push(Integer.parseInt(literal.text().replace("_", "").substring(2), 2));
+					assembler.push(Integer.parseInt(node.getToken().text().replace("_", "").substring(2), 2));
 					return;
 				case FLOATLITERAL:
-					assembler.push(Float.parseFloat(literal.text()));
+					assembler.push(Float.parseFloat(node.getToken().text()));
 					return;
 				case STRINGLITERAL:
 					// strip quotes
-					String value = literal.text().substring(1, literal.text().length() - 1);
+					String value = node.getToken().text().substring(1, node.getToken().text().length() - 1);
 					assembler.push(ChipmunkLexer.unescapeString(value));
 					return;
 				case NULL:

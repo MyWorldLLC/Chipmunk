@@ -25,6 +25,10 @@ public record Token(String text, TokenType type, int index, int line, int column
 	public Token(String token, TokenType tokenType){
 		this(token, tokenType, -1, -1, -1);
 	}
+
+	public boolean isSynthetic(){
+		return index == -1;
+	}
 	
 	@Override
 	public String toString(){

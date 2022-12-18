@@ -21,12 +21,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.binary.ExceptionBlock;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.CatchNode;
-import chipmunk.compiler.ast.FinallyNode;
-import chipmunk.compiler.ast.TryCatchNode;
-import chipmunk.compiler.ast.TryNode;
+import chipmunk.compiler.ast.*;
 
 public class TryCatchVisitor implements AstVisitor {
 
@@ -38,7 +33,7 @@ public class TryCatchVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof TryCatchNode) {
+		if(node.getType() == NodeType.TRY_CATCH) {
 			TryCatchLabels labels = codegen.pushTryCatch();
 			
 			node.visitChildren(this);
@@ -52,17 +47,16 @@ public class TryCatchVisitor implements AstVisitor {
 			
 			codegen.addExceptionBlock(block);
 			codegen.exitTryCatch();
-		}else if(node instanceof TryNode) {
+		}else if(node.getType() == NodeType.TRY) {
 			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getStartLabel());
 		
 			// Assemble try body
-			codegen.enterScope(((TryNode)node).getSymbolTable());
+			codegen.enterScope(node.getSymbolTable());
 			node.visitChildren(codegen);
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getEndLabel());
-		}else if(node instanceof CatchNode) {
-			CatchNode catchNode = (CatchNode) node;
+		}else if(node.getType() == NodeType.CATCH) {
 			
 			CatchBlock catchLabels = new CatchBlock(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
 			codegen.peekClosestTryCatch().getCatchBlocks().add(catchLabels);
@@ -70,24 +64,24 @@ public class TryCatchVisitor implements AstVisitor {
 			codegen.getAssembler().setLabelTarget(catchLabels.getStartLabel());
 			
 			// Assemble catch body
-			codegen.enterScope(catchNode.getSymbolTable());
+			codegen.enterScope(node.getSymbolTable());
 
 			// Get exception off top of stack & store to the exception local
-			catchLabels.exceptionLocalIndex = catchNode.getSymbolTable().getLocalIndex(catchNode.getExceptionName().getSymbol());
+			catchLabels.exceptionLocalIndex = node.getSymbolTable().getLocalIndex(node.getChild().getSymbol());
 			//codegen.getAssembler().setLocal(catchLabels.exceptionLocalIndex);
 			
 			node.visitChildren(codegen);
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(catchLabels.getEndLabel());
-		}else if(node instanceof FinallyNode) {
+		}else if(node.getType() == NodeType.FINALLY) {
 			BlockLabels finallyLabels = new BlockLabels(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
 			codegen.peekClosestTryCatch().getCatchBlocks().add(finallyLabels);
 			
 			codegen.getAssembler().setLabelTarget(finallyLabels.getStartLabel());
 			
 			// Assemble finally body
-			codegen.enterScope(((FinallyNode)node).getSymbolTable());
+			codegen.enterScope((node).getSymbolTable());
 			node.visitChildren(codegen);
 			codegen.exitScope();
 			

@@ -27,6 +27,7 @@ import chipmunk.compiler.symbols.SymbolTable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class AstNode {
@@ -59,6 +60,10 @@ public class AstNode {
 
 	public NodeType getType(){
 		return type;
+	}
+
+	public Token getToken(){
+		return token;
 	}
 
 	public Symbol getSymbol(){
@@ -111,6 +116,11 @@ public class AstNode {
 		children.add(child);
 		child.setParent(this);
 	}
+
+	public AstNode withChild(AstNode child){
+		addChild(child);
+		return this;
+	}
 	
 	protected void addChildren(AstNode... children){
 		for(AstNode child : children){
@@ -159,6 +169,24 @@ public class AstNode {
 		for(int i = startAt; i < children.size(); i++){
 			visitor.visit(children.get(i));
 		}
+	}
+
+	public boolean is(NodeType type){
+		return this.type == type;
+	}
+
+	public <T> T requireType(NodeType type, Supplier<T> f){
+		if(is(type)){
+			return f.get();
+		}
+		throw new IllegalArgumentException("Required node type %s, got %s".formatted(type, getType()));
+	}
+
+	public void requireType(NodeType type, Runnable r){
+		requireType(type, () -> {
+			r.run();
+			return null;
+		});
 	}
 
 	public String getDebugName(){

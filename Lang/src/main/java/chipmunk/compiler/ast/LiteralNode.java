@@ -23,29 +23,22 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.lexer.Token;
 
 public class LiteralNode extends AstNode {
-
-	protected Token literal;
 	
 	public LiteralNode(){
 		super(NodeType.LITERAL);
 	}
 	
 	public LiteralNode(Token literalValue){
-		super(NodeType.LITERAL);
-		setLiteral(literalValue);
+		super(NodeType.LITERAL, literalValue);
 	}
 	
 	public Token getLiteral(){
-		return literal;
-	}
-	
-	public void setLiteral(Token literalValue){
-		literal = literalValue;
+		return token;
 	}
 
 	@Override
 	public String getDebugName(){
-		return "literal " + literal.text();
+		return "literal " + token.text();
 	}
 
 }

@@ -36,18 +36,17 @@ public class VarDecVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		VarDecNode dec = (VarDecNode) node;
 		
 		ChipmunkAssembler assembler = codegen.getAssembler();
-		Symbol symbol = codegen.getActiveSymbols().getSymbol(dec.getVarName());
+		Symbol symbol = codegen.getActiveSymbols().getSymbol(node.getChild().getToken().text());
 		
-		if(dec.getAssignExpr() != null){
-			dec.getAssignExpr().visit(new ExpressionVisitor(codegen));
+		if(node.getChildren().size() > 1){
+			node.getChildren().get(1).visit(new ExpressionVisitor(codegen));
 		}else{
 			assembler.pushNull();
 		}
 		if(symbol == null) {
-			throw new NullPointerException("Null symbol: " + dec.getVarName() + "\n" + codegen.getActiveSymbols().toString());
+			throw new NullPointerException("Null symbol: " + node.getChild().getToken().text() + "\n" + codegen.getActiveSymbols().toString());
 		}
 		codegen.emitLocalAssignment(symbol.getName());
 		codegen.getAssembler().pop();
