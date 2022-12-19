@@ -63,7 +63,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(+ (literal 1) (literal 2))"
+		ast.toString() == "(operator + (literal 1) (literal 2))"
 	}
 	
 	def "parse 1 + 2 * 3"(){
@@ -76,7 +76,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(+ (literal 1) (* (literal 2) (literal 3)))"
+		ast.toString() == "(operator + (literal 1) (operator * (literal 2) (literal 3)))"
 	}
 	
 	def "parse 1 * 2 + 3"(){
@@ -89,7 +89,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(+ (* (literal 1) (literal 2)) (literal 3))"
+		ast.toString() == "(operator + (operator * (literal 1) (literal 2)) (literal 3))"
 	}
 	
 	def "parse (1 + 2) * 3"(){
@@ -102,7 +102,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(* (+ (literal 1) (literal 2)) (literal 3))"
+		ast.toString() == "(operator * (operator + (literal 1) (literal 2)) (literal 3))"
 	}
 	
 	def "parse 1 ** 2 ** 3"(){
@@ -115,7 +115,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(** (literal 1) (** (literal 2) (literal 3)))"
+		ast.toString() == "(operator ** (literal 1) (operator ** (literal 2) (literal 3)))"
 	}
 	
 	def "parse (1 ** 2) ** 3"(){
@@ -128,7 +128,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(** (** (literal 1) (literal 2)) (literal 3))"
+		ast.toString() == "(operator ** (operator ** (literal 1) (literal 2)) (literal 3))"
 	}
 	
 	def "parse foo(true)"(){
@@ -141,7 +141,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(( (id foo) (literal true))"
+		ast.toString() == "(operator ( (id foo) (literal true))"
 	}
 	
 	def "parse foo(true, false)"(){
@@ -154,7 +154,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(( (id foo) (literal true) (literal false))"
+		ast.toString() == "(operator ( (id foo) (literal true) (literal false))"
 	}
 	
 	def "parse 1 + foo(true, false)"(){
@@ -167,7 +167,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(+ (literal 1) (( (id foo) (literal true) (literal false)))"
+		ast.toString() == "(operator + (literal 1) (operator ( (id foo) (literal true) (literal false)))"
 	}
 	
 	def "parse foo.bar[0]"(){
@@ -180,7 +180,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "([ (. (id foo) (id bar)) (literal 0))"
+		ast.toString() == "(operator [ (operator . (id foo) (id bar)) (literal 0))"
 	}
 	
 	def "parse foo.bar[0] = 5"(){
@@ -193,7 +193,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(= ([ (. (id foo) (id bar)) (literal 0)) (literal 5))"
+		ast.toString() == "(operator = (operator [ (operator . (id foo) (id bar)) (literal 0)) (literal 5))"
 	}
 	
 	def "parse a = b = 5"(){
@@ -206,7 +206,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(= (id a) (= (id b) (literal 5)))"
+		ast.toString() == "(operator = (id a) (operator = (id b) (literal 5)))"
 	}
 	
 	def "parse a = 2**3"(){
@@ -219,7 +219,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(= (id a) (** (literal 2) (literal 3)))"
+		ast.toString() == "(operator = (id a) (operator ** (literal 2) (literal 3)))"
 	}
 	
 	def "parse a++"(){
@@ -232,7 +232,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(++ (id a))"
+		ast.toString() == "(operator ++ (id a))"
 	}
 	
 	def "parse ++a"(){
@@ -245,7 +245,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(++ (id a))"
+		ast.toString() == "(operator ++ (id a))"
 	}
 	
 	def "parse ++!a"(){
@@ -258,7 +258,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(++ (! (id a)))"
+		ast.toString() == "(operator ++ (operator ! (id a)))"
 	}
 	
 	def "parse ++!a--"(){
@@ -271,7 +271,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(++ (! (-- (id a))))"
+		ast.toString() == "(operator ++ (operator ! (operator -- (id a))))"
 	}
 	
 	def "parse !foo.bar()"(){
@@ -284,7 +284,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(! (( (. (id foo) (id bar))))"
+		ast.toString() == "(operator ! (operator ( (operator . (id foo) (id bar))))"
 	}
 	
 	def "parse []"(){
@@ -297,7 +297,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(list)"
+		ast.toString() == "(list [)"
 	}
 	
 	def "parse {}"(){
@@ -323,7 +323,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(list (id a))"
+		ast.toString() == "(list [ (id a))"
 	}
 	
 	def "parse [a, b, c]"(){
@@ -336,7 +336,7 @@ class ChipmunkParserExpressionSpecification extends Specification {
 		AstNode ast = parser.parseExpression()
 		
 		then:
-		ast.toString() == "(list (id a) (id b) (id c))"
+		ast.toString() == "(list [ (id a) (id b) (id c))"
 	}
 	
 	def "parse {a:b}"(){

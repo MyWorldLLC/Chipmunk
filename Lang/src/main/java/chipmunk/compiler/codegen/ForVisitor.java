@@ -41,12 +41,12 @@ public class ForVisitor implements AstVisitor {
 			SymbolTable symbols = node.getSymbolTable();
 			LoopLabels labels = codegen.pushLoop();
 
-			IteratorNode iter = (IteratorNode) node.getChild();
+			AstNode iter = node.getChild();
 
 			codegen.enterScope(symbols);
 			
 			// Visit iterator expression and push the iterator
-			iter.getIter().visit(new ExpressionVisitor(codegen));
+			iter.getRight().visit(new ExpressionVisitor(codegen));
 			assembler.iter();
 			assembler.setLocal(symbols.getLocalIndex(iter.getSymbol()));
 
@@ -60,7 +60,7 @@ public class ForVisitor implements AstVisitor {
 			codegen.exitScope();
 
 			// Generate the guard - the "next" bytecode operates as the guard
-			VarDecNode id = iter.getID();
+			VarDecNode id = (VarDecNode) iter.getLeft();
 			id.getSymbol().setFinal(true);
 			assembler.onLine(id.getLineNumber());
 			assembler.setLabelTarget(labels.getGuardLabel());

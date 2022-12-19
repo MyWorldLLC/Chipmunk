@@ -20,12 +20,12 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.OperatorPrecedence;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.parser.ExpressionParser;
 
 public class CallOperatorParselet implements InfixParselet {
@@ -33,12 +33,12 @@ public class CallOperatorParselet implements InfixParselet {
 	@Override
 	public AstNode parse(ExpressionParser parser, AstNode left, Token token) {
 		
-		OperatorNode node = new OperatorNode(token, left);
+		AstNode node = new AstNode(NodeType.OPERATOR, token, left);
 
 		TokenStream tokens = parser.getTokens();
 		while(tokens.peek().type() != TokenType.RPAREN){
 			AstNode arg = parser.parseExpression();
-			node.addOperand(arg);
+			node.addChild(arg);
 			
 			if(tokens.peek(TokenType.COMMA)){
 				tokens.dropNext();

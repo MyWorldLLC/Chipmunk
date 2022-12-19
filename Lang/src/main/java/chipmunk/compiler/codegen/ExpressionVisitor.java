@@ -43,12 +43,9 @@ public class ExpressionVisitor implements AstVisitor {
 	
 	public static boolean isExpressionNode(AstNode node) {
 		return node instanceof IdNode
-				|| node.is(NodeType.LITERAL)
-				|| node instanceof ListNode
-				|| node.is(NodeType.MAP)
+				|| node.is(NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR)
 				|| node instanceof MethodNode
-				|| node instanceof ClassNode
-				|| node instanceof OperatorNode;
+				|| node instanceof ClassNode;
 	}
 
 	@Override
@@ -90,16 +87,15 @@ public class ExpressionVisitor implements AstVisitor {
 				default:
 					return;
 			}
-		}else if(node instanceof ListNode){
-			ListNode listNode = (ListNode) node;
+		}else if(node.is(NodeType.LIST)){
 
 			assembler.onLine(node.getLineNumber());
-			assembler.list(listNode.getChildren().size());
+			assembler.list(node.getChildren().size());
 
-			for(int i = 0; i < listNode.getChildren().size(); i++){
+			for(int i = 0; i < node.getChildren().size(); i++){
 				// visit expression
 				assembler.dup();
-				this.visit(listNode.getChildren().get(i));
+				this.visit(node.getChildren().get(i));
 				assembler.callAt("add", (byte)1);
 				assembler.pop();
 			}
@@ -137,17 +133,16 @@ public class ExpressionVisitor implements AstVisitor {
 			visitor.visit(node);
 			assembler.push(visitor.getCClass());
 		}*/
-		else if(node instanceof OperatorNode){
+		else if(node.is(NodeType.OPERATOR)){
+
+			Token operator = node.getToken();
 			
-			OperatorNode op = (OperatorNode) node;
-			Token operator = op.getOperator();
-			
-			AstNode lhs = op.getLeft();
-			AstNode rhs = op.getRight();
+			AstNode lhs = node.getLeft();
+			AstNode rhs = node.getRight();
 
 			switch (operator.type()) {
 			case PLUS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.pos();
@@ -156,12 +151,12 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 			}
 			case DOUBLEPLUS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.inc();
 			}
 			case MINUS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				if (rhs == null) {
 					assembler.neg();
@@ -170,51 +165,51 @@ public class ExpressionVisitor implements AstVisitor {
 				}
 			}
 			case DOUBLEMINUS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.dec();
 			}
 			case STAR -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mul();
 			}
 			case DOUBLESTAR -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.pow();
 			}
 			case FSLASH -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.div();
 			}
 			case DOUBLEFSLASH -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.fdiv();
 			}
 			case PERCENT -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.mod();
 			}
 			case DOUBLEDOTLESS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(false);
 			}
 			case DOUBLEDOT -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.range(true);
 			}
 			case BAR -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bor();
 			}
 			case DOUBLEBAR -> {
-				emitLogicalOr(op);
+				emitLogicalOr(node);
 			}
 			case DOUBLECOLON -> {
 				lhs.visit(this);
@@ -222,105 +217,105 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.onLine(node.getLineNumber());
 					assembler.bind(idNode.getName());
 				}else{
-					throw new SyntaxError("Binding operator requires a compile-time static method name");
+					throw new SyntaxError("Binding nodeerator requires a compile-time static method name");
 				}
 
 			}
 			case EXCLAMATION -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.not();
 			}
 			case TILDE -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bneg();
 			}
 			case CARET -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.bxor();
 			}
 			case DOUBLELESSTHAN -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lshift();
 			}
 			case LESSTHAN -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.lt();
 			}
 			case TRIPLEMORETHAN -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.urshift();
 			}
 			case DOUBLEMORETHAN -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.rshift();
 			}
 			case MORETHAN -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.gt();
 			}
 			case DOUBLEAMPERSAND -> {
-				emitLogicalAnd(op);
+				emitLogicalAnd(node);
 			}
 			case AMPERSAND -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.band();
 			}
 			case LBRACKET -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.getat();
 			}
 			case LPAREN -> {
-				emitCall(op);
+				emitCall(node);
 			}
 			case DOT -> {
-				emitDotGet(op);
+				emitDotGet(node);
 			}
 			case EQUALS -> {
-				emitAssignment(op);
+				emitAssignment(node);
 			}
 			case DOUBLEEQUAlS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 			}
 			case EXCLAMATIONEQUALS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.eq();
 				assembler.not();
 			}
 			case IS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.is();
 			}
 			case LESSEQUALS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.le();
 			}
 			case MOREEQUALS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.ge();
 			}
 			case INSTANCEOF -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler._instanceof();
 			}
 			case AS -> {
-				op.visitChildren(this);
+				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.as();
 			}
@@ -335,31 +330,30 @@ public class ExpressionVisitor implements AstVisitor {
 
 	}
 	
-	private void emitAssignment(OperatorNode op){
+	private void emitAssignment(AstNode op){
 		AstNode lhs = op.getLeft();
-		if(lhs instanceof OperatorNode){
-			OperatorNode lOp = (OperatorNode) lhs;
-			if(lOp.getOperator().type() == TokenType.DOT){
+		if(lhs.is(NodeType.OPERATOR)){
+			if(lhs.getToken().type() == TokenType.DOT){
 				assembler.onLine(lhs.getLineNumber());
-				lOp.getLeft().visit(this);
-				String attr = ((IdNode) lOp.getRight()).getID().text();
+				lhs.getLeft().visit(this);
+				String attr = ((IdNode) lhs.getRight()).getID().text();
 
 				assembler.onLine(op.getRight().getLineNumber());
 				op.getRight().visit(this);
 
 				assembler.onLine(lhs.getLineNumber());
 				assembler.setattr(attr);
-			}else if(lOp.getOperator().type() == TokenType.LBRACKET){
-				lOp.getLeft().visit(this);
-				lOp.getRight().visit(this);
+			}else if(lhs.getToken().type() == TokenType.LBRACKET){
+				lhs.getLeft().visit(this);
+				lhs.getRight().visit(this);
 				op.getRight().visit(this);
-				assembler.onLine(lOp.getLineNumber());
+				assembler.onLine(lhs.getLineNumber());
 				assembler.setat();
 			}else{
 				// error!
 				throw new CompileChipmunk(String.format("Invalid assignment at %d. The left hand side of an assignment"
-						+ "must be either an attribute, index, or a local variable.", 
-						  lOp.getOperator().line()));
+						+ "must be either an attribute, index, or a local variable.",
+						lhs.getToken().line()));
 			}
 		}else if(lhs instanceof IdNode){
 			assembler.onLine(lhs.getLineNumber());
@@ -368,12 +362,12 @@ public class ExpressionVisitor implements AstVisitor {
 		}
 	}
 	
-	private void emitCall(OperatorNode op){
-		if(op.getLeft() instanceof OperatorNode 
-				&& ((OperatorNode) op.getLeft()).getOperator().type() == TokenType.DOT
-				&& ((OperatorNode)op.getLeft()).getRight() instanceof IdNode){
+	private void emitCall(AstNode op){
+		if(op.getLeft().is(NodeType.OPERATOR)
+				&& op.getLeft().getToken().type() == TokenType.DOT
+				&& op.getLeft().getRight() instanceof IdNode){
 			
-			OperatorNode dotOp = (OperatorNode) op.getLeft();
+			AstNode dotOp = op.getLeft();
 			// this is a dot access, so issue a callAt opcode
 			IdNode callID = (IdNode) dotOp.getRight();
 
@@ -392,7 +386,7 @@ public class ExpressionVisitor implements AstVisitor {
 		}
 	}
 	
-	private void emitDotGet(OperatorNode op){
+	private void emitDotGet(AstNode op){
 
 		assembler.onLine(op.getLeft().getLineNumber());
 		op.getLeft().visit(this);
@@ -402,7 +396,7 @@ public class ExpressionVisitor implements AstVisitor {
 		assembler.getattr(attr);
 	}
 
-	private void emitLogicalOr(OperatorNode op){
+	private void emitLogicalOr(AstNode op){
 		// l | r | v
 		// T | T | T
 		// T | F | T
@@ -430,7 +424,7 @@ public class ExpressionVisitor implements AstVisitor {
 		assembler.setLabelTarget(end);
 	}
 
-	private void emitLogicalAnd(OperatorNode op){
+	private void emitLogicalAnd(AstNode op){
 		// l | r | v
 		// T | T | T
 		// T | F | F

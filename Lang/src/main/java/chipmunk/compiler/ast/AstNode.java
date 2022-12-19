@@ -90,7 +90,7 @@ public class AstNode {
 	}
 
 	public AstNode getRight(){
-		if(hasChildren()){
+		if(hasChildren() && !isUnary()){
 			return children.get(children.size() - 1);
 		}
 		return null;

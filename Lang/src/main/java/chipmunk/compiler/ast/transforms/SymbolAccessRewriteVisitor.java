@@ -51,9 +51,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             scope = node.getSymbolTable();
             node.visitChildren(this);
             scope = scope.getParent();
-        }else if(node instanceof OperatorNode || node instanceof FlowControlNode
-                || node instanceof VarDecNode || node instanceof IteratorNode
-                || node instanceof ListNode || node.is(NodeType.MAP, NodeType.KEY_VALUE)){
+        }else if(node instanceof FlowControlNode
+                || node instanceof VarDecNode || node.is(NodeType.OPERATOR, NodeType.ITERATOR, NodeType.LIST, NodeType.MAP, NodeType.KEY_VALUE)){
             // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
             // that are non-local
 
@@ -77,9 +76,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
     }
 
     protected boolean isQualified(AstNode parent, AstNode child){
-        if(parent instanceof OperatorNode){
-            OperatorNode opNode = (OperatorNode) parent;
-            return opNode.getOperator().text().equals(".") && opNode.getRight() == child;
+        if(parent.is(NodeType.OPERATOR)){
+            return parent.getToken().text().equals(".") && parent.getRight() == child;
         }
         return false;
     }
@@ -113,9 +111,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol
-            OperatorNode getModuleCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
-            OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
-            OperatorNode varDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+            AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
+            AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
+            AstNode varDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
             IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
 
@@ -130,7 +128,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             if (symbol.isImported()) {
                 // If this symbol is imported, we have to rewrite access to
                 // self.getModule().$module_field_name.symbol
-                OperatorNode importDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+                AstNode importDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
                 final String moduleFieldName = ChipmunkCompiler.importedModuleName(symbol.getImport().getModule());
                 IdNode importedModuleName = new IdNode(new Token(moduleFieldName, TokenType.IDENTIFIER, index, line, column));
@@ -157,9 +155,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 // Symbol is a shared field AND we are not accessing it from a shared method
                 // Rewrite to self.getChipmunkClass().symbol
 
-                OperatorNode getClassCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
-                OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
-                OperatorNode varDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+                AstNode getClassCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
+                AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
+                AstNode varDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
                 IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
 
@@ -178,7 +176,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 // Symbol is an instance field
                 // Rewrite to self.symbol
 
-                OperatorNode selfDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+                AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
                 IdNode self = new IdNode(new Token("self", TokenType.IDENTIFIER, index, line, column));
                 selfDotNode.getChildren().add(self);
@@ -192,8 +190,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
     }
 
     protected boolean isMethodBindTarget(AstNode node, int index){
-        if(index == 1 && node instanceof OperatorNode op){
-            if(op.getOperator().type().equals(TokenType.DOUBLECOLON)){
+        if(index == 1 && node.is(NodeType.OPERATOR)){
+            if(node.getToken().type().equals(TokenType.DOUBLECOLON)){
                 return true;
             }
         }

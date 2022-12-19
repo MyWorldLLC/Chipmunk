@@ -330,7 +330,7 @@ public class ChipmunkParser {
 		}else if(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword()){
 			// Call "chipmunk.lang.unimplementedMethod()"
 			// TODO - this should move to the code generator
-			AstNode unimplemented = new OperatorNode(new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
+			AstNode unimplemented = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
 					new IdNode(new Token("unimplementedMethod", TokenType.IDENTIFIER)));
 			node.addToBody(unimplemented);
 		}else{
@@ -541,20 +541,19 @@ public class ChipmunkParser {
 		tokens.skipNewlines();
 		tokens.dropNext(TokenType.VAR);
 
-		IteratorNode iter = new IteratorNode();
-		
 		IdNode varID = new IdNode(tokens.getNext(TokenType.IDENTIFIER));
 
-		tokens.forceNext(TokenType.IN);
+		AstNode iter = new AstNode(NodeType.ITERATOR, tokens.getNext(TokenType.IN));
 		
 		AstNode expr = parseExpression();
 		
 		VarDecNode decl = new VarDecNode(varID);
 
-		iter.setID(decl);
-		iter.setIter(expr);
+		iter.addChild(decl);
+		iter.addChild(expr);
 
 		node.addChild(iter);
+		iter.setSymbol(new Symbol(varID + "$it"));
 
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.RPAREN);

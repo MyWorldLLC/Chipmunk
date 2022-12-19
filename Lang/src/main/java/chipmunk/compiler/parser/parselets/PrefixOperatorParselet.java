@@ -21,16 +21,16 @@
 package chipmunk.compiler.parser.parselets;
 
 import chipmunk.compiler.OperatorPrecedence;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.OperatorNode;
 import chipmunk.compiler.parser.ExpressionParser;
 
 public class PrefixOperatorParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		return new OperatorNode(token, parser.parseExpression(OperatorPrecedence.PRE_OP));
+		return new AstNode(NodeType.OPERATOR, token, parser.parseExpression(OperatorPrecedence.PRE_OP));
 	}
 
 }

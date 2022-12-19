@@ -20,11 +20,11 @@
 
 package chipmunk.compiler.parser.parselets;
 
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.ListNode;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.parser.ExpressionParser;
 
@@ -32,7 +32,7 @@ public class ListParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		ListNode list = new ListNode();
+		AstNode list = new AstNode(NodeType.LIST, token);
 		
 		TokenStream tokens = parser.getTokens();
 		while(!tokens.peek(TokenType.RBRACKET)){

@@ -56,6 +56,6 @@ class ChipmunkParserModuleSpecification extends Specification {
 		ModuleNode node = parser.parseModule();
 		
 		then:
-		node.toString() == "(module foobar (var_dec var (id asdf)) (var_dec var (id asdf2) (+ (literal 1) (literal 2))))"
+		node.toString() == "(module foobar (var_dec var (id asdf)) (var_dec var (id asdf2) (operator + (literal 1) (literal 2))))"
 	}
 }

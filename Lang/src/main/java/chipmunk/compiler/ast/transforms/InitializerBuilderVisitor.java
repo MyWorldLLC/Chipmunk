@@ -64,8 +64,8 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(im.getModule()));
 
-                OperatorNode getModuleCallNode = new OperatorNode(new Token("(", TokenType.LPAREN, index, line, column));
-                OperatorNode vmDotNode = new OperatorNode(new Token(".", TokenType.DOT, index, line, column));
+                AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
+                AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
                 vmDotNode.getChildren().add(new IdNode("vm"));
                 vmDotNode.getChildren().add(new IdNode("getModule"));
 
@@ -113,7 +113,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             IdNode id = new IdNode(varDec.getIDNode().getID());
 
-            OperatorNode assignStatement = new OperatorNode(new Token("=", TokenType.EQUALS));
+            AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
             assignStatement.getChildren().add(id);
             assignStatement.getChildren().add(assignExpression);
 
