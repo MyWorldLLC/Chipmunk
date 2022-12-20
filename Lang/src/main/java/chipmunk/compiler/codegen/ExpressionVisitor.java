@@ -43,9 +43,8 @@ public class ExpressionVisitor implements AstVisitor {
 	
 	public static boolean isExpressionNode(AstNode node) {
 		return node instanceof IdNode
-				|| node.is(NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR)
-				|| node instanceof MethodNode
-				|| node instanceof ClassNode;
+				|| node.is(NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR, NodeType.CLASS)
+				|| node instanceof MethodNode;
 	}
 
 	@Override

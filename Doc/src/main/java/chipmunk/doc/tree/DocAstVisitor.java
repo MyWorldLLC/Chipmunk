@@ -67,7 +67,7 @@ public class DocAstVisitor implements AstVisitor {
 
             exitDocNode();
 
-        }else if(node instanceof ClassNode){
+        }else if(node.is(NodeType.CLASS)){
 
             docContext.peek().getChildren().add(enterDocNode(node));
 

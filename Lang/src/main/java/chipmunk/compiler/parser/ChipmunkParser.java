@@ -143,9 +143,9 @@ public class ChipmunkParser {
 				
 			}else if(checkClassDef()){
 				
-				ClassNode node = parseClassDef();
-				module.addClassDef(node);
-				node.setParentSymbolTable(module);
+				AstNode node = parseClassDef();
+				module.addChild(node);
+				//node.setParentSymbolTable(module);
 				
 			}else if(tokens.peek(TokenType.MODULE)){
 				// Start of next module. Return this module node.
@@ -177,15 +177,13 @@ public class ChipmunkParser {
 		}
 	}
 	
-	public ClassNode parseClassDef(){
+	public AstNode parseClassDef(){
 		tokens.skipNewlines();
 		
-		ClassNode node = new ClassNode();
+		AstNode node = new AstNode(NodeType.CLASS, tokens.getNext(TokenType.CLASS));
 
-		tokens.forceNext(TokenType.CLASS);
 		Token id = tokens.getNext(TokenType.IDENTIFIER);
-		
-		node.setName(id.text());
+		node.setSymbol(new Symbol(id.text()));
 
 		tokens.forceNext(TokenType.LBRACE);
 		tokens.skipNewlinesAndComments();
@@ -210,7 +208,7 @@ public class ChipmunkParser {
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
 			}else if(checkClassDef()){
-				ClassNode classNode = parseClassDef();
+				AstNode classNode = parseClassDef();
 				classNode.getSymbol().setShared(shared);
 				node.addChild(classNode);
 			}else if(tokens.peek(TokenType.RBRACE)){
@@ -233,12 +231,12 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public ClassNode parseAnonClassDef(){
+	public AstNode parseAnonClassDef(){
 		tokens.skipNewlines();
 		
-		ClassNode node = new ClassNode();
+		AstNode node = new AstNode(NodeType.CLASS, new Token("class", TokenType.CLASS));
 		
-		node.setName("");
+		node.setSymbol(new Symbol(""));
 
 		tokens.forceNext(TokenType.LBRACE);
 		tokens.skipNewlinesAndComments();
@@ -263,7 +261,7 @@ public class ChipmunkParser {
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
 			}else if(checkClassDef()){
-				ClassNode classNode = parseClassDef();
+				AstNode classNode = parseClassDef();
 				classNode.getSymbol().setShared(shared);
 				node.addChild(classNode);
 			}else if(tokens.peek(TokenType.RBRACE)){
@@ -637,7 +635,7 @@ public class ChipmunkParser {
 	 */
 	public AstNode parseImport(){
 		tokens.skipNewlinesAndComments();
-		//AstNode node = new AstNode(NodeType.IMPORT, tokens.peek());
+
 		var parser = new ImportParser();
 		var node = parser.parse(tokens);
 		if(Imports.isAliased(node)){

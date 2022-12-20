@@ -20,10 +20,7 @@
 
 package chipmunk.doc.tree;
 
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.ModuleNode;
-import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 
 import java.util.ArrayList;
@@ -66,7 +63,7 @@ public class DocNode {
     }
 
     public boolean isClassNode(){
-        return sourceNode instanceof ClassNode;
+        return sourceNode.is(NodeType.CLASS);
     }
 
     public boolean isVarNode(){

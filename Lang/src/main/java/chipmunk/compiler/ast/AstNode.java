@@ -217,7 +217,10 @@ public class AstNode {
 			builder.append(debugSymbol);
 		}
 
-		if(token != null){
+		if(symbol != null){
+			builder.append(' ');
+			builder.append(symbol.getName());
+		}else if(token != null){
 			builder.append(' ');
 			builder.append(token.text());
 		}

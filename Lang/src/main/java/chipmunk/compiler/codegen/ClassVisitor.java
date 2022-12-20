@@ -50,20 +50,19 @@ public class ClassVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 		
-		if(node instanceof ClassNode){
-			ClassNode classNode = (ClassNode) node;
+		if(node.is(NodeType.CLASS)){
 			
 			if(cls == null) {
-				cls = new BinaryClass(classNode.getName(), module);
-				classNode.visitChildren(this);
+				cls = new BinaryClass(node.getSymbol().getName(), module);
+				node.visitChildren(this);
 			}else {
 				// visit nested class declarations
 				ClassVisitor visitor = new ClassVisitor(constantPool, module);
-				classNode.visit(visitor);
+				node.visit(visitor);
 				BinaryClass inner = visitor.getBinaryClass();
 				BinaryNamespace.Entry innerEntry = BinaryNamespace.Entry.makeClass(inner.getName(), (byte)0, inner);
 
-				if(classNode.getSymbol().isShared()) {
+				if(node.getSymbol().isShared()) {
 					cls.getSharedNamespace().addEntry(innerEntry);
 				}else {
 					cls.getInstanceNamespace().addEntry(innerEntry);

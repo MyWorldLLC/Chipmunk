@@ -20,10 +20,7 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ClassNode;
-import chipmunk.compiler.ast.MethodNode;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
@@ -31,16 +28,16 @@ public class ConstructorVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
-        if(node instanceof ClassNode){
-            ClassNode clsNode = (ClassNode) node;
-            Symbol constructorSymbol = clsNode.getSymbolTable().getSymbolLocal(clsNode.getName());
-            if(constructorSymbol == null){
-                MethodNode constructor = new MethodNode("$" + clsNode.getName());
+        if(node.is(NodeType.CLASS)){
 
-                clsNode.addChild(constructor);
-                clsNode.getSymbolTable().setSymbol(constructor.getSymbol());
+            Symbol constructorSymbol = node.getSymbolTable().getSymbolLocal(node.getSymbol().getName());
+            if(constructorSymbol == null){
+                MethodNode constructor = new MethodNode("$" + node.getSymbol().getName());
+
+                node.addChild(constructor);
+                node.getSymbolTable().setSymbol(constructor.getSymbol());
                 constructor.getSymbolTable().setScope(SymbolTable.Scope.CLASS);
-                constructor.getSymbolTable().setParent(clsNode.getSymbolTable());
+                constructor.getSymbolTable().setParent(node.getSymbolTable());
 
             }else{
                 constructorSymbol.setName("$" + constructorSymbol.getName());

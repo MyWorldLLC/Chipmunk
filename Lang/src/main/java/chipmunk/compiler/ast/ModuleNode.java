@@ -58,10 +58,6 @@ public class ModuleNode extends BlockNode {
 		addChild(node);
 	}
 	
-	public void addClassDef(ClassNode node){
-		addChild(node);
-	}
-	
 	public void addVarDec(VarDecNode node){
 		addChild(node);
 	}

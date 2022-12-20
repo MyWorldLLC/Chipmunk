@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 public class InitializerBuilderVisitor implements AstVisitor {
 
-    protected Deque<BlockNode> modulesAndClasses = new ArrayDeque<>();
+    protected Deque<AstNode> modulesAndClasses = new ArrayDeque<>();
 
     @Override
     public void visit(AstNode node) {
@@ -85,17 +85,16 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             modulesAndClasses.pop();
 
-        }else if(node instanceof ClassNode){
-            ClassNode classNode = (ClassNode) node;
+        }else if(node.is(NodeType.CLASS)){
 
             MethodNode sharedInitializer = new MethodNode("$class_init$");
             sharedInitializer.getSymbol().setShared(true);
-            classNode.getChildren().add(0, sharedInitializer);
+            node.getChildren().add(0, sharedInitializer);
 
             MethodNode instanceInitializer = new MethodNode("$instance_init$");
-            classNode.getChildren().add(1, instanceInitializer);
+            node.getChildren().add(1, instanceInitializer);
 
-            modulesAndClasses.push(classNode);
+            modulesAndClasses.push(node);
 
             node.visitChildren(this);
 
@@ -110,7 +109,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 assignExpression = new AstNode(NodeType.LITERAL, new Token("null", TokenType.NULL));
             }
 
-            BlockNode owner = modulesAndClasses.peek();
+            AstNode owner = modulesAndClasses.peek();
 
             IdNode id = new IdNode(varDec.getIDNode().getID());
 
@@ -122,7 +121,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             if (owner instanceof ModuleNode) {
                 ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
-            } else if (owner instanceof ClassNode) {
+            } else if (owner.is(NodeType.CLASS)) {
                 if (varDec.getSymbol().isShared()) {
                     ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
                 } else {

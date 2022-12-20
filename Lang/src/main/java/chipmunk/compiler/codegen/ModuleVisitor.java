@@ -55,7 +55,7 @@ public class ModuleVisitor implements AstVisitor {
 
 			moduleNode.visitChildren(this);
 			
-		}else if(node instanceof ClassNode){
+		}else if(node.is(NodeType.CLASS)){
 			
 			ClassVisitor visitor = new ClassVisitor(constantPool, module);
 			node.visit(visitor);
