@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ast.uniform;
+package chipmunk.compiler.ast;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

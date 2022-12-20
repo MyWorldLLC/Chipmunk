@@ -6,9 +6,8 @@ open module chipmunk.lang {
     exports chipmunk.compiler;
     exports chipmunk.compiler.assembler;
     exports chipmunk.compiler.ast;
+    exports chipmunk.compiler.ast.patterns;
     exports chipmunk.compiler.ast.transforms;
-    exports chipmunk.compiler.ast.uniform;
-    exports chipmunk.compiler.ast.uniform.util;
     exports chipmunk.compiler.codegen;
     exports chipmunk.compiler.imports;
     exports chipmunk.compiler.lexer;
