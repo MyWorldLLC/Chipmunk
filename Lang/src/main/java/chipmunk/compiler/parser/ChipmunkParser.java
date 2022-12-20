@@ -138,14 +138,12 @@ public class ChipmunkParser {
 			}else if(checkMethodDef()){
 				
 				MethodNode node = parseMethodDef();
-				node.setParentSymbolTable(module);
 				module.addMethodDef(node);
 				
 			}else if(checkClassDef()){
 				
 				AstNode node = parseClassDef();
 				module.addChild(node);
-				//node.setParentSymbolTable(module);
 				
 			}else if(tokens.peek(TokenType.MODULE)){
 				// Start of next module. Return this module node.

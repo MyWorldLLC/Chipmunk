@@ -22,7 +22,6 @@ package chipmunk.compiler.parser.subparsers;
 
 import chipmunk.compiler.SyntaxError;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.BlockNode;
 import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;

@@ -23,13 +23,13 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
-public class MethodNode extends BlockNode {
+public class MethodNode extends AstNode {
 	
 	protected int defaultParamCount;
 	protected int paramCount;
 	
 	public MethodNode(){
-		super(NodeType.METHOD, SymbolTable.Scope.METHOD);
+		super(NodeType.METHOD);
 		symbol = new Symbol();
 		defaultParamCount = 0;
 		paramCount = 0;

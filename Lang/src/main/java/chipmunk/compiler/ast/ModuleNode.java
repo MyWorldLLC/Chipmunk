@@ -21,14 +21,13 @@
 package chipmunk.compiler.ast;
 
 import chipmunk.compiler.symbols.Symbol;
-import chipmunk.compiler.symbols.SymbolTable;
 
-public class ModuleNode extends BlockNode {
+public class ModuleNode extends AstNode {
 
 	protected String fileName;
 	
 	public ModuleNode(){
-		super(NodeType.MODULE, SymbolTable.Scope.MODULE);
+		super(NodeType.MODULE);
 		symbol = new Symbol();
 	}
 	
