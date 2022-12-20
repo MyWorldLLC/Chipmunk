@@ -25,6 +25,7 @@ import java.util.List;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ast.*;
+import chipmunk.compiler.symbols.Symbol;
 
 public class ModuleVisitor implements AstVisitor {
 	
@@ -72,16 +73,17 @@ public class ModuleVisitor implements AstVisitor {
 			module.getNamespace().addEntry(
 					BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, method));
 			
-		}else if(node instanceof ImportNode){
+		}else if(node.is(NodeType.IMPORT)){
+
+			boolean importAll = Imports.isImportAll(node);
 			
-			ImportNode importNode = (ImportNode) node;
-			boolean importAll = importNode.isImportAll();
-			
-			BinaryImport im = new BinaryImport(importNode.getModule(), importAll);
+			BinaryImport im = new BinaryImport(Imports.getModule(node).getName(), importAll);
 			
 			if(!importAll){
-				im.setSymbols(importNode.getSymbols().toArray(new String[]{}));
-				im.setAliases(importNode.getAliases().toArray(new String[]{}));
+				im.setSymbols(Imports.symbols(node).stream().map(Symbol::getName).toList().toArray(new String[]{}));
+				if(Imports.isAliased(node)){
+					im.setAliases(Imports.aliases(node).stream().map(Symbol::getName).toList().toArray(new String[]{}));
+				}
 			}
 
 			imports.add(im);

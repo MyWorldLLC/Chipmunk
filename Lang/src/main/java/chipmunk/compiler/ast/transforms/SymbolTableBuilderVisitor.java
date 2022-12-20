@@ -31,6 +31,10 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
+
+		if(node.is(NodeType.IMPORT)){
+			return; // Don't visit import nodes - they must be handled specially by the ImportResolverVisitor
+		}
 		
 		if(node.getSymbol() != null){
 			if(currentScope != null){

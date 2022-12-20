@@ -44,25 +44,26 @@ public class InitializerBuilderVisitor implements AstVisitor {
             moduleNode.getChildren().add(0, initializer);
 
             // Create imported module fields & generate vm calls to initialize them
-            List<ImportNode> imports = moduleNode.getChildren()
+            List<AstNode> imports = moduleNode.getChildren()
                     .stream()
-                    .filter(n -> n instanceof ImportNode)
-                    .map(n -> (ImportNode) n)
+                    .filter(n -> n.is(NodeType.IMPORT))
                     .collect(Collectors.toList());
 
             Set<String> alreadyImported = new HashSet<>();
 
-            for(ImportNode im : imports){
+            for(AstNode im : imports){
 
                 final int index = im.getTokenIndex();
                 final int line = im.getLineNumber();
                 final int column = 0;
 
-                if(alreadyImported.contains(im.getModule())){
+                final String moduleName = Imports.getModule(im).getName();
+
+                if(alreadyImported.contains(moduleName)){
                     continue;
                 }
 
-                VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(im.getModule()));
+                VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(moduleName));
 
                 AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
@@ -70,12 +71,12 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 vmDotNode.getChildren().add(new IdNode("getModule"));
 
                 getModuleCallNode.getChildren().add(vmDotNode);
-                getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + im.getModule() + "\"", TokenType.STRINGLITERAL)));
+                getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
 
                 dec.setAssignExpr(getModuleCallNode);
                 moduleNode.getChildren().add(dec);
 
-                alreadyImported.add(im.getModule());
+                alreadyImported.add(moduleName);
             }
 
             modulesAndClasses.push(moduleNode);

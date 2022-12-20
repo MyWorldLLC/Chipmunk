@@ -22,10 +22,10 @@ package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.CompileChipmunk;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.FlowControlNode;
 import chipmunk.compiler.lexer.TokenType;
 
 public class FlowControlVisitor implements AstVisitor {
@@ -40,10 +40,9 @@ public class FlowControlVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof FlowControlNode){
-			FlowControlNode flowNode = (FlowControlNode) node;
+		if(node.is(NodeType.FLOW_CONTROL)){
 			
-			Token token = flowNode.getControlToken();
+			Token token = node.getToken();
 			assembler.onLine(token.line());
 			
 			if(token.type() == TokenType.RETURN){

@@ -54,7 +54,7 @@ public class ModuleNode extends BlockNode {
 		this.fileName = fileName;
 	}
 	
-	public void addImport(ImportNode node){
+	public void addImport(AstNode node){
 		addChild(node);
 	}
 	

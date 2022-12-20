@@ -20,11 +20,13 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ImportNode;
-import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.ast.*;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.modules.lang.LangModule;
+
+import java.util.List;
 
 public class LangImportVisitor implements AstVisitor {
 
@@ -33,11 +35,13 @@ public class LangImportVisitor implements AstVisitor {
         if(node instanceof ModuleNode) {
             ModuleNode moduleNode = (ModuleNode) node;
 
-            ImportNode langImport = new ImportNode();
-            langImport.setImportAll(true);
-            langImport.setModule(LangModule.MODULE_NAME);
+            var langImport = Imports.makePlain(
+                    new Token("import", TokenType.IMPORT),
+                    new Token(LangModule.MODULE_NAME, TokenType.IDENTIFIER),
+                    new Token("import", TokenType.IMPORT),
+                    List.of(new Token("*", TokenType.STAR)));
 
-            moduleNode.addImport(langImport);
+            moduleNode.addChild(0, langImport);
         }
     }
 }

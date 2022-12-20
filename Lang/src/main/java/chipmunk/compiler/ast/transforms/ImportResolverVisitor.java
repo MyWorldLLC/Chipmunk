@@ -22,10 +22,7 @@ package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ModuleNotFoundException;
 import chipmunk.compiler.UnresolvedSymbolException;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.ImportNode;
-import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.imports.ImportResolver;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
@@ -60,37 +57,37 @@ public class ImportResolverVisitor implements AstVisitor {
         if(node instanceof ModuleNode){
             currentScope = ((ModuleNode) node).getSymbolTable();
             node.visitChildren(this);
-        }else if(node instanceof ImportNode){
-            ImportNode importNode = (ImportNode) node;
+        }else if(node.is(NodeType.IMPORT)){
 
             List<Symbol> symbols;
 
-            if(importNode.isImportAll()){
-                symbols = getModuleSymbols(importNode.getModule());
-            }else if(importNode.hasAliases()){
+            if(Imports.isImportAll(node)){
+                symbols = getModuleSymbols(Imports.getModule(node).getName());
+            }else if(Imports.isAliased(node)){
                 symbols = new ArrayList<>();
 
-                List<String> importedSymbols = importNode.getSymbols();
-                List<String> aliases = importNode.getAliases();
+                List<Symbol> importedSymbols = Imports.symbols(node);
+                List<Symbol> aliases = Imports.aliases(node);
+
                 for(int s = 0; s < importedSymbols.size(); s++){
 
-                    Symbol symbol = getModuleSymbol(importNode.getModule(), importedSymbols.get(s));
+                    Symbol symbol = getModuleSymbol(Imports.getModule(node), importedSymbols.get(s));
                     if(symbol == null){
-                        throw new UnresolvedSymbolException(importNode.getModule(), aliases.get(s));
+                        throw new UnresolvedSymbolException(Imports.getModule(node).getName(), aliases.get(s).getName());
                     }
 
-                    symbol.setName(aliases.get(s));
-                    symbol.setImport(new Symbol.Import(importNode.getModule(), importedSymbols.get(s)));
+                    symbol.setName(aliases.get(s).getName());
+                    symbol.setImport(new Symbol.Import(Imports.getModule(node).getName(), importedSymbols.get(s).getName()));
                     symbols.add(symbol);
                 }
             }else{
                 symbols = new ArrayList<>();
 
-                for(String s : importNode.getSymbols()){
+                for(Symbol s : Imports.symbols(node)){
 
-                    Symbol symbol = getModuleSymbol(importNode.getModule(), s);
+                    Symbol symbol = getModuleSymbol(Imports.getModule(node), s);
                     if(symbol == null){
-                        throw new UnresolvedSymbolException(importNode.getModule(), s);
+                        throw new UnresolvedSymbolException(Imports.getModule(node).getName(), s.getName());
                     }
 
                     symbols.add(symbol);
@@ -98,7 +95,7 @@ public class ImportResolverVisitor implements AstVisitor {
             }
 
             if(symbols == null){
-                throw new ModuleNotFoundException(importNode.getModule());
+                throw new ModuleNotFoundException(Imports.getModule(node).getName());
             }
 
             for(Symbol symbol : symbols){
@@ -121,12 +118,12 @@ public class ImportResolverVisitor implements AstVisitor {
         return null;
     }
 
-    protected Symbol getModuleSymbol(String moduleName, String name){
+    protected Symbol getModuleSymbol(Symbol moduleName, Symbol name){
 
         for(ImportResolver resolver : resolvers){
-            Symbol symbol = resolver.resolve(moduleName, name);
+            Symbol symbol = resolver.resolve(moduleName.getName(), name.getName());
             if(symbol != null){
-                symbol.setImport(new Symbol.Import(moduleName));
+                symbol.setImport(new Symbol.Import(moduleName.getName()));
                 return symbol;
             }
         }

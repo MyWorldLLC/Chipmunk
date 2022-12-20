@@ -25,12 +25,14 @@ import java.util.List;
 
 import chipmunk.compiler.IllegalImportException;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.parser.subparsers.ImportParser;
 import chipmunk.compiler.parser.subparsers.VarDecParser;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.SyntaxError;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
+import chipmunk.util.Require;
 
 /**
  * Parses the Chipmunk language using a Pratt parser design for expressions. Many thanks to 
@@ -427,32 +429,30 @@ public class ChipmunkParser {
 			case TRY:
 				return parseTryCatch();
 			case RETURN:
-				FlowControlNode returnNode = new FlowControlNode();
+				AstNode returnNode = new AstNode(NodeType.FLOW_CONTROL, token);
 
 				tokens.dropNext();
-				returnNode.setControlToken(token);
 				
 				if(!tokens.peek(TokenType.NEWLINE)){
-					returnNode.addControlExpression(parseExpression());
+					returnNode.addChild(parseExpression());
 				}
 
 				return returnNode;
 			case THROW:
-				FlowControlNode throwNode = new FlowControlNode();
+				AstNode throwNode = new AstNode(NodeType.FLOW_CONTROL, token);
 
 				tokens.dropNext();
-				throwNode.setControlToken(token);
-				throwNode.addControlExpression(parseExpression());
+				throwNode.addChild(parseExpression());
 
 				return throwNode;
 			case BREAK:
 			case CONTINUE:
 				tokens.dropNext();
 				
-				FlowControlNode node = new FlowControlNode();
+				AstNode node = new AstNode(NodeType.FLOW_CONTROL, token);
 
+				// TODO - I don't think this should be here
 				tokens.dropNext();
-				node.setControlToken(token);
 
 				return node;
 			default:
@@ -466,26 +466,27 @@ public class ChipmunkParser {
 		return null;
 	}
 	
-	public IfElseNode parseIfElse(){
-		IfElseNode node = new IfElseNode();
+	public AstNode parseIfElse(){
+		AstNode node = new AstNode(NodeType.IF_ELSE, tokens.peek());
 		
 		// keep parsing if & else-if branches until something causes this to break
 		while(true){
 			// Parse if branch
-			GuardedNode ifBranch = parseIfBranch();
+			AstNode ifBranch = parseIfBranch();
 			
-			node.addGuardedBranch(ifBranch);
+			node.addChild(ifBranch);
 
 			tokens.skipNewlinesAndComments();
 			
-			if(tokens.dropNext(TokenType.ELSE)){
+			if(tokens.peek(TokenType.ELSE)){
 				tokens.skipNewlines();
+				var elseToken = tokens.get();
 				// it's the else block
 				if(tokens.peek(TokenType.LBRACE)){
-					BlockNode elseBlock = new BlockNode(NodeType.ELSE);
+					AstNode elseBlock = new AstNode(NodeType.ELSE, elseToken);
 					
 					parseBlockBody(elseBlock);
-					node.setElseBranch(elseBlock);
+					node.addChild(elseBlock);
 					
 					break;
 				}
@@ -500,14 +501,13 @@ public class ChipmunkParser {
 		return node;
 	}
 	
-	public GuardedNode parseIfBranch(){
-		GuardedNode ifBranch = new GuardedNode(NodeType.IF);
+	public AstNode parseIfBranch(){
+		AstNode ifBranch = new AstNode(NodeType.IF, tokens.getNext(TokenType.IF));
 
-		tokens.forceNext(TokenType.IF);
 		tokens.forceNext(TokenType.LPAREN);
 		tokens.skipNewlines();
 		
-		ifBranch.setGuard(parseExpression());
+		ifBranch.addChild(parseExpression());
 
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.RPAREN);
@@ -635,114 +635,21 @@ public class ChipmunkParser {
 	 * Consumes the next import statement from the token stream.
 	 * @return the import block for the statement
 	 */
-	public ImportNode parseImport(){
-		tokens.skipNewlines();
-		ImportNode node = new ImportNode();
-		
-		if(tokens.peek(TokenType.IMPORT)){
-			tokens.dropNext(TokenType.IMPORT);
-			// import single symbol
-			List<Token> identifiers = new ArrayList<Token>();
-			identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
-			
-			while(tokens.peek(TokenType.DOT)){
-				tokens.dropNext();
-				if(tokens.peek(TokenType.IDENTIFIER)){
-					identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
-				}else if(tokens.peek(TokenType.STAR)){
-					identifiers.add(tokens.getNext(TokenType.STAR));
-					node.setImportAll(true);
-					break;
-				}else{
-					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().text());
-				}
-			}
-			
-			// piece module name back together
-			StringBuilder moduleName = new StringBuilder();
-			if(identifiers.size() == 1){
-				moduleName.append(identifiers.get(0).text());
-			}else{
-				for(int i = 0; i < identifiers.size() - 1; i++){
-					moduleName.append(identifiers.get(i).text());
-					if (i < identifiers.size() - 2) {
-						moduleName.append('.');
-					}
-				}
-			}
-			
-			if(identifiers.size() > 1){
-				node.addSymbol(identifiers.get(identifiers.size() - 1).text());
-			}
-			
-			node.setModule(moduleName.toString());
-		}else if(tokens.peek(TokenType.FROM)){
-			tokens.dropNext(TokenType.FROM);
-			
-			// import multiple symbols
-			List<Token> identifiers = new ArrayList<Token>();
-			identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
-			
-			while(tokens.peek(TokenType.DOT)){
-				tokens.dropNext(TokenType.DOT);
-				if(tokens.peek(TokenType.IDENTIFIER)){
-					identifiers.add(tokens.getNext(TokenType.IDENTIFIER));
-				}else if(tokens.peek(TokenType.STAR)){
-					identifiers.add(tokens.getNext(TokenType.STAR));
-					node.setImportAll(true);
-				}else{
-					throw new IllegalImportException("Expected identifier or *, got " + tokens.peek().text());
-				}
-			}
-			
-			StringBuilder moduleName = new StringBuilder();
-			for(int i = 0; i < identifiers.size(); i++){
-				moduleName.append(identifiers.get(i).text());
-				if(i < identifiers.size() - 1){
-					moduleName.append('.');
-				}
-			}
-			
-			node.setModule(moduleName.toString());
-
-			tokens.forceNext(TokenType.IMPORT);
-			
-			if(tokens.peek(TokenType.IDENTIFIER)){
-				node.addSymbol(tokens.getNext(TokenType.IDENTIFIER).text());
-				while(tokens.peek(TokenType.COMMA)){
-					tokens.dropNext(TokenType.COMMA);
-					node.addSymbol(tokens.getNext(TokenType.IDENTIFIER).text());
-				}
-			}else{
-				tokens.forceNext(TokenType.STAR);
-				node.setImportAll(true);
-				node.addSymbol("*");
-			}
-			
-		}else{
-			syntaxError("Invalid import", fileName, tokens.get(), TokenType.IMPORT, TokenType.FROM);
+	public AstNode parseImport(){
+		tokens.skipNewlinesAndComments();
+		//AstNode node = new AstNode(NodeType.IMPORT, tokens.peek());
+		var parser = new ImportParser();
+		var node = parser.parse(tokens);
+		if(Imports.isAliased(node)){
+			Require.require(!Imports.isImportAll(node), IllegalImportException::new, "Cannot alias a * import: %s", node);
+			Require.require(Imports.symbols(node).size() == Imports.aliases(node).size(), IllegalImportException::new,
+					"Imports must have the same number of aliases as imported symbols");
 		}
-		
-		if(tokens.peek(TokenType.AS)){
-			
-			if(node.getSymbols().contains("*")){
-				throw new IllegalImportException("Cannot alias a * import");
-			}
-			
-			tokens.dropNext();
-			// parse aliases
-			node.addAlias(tokens.getNext(TokenType.IDENTIFIER).text());
-			
-			while(tokens.peek(TokenType.COMMA)){
-				tokens.dropNext(TokenType.COMMA);
-				node.addAlias(tokens.getNext(TokenType.IDENTIFIER).text());
-			}
-			
-			if(node.getSymbols().size() < node.getAliases().size()){
-				throw new IllegalImportException("Cannot have more aliases than imported symbols");
-			}
+		Require.require(Imports.symbols(node).size() > 0, IllegalImportException::new,"Must import symbols from module");
+		if(Imports.symbols(node).size() > 1){
+			Require.require(Imports.symbols(node).stream().noneMatch(s -> s.getName().equals("*")), IllegalImportException::new,
+					"Cannot import * along with other symbols");
 		}
-
 		return node;
 	}
 	
@@ -769,7 +676,7 @@ public class ChipmunkParser {
 		}
 		
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				langElement, fileName, got.line(), got.column(), expectedTypes.toString(), got.text());
+				langElement, fileName, got.line(), got.column(), expectedTypes.toString(), got);
 		
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(expected);
@@ -779,7 +686,7 @@ public class ChipmunkParser {
 	
 	public static void syntaxError(String langElement, String fileName, String expected, Token got) throws SyntaxError {
 		String msg = String.format("Error parsing %s at %s %d:%d: expected %s, got %s",
-				langElement, fileName, got.line(), got.column(), expected, got.text());
+				langElement, fileName, got.line(), got.column(), expected, got);
 		SyntaxError error = new SyntaxError(msg);
 		error.setExpected(new TokenType[]{});
 		error.setGot(got);

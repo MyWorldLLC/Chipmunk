@@ -196,11 +196,22 @@ public class Symbol {
 
 		builder.append(name);
 
-		builder.append(" scope: ");
-		builder.append(getDeclaringScope());
+		if(table != null){
+			builder.append(" scope: ");
+			builder.append(getDeclaringScope());
+		}
 
 		builder.append(" type: ");
 		builder.append(type);
+
+		if(isImported()){
+			builder.append(" imported from ");
+			builder.append(getImport().getModule());
+			if(getImport().isAliased()){
+				builder.append(" with alias ");
+				builder.append(getImport().getAliasedSymbol());
+			}
+		}
 		
 		return builder.toString();
 	}

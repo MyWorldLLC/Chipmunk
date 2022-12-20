@@ -21,14 +21,14 @@
 package chipmunk.compiler.parser.subparsers;
 
 import chipmunk.compiler.SyntaxError;
-import chipmunk.compiler.ast.IfElseNode;
+import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.parser.Parser;
 
-public class IfElseParser implements Parser<IfElseNode> {
+public class IfElseParser implements Parser<AstNode> {
 
     @Override
-    public IfElseNode parse(TokenStream t) throws SyntaxError {
+    public AstNode parse(TokenStream t) throws SyntaxError {
         return null;
     }
 

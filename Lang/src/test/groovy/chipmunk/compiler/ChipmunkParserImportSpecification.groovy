@@ -20,7 +20,7 @@
 
 package chipmunk.compiler
 
-import chipmunk.compiler.ast.ImportNode
+import chipmunk.compiler.ast.AstNode
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
@@ -34,10 +34,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import foobar)"
+		thrown(IllegalImportException)
 	}
 	
 	def "parse import foo.bar"(){
@@ -47,10 +47,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import bar from foo)"
+		node.toString() == "(import import (id foo) (import import (id bar)))"
 	}
 	
 	def "parse import foo.bar.baz"(){
@@ -60,10 +60,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import baz from foo.bar)"
+		node.toString() == "(import import (id foo.bar) (import import (id baz)))"
 	}
 	
 	def "parse import foo.bar.*"(){
@@ -73,10 +73,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import * from foo.bar)"
+		node.toString() == "(import import (id foo.bar) (import import (id *)))"
 	}
 	
 	def "parse import foo.bar as baz"(){
@@ -86,10 +86,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import bar as baz from foo)"
+		node.toString() == "(import import (id foo) (import import (id bar)) (import as (id baz)))"
 	}
 	
 	def "parse import foo.bar.* as baz"(){
@@ -99,7 +99,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
 		thrown(IllegalImportException)
@@ -112,10 +112,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import baz from foo.bar)"
+		node.toString() == "(import from (id foo.bar) (import import (id baz)))"
 	}
 	
 	def "parse from foo.bar import baz as biz"(){
@@ -125,10 +125,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import baz as biz from foo.bar)"
+		node.toString() == "(import from (id foo.bar) (import import (id baz)) (import as (id biz)))"
 	}
 	
 	def "parse from foo.bar import baz, baz2"(){
@@ -138,10 +138,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import baz,baz2 from foo.bar)"
+		node.toString() == "(import from (id foo.bar) (import import (id baz) (id baz2)))"
 	}
 	
 	def "parse from foo.bar import baz, baz2 as baz3, baz4"(){
@@ -151,10 +151,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import baz,baz2 as baz3,baz4 from foo.bar)"
+		node.toString() == "(import from (id foo.bar) (import import (id baz) (id baz2)) (import as (id baz3) (id baz4)))"
 	}
 	
 	def "parse from foo.bar import *"(){
@@ -164,10 +164,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		node.toString() == "(import * from foo.bar)"
+		node.toString() == "(import from (id foo.bar) (import import (id *)))"
 	}
 	
 	def "parse from foo.bar import * as baz"(){
@@ -177,7 +177,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
 		thrown(IllegalImportException)
@@ -190,10 +190,10 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
-		thrown(SyntaxError)
+		thrown(IllegalImportException)
 	}
 	
 	def "parse from foo.bar import bar,baz as bar1, baz1, baz2"(){
@@ -203,7 +203,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
 		thrown(IllegalImportException)
@@ -216,7 +216,7 @@ class ChipmunkParserImportSpecification extends Specification {
 		
 		when:
 		ChipmunkParser parser = new ChipmunkParser(tokens)
-		ImportNode node = parser.parseImport()
+		AstNode node = parser.parseImport()
 		
 		then:
 		thrown(IllegalImportException)

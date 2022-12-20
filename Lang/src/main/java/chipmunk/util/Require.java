@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2022 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,38 +18,22 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ast;
+package chipmunk.util;
 
-import chipmunk.compiler.lexer.Token;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class FlowControlNode extends AstNode {
+public class Require {
 
-	protected Token token;
-	
-	public FlowControlNode(){
-		super(NodeType.FLOW_CONTROL);
-	}
-	
-	public FlowControlNode(Token controlToken){
-		super(NodeType.FLOW_CONTROL);
-		setControlToken(controlToken);
-	}
-	
-	public Token getControlToken(){
-		return token;
-	}
-	
-	public void setControlToken(Token controlToken){
-		token = controlToken;
-	}
-	
-	public void addControlExpression(AstNode expression){
-		addChild(expression);
-	}
+    public static void require(boolean condition, String msg, Object... fmtArgs) throws IllegalArgumentException {
+        if(!condition){
+            throw new IllegalArgumentException(msg.formatted(fmtArgs));
+        }
+    }
 
-	@Override
-	public String getDebugName(){
-		return token.text();
-	}
-
+    public static <T extends Exception> void require(boolean condition, Function<String, T> f, String msg, Object... fmtArgs) throws T {
+        if(!condition){
+            throw f.apply(msg.formatted(fmtArgs));
+        }
+    }
 }

@@ -21,11 +21,7 @@
 package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.assembler.ChipmunkAssembler;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.BlockNode;
-import chipmunk.compiler.ast.GuardedNode;
-import chipmunk.compiler.ast.IfElseNode;
+import chipmunk.compiler.ast.*;
 
 public class IfElseVisitor implements AstVisitor {
 	
@@ -39,35 +35,33 @@ public class IfElseVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof IfElseNode){
-			IfElseNode ifElse = (IfElseNode) node;
+		if(node.is(NodeType.IF_ELSE)){
 			IfElseLabels endLabels = codegen.pushIfElse();
 			
-			ifElse.visitChildren(this);
+			node.visitChildren(this);
 			
 			// label the end of the if/else
 			assembler.setLabelTarget(endLabels.getEndLabel());
 			codegen.exitIfElse();
-		}else if(node instanceof GuardedNode){
-			GuardedNode ifBranch = (GuardedNode) node;
-			ifBranch.getGuard().visit(new ExpressionVisitor(codegen));
+		}else if(node.is(NodeType.IF)){
+			node.getLeft().visit(new ExpressionVisitor(codegen));
 			
 			String endOfIf = assembler.nextLabelName();
 			// go to end of this node's body if the if does not evaluate true
 			assembler._if(endOfIf);
 			
 			// generate code for the children, skipping the guard statement
-			codegen.enterScope(((GuardedNode) node).getSymbolTable());
-			ifBranch.visitChildren(codegen, 1);
+			codegen.enterScope(node.getSymbolTable());
+			node.visitChildren(codegen, 1);
 			
 			// go to the end of the entire if/else if body executes
 			assembler._goto(codegen.peekClosestIfElse().getEndLabel());
 			// mark end of the if block
 			assembler.setLabelTarget(endOfIf);
 			
-		}else if(node instanceof BlockNode){
-			BlockNode elseBranch = (BlockNode) node;
-			elseBranch.visitChildren(codegen);
+		}else if(node.is(NodeType.ELSE)){
+			// else branch
+			node.visitChildren(codegen);
 		}
 	}
 

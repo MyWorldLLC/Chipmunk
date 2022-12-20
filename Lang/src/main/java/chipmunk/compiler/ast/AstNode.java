@@ -100,6 +100,10 @@ public class AstNode {
 		return getLeft();
 	}
 
+	public AstNode getChild(int index){
+		return children.get(index);
+	}
+
 	public boolean isBinary(){
 		return children.size() == 2;
 	}
@@ -114,6 +118,11 @@ public class AstNode {
 	
 	public void addChild(AstNode child){
 		children.add(child);
+		child.setParent(this);
+	}
+
+	public void addChild(int index, AstNode child){
+		children.add(index, child);
 		child.setParent(this);
 	}
 
@@ -188,6 +197,10 @@ public class AstNode {
 			r.run();
 			return null;
 		});
+	}
+
+	public int childCount(){
+		return children.size();
 	}
 
 	public String getDebugName(){
