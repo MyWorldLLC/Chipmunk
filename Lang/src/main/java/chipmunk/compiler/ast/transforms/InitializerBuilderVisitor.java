@@ -67,8 +67,8 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
-                vmDotNode.getChildren().add(new IdNode("vm"));
-                vmDotNode.getChildren().add(new IdNode("getModule"));
+                vmDotNode.getChildren().add(new AstNode(NodeType.ID, new Token("vm", TokenType.IDENTIFIER)));
+                vmDotNode.getChildren().add(new AstNode(NodeType.ID, new Token("getModule", TokenType.IDENTIFIER)));
 
                 getModuleCallNode.getChildren().add(vmDotNode);
                 getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
@@ -111,7 +111,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             AstNode owner = modulesAndClasses.peek();
 
-            IdNode id = new IdNode(varDec.getIDNode().getID());
+            AstNode id = new AstNode(NodeType.ID, varDec.getIDNode().getToken());
 
             AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
             assignStatement.getChildren().add(id);

@@ -21,7 +21,7 @@
 package chipmunk.compiler.parser.subparsers;
 
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.IdNode;
+import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.ast.VarDecNode;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
@@ -72,7 +72,7 @@ public class VarDecParser implements Parser<VarDecNode> {
 
     protected VarDecNode parseVarDec(TokenStream t, Token dec, Token identifier, boolean isFinal, boolean isTrait) {
         var node = new VarDecNode(dec);
-        node.setVar(new IdNode(identifier));
+        node.setVar(new AstNode(NodeType.ID, identifier));
         node.getSymbol().setFinal(isFinal);
         node.getSymbol().setTrait(isTrait);
 

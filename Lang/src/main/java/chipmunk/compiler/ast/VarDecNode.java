@@ -41,24 +41,24 @@ public class VarDecNode extends AstNode {
 	}
 
 	public VarDecNode(String id){
-		this(new IdNode(new Token(id, TokenType.IDENTIFIER)));
+		this(new AstNode(NodeType.ID, new Token(id, TokenType.IDENTIFIER)));
 	}
 	
-	public VarDecNode(IdNode id){
+	public VarDecNode(AstNode id){
 		this();
 		hasVar = true;
 		super.addChild(id);
-		symbol.setName(id.getID().text());
+		symbol.setName(id.getToken().text());
 	}
 	
-	public void setVar(IdNode id){
+	public void setVar(AstNode id){
 		if(hasVar){
 			children.remove(0);
 		}
 		
 		if(id != null){
 			this.addChildFirst(id);
-			symbol.setName(id.getID().text());
+			symbol.setName(id.getToken().text());
 			hasVar = true;
 		}else{
 			hasVar = false;
@@ -78,8 +78,8 @@ public class VarDecNode extends AstNode {
 		}
 	}
 	
-	public IdNode getIDNode(){
-		return hasVar ? (IdNode) children.get(0) : null;
+	public AstNode getIDNode(){
+		return hasVar ? children.get(0) : null;
 	}
 	
 	public AstNode getAssignExpr(){
@@ -87,7 +87,7 @@ public class VarDecNode extends AstNode {
 	}
 	
 	public String getVarName(){
-		return hasVar ? getIDNode().getID().text() : null;
+		return hasVar ? getIDNode().getToken().text() : null;
 	}
 
 }

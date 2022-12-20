@@ -42,8 +42,7 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 	
 	public static boolean isExpressionNode(AstNode node) {
-		return node instanceof IdNode
-				|| node.is(NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR, NodeType.CLASS)
+		return node.is(NodeType.ID, NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR, NodeType.CLASS)
 				|| node instanceof MethodNode;
 	}
 
@@ -212,9 +211,9 @@ public class ExpressionVisitor implements AstVisitor {
 			}
 			case DOUBLECOLON -> {
 				lhs.visit(this);
-				if(rhs instanceof IdNode idNode){
+				if(rhs.is(NodeType.ID)){
 					assembler.onLine(node.getLineNumber());
-					assembler.bind(idNode.getName());
+					assembler.bind(rhs.getToken().text());
 				}else{
 					throw new SyntaxError("Binding nodeerator requires a compile-time static method name");
 				}
@@ -335,7 +334,7 @@ public class ExpressionVisitor implements AstVisitor {
 			if(lhs.getToken().type() == TokenType.DOT){
 				assembler.onLine(lhs.getLineNumber());
 				lhs.getLeft().visit(this);
-				String attr = ((IdNode) lhs.getRight()).getID().text();
+				String attr = lhs.getRight().getToken().text();
 
 				assembler.onLine(op.getRight().getLineNumber());
 				op.getRight().visit(this);
@@ -354,28 +353,28 @@ public class ExpressionVisitor implements AstVisitor {
 						+ "must be either an attribute, index, or a local variable.",
 						lhs.getToken().line()));
 			}
-		}else if(lhs instanceof IdNode){
+		}else if(lhs.is(NodeType.ID)){
 			assembler.onLine(lhs.getLineNumber());
 			op.getRight().visit(this);
-			codegen.emitLocalAssignment(((IdNode) lhs).getID().text());
+			codegen.emitLocalAssignment(lhs.getToken().text());
 		}
 	}
 	
 	private void emitCall(AstNode op){
 		if(op.getLeft().is(NodeType.OPERATOR)
 				&& op.getLeft().getToken().type() == TokenType.DOT
-				&& op.getLeft().getRight() instanceof IdNode){
+				&& op.getLeft().getRight().is(NodeType.ID)){
 			
 			AstNode dotOp = op.getLeft();
 			// this is a dot access, so issue a callAt opcode
-			IdNode callID = (IdNode) dotOp.getRight();
+			AstNode callID = dotOp.getRight();
 
 			dotOp.getLeft().visit(this);
 			op.visitChildren(this, 1);
 			
 			int argCount = op.getChildren().size() - 1;
 			assembler.onLine(op.getLineNumber());
-			assembler.callAt(callID.getID().text(), (byte)argCount);
+			assembler.callAt(callID.getToken().text(), (byte)argCount);
 			
 		}else{
 			int argCount = op.getChildren().size() - 1;
@@ -391,7 +390,7 @@ public class ExpressionVisitor implements AstVisitor {
 		op.getLeft().visit(this);
 		assembler.onLine(op.getLineNumber());
 
-		String attr = ((IdNode) op.getRight()).getID().text();
+		String attr = op.getRight().getToken().text();
 		assembler.getattr(attr);
 	}
 

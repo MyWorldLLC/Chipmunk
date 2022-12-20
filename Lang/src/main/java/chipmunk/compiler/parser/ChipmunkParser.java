@@ -309,7 +309,7 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
 			VarDecNode param = new VarDecNode();
-			param.setVar(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
+			param.setVar(new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER)));
 			if(tokens.peek(TokenType.EQUALS)){
 				tokens.dropNext();
 				param.setAssignExpr(parseExpression());
@@ -329,7 +329,7 @@ public class ChipmunkParser {
 			// Call "chipmunk.lang.unimplementedMethod()"
 			// TODO - this should move to the code generator
 			AstNode unimplemented = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
-					new IdNode(new Token("unimplementedMethod", TokenType.IDENTIFIER)));
+					new AstNode(NodeType.ID, new Token("unimplementedMethod", TokenType.IDENTIFIER)));
 			node.addToBody(unimplemented);
 		}else{
 			AstNode expression = parseExpression();
@@ -349,7 +349,7 @@ public class ChipmunkParser {
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
 			VarDecNode param = new VarDecNode();
-			param.setVar(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
+			param.setVar(new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER)));
 			if(tokens.peek(TokenType.EQUALS)){
 				tokens.dropNext();
 				param.setAssignExpr(parseExpression());
@@ -537,7 +537,7 @@ public class ChipmunkParser {
 		tokens.skipNewlines();
 		tokens.dropNext(TokenType.VAR);
 
-		IdNode varID = new IdNode(tokens.getNext(TokenType.IDENTIFIER));
+		AstNode varID = new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER));
 
 		AstNode iter = new AstNode(NodeType.ITERATOR, tokens.getNext(TokenType.IN));
 		
