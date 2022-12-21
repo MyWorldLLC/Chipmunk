@@ -40,7 +40,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
             ModuleNode moduleNode = (ModuleNode) node;
 
             MethodNode initializer = new MethodNode("$module_init$");
-            initializer.addParam(new VarDecNode("vm"));
+            initializer.addParam(VarDec.makeImplicit("vm"));
             moduleNode.getChildren().add(0, initializer);
 
             // Create imported module fields & generate vm calls to initialize them
@@ -63,17 +63,17 @@ public class InitializerBuilderVisitor implements AstVisitor {
                     continue;
                 }
 
-                VarDecNode dec = new VarDecNode(ChipmunkCompiler.importedModuleName(moduleName));
+                AstNode dec = VarDec.makeImplicit(ChipmunkCompiler.importedModuleName(moduleName));
 
                 AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
-                vmDotNode.getChildren().add(new AstNode(NodeType.ID, new Token("vm", TokenType.IDENTIFIER)));
-                vmDotNode.getChildren().add(new AstNode(NodeType.ID, new Token("getModule", TokenType.IDENTIFIER)));
+                vmDotNode.getChildren().add(Identifier.make("vm"));
+                vmDotNode.getChildren().add(Identifier.make("getModule"));
 
                 getModuleCallNode.getChildren().add(vmDotNode);
                 getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
 
-                dec.setAssignExpr(getModuleCallNode);
+                VarDec.setAssignment(dec, getModuleCallNode);
                 moduleNode.getChildren().add(dec);
 
                 alreadyImported.add(moduleName);
@@ -99,10 +99,9 @@ public class InitializerBuilderVisitor implements AstVisitor {
             node.visitChildren(this);
 
             modulesAndClasses.pop();
-        }else if(node instanceof VarDecNode){
+        }else if(node.is(NodeType.VAR_DEC)){
 
-            VarDecNode varDec = (VarDecNode) node;
-            AstNode assignExpression = varDec.getAssignExpr();
+            AstNode assignExpression = VarDec.getAssignment(node);
 
             // Rewrite empty assign expression to null assignment
             if(assignExpression == null){
@@ -111,18 +110,18 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             AstNode owner = modulesAndClasses.peek();
 
-            AstNode id = new AstNode(NodeType.ID, varDec.getIDNode().getToken());
+            AstNode id = new AstNode(NodeType.ID, VarDec.getIdentifier(node).getToken());
 
             AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
             assignStatement.getChildren().add(id);
             assignStatement.getChildren().add(assignExpression);
 
-            varDec.setAssignExpr(null);
+            VarDec.removeAssignment(node);
 
             if (owner instanceof ModuleNode) {
                 ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
             } else if (owner.is(NodeType.CLASS)) {
-                if (varDec.getSymbol().isShared()) {
+                if (node.getSymbol().isShared()) {
                     ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
                 } else {
                     ((MethodNode) owner.getChildren().get(1)).addToBody(assignStatement);

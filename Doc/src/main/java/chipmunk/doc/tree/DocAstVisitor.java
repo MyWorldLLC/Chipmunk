@@ -75,7 +75,7 @@ public class DocAstVisitor implements AstVisitor {
 
             exitDocNode();
 
-        }else if(node instanceof VarDecNode || node instanceof MethodNode){
+        }else if(node.is(NodeType.VAR_DEC) || node instanceof MethodNode){
 
             docContext.peek().getChildren().add(enterDocNode(node));
             exitDocNode();

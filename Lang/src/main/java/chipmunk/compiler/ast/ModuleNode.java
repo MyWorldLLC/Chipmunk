@@ -57,7 +57,7 @@ public class ModuleNode extends AstNode {
 		addChild(node);
 	}
 	
-	public void addVarDec(VarDecNode node){
+	public void addVarDec(AstNode node){
 		addChild(node);
 	}
 	

@@ -24,7 +24,6 @@ import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.VarDecNode;
 
 public class VarDecVisitor implements AstVisitor {
 

@@ -22,7 +22,7 @@ package chipmunk.compiler.parser.subparsers;
 
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.NodeType;
-import chipmunk.compiler.ast.VarDecNode;
+import chipmunk.compiler.ast.VarDec;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
@@ -33,9 +33,9 @@ import chipmunk.util.pattern.PatternRecognizer;
 
 import static chipmunk.compiler.lexer.TokenType.*;
 
-public class VarDecParser implements Parser<VarDecNode> {
+public class VarDecParser implements Parser<AstNode> {
 
-    protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, VarDecNode> declaration;
+    protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, AstNode> declaration;
     protected final PatternRecognizer<Token, TokenStream, TokenType, TokenType, AstNode> assignment;
 
     protected final boolean acceptTraits;
@@ -53,7 +53,7 @@ public class VarDecParser implements Parser<VarDecNode> {
     }
 
     protected void registerDeclaration(){
-        var f = new PatternFactory<Token, TokenStream, TokenType, VarDecNode>();
+        var f = new PatternFactory<Token, TokenStream, TokenType, AstNode>();
         declaration.define(f.when(FINAL, VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(1), t.get(), true, false)));
         declaration.define(f.when(VAR, IDENTIFIER).then(t -> parseVarDec(t, t.get(), t.get(), false, false)));
         if(acceptTraits){
@@ -70,22 +70,21 @@ public class VarDecParser implements Parser<VarDecNode> {
         }));
     }
 
-    protected VarDecNode parseVarDec(TokenStream t, Token dec, Token identifier, boolean isFinal, boolean isTrait) {
-        var node = new VarDecNode(dec);
-        node.setVar(new AstNode(NodeType.ID, identifier));
+    protected AstNode parseVarDec(TokenStream t, Token dec, Token identifier, boolean isFinal, boolean isTrait) {
+        var node = VarDec.make(dec, identifier);
         node.getSymbol().setFinal(isFinal);
         node.getSymbol().setTrait(isTrait);
 
         var expr = assignment.matchAll(t);
         if(expr != null){
-            node.setAssignExpr(expr);
+            node.addChild(expr);
         }
 
         return node;
     }
 
     @Override
-    public VarDecNode parse(TokenStream t){
+    public AstNode parse(TokenStream t){
         return declaration.matchAll(t);
     }
 }

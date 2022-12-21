@@ -65,11 +65,11 @@ public class MethodNode extends AstNode {
 		return defaultParamCount != 0;
 	}
 	
-	public void addParam(VarDecNode param){
+	public void addParam(AstNode param){
 		addParam(paramCount, param);
 	}
 
-	public void addParam(int index, VarDecNode param){
+	public void addParam(int index, AstNode param){
 		if(index > paramCount){
 			throw new IllegalArgumentException(String.format("Parameter index %d greater than parameter count %d"));
 		}
@@ -77,7 +77,7 @@ public class MethodNode extends AstNode {
 		children.add(paramCount, param);
 		paramCount++;
 
-		if(param.getAssignExpr() != null){
+		if(VarDec.getAssignment(param) != null){
 			defaultParamCount++;
 		}
 	}

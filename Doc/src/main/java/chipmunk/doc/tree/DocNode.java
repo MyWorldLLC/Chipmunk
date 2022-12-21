@@ -67,10 +67,10 @@ public class DocNode {
     }
 
     public boolean isVarNode(){
-        return sourceNode instanceof VarDecNode;
+        return sourceNode.is(NodeType.VAR_DEC);
     }
 
     public boolean isTraitVar(){
-        return isVarNode() && ((VarDecNode) sourceNode).getSymbol().isTrait();
+        return isVarNode() && sourceNode.getSymbol().isTrait();
     }
 }

@@ -69,13 +69,11 @@ public class ClassVisitor implements AstVisitor {
 				}
 			}
 			
-		}else if(node instanceof VarDecNode){
+		}else if(node.is(NodeType.VAR_DEC)){
 
-			VarDecNode varDec = (VarDecNode) node;
-
-			final boolean isShared = varDec.getSymbol().isShared();
-			final boolean isFinal = varDec.getSymbol().isFinal();
-			final boolean isTrait = varDec.getSymbol().isTrait();
+			final boolean isShared = node.getSymbol().isShared();
+			final boolean isFinal = node.getSymbol().isFinal();
+			final boolean isTrait = node.getSymbol().isTrait();
 
 			byte flags = 0;
 			if(isFinal){
@@ -93,7 +91,7 @@ public class ClassVisitor implements AstVisitor {
 				clsNamespace = cls.getInstanceNamespace();
 			}
 
-			clsNamespace.getEntries().add(new BinaryNamespace.Entry(varDec.getVarName(), flags));
+			clsNamespace.getEntries().add(new BinaryNamespace.Entry(VarDec.getIdentifier(node).getToken().text(), flags));
 			
 		}else if(node instanceof MethodNode){
 			MethodNode methodNode = (MethodNode) node;

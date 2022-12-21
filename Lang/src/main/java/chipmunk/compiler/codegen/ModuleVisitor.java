@@ -88,19 +88,17 @@ public class ModuleVisitor implements AstVisitor {
 
 			imports.add(im);
 
-		}else if(node instanceof VarDecNode){
-
-			VarDecNode varDec = (VarDecNode) node;
+		}else if(node.is(NodeType.VAR_DEC)){
 
 			byte flags = 0;
-			if(varDec.getSymbol().isFinal()){
+			if(node.getSymbol().isFinal()){
 				flags |= BinaryConstants.FINAL_FLAG;
 			}
 
 			// At this point, if there was an in-line assignment for this it was already moved to an initializer
 			// AST, so we don't need to do anything except add the method to the module namespace.
 			
-			module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(varDec.getVarName(), flags));
+			module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(VarDec.getVarName(node), flags));
 		}else{
 			throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
 		}

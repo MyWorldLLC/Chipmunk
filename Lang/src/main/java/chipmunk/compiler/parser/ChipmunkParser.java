@@ -133,7 +133,7 @@ public class ChipmunkParser {
 				
 			}else if(checkVarDec()){
 				
-				module.addVarDec(parseVarDec());
+				module.addChild(parseVarDec());
 				
 			}else if(checkMethodDef()){
 				
@@ -198,7 +198,7 @@ public class ChipmunkParser {
 			symbol.setShared(shared);
 			
 			if(checkVarOrTraitDec()){
-				VarDecNode varNode = parseVarOrTraitDec();
+				AstNode varNode = parseVarOrTraitDec();
 				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
@@ -251,7 +251,7 @@ public class ChipmunkParser {
 			symbol.setShared(shared);
 			
 			if(checkVarOrTraitDec()){
-				VarDecNode varNode = parseVarOrTraitDec();
+				AstNode varNode = parseVarOrTraitDec();
 				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
@@ -308,11 +308,11 @@ public class ChipmunkParser {
 
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
-			VarDecNode param = new VarDecNode();
-			param.setVar(new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER)));
+			var id = tokens.get();
+			AstNode param = VarDec.makeImplicit(id);
 			if(tokens.peek(TokenType.EQUALS)){
 				tokens.dropNext();
-				param.setAssignExpr(parseExpression());
+				VarDec.setAssignment(param, parseExpression());
 			}
 			tokens.dropNext(TokenType.COMMA);
 			node.addParam(param);
@@ -348,11 +348,11 @@ public class ChipmunkParser {
 
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
-			VarDecNode param = new VarDecNode();
-			param.setVar(new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER)));
+			var id = tokens.get();
+			AstNode param = VarDec.makeImplicit(id);
 			if(tokens.peek(TokenType.EQUALS)){
 				tokens.dropNext();
-				param.setAssignExpr(parseExpression());
+				VarDec.setAssignment(param, parseExpression());
 			}
 			tokens.dropNext(TokenType.COMMA);
 			node.addParam(param);
@@ -385,11 +385,11 @@ public class ChipmunkParser {
 				|| tokens.peek(TokenType.FINAL, TokenType.TRAIT);
 	}
 	
-	public VarDecNode parseVarOrTraitDec() {
+	public AstNode parseVarOrTraitDec() {
 		return new VarDecParser(true).parse(tokens);
 	}
 	
-	public VarDecNode parseVarDec(){
+	public AstNode parseVarDec(){
 		return new VarDecParser().parse(tokens);
 	}
 	
@@ -537,13 +537,13 @@ public class ChipmunkParser {
 		tokens.skipNewlines();
 		tokens.dropNext(TokenType.VAR);
 
-		AstNode varID = new AstNode(NodeType.ID, tokens.getNext(TokenType.IDENTIFIER));
+		var varID = tokens.getNext(TokenType.IDENTIFIER);
 
 		AstNode iter = new AstNode(NodeType.ITERATOR, tokens.getNext(TokenType.IN));
 		
 		AstNode expr = parseExpression();
 		
-		VarDecNode decl = new VarDecNode(varID);
+		AstNode decl = VarDec.makeImplicit(varID);
 
 		iter.addChild(decl);
 		iter.addChild(expr);

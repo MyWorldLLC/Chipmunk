@@ -60,7 +60,7 @@ public class ForVisitor implements AstVisitor {
 			codegen.exitScope();
 
 			// Generate the guard - the "next" bytecode operates as the guard
-			VarDecNode id = (VarDecNode) iter.getLeft();
+			AstNode id = iter.getLeft();
 			id.getSymbol().setFinal(true);
 			assembler.onLine(id.getLineNumber());
 			assembler.setLabelTarget(labels.getGuardLabel());
@@ -73,7 +73,7 @@ public class ForVisitor implements AstVisitor {
 			assembler.callAt("next", (byte) 0);
 			
 			// Set the next value returned by the iterator as a local variable
-			assembler.setLocal(symbols.getLocalIndex(id.getVarName()));
+			assembler.setLocal(symbols.getLocalIndex(VarDec.getVarName(id)));
 			
 			assembler.closeLine();
 			
