@@ -69,7 +69,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
                     child = rewriteQualified(child);
                     node.replaceChild(i, child);
-                    System.out.println(node);
+
                 }
             } else {
                 child.visit(this);
