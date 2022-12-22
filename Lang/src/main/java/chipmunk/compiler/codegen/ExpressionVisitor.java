@@ -42,8 +42,9 @@ public class ExpressionVisitor implements AstVisitor {
 	}
 	
 	public static boolean isExpressionNode(AstNode node) {
-		return node.is(NodeType.ID, NodeType.LITERAL, NodeType.LIST, NodeType.MAP, NodeType.OPERATOR, NodeType.CLASS)
-				|| node instanceof MethodNode;
+		return node.is(NodeType.ID, NodeType.LITERAL, NodeType.LIST,
+				NodeType.MAP, NodeType.OPERATOR,
+				NodeType.CLASS, NodeType.METHOD);
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.callAt("put", (byte)2);
 				assembler.pop();
 			}
-		}else if(node instanceof MethodNode){
+		}else if(node.is(NodeType.METHOD)){
 			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
 			visitor.visit(node);
 

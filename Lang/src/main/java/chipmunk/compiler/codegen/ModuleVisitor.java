@@ -64,7 +64,7 @@ public class ModuleVisitor implements AstVisitor {
 
 			module.getNamespace().addEntry(BinaryNamespace.Entry.makeClass(cls.getName(), (byte)0, cls));
 			
-		}else if(node instanceof MethodNode){
+		}else if(node.is(NodeType.METHOD)){
 			
 			MethodVisitor visitor = new MethodVisitor(constantPool, module);
 			node.visit(visitor);

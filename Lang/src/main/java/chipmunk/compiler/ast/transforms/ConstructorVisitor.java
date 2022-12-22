@@ -32,7 +32,7 @@ public class ConstructorVisitor implements AstVisitor {
 
             Symbol constructorSymbol = node.getSymbolTable().getSymbolLocal(node.getSymbol().getName());
             if(constructorSymbol == null){
-                MethodNode constructor = new MethodNode("$" + node.getSymbol().getName());
+                AstNode constructor = Methods.make("$" + node.getSymbol().getName());
 
                 node.addChild(constructor);
                 node.getSymbolTable().setSymbol(constructor.getSymbol());

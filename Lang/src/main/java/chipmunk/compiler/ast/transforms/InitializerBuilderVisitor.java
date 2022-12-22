@@ -39,8 +39,8 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             ModuleNode moduleNode = (ModuleNode) node;
 
-            MethodNode initializer = new MethodNode("$module_init$");
-            initializer.addParam(VarDec.makeImplicit("vm"));
+            AstNode initializer = Methods.make("$module_init$");
+            Methods.addParam(initializer, VarDec.makeImplicit("vm"));
             moduleNode.getChildren().add(0, initializer);
 
             // Create imported module fields & generate vm calls to initialize them
@@ -87,11 +87,11 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
         }else if(node.is(NodeType.CLASS)){
 
-            MethodNode sharedInitializer = new MethodNode("$class_init$");
+            AstNode sharedInitializer = Methods.make("$class_init$");
             sharedInitializer.getSymbol().setShared(true);
             node.getChildren().add(0, sharedInitializer);
 
-            MethodNode instanceInitializer = new MethodNode("$instance_init$");
+            AstNode instanceInitializer = Methods.make("$instance_init$");
             node.getChildren().add(1, instanceInitializer);
 
             modulesAndClasses.push(node);
@@ -119,12 +119,12 @@ public class InitializerBuilderVisitor implements AstVisitor {
             VarDec.removeAssignment(node);
 
             if (owner instanceof ModuleNode) {
-                ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
+                Methods.addToBody(owner.getChild(0), assignStatement);
             } else if (owner.is(NodeType.CLASS)) {
                 if (node.getSymbol().isShared()) {
-                    ((MethodNode) owner.getChildren().get(0)).addToBody(assignStatement);
+                    Methods.addToBody(owner.getChild(0), assignStatement);
                 } else {
-                    ((MethodNode) owner.getChildren().get(1)).addToBody(assignStatement);
+                    Methods.addToBody(owner.getChild(1), assignStatement);
                 }
             }
 

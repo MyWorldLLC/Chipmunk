@@ -61,7 +61,7 @@ public class ModuleNode extends AstNode {
 		addChild(node);
 	}
 	
-	public void addMethodDef(MethodNode node){
+	public void addMethodDef(AstNode node){
 		addChild(node);
 	}
 

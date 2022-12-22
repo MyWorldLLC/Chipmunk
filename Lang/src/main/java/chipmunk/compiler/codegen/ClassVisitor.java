@@ -93,38 +93,37 @@ public class ClassVisitor implements AstVisitor {
 
 			clsNamespace.getEntries().add(new BinaryNamespace.Entry(VarDec.getIdentifier(node).getToken().text(), flags));
 			
-		}else if(node instanceof MethodNode){
-			MethodNode methodNode = (MethodNode) node;
+		}else if(node.is(NodeType.METHOD)){
 			
 			MethodVisitor visitor = null;
-			
+
 			// this is the constructor
-			if(methodNode.getSymbol().getName().equals(cls.getName())){
+			if(node.getSymbol().getName().equals(cls.getName())){
 				if(alreadyReachedConstructor){
 					// TODO - throw error until we have support for multi-methods
 					throw new IllegalStateException("Only one constructor per class allowed");
 				}
 				alreadyReachedConstructor = true;
-				
+
 				ChipmunkAssembler assembler = new ChipmunkAssembler(constantPool);
-				
+
 				visitor = new MethodVisitor(assembler, module);
 				visitor.setDefaultReturn(false);
-				methodNode.visit(visitor);
+				node.visit(visitor);
 
 				// return self
 				visitor.genSelfReturn();
-				
+
 			}else{
 				// non-constructors
 				visitor = new MethodVisitor(constantPool, module);
-				methodNode.visit(visitor);
+				node.visit(visitor);
 			}
-				
-			BinaryMethod method = visitor.getMethod();
-			BinaryNamespace.Entry methodEntry = BinaryNamespace.Entry.makeMethod(methodNode.getName(), (byte)0, method);
 
-			if(methodNode.getSymbol().isShared()){
+			BinaryMethod method = visitor.getMethod();
+			BinaryNamespace.Entry methodEntry = BinaryNamespace.Entry.makeMethod(node.getSymbol().getName(), (byte)0, method);
+
+			if(node.getSymbol().isShared()){
 				// Shared method
 				cls.getSharedNamespace().addEntry(methodEntry);
 			}else{

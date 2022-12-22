@@ -166,7 +166,7 @@ public class ChipmunkCompiler {
 		module.setName("exp");
 		module.setFileName("runtimeExpression");
 
-		MethodNode method = new MethodNode("evaluate");
+		AstNode method = Methods.make("evaluate");
 		AstNode ret = new AstNode(NodeType.FLOW_CONTROL, new Token("return", TokenType.RETURN));
 
 		TokenStream tokens = lex(exp);
@@ -174,7 +174,7 @@ public class ChipmunkCompiler {
 
 		ret.getChildren().add(parser.parseExpression());
 
-		method.addToBody(ret);
+		Methods.addToBody(method, ret);
 
 		module.addMethodDef(method);
 
@@ -189,7 +189,7 @@ public class ChipmunkCompiler {
 		TokenStream tokens = lex(methodDef);
 		ChipmunkParser parser = new ChipmunkParser(tokens);
 
-		MethodNode method = parser.parseMethodDef();
+		AstNode method = parser.parseMethodDef();
 
 		module.addMethodDef(method);
 

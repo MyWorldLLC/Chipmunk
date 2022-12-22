@@ -39,7 +39,7 @@ public class MethodVisitor implements AstVisitor {
 	protected Codegen outerCodegen;
 	protected SymbolTable symbols;
 	protected Codegen codegen;
-	protected MethodNode methodNode;
+	protected AstNode methodNode;
 	
 	protected BinaryModule module;
 	
@@ -75,11 +75,11 @@ public class MethodVisitor implements AstVisitor {
 		
 		method = new BinaryMethod();
 		
-		if(node instanceof MethodNode){
-			methodNode = (MethodNode) node;
-			
-			method.setArgCount(methodNode.getParamCount());
-			method.setDefaultArgCount(methodNode.getDefaultParamCount());
+		if(node.is(METHOD)){
+			methodNode = node;
+
+			method.setArgCount(Methods.getParamCount(node));
+			//method.setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
 			method.setDeclarationSymbol(symbols.getDebugSymbol());
@@ -104,14 +104,14 @@ public class MethodVisitor implements AstVisitor {
 			// TODO - this will overwrite all default arguments that were supplied. To support these
 			// properly, generate code to determine number of arguments in call and jump to the right
 			// point to initialize non-supplied arguments.
-			int startAt = methodNode.getParamCount();
-			if(methodNode.hasDefaultParams()){
+			int startAt = Methods.getParamCount(methodNode);
+			/*if(methodNode.hasDefaultParams()){
 				startAt -= methodNode.getDefaultParamCount();
 				// TODO
-			}
+			}*/
 			
 			codegen.enterScope(symbols);
-			if(methodNode.getChildren().size() == methodNode.getParamCount() + 1 
+			if(methodNode.getChildren().size() == Methods.getParamCount(methodNode) + 1
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChildren().get(methodNode.getChildren().size() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
@@ -119,7 +119,7 @@ public class MethodVisitor implements AstVisitor {
 				assembler._return();
 			}else {
 				// regular methods
-				methodNode.visitChildren(codegen, startAt);
+				methodNode.visitChildren(codegen, 2);
 			}
 			codegen.exitScope();
 			

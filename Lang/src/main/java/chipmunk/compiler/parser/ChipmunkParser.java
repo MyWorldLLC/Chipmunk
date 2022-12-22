@@ -137,7 +137,7 @@ public class ChipmunkParser {
 				
 			}else if(checkMethodDef()){
 				
-				MethodNode node = parseMethodDef();
+				AstNode node = parseMethodDef();
 				module.addMethodDef(node);
 				
 			}else if(checkClassDef()){
@@ -202,7 +202,7 @@ public class ChipmunkParser {
 				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
-				MethodNode methodNode = parseMethodDef();
+				AstNode methodNode = parseMethodDef();
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
 			}else if(checkClassDef()){
@@ -255,7 +255,7 @@ public class ChipmunkParser {
 				varNode.getSymbol().setShared(shared);
 				node.addChild(varNode);
 			}else if(checkMethodDef()){
-				MethodNode methodNode = parseMethodDef();
+				AstNode methodNode = parseMethodDef();
 				methodNode.getSymbol().setShared(shared);
 				node.addChild(methodNode);
 			}else if(checkClassDef()){
@@ -294,17 +294,17 @@ public class ChipmunkParser {
 		}
 	}
 	
-	public MethodNode parseMethodDef(){
+	public AstNode parseMethodDef(){
 		tokens.skipNewlinesAndComments();
-		
-		MethodNode node = new MethodNode();
-		
+
+		boolean isFinal = false;
 		if(tokens.dropNext(TokenType.FINAL)){
-			node.getSymbol().setFinal(true);
+			isFinal = true;
 		}
 
-		tokens.forceNext(TokenType.DEF);
-		node.setName(tokens.getNext(TokenType.IDENTIFIER).text());
+		var def = tokens.getNext(TokenType.DEF);
+		AstNode node = Methods.make(def, tokens.getNext(TokenType.IDENTIFIER));
+		node.getSymbol().setFinal(isFinal);
 
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
@@ -315,7 +315,7 @@ public class ChipmunkParser {
 				VarDec.setAssignment(param, parseExpression());
 			}
 			tokens.dropNext(TokenType.COMMA);
-			node.addParam(param);
+			Methods.addParam(node, param);
 		}
 		tokens.forceNext(TokenType.RPAREN);
 		tokens.skipNewlinesAndComments();
@@ -330,21 +330,21 @@ public class ChipmunkParser {
 			// TODO - this should move to the code generator
 			AstNode unimplemented = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
 					new AstNode(NodeType.ID, new Token("unimplementedMethod", TokenType.IDENTIFIER)));
-			node.addToBody(unimplemented);
+			Methods.addToBody(node, unimplemented);
 		}else{
 			AstNode expression = parseExpression();
-			node.addToBody(expression);
+			Methods.addToBody(node, expression);
 		}
 
 		return node;
 	}
 	
-	public MethodNode parseAnonMethodDef(){
+	public AstNode parseAnonMethodDef(){
 		tokens.skipNewlinesAndComments();
 		
-		MethodNode node = new MethodNode();
-
-		node.setName("anonL" + tokens.peek().line() + "C" + tokens.peek().column());
+		AstNode node = Methods.make(
+				new Token("def", TokenType.DEF),
+				Methods.anonymousName(tokens.peek().line(), tokens.peek().column()));
 
 		tokens.forceNext(TokenType.LPAREN);
 		while(tokens.peek(TokenType.IDENTIFIER)){
@@ -355,7 +355,7 @@ public class ChipmunkParser {
 				VarDec.setAssignment(param, parseExpression());
 			}
 			tokens.dropNext(TokenType.COMMA);
-			node.addParam(param);
+			Methods.addParam(node, param);
 			tokens.dropNext(TokenType.COMMA);
 		}
 		tokens.forceNext(TokenType.RPAREN);
@@ -368,7 +368,7 @@ public class ChipmunkParser {
 			parseBlockBody(node);
 		}else {
 			AstNode expression = parseExpression();
-			node.addToBody(expression);
+			Methods.addToBody(node, expression);
 		}
 
 		return node;

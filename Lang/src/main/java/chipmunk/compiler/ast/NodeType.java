@@ -27,6 +27,7 @@ public enum NodeType {
     IMPORT(),
     CLASS(SymbolTable.Scope.CLASS),
     METHOD(SymbolTable.Scope.METHOD),
+    PARAM_LIST,
     VAR_DEC(),
     ID(),
     IF_ELSE(),
