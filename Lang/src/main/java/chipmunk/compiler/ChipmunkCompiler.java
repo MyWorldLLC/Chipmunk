@@ -155,7 +155,7 @@ public class ChipmunkCompiler {
 			var parsed = parsedModules.get(i);
 			var ast = parsed.ast();
 
-			ModuleVisitor visitor = new ModuleVisitor();
+			ModuleVisitor visitor = new ModuleVisitor(parsed.fileName());
 			ast.visit(visitor);
 
 			BinaryModule module = visitor.getModule();

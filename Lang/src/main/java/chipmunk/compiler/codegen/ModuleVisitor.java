@@ -28,7 +28,8 @@ import chipmunk.compiler.ast.*;
 import chipmunk.compiler.symbols.Symbol;
 
 public class ModuleVisitor implements AstVisitor {
-	
+
+	protected String fileName;
 	protected BinaryModule module;
 	protected Codegen initCodegen;
 
@@ -36,7 +37,8 @@ public class ModuleVisitor implements AstVisitor {
 	protected List<BinaryImport> imports;
 	protected BinaryNamespace namespace;
 	
-	public ModuleVisitor(){
+	public ModuleVisitor(String fileName){
+		this.fileName = fileName;
 		constantPool = new ArrayList<>();
 		imports = new ArrayList<>();
 		namespace = new BinaryNamespace();
@@ -49,6 +51,7 @@ public class ModuleVisitor implements AstVisitor {
 			node.getSymbolTable().setDebugSymbol(node.getSymbol().getName());
 
 			module = new BinaryModule(node.getSymbol().getName());
+			module.setFileName(fileName);
 
 			//imports.add(new BinaryImport("chipmunk.lang", true));
 
