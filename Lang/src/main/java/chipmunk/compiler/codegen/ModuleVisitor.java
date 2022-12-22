@@ -44,16 +44,15 @@ public class ModuleVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
-		if(node instanceof ModuleNode){
-			
-			ModuleNode moduleNode = (ModuleNode) node;
-			moduleNode.getSymbolTable().setDebugSymbol(moduleNode.getName());
+		if(node.is(NodeType.MODULE)){
 
-			module = new BinaryModule(moduleNode.getSymbol().getName());
+			node.getSymbolTable().setDebugSymbol(node.getSymbol().getName());
+
+			module = new BinaryModule(node.getSymbol().getName());
 
 			//imports.add(new BinaryImport("chipmunk.lang", true));
 
-			moduleNode.visitChildren(this);
+			node.visitChildren(this);
 			
 		}else if(node.is(NodeType.CLASS)){
 			

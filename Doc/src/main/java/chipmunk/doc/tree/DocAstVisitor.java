@@ -58,10 +58,9 @@ public class DocAstVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
-        if(node instanceof ModuleNode){
-            ModuleNode moduleNode = (ModuleNode) node;
+        if(node.is(NodeType.MODULE)){
 
-            moduleRoots.add(enterDocNode(moduleNode));
+            moduleRoots.add(enterDocNode(node));
 
             node.visitChildren(this);
 

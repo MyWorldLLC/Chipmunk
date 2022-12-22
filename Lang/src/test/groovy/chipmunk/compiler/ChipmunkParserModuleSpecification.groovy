@@ -20,7 +20,7 @@
 
 package chipmunk.compiler
 
-import chipmunk.compiler.ast.ModuleNode
+import chipmunk.compiler.ast.AstNode
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser
 import spock.lang.Specification
@@ -34,10 +34,10 @@ class ChipmunkParserModuleSpecification extends Specification {
 		def parser = new ChipmunkParser(lexer.getLastTokens())
 		
 		when:
-		ModuleNode node = parser.parseModule();
+		AstNode node = parser.parseModule();
 		
 		then:
-		node.toString() == "(module foobar foobar)"
+		node.toString() == "(module foobar)"
 	}
 	
 	def "parse module def with var defs"(){
@@ -53,9 +53,9 @@ class ChipmunkParserModuleSpecification extends Specification {
 		def parser = new ChipmunkParser(tokens)
 		
 		when:
-		ModuleNode node = parser.parseModule();
+		AstNode node = parser.parseModule();
 		
 		then:
-		node.toString() == "(module foobar foobar (var_dec asdf (id asdf)) (var_dec asdf2 (id asdf2) (operator + (literal 1) (literal 2))))"
+		node.toString() == "(module foobar (var_dec asdf (id asdf)) (var_dec asdf2 (id asdf2) (operator + (literal 1) (literal 2))))"
 	}
 }

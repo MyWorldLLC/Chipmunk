@@ -106,14 +106,14 @@ public class ChipmunkCompiler {
 		return lexer.lex(src);
 	}
 
-	public List<ModuleNode> parse(TokenStream tokens, String sourceName) throws CompileChipmunk {
+	public List<AstNode> parse(TokenStream tokens, String sourceName) throws CompileChipmunk {
 		ChipmunkParser parser = new ChipmunkParser(tokens);
 		parser.setFileName(sourceName);
 		parser.parse();
 		return parser.getModuleRoots();
 	}
 
-	public void visitAst(ModuleNode node, List<AstVisitor> visitors){
+	public void visitAst(AstNode node, List<AstVisitor> visitors){
 		visitors.forEach(v -> v.visit(node));
 	}
 
@@ -124,37 +124,42 @@ public class ChipmunkCompiler {
 	}
 
 	public BinaryModule[] compile(Compilation compilation) throws CompileChipmunk {
-		List<ModuleNode> asts = new ArrayList<>();
+		var asts = new ArrayList<ParsedModule>();
 
 		for(ChipmunkSource source : compilation.getSources()){
-			List<ModuleNode> parsed = parse(lex(source.readFully()), source.getFileName());
-			asts.addAll(parsed);
+			List<AstNode> parsed = parse(lex(source.readFully()), source.getFileName());
+			parsed.forEach(n -> asts.add(new ParsedModule(source.getFileName(), n)));
 		}
 
 		return compile(asts);
 	}
 
-	public BinaryModule[] compile(ModuleNode... asts) throws CompileChipmunk {
-		return compile(Arrays.asList(asts));
+	public BinaryModule[] compile(AstNode... asts) throws CompileChipmunk {
+		return compile(Arrays.stream(asts).map(a -> new ParsedModule("<memory>", a)).toList());
 	}
 
-	public BinaryModule[] compile(List<ModuleNode> asts) throws CompileChipmunk {
-		astResolver.setModules(asts);
+	public BinaryModule[] compile(ParsedModule... modules) throws CompileChipmunk {
+		return compile(Arrays.asList(modules));
+	}
 
-		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.POST_PARSE)));
-		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.SYMBOL_RESOLUTION)));
-		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.IMPORT_RESOLUTION)));
-		asts.forEach(moduleNode -> visitAst(moduleNode, passes.get(Pass.PRE_ASSEMBLY)));
+	public BinaryModule[] compile(List<ParsedModule> parsedModules) throws CompileChipmunk {
+		astResolver.setModules(parsedModules.stream().map(ParsedModule::ast).toList());
 
-		BinaryModule[] modules = new BinaryModule[asts.size()];
-		for(int i = 0; i < asts.size(); i++){
-			ModuleNode ast = asts.get(i);
+		parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.POST_PARSE)));
+		parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.SYMBOL_RESOLUTION)));
+		parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.IMPORT_RESOLUTION)));
+		parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.PRE_ASSEMBLY)));
+
+		BinaryModule[] modules = new BinaryModule[parsedModules.size()];
+		for(int i = 0; i < parsedModules.size(); i++){
+			var parsed = parsedModules.get(i);
+			var ast = parsed.ast();
 
 			ModuleVisitor visitor = new ModuleVisitor();
 			ast.visit(visitor);
 
 			BinaryModule module = visitor.getModule();
-			module.setFileName(ast.getFileName());
+			module.setFileName(parsed.fileName());
 			modules[i] = module;
 		}
 
@@ -162,9 +167,7 @@ public class ChipmunkCompiler {
 	}
 
 	public BinaryModule compileExpression(String exp) throws CompileChipmunk {
-		ModuleNode module = new ModuleNode();
-		module.setName("exp");
-		module.setFileName("runtimeExpression");
+		AstNode module = Modules.make("exp");
 
 		AstNode method = Methods.make("evaluate");
 		AstNode ret = new AstNode(NodeType.FLOW_CONTROL, new Token("return", TokenType.RETURN));
@@ -176,22 +179,20 @@ public class ChipmunkCompiler {
 
 		Methods.addToBody(method, ret);
 
-		module.addMethodDef(method);
+		module.addChild(method);
 
-		return compile(module)[0];
+		return compile(new ParsedModule("runtimeExpression", module))[0];
 	}
 
 	public BinaryModule compileMethod(String methodDef) throws CompileChipmunk {
-		ModuleNode module = new ModuleNode();
-		module.setName("exp");
-		module.setFileName("runtimeMethod");
+		AstNode module = Modules.make("exp");
 
 		TokenStream tokens = lex(methodDef);
 		ChipmunkParser parser = new ChipmunkParser(tokens);
 
 		AstNode method = parser.parseMethodDef();
 
-		module.addMethodDef(method);
+		module.addChild(method);
 
 		return compile(module)[0];
 	}

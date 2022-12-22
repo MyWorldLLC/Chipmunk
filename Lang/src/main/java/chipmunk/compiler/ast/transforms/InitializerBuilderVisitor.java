@@ -35,16 +35,14 @@ public class InitializerBuilderVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
-        if(node instanceof ModuleNode){
-
-            ModuleNode moduleNode = (ModuleNode) node;
+        if(node.is(NodeType.MODULE)){
 
             AstNode initializer = Methods.make("$module_init$");
             Methods.addParam(initializer, VarDec.makeImplicit("vm"));
-            moduleNode.getChildren().add(0, initializer);
+            node.addChild(0, initializer);
 
             // Create imported module fields & generate vm calls to initialize them
-            List<AstNode> imports = moduleNode.getChildren()
+            List<AstNode> imports = node.getChildren()
                     .stream()
                     .filter(n -> n.is(NodeType.IMPORT))
                     .collect(Collectors.toList());
@@ -67,19 +65,19 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
-                vmDotNode.getChildren().add(Identifier.make("vm"));
-                vmDotNode.getChildren().add(Identifier.make("getModule"));
+                vmDotNode.addChild(Identifier.make("vm"));
+                vmDotNode.addChild(Identifier.make("getModule"));
 
-                getModuleCallNode.getChildren().add(vmDotNode);
-                getModuleCallNode.getChildren().add(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
+                getModuleCallNode.addChild(vmDotNode);
+                getModuleCallNode.addChild(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
 
                 VarDec.setAssignment(dec, getModuleCallNode);
-                moduleNode.getChildren().add(dec);
+                node.addChild(dec);
 
                 alreadyImported.add(moduleName);
             }
 
-            modulesAndClasses.push(moduleNode);
+            modulesAndClasses.push(node);
 
             node.visitChildren(this);
 
@@ -89,10 +87,10 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             AstNode sharedInitializer = Methods.make("$class_init$");
             sharedInitializer.getSymbol().setShared(true);
-            node.getChildren().add(0, sharedInitializer);
+            node.addChild(0, sharedInitializer);
 
             AstNode instanceInitializer = Methods.make("$instance_init$");
-            node.getChildren().add(1, instanceInitializer);
+            node.addChild(1, instanceInitializer);
 
             modulesAndClasses.push(node);
 
@@ -113,12 +111,12 @@ public class InitializerBuilderVisitor implements AstVisitor {
             AstNode id = new AstNode(NodeType.ID, VarDec.getIdentifier(node).getToken());
 
             AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
-            assignStatement.getChildren().add(id);
-            assignStatement.getChildren().add(assignExpression);
+            assignStatement.addChild(id);
+            assignStatement.addChild(assignExpression);
 
             VarDec.removeAssignment(node);
 
-            if (owner instanceof ModuleNode) {
+            if (owner.is(NodeType.MODULE)) {
                 Methods.addToBody(owner.getChild(0), assignStatement);
             } else if (owner.is(NodeType.CLASS)) {
                 if (node.getSymbol().isShared()) {

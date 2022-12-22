@@ -20,7 +20,7 @@
 
 package chipmunk.doc;
 
-import chipmunk.compiler.ast.ModuleNode;
+import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.transforms.SymbolTableBuilderVisitor;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.parser.ChipmunkParser;
@@ -66,9 +66,9 @@ public class DocGenerator {
         SymbolTableBuilderVisitor symbolVisitor = new SymbolTableBuilderVisitor();
 
         parser.parse();
-        List<ModuleNode> modules = parser.getModuleRoots();
+        List<AstNode> modules = parser.getModuleRoots();
 
-        for(ModuleNode module : modules){
+        for(AstNode module : modules){
             symbolVisitor.visit(module);
             astVisitor.visit(module);
         }

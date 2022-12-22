@@ -20,8 +20,8 @@
 
 package chipmunk.compiler.imports;
 
+import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.symbols.Symbol;
-import chipmunk.compiler.ast.ModuleNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,28 +30,28 @@ import java.util.stream.Collectors;
 
 public class AstImportResolver implements ImportResolver {
 
-    protected List<ModuleNode> modules;
+    protected List<AstNode> modules;
 
     public AstImportResolver(){
         modules = new ArrayList<>();
     }
 
-    public AstImportResolver(List<ModuleNode> modules){
+    public AstImportResolver(List<AstNode> modules){
         this.modules = modules;
     }
 
-    public List<ModuleNode> getModules() {
+    public List<AstNode> getModules() {
         return modules;
     }
 
-    public void setModules(List<ModuleNode> modules) {
+    public void setModules(List<AstNode> modules) {
         this.modules = modules;
     }
 
     @Override
     public Symbol resolve(String moduleName, String name) {
 
-        Optional<ModuleNode> node = getModuleNode(moduleName);
+        Optional<AstNode> node = getModuleNode(moduleName);
 
         if(node.isEmpty()){
             return null;
@@ -68,7 +68,7 @@ public class AstImportResolver implements ImportResolver {
     @Override
     public List<Symbol> resolveSymbols(String moduleName) {
 
-        Optional<ModuleNode> node = getModuleNode(moduleName);
+        Optional<AstNode> node = getModuleNode(moduleName);
         if(node.isEmpty()){
             return null;
         }
@@ -81,9 +81,9 @@ public class AstImportResolver implements ImportResolver {
                 .collect(Collectors.toList());
     }
 
-    public Optional<ModuleNode> getModuleNode(String moduleName){
+    public Optional<AstNode> getModuleNode(String moduleName){
         return modules.stream()
-                .filter(n -> n.getName().equals(moduleName))
+                .filter(n -> n.getSymbol().getName().equals(moduleName))
                 .findFirst();
     }
 }

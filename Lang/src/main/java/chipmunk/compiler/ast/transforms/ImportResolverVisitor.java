@@ -54,8 +54,8 @@ public class ImportResolverVisitor implements AstVisitor {
 
     @Override
     public void visit(AstNode node) {
-        if(node instanceof ModuleNode){
-            currentScope = ((ModuleNode) node).getSymbolTable();
+        if(node.is(NodeType.MODULE)){
+            currentScope = node.getSymbolTable();
             node.visitChildren(this);
         }else if(node.is(NodeType.IMPORT)){
 

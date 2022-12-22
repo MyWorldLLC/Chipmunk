@@ -59,7 +59,7 @@ public class DocNode {
     }
 
     public boolean isModuleNode(){
-        return sourceNode instanceof ModuleNode;
+        return sourceNode.is(NodeType.MODULE);
     }
 
     public boolean isClassNode(){

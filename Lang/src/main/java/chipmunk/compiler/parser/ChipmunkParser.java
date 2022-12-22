@@ -50,7 +50,7 @@ public class ChipmunkParser {
 	protected TokenStream tokens;
 	protected String fileName;
 
-	private List<ModuleNode> moduleRoots;
+	private List<AstNode> moduleRoots;
 	
 	public ChipmunkParser(TokenStream source){
 		tokens = source;
@@ -79,13 +79,12 @@ public class ChipmunkParser {
 		}
 	}
 	
-	public List<ModuleNode> getModuleRoots(){
+	public List<AstNode> getModuleRoots(){
 		return moduleRoots;
 	}
 	
-	public ModuleNode parseModule(){
-		ModuleNode module = new ModuleNode();
-		module.setFileName(fileName);
+	public AstNode parseModule(){
+		AstNode module;
 
 		// parse imports, literal assignments, class definitions, method definitions, and module declarations
 		tokens.skipNewlinesAndComments();
@@ -117,9 +116,9 @@ public class ChipmunkParser {
 					}
 				}
 			}
-			module.setName(moduleName.toString());
+			module = Modules.make(moduleName.toString());
 		}else{
-			module.setName("default");
+			module = Modules.make("default");
 		}
 
 		tokens.skipNewlinesAndComments();
@@ -129,7 +128,7 @@ public class ChipmunkParser {
 		while(nextType != TokenType.EOF){
 			if(checkImport()){
 				
-				module.addImport(parseImport());
+				module.addChild(parseImport());
 				
 			}else if(checkVarDec()){
 				
@@ -138,7 +137,7 @@ public class ChipmunkParser {
 			}else if(checkMethodDef()){
 				
 				AstNode node = parseMethodDef();
-				module.addMethodDef(node);
+				module.addChild(node);
 				
 			}else if(checkClassDef()){
 				

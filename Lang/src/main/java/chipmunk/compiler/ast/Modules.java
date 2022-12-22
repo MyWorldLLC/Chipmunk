@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 MyWorld, LLC
+ * Copyright (C) 2022 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,28 +18,26 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ast.transforms;
+package chipmunk.compiler.ast;
 
-import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
-import chipmunk.modules.lang.LangModule;
+import chipmunk.compiler.symbols.Symbol;
 
-import java.util.List;
+public class Modules {
 
-public class LangImportVisitor implements AstVisitor {
-
-    @Override
-    public void visit(AstNode node) {
-        if(node.is(NodeType.MODULE)) {
-
-            var langImport = Imports.makePlain(
-                    new Token("import", TokenType.IMPORT),
-                    new Token(LangModule.MODULE_NAME, TokenType.IDENTIFIER),
-                    new Token("import", TokenType.IMPORT),
-                    List.of(new Token("*", TokenType.STAR)));
-
-            node.addChild(0, langImport);
-        }
+    public static AstNode make(String name){
+        return make(new Token("module", TokenType.MODULE), name);
     }
+
+    public static AstNode make(Token token, String name){
+        return make(token, new Token(name, TokenType.IDENTIFIER));
+    }
+
+    public static AstNode make(Token token, Token name){
+        AstNode node = new AstNode(NodeType.MODULE, token);
+        node.setSymbol(new Symbol(name.text()));
+        return node;
+    }
+
 }
