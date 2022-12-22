@@ -44,7 +44,7 @@ public class VarDec {
 
     public static AstNode getAssignment(AstNode node){
         Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getType());
-        if(node.getChildren().size() > 1){
+        if(node.childCount() > 1){
             return node.getChild(1);
         }
         return null;
@@ -57,13 +57,13 @@ public class VarDec {
 
     public static void removeAssignment(AstNode node){
         if(getAssignment(node) != null){
-            node.getChildren().remove(1);
+            node.removeChild(1);
         }
     }
 
     public static void setAssignment(AstNode node, AstNode expr){
         removeAssignment(node);
-        node.getChildren().add(1, expr);
+        node.addChild(1, expr);
     }
 
     public static String getVarName(AstNode node){

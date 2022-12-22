@@ -26,6 +26,7 @@ import chipmunk.compiler.symbols.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -79,7 +80,7 @@ public class AstNode {
 	}
 
 	public List<AstNode> getChildren(){
-		return children;
+		return Collections.unmodifiableList(children);
 	}
 
 	public AstNode getLeft(){
@@ -129,6 +130,21 @@ public class AstNode {
 	public AstNode withChild(AstNode child){
 		addChild(child);
 		return this;
+	}
+
+	public void replaceChild(int index, AstNode child){
+		children.set(index, child).setParent(null);
+		child.setParent(this);
+	}
+
+	public void removeChild(AstNode child){
+		if(children.remove(child)){
+			child.setParent(null);
+		}
+	}
+
+	public void removeChild(int index){
+		children.remove(index).setParent(null);
 	}
 	
 	protected void addChildren(AstNode... children){

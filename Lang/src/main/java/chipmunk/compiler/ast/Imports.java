@@ -46,7 +46,7 @@ public class Imports {
 
     public static boolean isImportAll(AstNode n){
         Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getType());
-        return n.getChildren().size() > 1 && n.getChild(1).getChildren().get(0).getSymbol().getName().equals("*");
+        return n.childCount() > 1 && n.getChild(1).getChild(0).getSymbol().getName().equals("*");
     }
 
     public static void setModule(AstNode n, Token moduleName){
@@ -62,18 +62,18 @@ public class Imports {
 
     public static List<Symbol> symbols(AstNode n){
         //Require.require(!isImportAll(n), "No symbols are imported from an import * node.");
-        return n.getChildren().size() > 1 ? childSymbols(n.getChild(1)) : List.of();
+        return n.childCount() > 1 ? childSymbols(n.getChild(1)) : List.of();
     }
 
     public static List<Symbol> aliases(AstNode n){
         Require.require(!isImportAll(n), "No symbols are aliased from an import * node.");
         Require.require(isAliased(n), "Node does not define aliases");
-        return n.getChildren().size() == 3 ? childSymbols(n.getChild(2)) : List.of();
+        return n.childCount() == 3 ? childSymbols(n.getChild(2)) : List.of();
     }
 
     public static boolean isAliased(AstNode n){
         Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getType());
-        return n.getChildren().size() == 3;
+        return n.childCount() == 3;
     }
 
     public static boolean verifyAliasCount(AstNode n){

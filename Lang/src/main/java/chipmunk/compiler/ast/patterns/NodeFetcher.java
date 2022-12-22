@@ -27,7 +27,7 @@ import java.util.function.Function;
 public interface NodeFetcher extends Function<AstNode, AstNode> {
 
     static NodeFetcher child(int index){
-        return p -> p.getChildren().get(index);
+        return p -> p.getChild(index);
     }
 
     static NodeFetcher child(NodeFetcher delegate, int index){

@@ -89,12 +89,12 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(node.is(NodeType.LIST)){
 
 			assembler.onLine(node.getLineNumber());
-			assembler.list(node.getChildren().size());
+			assembler.list(node.childCount());
 
-			for(int i = 0; i < node.getChildren().size(); i++){
+			for(int i = 0; i < node.childCount(); i++){
 				// visit expression
 				assembler.dup();
-				this.visit(node.getChildren().get(i));
+				this.visit(node.getChild(i));
 				assembler.callAt("add", (byte)1);
 				assembler.pop();
 			}
@@ -102,16 +102,16 @@ public class ExpressionVisitor implements AstVisitor {
 		}else if(node.is(NodeType.MAP)){
 
 			assembler.onLine(node.getLineNumber());
-			assembler.map(node.getChildren().size());
+			assembler.map(node.childCount());
 
-			for(int i = 0; i < node.getChildren().size(); i++){
+			for(int i = 0; i < node.childCount(); i++){
 				assembler.dup();
 				// visit key & value expressions
-				AstNode keyValue = node.getChildren().get(i);
+				AstNode keyValue = node.getChild(i);
 				// key
-				this.visit(keyValue.getChildren().get(0));
+				this.visit(keyValue.getChild(0));
 				// value
-				this.visit(keyValue.getChildren().get(1));
+				this.visit(keyValue.getChild(1));
 				assembler.callAt("put", (byte)2);
 				assembler.pop();
 			}
@@ -373,12 +373,12 @@ public class ExpressionVisitor implements AstVisitor {
 			dotOp.getLeft().visit(this);
 			op.visitChildren(this, 1);
 			
-			int argCount = op.getChildren().size() - 1;
+			int argCount = op.childCount() - 1;
 			assembler.onLine(op.getLineNumber());
 			assembler.callAt(callID.getToken().text(), (byte)argCount);
 			
 		}else{
-			int argCount = op.getChildren().size() - 1;
+			int argCount = op.childCount() - 1;
 			op.visitChildren(this);
 			assembler.onLine(op.getLineNumber());
 			assembler.call((byte) argCount);

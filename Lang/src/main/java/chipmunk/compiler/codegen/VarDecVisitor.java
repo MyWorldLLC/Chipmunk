@@ -39,8 +39,8 @@ public class VarDecVisitor implements AstVisitor {
 		ChipmunkAssembler assembler = codegen.getAssembler();
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(node.getChild().getToken().text());
 		
-		if(node.getChildren().size() > 1){
-			node.getChildren().get(1).visit(new ExpressionVisitor(codegen));
+		if(node.childCount() > 1){
+			node.getChild(1).visit(new ExpressionVisitor(codegen));
 		}else{
 			assembler.pushNull();
 		}

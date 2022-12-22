@@ -175,7 +175,7 @@ public class ChipmunkCompiler {
 		TokenStream tokens = lex(exp);
 		ChipmunkParser parser = new ChipmunkParser(tokens);
 
-		ret.getChildren().add(parser.parseExpression());
+		ret.addChild(parser.parseExpression());
 
 		Methods.addToBody(method, ret);
 

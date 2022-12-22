@@ -34,7 +34,7 @@ public class AstMatchVisitor implements Visitor<AstNode> {
     @Override
     public AstNode get() {
         if(hasMore()){
-            var next = node.getChildren().get(index);
+            var next = node.getChild(index);
             index++;
             return next;
         }
@@ -43,7 +43,7 @@ public class AstMatchVisitor implements Visitor<AstNode> {
 
     @Override
     public boolean hasMore(){
-        return index < node.getChildren().size();
+        return index < node.childCount();
     }
 
     @Override

@@ -111,11 +111,11 @@ public class MethodVisitor implements AstVisitor {
 			}*/
 			
 			codegen.enterScope(symbols);
-			if(methodNode.getChildren().size() == Methods.getParamCount(methodNode) + 1
-					&& ExpressionVisitor.isExpressionNode(methodNode.getChildren().get(methodNode.getChildren().size() - 1))) {
+			if(methodNode.childCount() == Methods.getParamCount(methodNode) + 1
+					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
-				visitor.visit(methodNode.getChildren().get(methodNode.getChildren().size() - 1));
+				visitor.visit(methodNode.getChild(methodNode.childCount() - 1));
 				assembler._return();
 			}else {
 				// regular methods
