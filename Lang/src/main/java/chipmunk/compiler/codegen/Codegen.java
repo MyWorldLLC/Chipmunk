@@ -85,7 +85,7 @@ public class Codegen implements AstVisitor {
 		AstVisitor visitor = visitors.get(node.getType());
 		
 		if(visitor == null){
-			throw new IllegalArgumentException("Unknown node type: " + node.getType());
+			throw new IllegalArgumentException("Unknown node type %s at %d:%d ".formatted(node.getType(), node.getToken().line(), node.getToken().column()));
 		}
 		
 		node.visit(visitor);

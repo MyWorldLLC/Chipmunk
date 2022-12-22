@@ -220,7 +220,7 @@ public class ChipmunkParser {
 			tokens.skipNewlines();
 			
 			if(tokens.peek(TokenType.EOF)){
-				syntaxError(String.format("Expected } at %d:%d, got EOF", fileName, tokens.peek().line(), tokens.peek().column()), fileName, tokens.peek());
+				syntaxError(String.format("Expected } at %s %d:%d, got EOF", fileName, tokens.peek().line(), tokens.peek().column()), fileName, tokens.peek());
 			}
 		}
 		tokens.forceNext(TokenType.RBRACE);
