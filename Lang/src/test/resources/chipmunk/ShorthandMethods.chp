@@ -17,8 +17,12 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
+var asdf = 2
+
 def shorthand() 1
 
-def shorthand2() 2 * 3
+def shorthand2() asdf
 
-def main() shorthand() + shorthand2()
+def shorthand3() 3
+
+def main() shorthand() + shorthand2() * shorthand3()

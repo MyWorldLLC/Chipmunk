@@ -47,33 +47,39 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
 
+        if(node.is(NodeType.IMPORT)){
+            return;
+        }
+
         if(node.getType().isBlock()){
             scope = node.getSymbolTable();
-            node.visitChildren(this);
-            scope = scope.getParent();
-        }else if(node.is(NodeType.VAR_DEC, NodeType.FLOW_CONTROL,
-                NodeType.OPERATOR, NodeType.ITERATOR, NodeType.LIST,
-                NodeType.MAP, NodeType.KEY_VALUE)){
-            // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
-            // that are non-local
-
-            // If visiting a variable declaration, don't rewrite the variable name being declared!
-            int startIndex = node.is(NodeType.VAR_DEC) ? 1 : 0;
-            for(int i = startIndex; i < node.childCount(); i++){
-                AstNode child = node.getChild(i);
-
-                if(child.is(NodeType.ID) && !isQualified(node, child)){
-                    if(!isMethodBindTarget(node, i)){
-                        child = rewriteQualified(child);
-                        node.replaceChild(i, child);
-                    }
-                }else{
-                    child.visit(this);
-                }
-            }
-        }else{
-            node.visitChildren(this);
         }
+
+        // Recurse to find all non-qualified terminal symbols & rewrite all symbol accesses
+        // that are non-local
+
+        // If visiting a variable declaration, don't rewrite the variable name being declared!
+        int startIndex = node.is(NodeType.VAR_DEC) ? 1 : 0;
+        for(int i = startIndex; i < node.childCount(); i++) {
+            AstNode child = node.getChild(i);
+
+            if (child.is(NodeType.ID) && !isQualified(node, child)) {
+
+                if (!isMethodBindTarget(node, i)) {
+
+                    child = rewriteQualified(child);
+                    node.replaceChild(i, child);
+                    System.out.println(node);
+                }
+            } else {
+                child.visit(this);
+            }
+        }
+
+        if(node.getType().isBlock()){
+            scope = scope.getParent();
+        }
+
     }
 
     protected boolean isQualified(AstNode parent, AstNode child){
