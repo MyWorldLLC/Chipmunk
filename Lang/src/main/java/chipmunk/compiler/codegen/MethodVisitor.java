@@ -87,7 +87,7 @@ public class MethodVisitor implements AstVisitor {
 			codegen = new Codegen(assembler, symbols, module);
 			
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
-			
+
 			codegen.setVisitorForNode(OPERATOR, expStatVisitor);
 			codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
 			codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, assembler.getConstantPool(), module));
@@ -104,14 +104,14 @@ public class MethodVisitor implements AstVisitor {
 			// TODO - this will overwrite all default arguments that were supplied. To support these
 			// properly, generate code to determine number of arguments in call and jump to the right
 			// point to initialize non-supplied arguments.
-			int startAt = Methods.getParamCount(methodNode);
-			/*if(methodNode.hasDefaultParams()){
+			/*int startAt = Methods.getParamCount(methodNode);
+			if(methodNode.hasDefaultParams()){
 				startAt -= methodNode.getDefaultParamCount();
 				// TODO
 			}*/
 			
 			codegen.enterScope(symbols);
-			if(methodNode.childCount() == Methods.getParamCount(methodNode) + 1
+			if(Methods.getBodyNodeCount(methodNode) == 1
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);

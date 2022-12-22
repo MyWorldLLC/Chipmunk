@@ -90,6 +90,14 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 25
 	}
+
+	def "Run ShorthandMethods.chp"(){
+		when:
+		def result = compileAndRun("ShorthandMethods.chp", true)
+
+		then:
+		result == 7
+	}
 	
 	def "Run ModuleWithInitializer.chp"(){
 		when:

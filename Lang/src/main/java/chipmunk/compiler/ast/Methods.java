@@ -53,6 +53,11 @@ public class Methods {
         return node.getChild(1).childCount();
     }
 
+    public static int getBodyNodeCount(AstNode node){
+        ensureMethod(node);
+        return node.childCount() - 2;
+    }
+
     public static void addToBody(AstNode node, AstNode b){
         node.addChild(b);
     }
