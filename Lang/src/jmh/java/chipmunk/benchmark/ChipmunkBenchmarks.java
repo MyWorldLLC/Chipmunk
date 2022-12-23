@@ -30,6 +30,7 @@ public class ChipmunkBenchmarks {
     public static void main(String[] args) throws RunnerException {
 
         Options opt = new OptionsBuilder()
+                .include(CompilingBenchmark.class.getSimpleName())
                 .include(MathBenchmark.class.getSimpleName())
                 .include(PolymorphismBenchmark.class.getSimpleName())
                 .forks(1)
