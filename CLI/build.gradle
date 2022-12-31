@@ -19,7 +19,7 @@
  */
 
 plugins {
-    id "org.panteleyev.jpackageplugin" version "1.3.1"
+    id "org.panteleyev.jpackageplugin" version "1.5.0"
 }
 
 apply plugin: 'java'
@@ -86,17 +86,29 @@ task run(type: JavaExec){
     classpath = sourceSets.main.runtimeClasspath
 }
 
+def sanitizedVersion(){
+    def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem
+    def sanitizedVersion = version.replaceFirst('\\D+', '')
+    if(os.isWindows() && sanitizedVersion.indexOf('-') != -1) {
+        sanitizedVersion = sanitizedVersion.substring(0, sanitizedVersion.indexOf('-'))
+    }
+    sanitizedVersion
+}
+
 jpackage {
     input = 'build/libs'
     destination = 'build/installer'
     appName = 'chipmunk'
 
     // Remove leading non-digits from version string, as some platforms (such as Debian) do not permit this
-    appVersion = version.replaceFirst('\\D+', '')
+    appVersion = sanitizedVersion()
 
     mainClass = 'chipmunk.cli.ChipmunkCLI'
     mainJar = "${jar.archiveFile.get().asFile.getName()}"
     verbose = "verbose"
+
+    resourceDir = 'jpackage'
+    temp = 'build/jpackage-tmp'
 
     winConsole = true
 }
