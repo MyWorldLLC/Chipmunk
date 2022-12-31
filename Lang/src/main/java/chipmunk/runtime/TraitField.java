@@ -48,8 +48,9 @@ public class TraitField {
         return invalidationPoint;
     }
 
-    public void resetSwitchPoint(){
-        invalidationPoint = new SwitchPoint();
+    public synchronized void invalidateAndReset(){
+        SwitchPoint.invalidateAll(new SwitchPoint[]{invalidationPoint});
+        invalidationPoint = new SwitchPoint(); // Reset so future method bindings do not get bound to the invalidated switch point
     }
 
     public Field getReflectedField(){

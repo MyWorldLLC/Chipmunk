@@ -405,8 +405,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     }
 
     public static Object invalidateTraitField(TraitField f, Object target) {
-        SwitchPoint.invalidateAll(new SwitchPoint[]{f.getInvalidationPoint()});
-        f.resetSwitchPoint(); // Reset so future method bindings do not get bound to the invalidated switch point
+        f.invalidateAndReset();
         return target;
     }
 
