@@ -1,4 +1,4 @@
-# Copyright (C) 2021 MyWorld, LLC
+# Copyright (C) 2022 MyWorld, LLC
 # All rights reserved.
 #
 # This file is part of Chipmunk.
@@ -19,6 +19,8 @@ module test
 
 class OneProvider {
 
+    var two = 0
+
     def getNumber(){
         return 1
     }
@@ -36,12 +38,7 @@ class Outer {
 }
 
 def main(){
-
     var provider = Outer.new()
-
-    var sum = 0
-    for(i in 0..<1000000){
-        sum = sum + provider.getNumber()
-    }
-	return sum
+    provider.two = 2
+    return provider.getNumber() + provider.two
 }

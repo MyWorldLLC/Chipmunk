@@ -167,7 +167,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     if (invocation != null) {
 
                         MethodHandle receiverFilter = lookup.unreflectGetter(trait.getReflectedField())
-                                .asType(MethodType.methodType(traitReceiver.getClass(), pTypes[0]));
+                                .asType(MethodType.methodType(traitReceiver.getClass(), receiver.getClass()));
 
                         invocation = invocation
                                 .addSwitchPoint(trait.getInvalidationPoint())
@@ -347,7 +347,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if(invocation != null){
                     Class<?> rootReceiverType = linkRequest.getReceiver().getClass();
 
-                    MethodType filterType = MethodType.methodType(traitReceiver.getClass(), rootReceiverType);
+                    MethodType filterType = MethodType.methodType(traitReceiver.getClass(), receiver.getClass());
 
                     MethodHandle receiverFilter = lookup.unreflectGetter(trait.getReflectedField())
                             .asType(filterType);
@@ -360,7 +360,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                                 "invalidateTraitField",
                                 MethodType.methodType(Object.class, TraitField.class, Object.class)
                         ).bindTo(trait)
-                                .asType(MethodType.methodType(rootReceiverType, rootReceiverType));
+                                .asType(MethodType.methodType(receiver.getClass(), receiver.getClass()));
 
                         receiverFilter = MethodHandles.filterArguments(receiverFilter, 0, invalidationFilter);
                     }

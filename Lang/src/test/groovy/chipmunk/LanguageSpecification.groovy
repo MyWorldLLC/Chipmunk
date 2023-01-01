@@ -202,6 +202,14 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 10
 	}
+
+	def "Run NestedPolymorphism.chp"(){
+		when:
+		def result = compileAndRun("NestedPolymorphism.chp")
+
+		then:
+		result == 3
+	}
 	
 	def "Run Polymorphism.chp"(){
 		when:
