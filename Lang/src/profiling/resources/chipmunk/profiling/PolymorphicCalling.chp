@@ -23,6 +23,8 @@ class OneProvider {
         return 1
     }
 
+    var one = 1
+
 }
 
 class NumberProvider {
@@ -41,7 +43,7 @@ def main(){
 
     var sum = 0
     for(i in 0..<1000000){
-        sum = sum + provider.getNumber()
+        sum = sum + provider.one # provider.getNumber()
     }
 	return sum
 }

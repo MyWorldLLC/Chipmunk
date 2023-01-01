@@ -368,7 +368,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     MethodHandle invoker = MethodHandles.filterArguments(invocation.getInvocation(), 0, receiverFilter);
 
                     invocation = invocation.addSwitchPoint(trait.getInvalidationPoint())
-                            .replaceMethods(invoker, invocation.getGuard());
+                            .replaceMethods(invoker, getFieldGuard(lookup, receiver));
 
                     return invocation;
                 }
@@ -401,7 +401,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         if(fieldValue == null){
             return true;
         }
-        return boundTarget.getClass().isAssignableFrom(fieldValue.getClass());
+        return boundTarget.getClass() == fieldValue.getClass();
     }
 
     public static Object invalidateTraitField(TraitField f, Object target) {
