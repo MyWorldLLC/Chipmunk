@@ -36,7 +36,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
     public void visit(AstNode node) {
 
         if(node.is(NodeType.MODULE)){
-            System.out.println("Generating module init");
+
             AstNode initializer = Methods.make("$module_init$");
             Methods.addParam(initializer, VarDec.makeImplicit("vm"));
             node.addChild(0, initializer);
