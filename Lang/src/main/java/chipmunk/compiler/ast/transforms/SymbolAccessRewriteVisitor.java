@@ -113,7 +113,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         }
 
         // If the symbol is found in the module scope call getModule() & emit access at module level
-        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE) {
+        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE && !Methods.isNameOfMethodNode(scope.getNode(), child)) {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol

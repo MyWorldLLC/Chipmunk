@@ -53,8 +53,6 @@ public class ModuleVisitor implements AstVisitor {
 			module = new BinaryModule(node.getSymbol().getName());
 			module.setFileName(fileName);
 
-			//imports.add(new BinaryImport("chipmunk.lang", true));
-
 			node.visitChildren(this);
 			
 		}else if(node.is(NodeType.CLASS)){

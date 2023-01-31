@@ -31,6 +31,7 @@ import chipmunk.binary.ExceptionBlock;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.NodeType;
+import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
@@ -85,7 +86,7 @@ public class Codegen implements AstVisitor {
 		AstVisitor visitor = visitors.get(node.getType());
 		
 		if(visitor == null){
-			throw new IllegalArgumentException("Unknown node type %s at %s %d:%d ".formatted(node.getType(), module.getFileName(), node.getToken().line(), node.getToken().column()));
+			throw new IllegalArgumentException("Unknown node type %s at %s %d:%d ".formatted(node.getType(), module.getFileName(), Token.lineOrNone(node.getToken()), Token.columnOrNone(node.getToken())));
 		}
 		
 		node.visit(visitor);

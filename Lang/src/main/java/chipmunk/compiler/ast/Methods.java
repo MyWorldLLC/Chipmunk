@@ -43,6 +43,14 @@ public class Methods {
         return node;
     }
 
+    public static boolean isMethodNamed(AstNode node, String name){
+        return node.is(NodeType.METHOD) && node.hasChildren() && Identifier.isIdentifierNamed(node.getChild(0), name);
+    }
+
+    public static boolean isNameOfMethodNode(AstNode node, AstNode name){
+        return node.is(NodeType.METHOD) && node.hasChildren() && node.getChild(0) == name;
+    }
+
     public static void addParam(AstNode node, AstNode param){
         ensureMethod(node);
         node.getChild(1).addChild(param);
@@ -56,6 +64,18 @@ public class Methods {
     public static int getBodyNodeCount(AstNode node){
         ensureMethod(node);
         return node.childCount() - 2;
+    }
+
+    public static int childIndexToBodyIndex(int index){
+        return index - 2;
+    }
+
+    public static int bodyIndexToChildIndex(int index){
+        return index + 2;
+    }
+
+    public static void addToBody(AstNode node, int bodyIndex, AstNode b){
+        node.addChild(bodyIndexToChildIndex(bodyIndex), b);
     }
 
     public static void addToBody(AstNode node, AstNode b){

@@ -33,4 +33,8 @@ public class Identifier {
         return make(new Token(id, TokenType.IDENTIFIER));
     }
 
+    public static boolean isIdentifierNamed(AstNode node, String name){
+        return node.is(NodeType.ID) && node.getToken() != null && name.equals(node.getToken().text());
+    }
+
 }

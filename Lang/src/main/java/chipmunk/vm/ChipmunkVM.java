@@ -215,6 +215,7 @@ public class ChipmunkVM {
 	public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
 		ChipmunkModule module = script.modules.get(moduleName);
 		if(module != null){
+			System.out.println("Returning pre-loaded module " + moduleName);
 			return module;
 		}
 
@@ -229,6 +230,7 @@ public class ChipmunkVM {
 		}
 
 		script.modules.put(moduleName, module);
+		System.out.println("Initializing & returning module " + moduleName);
 		module.initialize(this);
 		return module;
 	}

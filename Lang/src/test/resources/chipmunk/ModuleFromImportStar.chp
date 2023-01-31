@@ -26,6 +26,8 @@ def getAsdf(){
 module test
 from foo import *
 
+var importedAsdf = asdf
+
 def main(){
-	return asdf + getAsdf()
+	return importedAsdf + getAsdf()
 }

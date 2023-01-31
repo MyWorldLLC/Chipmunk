@@ -24,10 +24,8 @@ import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -105,6 +103,14 @@ public class AstNode {
 		return children.get(index);
 	}
 
+	public AstNode getChild(Predicate<AstNode> p){
+		return children.stream().filter(p).findFirst().orElse(null);
+	}
+
+	public void sortChildren(Comparator<AstNode> comparator){
+		children.sort(comparator);
+	}
+
 	public boolean isBinary(){
 		return children.size() == 2;
 	}
@@ -160,6 +166,10 @@ public class AstNode {
 
 	protected void setParent(AstNode parent){
 		this.parent = parent;
+	}
+
+	public boolean hasParent(){
+		return getParent() != null;
 	}
 
 	public AstNode getParent(){

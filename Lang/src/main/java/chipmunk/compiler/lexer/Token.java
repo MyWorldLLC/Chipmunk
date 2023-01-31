@@ -35,4 +35,12 @@ public record Token(String text, TokenType type, int index, int line, int column
 		return text.trim() + "(" + type.name().toLowerCase() + ")";
 	}
 
+	public static int lineOrNone(Token t){
+		return t != null ? t.line() : -1;
+	}
+
+	public static int columnOrNone(Token t){
+		return t != null ? t.column() : -1;
+	}
+
 }
