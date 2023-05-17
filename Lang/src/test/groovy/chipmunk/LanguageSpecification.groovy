@@ -82,15 +82,6 @@ class LanguageSpecification extends Specification {
 		}
 	}
 
-	@Ignore
-	def "Run SimpleMethod.chp"(){
-		when:
-		def result = compileAndRun("SimpleMethod.chp", true)
-		
-		then:
-		result == 25
-	}
-
 	def "Run ShorthandMethods.chp"(){
 		when:
 		def result = compileAndRun("ShorthandMethods.chp", true)
@@ -344,7 +335,6 @@ class LanguageSpecification extends Specification {
 		result == [1, 2, 3]
 	}
 
-	@Ignore
 	def "Run ClassMethodBinding.chp"(){
 		when:
 		def result = compileAndRun("ClassMethodBinding.chp")
@@ -353,13 +343,20 @@ class LanguageSpecification extends Specification {
 		result == 5
 	}
 
-	@Ignore
 	def "Run ModuleMethodBinding.chp"(){
 		when:
 		def result = compileAndRun("ModuleMethodBinding.chp")
 
 		then:
 		result == 5
+	}
+
+	def "Run SimpleMethod.chp"(){
+		when:
+		def result = compileAndRun("SimpleMethod.chp", true)
+
+		then:
+		result == 25
 	}
 
 	def "Run UnimplementedMethod.chp"(){
