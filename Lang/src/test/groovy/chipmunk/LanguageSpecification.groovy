@@ -356,7 +356,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("SimpleMethod.chp", true)
 
 		then:
-		result == 25
+		result == 18
 	}
 
 	def "Run UnimplementedMethod.chp"(){

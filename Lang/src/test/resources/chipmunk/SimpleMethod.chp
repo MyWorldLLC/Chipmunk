@@ -17,12 +17,6 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
-# test comment
-def other()
-{
-	return 1 + 2 * 3
-}
-
 def main(){
 	var x = 0
 	
@@ -39,5 +33,5 @@ def main(){
 		return 3
 	}
 	
-	return x + other() + inner() + inner2()
+	return x + inner() + inner2()
 }

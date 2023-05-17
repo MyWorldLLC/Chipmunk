@@ -23,6 +23,7 @@ package chipmunk.compiler.symbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import chipmunk.compiler.ast.AstNode;
 
@@ -283,6 +284,14 @@ public class SymbolTable {
 
 	public boolean isMethodScope(){
 		return scope == Scope.LOCAL || scope == Scope.METHOD;
+	}
+
+	public SymbolTable findTable(Predicate<SymbolTable> p){
+		var table = this;
+		while(table != null && !p.test(table)){
+			table = table.getParent();
+		}
+		return table;
 	}
 	
 	@Override

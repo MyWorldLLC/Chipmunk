@@ -37,4 +37,8 @@ public class Identifier {
         return node.is(NodeType.ID) && node.getToken() != null && name.equals(node.getToken().text());
     }
 
+    public static String getIdentifierName(AstNode node){
+        return node.getToken().text();
+    }
+
 }

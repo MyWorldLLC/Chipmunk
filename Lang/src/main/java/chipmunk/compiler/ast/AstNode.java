@@ -83,6 +83,10 @@ public class AstNode {
 		return Collections.unmodifiableList(children);
 	}
 
+	public int indexOf(AstNode child){
+		return children.indexOf(child);
+	}
+
 	public AstNode getLeft(){
 		if(hasChildren()){
 			return children.get(0);
@@ -190,8 +194,8 @@ public class AstNode {
 	}
 	
 	public void visitChildren(AstVisitor visitor){
-		for(AstNode child : children){
-			child.visit(visitor);
+		for(int i = 0; i < children.size(); i++){
+			children.get(i).visit(visitor);
 		}
 	}
 
