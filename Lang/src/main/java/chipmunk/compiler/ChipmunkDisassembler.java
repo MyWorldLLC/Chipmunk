@@ -421,10 +421,7 @@ public class ChipmunkDisassembler {
 			case BIND:
 				builder.append("bind ");
 				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);
-				builder.append(" ");
-				builder.append(fetchByte(codeSegment, ip + 5));
-				builder.append(fetchByte(codeSegment, ip + 6));
-				ip += 7;
+				ip += 5;
 				break;
 			/*case INIT:
 				builder.append("init");
