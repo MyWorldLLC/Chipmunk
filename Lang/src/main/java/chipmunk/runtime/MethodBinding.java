@@ -50,17 +50,4 @@ public abstract class MethodBinding {
         return methodName;
     }
 
-    /*public Object call(Object... args) throws Throwable {
-        if(handle.get() == null || handle.get().hasBeenInvalidated()){
-            var adapted = new Object[args.length + 1];
-            adapted[0] = target;
-            System.arraycopy(args, 0, adapted, 1, args.length);
-            handle.set(linker.getInvocationHandle(MethodHandles.lookup(), target, null, methodName, adapted));
-
-            Objects.requireNonNull(handle.get(), "Could not bind %s::%s(%s)".formatted(target, methodName, args));
-
-        }
-
-        return handle.get().getInvocation().invoke(args);
-    }*/
 }
