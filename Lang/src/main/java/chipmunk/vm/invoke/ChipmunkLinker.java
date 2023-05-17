@@ -22,6 +22,7 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkObject;
+import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.security.LinkingPolicy;
@@ -189,7 +190,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
-    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException {
+    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException {
 
         Class<?> receiverType;
         if(receiver == null){
@@ -477,14 +478,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
     protected String getMethodName(Method m){
         ChipmunkName override = m.getAnnotation(ChipmunkName.class);
         return override != null ? override.value() : m.getName();
-    }
-
-    public String formatMethodSignature(Object receiver, String methodName, Object[] params){
-        Class<?>[] pTypes = new Class[params.length];
-        for(int i = 0; i < params.length; i++){
-            pTypes[i] = params[i] != null ? params[i].getClass() : null;
-        }
-        return formatMethodSignature(receiver, methodName, pTypes);
     }
 
     public String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){

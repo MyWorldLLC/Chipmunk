@@ -376,7 +376,6 @@ class MethodVisitorSpecification extends Specification {
 		result == 5
 	}
 
-	@Ignore
 	def "Lambda call"(){
 		when:
 		def result = parseAndCall("""
@@ -391,7 +390,6 @@ class MethodVisitorSpecification extends Specification {
 		result == 1
 	}
 
-	@Ignore
 	def "Lambda call - one parameter"(){
 		when:
 		def result = parseAndCall("""
@@ -407,7 +405,6 @@ class MethodVisitorSpecification extends Specification {
 		result == 1
 	}
 
-	@Ignore
 	def "Lambda call - two parameters"(){
 		when:
 		def result = parseAndCall("""
