@@ -22,13 +22,23 @@ package chipmunk.compiler.parser.parselets;
 
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.lexer.TokenStream;
+import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.parser.ExpressionParser;
 
 public class MethodDefParselet implements PrefixParselet {
 
+	protected final TokenStream tokens;
+	protected final ChipmunkParser chipmunkParser;
+
+	public MethodDefParselet(TokenStream tokens){
+		this.tokens = tokens;
+		chipmunkParser = new ChipmunkParser(tokens);
+	}
+
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		return null; // TODO - parser.parseAnonMethodDef();
+		return chipmunkParser.parseAnonMethodDef();
 	}
 
 }
