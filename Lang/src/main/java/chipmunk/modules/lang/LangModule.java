@@ -21,10 +21,13 @@
 package chipmunk.modules.lang;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.UnimplementedMethodException;
+import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -74,6 +77,11 @@ public class LangModule implements ChipmunkModule {
     @AllowChipmunkLinkage
     public void unimplementedMethod() throws UnimplementedMethodException {
         throw new UnimplementedMethodException();
+    }
+
+    @AllowChipmunkLinkage
+    public MethodBinding bindArgs(MethodBinding binding, Integer index, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return ChipmunkScript.getCurrentScript().getVM().bindArgs(binding, index, args.toArray());
     }
 
     @Override

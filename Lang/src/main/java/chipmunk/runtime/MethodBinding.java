@@ -20,9 +20,13 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.ChipmunkLinker;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import jdk.dynalink.linker.GuardedInvocation;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,6 +52,11 @@ public abstract class MethodBinding {
 
     public String getMethodName(){
         return methodName;
+    }
+
+    @AllowChipmunkLinkage
+    public MethodBinding bindArgs(Integer pos, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return ChipmunkScript.getCurrentScript().getVM().bindArgs(this, pos, args.toArray());
     }
 
 }

@@ -359,6 +359,14 @@ class LanguageSpecification extends Specification {
 		result == 18
 	}
 
+	def "Run BoundMethodArgs.chp"(){
+		when:
+		def result = compileAndRun("BoundMethodArgs.chp", true)
+
+		then:
+		result == [11, 10, 14, 11, 11]
+	}
+
 	def "Run UnimplementedMethod.chp"(){
 		when:
 		def result = compileAndRun("UnimplementedMethod.chp")

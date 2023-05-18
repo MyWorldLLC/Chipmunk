@@ -1228,6 +1228,96 @@ public class JvmCompiler {
         return loader.define(bindingName, gen.toByteArray());
     }
 
+    public Class<?> argBindingFor(ChipmunkClassLoader loader, String bindingName, Class<? extends MethodBinding> delegateType, int pos, int argCount){
+
+        var internalName = jvmName(bindingName);
+
+        ClassWriter gen = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        gen.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, internalName, null, Type.getInternalName(MethodBinding.class), null);
+        gen.visitSource(internalName, null);
+        gen.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
+
+        for(int i = 0; i < argCount; i++){
+            gen.visitField(Opcodes.ACC_PROTECTED, "p" + i, Type.getDescriptor(Object.class), null, null).visitEnd();
+        }
+
+        MethodVisitor constructor = gen.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(MethodBinding.class), Type.INT_TYPE, Type.getType(Object[].class)), null, null);
+        constructor.visitCode();
+
+        // Invoke super
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitVarInsn(Opcodes.ALOAD, 1);
+        constructor.visitLdcInsn("call");
+        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(MethodBinding.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)), false);
+
+        // Invoke field set
+        for(int i = 0; i < argCount; i++){
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitVarInsn(Opcodes.ALOAD, 3);
+            constructor.visitLdcInsn(i);
+            constructor.visitInsn(Opcodes.AALOAD);
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, internalName, "p" + i, Type.getDescriptor(Object.class));
+        }
+
+        constructor.visitInsn(Opcodes.RETURN);
+        constructor.visitMaxs(0, 0);
+        constructor.visitEnd();
+
+        var methods = Arrays.stream(delegateType.getMethods())
+                .filter(m -> m.getName().equals("call"))
+                .filter(m -> m.getParameterCount() >= pos + argCount)
+                .toList();
+
+        for(var method : methods){
+
+            // descriptor without bound params
+            var pTypes = new Type[method.getParameterCount() - argCount];
+            for(int i = 0; i < pTypes.length; i++){
+                pTypes[i] = Type.getType(Object.class);
+            }
+            var methodType = Type.getMethodType(
+                    Type.getType(method.getReturnType()),
+                    pTypes
+            );
+
+            var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", methodType.getDescriptor(), null, null);
+            methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);
+
+            methodWriter.visitCode();
+
+            methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+            methodWriter.visitFieldInsn(Opcodes.GETFIELD, internalName, MethodBinding.TARGET_FIELD_NAME, Type.getDescriptor(Object.class));
+
+            int param = 1;
+            // leading unbound params
+            for(int i = 0; i < pos; i++, param++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, param);
+            }
+
+            // bound params
+            for(int i = 0; i < argCount; i++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+                methodWriter.visitFieldInsn(Opcodes.GETFIELD, internalName, "p" + i, Type.getDescriptor(Object.class));
+            }
+
+            // trailing unbound params
+            for(; param <= method.getParameterCount() - argCount; param++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, param);
+            }
+
+            generateDynamicInvocation(methodWriter, "call", method.getParameterCount() + 1);
+            methodWriter.visitInsn(Opcodes.ARETURN);
+
+            methodWriter.visitMaxs(0, 0);
+            methodWriter.visitEnd();
+        }
+
+        gen.visitEnd();
+
+        return loader.define(bindingName, gen.toByteArray());
+    }
+
     protected void invokeConstructor(MethodVisitor mv, Class<?> target, Class<?>... pTypes){
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                 Type.getType(target).getInternalName(),
