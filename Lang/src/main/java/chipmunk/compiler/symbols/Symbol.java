@@ -55,12 +55,13 @@ public class Symbol {
 	
 	protected boolean isShared;
 	protected boolean isFinal;
-	protected boolean isClosure;
+	protected boolean isUpvalue;
 	protected boolean isTrait;
 	protected String name;
 	protected Import im;
 	protected SymbolType type;
 	protected SymbolTable table;
+	protected Symbol upvalueRef;
 	
 	public Symbol(){
 		this("", false, false, false, false);
@@ -78,15 +79,15 @@ public class Symbol {
 		this(name, isFinal, isShared, false, false);
 	}
 	
-	public Symbol(String name, boolean isFinal, boolean isShared, boolean isClosure) {
-		this(name, isFinal, isShared, isClosure, false);
+	public Symbol(String name, boolean isFinal, boolean isShared, boolean isUpvalue) {
+		this(name, isFinal, isShared, isUpvalue, false);
 	}
 	
-	public Symbol(String name, boolean isFinal, boolean isShared, boolean isClosure, boolean isTrait){
+	public Symbol(String name, boolean isFinal, boolean isShared, boolean isUpvalue, boolean isTrait){
 		this.name = name;
 		this.isFinal = isFinal;
 		this.isShared = isShared;
-		this.isClosure = isClosure;
+		this.isUpvalue = isUpvalue;
 		this.isTrait = isTrait;
 		type = SymbolType.VAR;
 	}
@@ -107,12 +108,31 @@ public class Symbol {
 		this.isFinal = isFinal;
 	}
 	
-	public boolean isClosure() {
-		return isClosure;
+	public boolean isUpvalue() {
+		return isUpvalue;
 	}
 	
-	public void markAsClosure() {
-		isClosure = true;
+	public void markAsUpvalue() {
+		isUpvalue = true;
+	}
+
+	public void setUpvalueRef(Symbol ref){
+		upvalueRef = ref;
+	}
+
+	public Symbol getUpvalueRef(){
+		return upvalueRef;
+	}
+
+	public boolean isUpvalueRef(){
+		return upvalueRef != null;
+	}
+
+	public Symbol makeUpvalueRef(){
+		var ref = clone();
+		ref.isUpvalue = false;
+		ref.setUpvalueRef(this);
+		return ref;
 	}
 
 	public boolean isTrait() {
@@ -164,9 +184,10 @@ public class Symbol {
 	}
 
 	public Symbol clone(){
-		Symbol clone = new Symbol(name, isFinal, isShared, isClosure, isTrait);
+		Symbol clone = new Symbol(name, isFinal, isShared, isUpvalue, isTrait);
 		clone.setTable(table);
 		clone.setType(type);
+		clone.setUpvalueRef(upvalueRef);
 		if(isImported()){
 			clone.setImport(im.clone());
 		}
@@ -175,8 +196,7 @@ public class Symbol {
 
 	@Override
 	public boolean equals(Object other){
-		if(other instanceof Symbol){
-			Symbol otherSymbol = (Symbol) other;
+		if(other instanceof Symbol otherSymbol){
 			return otherSymbol.getName().equals(name);
 		}
 		return false;

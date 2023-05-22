@@ -97,4 +97,14 @@ public class Methods {
     public static boolean isAnonymousName(String name){
         return name.startsWith("anon$L");
     }
+
+    public static AstNode makeInvocation(AstNode target, String name, AstNode... params){
+        var callNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN),
+                new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT),
+                        target,
+                        Identifier.make(new Token(name, TokenType.IDENTIFIER)))
+                );
+        callNode.addChildren(params);
+        return callNode;
+    }
 }

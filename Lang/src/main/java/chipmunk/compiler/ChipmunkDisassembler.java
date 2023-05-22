@@ -425,6 +425,16 @@ public class ChipmunkDisassembler {
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
+			case GETUPVALUE:
+				builder.append("getupvalue ");
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
+				break;
+			case SETUPVALUE:
+				builder.append("setupvalue ");
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
+				break;
 			case BIND:
 				builder.append("bind ");
 				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);

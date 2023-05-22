@@ -104,10 +104,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         }
 
         if (symbol.getTable().isMethodScope()) {
-            // Mark local variables that are in an outer method scope as closures
-            if(scope.isClosured(symbol)){
-                symbol.markAsClosure();
-            }
+            // Mark local variables that are in an outer method scope as upvalues,
+            // and mark the upvalue reference in the nearest method-scope symbol table
+
             // No rewrite needed because this is a local variable
             return child;
         }

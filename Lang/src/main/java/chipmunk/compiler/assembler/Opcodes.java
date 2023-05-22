@@ -88,8 +88,8 @@ public class Opcodes {
 	//public static final byte SETMODULE = 0x36;
 	
 	// Closures (always local)
-	public static final byte GETCLOSURE = 0x37;
-	public static final byte SETCLOSURE = 0x38;
+	public static final byte GETUPVALUE = 0x37;
+	public static final byte SETUPVALUE = 0x38;
 
 	// Method bindings
 	public static final byte BIND = 0x39;

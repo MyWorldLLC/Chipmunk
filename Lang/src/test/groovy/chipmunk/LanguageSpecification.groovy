@@ -374,4 +374,11 @@ class LanguageSpecification extends Specification {
 		then:
 		thrown(UnimplementedMethodException)
 	}
+
+	def "Run Upvalues.chp"(){
+		when:
+		def result = compileAndRun("Upvalues.chp")
+
+		then: result == [5, 3, 15]
+	}
 }

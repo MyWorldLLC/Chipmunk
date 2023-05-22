@@ -22,6 +22,7 @@ package chipmunk.compiler.symbols;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -63,6 +64,10 @@ public class SymbolTable {
 		if(parent != null){
 			parent.reportChildLocalCount(symbols.size());
 		}
+	}
+
+	public boolean removeSymbol(Symbol symbol){
+		return symbols.remove(symbol);
 	}
 	
 	public Symbol getSymbol(String name){
@@ -146,6 +151,18 @@ public class SymbolTable {
 	
 	public SymbolTable getParent(){
 		return parent;
+	}
+
+	public SymbolTable getParent(Scope scope){
+		var parent = getParent();
+		while(parent != null && parent.getScope() != scope){
+			parent = parent.getParent();
+		}
+		return parent;
+	}
+
+	public SymbolTable nearest(Scope scope){
+		return findTable(t -> t.getScope() == scope);
 	}
 	
 	public void setParent(SymbolTable parent){
@@ -270,6 +287,10 @@ public class SymbolTable {
 		return symbols;
 	}
 
+	public List<Symbol> getUpvalueRefs(){
+		return findSymbols(s -> s.getUpvalueRef() != null);
+	}
+
 	public boolean isModuleMethodScope(){
 		return getMethodContainingScope() == Scope.MODULE;
 	}
@@ -293,7 +314,27 @@ public class SymbolTable {
 		}
 		return table;
 	}
-	
+
+	public List<Symbol> findSymbols(Predicate<Symbol> s){
+		return symbols.stream().filter(s).toList();
+	}
+
+	public void sortSymbols(Comparator<Symbol> c){
+		symbols.sort(c);
+	}
+
+	public int count(Predicate<Symbol> p){
+		return (int) symbols.stream().filter(p).count();
+	}
+
+	public int countUpvalues(){
+		return count(Symbol::isUpvalue);
+	}
+
+	public int countUpvalueRefs(){
+		return count(s -> s.getUpvalueRef() != null);
+	}
+
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();

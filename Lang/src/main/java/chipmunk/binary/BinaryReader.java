@@ -188,6 +188,8 @@ public class BinaryReader {
         method.setDeclarationSymbol(is.readUTF());
         method.setLocalCount(is.readInt());
         method.setArgCount(is.readInt());
+        method.setUpvalueLocalCount(is.readInt());
+        method.setUpvalueRefCount(is.readInt());
         method.setDefaultArgCount(is.readInt());
 
         final int codeSize = is.readInt();

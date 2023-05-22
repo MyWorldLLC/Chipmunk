@@ -123,15 +123,26 @@ public class Codegen implements AstVisitor {
 		}
 
 		SymbolTable table = trace.getLast();
-		if(table.getLocalIndex(name) == -1){
+		var symbol = table.getSymbol(name);
+		var localIndex = table.getLocalIndex(symbol);
+
+		if(localIndex == -1){
 			throw new IllegalStateException(name + " is not a local. This is a compiler bug.");
 		}
 
 		if(assign){
 			assembler.dup();
-			assembler.setLocal(table.getLocalIndex(name));
+			if(symbol.isUpvalueRef()){
+				assembler.setUpvalue(localIndex);
+			}else{
+				assembler.setLocal(localIndex);
+			}
 		}else{
-			assembler.getLocal(table.getLocalIndex(name));
+			if(symbol.isUpvalueRef()){
+				assembler.getUpvalue(localIndex);
+			}else{
+				assembler.getLocal(localIndex);
+			}
 		}
 
 	}

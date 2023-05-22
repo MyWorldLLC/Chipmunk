@@ -30,14 +30,10 @@ import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
-import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -542,6 +538,15 @@ public class JvmCompiler {
         ExceptionBlock[] exceptionTable = method.getExceptionTable();
         int exceptionIndex = 0;
 
+        int firstUpvalueIndex = method.getArgCount();
+        for(int i = 0; i < method.getUpvalueLocalCount(); i++){
+            mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Upvalue.class));
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Upvalue.class), "<init>",
+                    Type.getMethodDescriptor(Type.VOID_TYPE), false);
+            mv.visitVarInsn(Opcodes.ASTORE, i + firstUpvalueIndex);
+        }
+
 
         byte[] instructions = method.getCode();
         for(int ip = 0; ip < instructions.length;) {
@@ -785,6 +790,14 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
+                case GETUPVALUE -> {
+                    generateUpvalueGet(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
+                case SETUPVALUE -> {
+                    generateUpvalueSet(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
                 case BIND -> {
                     int methodNameIndex = fetchInt(instructions, ip + 1);
 
@@ -928,6 +941,27 @@ public class JvmCompiler {
 
     protected void generateLocalGet(MethodVisitor mv, byte index){
         mv.visitVarInsn(Opcodes.ALOAD, index);
+    }
+
+    protected void generateUpvalueSet(MethodVisitor mv, byte index){
+
+        mv.visitVarInsn(Opcodes.ALOAD, index);
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+
+        mv.visitInsn(Opcodes.SWAP);
+
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "set",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
+    }
+
+    protected void generateUpvalueGet(MethodVisitor mv, byte index){
+
+        mv.visitVarInsn(Opcodes.ALOAD, index);
+
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
+                Type.getMethodDescriptor(Type.getType(Object.class)), false);
     }
 
     protected void generateIfJump(MethodVisitor mv, Map<Integer, Label> labels, int jumpTarget){

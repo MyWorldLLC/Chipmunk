@@ -40,6 +40,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 
+		// Hoist inner methods to closest non-method scoped node
 		if(node.is(NodeType.METHOD)){
 			var parent = node.getSymbolTable().getParent();
 			if(parent != null && parent.isMethodScope()){
@@ -50,13 +51,31 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 				var index = parentNode.indexOf(node);
 				parentNode.removeChild(node);
 
+				parent.removeSymbol(node.getSymbol());
 				node.getSymbolTable().setParent(hoist.getSymbolTable());
 				hoist.getSymbolTable().setSymbol(node.getSymbol());
 
 				hoist.addChild(node);
 
-				parentNode.addChild(index, new AstNode(NodeType.OPERATOR, new Token("::", TokenType.DOUBLECOLON),
-						Identifier.make("self"), id));
+				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, Identifier.make("self"), id);
+
+				if(node.getSymbolTable().countUpvalueRefs() > 0){
+					var upvalueRefs = node.getSymbolTable().getUpvalueRefs();
+					rewrite = Methods.makeInvocation(rewrite, "bindArgs",
+							Literals.makeInt(Methods.getParamCount(node) - node.getSymbolTable().countUpvalueRefs()),
+							Lists.makeListOf(upvalueRefs
+									.stream()
+									.map(s -> new AstNode(NodeType.ID, new Token(s.getName(), TokenType.IDENTIFIER)))
+									.toArray(AstNode[]::new))
+							);
+					upvalueRefs.forEach(s -> {
+						var param = Identifier.make(s.getName());
+						param.setSymbol(s);
+						Methods.addParam(node, param);
+						node.getSymbolTable().setSymbol(s.makeUpvalueRef());
+					});
+				}
+				parentNode.addChild(index, rewrite);
 			}
 
 		}
