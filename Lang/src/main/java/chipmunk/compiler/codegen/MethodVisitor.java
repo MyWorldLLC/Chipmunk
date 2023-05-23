@@ -92,6 +92,7 @@ public class MethodVisitor implements AstVisitor {
 					return -1; // normal parameters go between self & the upvalue refs
 				}
 			}));
+			symbols.setDebugSymbol(Identifier.getIdentifierName(Methods.getName(node)));
 
 			method.setDeclarationSymbol(symbols.getDebugSymbol());
 			

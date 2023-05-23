@@ -26,6 +26,10 @@ import chipmunk.compiler.lexer.TokenType;
 public class Operators {
 
     public static AstNode make(String op, TokenType type, AstNode... operands){
-        return new AstNode(NodeType.OPERATOR, new Token(op, type), operands);
+        return make(op, type, Token.UNKNOWN, operands);
+    }
+
+    public static AstNode make(String op, TokenType type, int line, AstNode... operands){
+        return new AstNode(NodeType.OPERATOR, new Token(op, type, line), operands);
     }
 }

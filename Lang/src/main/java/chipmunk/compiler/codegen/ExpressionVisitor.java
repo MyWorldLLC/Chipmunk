@@ -216,7 +216,7 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.onLine(node.getLineNumber());
 					assembler.bind(rhs.getToken().text());
 				}else{
-					throw new SyntaxError("Binding nodeerator requires a compile-time static method name");
+					throw new SyntaxError("Binding node operator requires a compile-time static method name");
 				}
 
 			}

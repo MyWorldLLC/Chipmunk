@@ -22,12 +22,26 @@ package chipmunk.compiler.lexer;
 
 public record Token(String text, TokenType type, int index, int line, int column) {
 
+	public static final int UNKNOWN = -1;
+
 	public Token(String token, TokenType tokenType){
-		this(token, tokenType, -1, -1, -1);
+		this(token, tokenType, UNKNOWN, UNKNOWN, UNKNOWN);
+	}
+
+	public Token(String token, TokenType tokenType, int line){
+		this(token, tokenType, UNKNOWN, line, UNKNOWN);
+	}
+
+	public Token(String token, TokenType tokenType, int line, int column){
+		this(token, tokenType, UNKNOWN, line, column);
 	}
 
 	public boolean isSynthetic(){
-		return index == -1;
+		return index == UNKNOWN;
+	}
+
+	public Token withLine(int line){
+		return new Token(text, type, index, line, column);
 	}
 	
 	@Override
@@ -36,11 +50,11 @@ public record Token(String text, TokenType type, int index, int line, int column
 	}
 
 	public static int lineOrNone(Token t){
-		return t != null ? t.line() : -1;
+		return t != null ? t.line() : UNKNOWN;
 	}
 
 	public static int columnOrNone(Token t){
-		return t != null ? t.column() : -1;
+		return t != null ? t.column() : UNKNOWN;
 	}
 
 }

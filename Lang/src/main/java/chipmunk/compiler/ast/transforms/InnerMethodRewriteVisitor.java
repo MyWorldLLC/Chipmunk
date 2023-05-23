@@ -51,28 +51,32 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 				var index = parentNode.indexOf(node);
 				parentNode.removeChild(node);
 
-				parent.removeSymbol(node.getSymbol());
-				node.getSymbolTable().setParent(hoist.getSymbolTable());
+				var nodeSymbols = node.getSymbolTable();
+
+				// TODO - rather than leaving the symbol here, where it isn't
+				// we should have a mechanism in the symbol table to reflect hoists
+				//parent.removeSymbol(node.getSymbol());
+				nodeSymbols.setParent(hoist.getSymbolTable());
 				hoist.getSymbolTable().setSymbol(node.getSymbol());
 
 				hoist.addChild(node);
 
-				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, Identifier.make("self"), id);
+				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), id);
 
-				if(node.getSymbolTable().countUpvalueRefs() > 0){
-					var upvalueRefs = node.getSymbolTable().getUpvalueRefs();
-					rewrite = Methods.makeInvocation(rewrite, "bindArgs",
-							Literals.makeInt(Methods.getParamCount(node) - node.getSymbolTable().countUpvalueRefs()),
+				if(nodeSymbols.countUpvalueRefs() > 0){
+					var upvalueRefs = nodeSymbols.getUpvalueRefs();
+					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
+							Literals.makeInt(Methods.getParamCount(node) - nodeSymbols.countUpvalueRefs()),
 							Lists.makeListOf(upvalueRefs
 									.stream()
-									.map(s -> new AstNode(NodeType.ID, new Token(s.getName(), TokenType.IDENTIFIER)))
+									.map(s -> Identifier.make(s.getName(), node.getLineNumber()))
 									.toArray(AstNode[]::new))
 							);
 					upvalueRefs.forEach(s -> {
-						var param = Identifier.make(s.getName());
+						var param = Identifier.make(s.getName(), node.getLineNumber());
 						param.setSymbol(s);
 						Methods.addParam(node, param);
-						node.getSymbolTable().setSymbol(s.makeUpvalueRef());
+						nodeSymbols.setSymbol(s.makeUpvalueRef());
 					});
 				}
 				parentNode.addChild(index, rewrite);

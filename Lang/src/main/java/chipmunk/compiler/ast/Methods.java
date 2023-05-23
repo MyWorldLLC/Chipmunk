@@ -98,13 +98,17 @@ public class Methods {
         return name.startsWith("anon$L");
     }
 
-    public static AstNode makeInvocation(AstNode target, String name, AstNode... params){
-        var callNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN),
-                new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT),
+    public static AstNode makeInvocation(AstNode target, String name, int line, AstNode... params){
+        var callNode = Operators.make("(", TokenType.LPAREN, line,
+                Operators.make(".", TokenType.DOT, line,
                         target,
-                        Identifier.make(new Token(name, TokenType.IDENTIFIER)))
-                );
+                        Identifier.make(name))
+        );
         callNode.addChildren(params);
         return callNode;
+    }
+
+    public static AstNode makeInvocation(AstNode target, String name, AstNode... params){
+        return makeInvocation(target, name, Token.UNKNOWN, params);
     }
 }
