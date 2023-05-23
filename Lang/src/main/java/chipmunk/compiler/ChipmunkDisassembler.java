@@ -339,6 +339,9 @@ public class ChipmunkDisassembler {
 				builder.append(fetchByte(codeSegment, ip + 1));
 				builder.append(' ');
 				builder.append(fetchInt(codeSegment, ip + 2));
+				builder.append(" (");
+				builder.append(constantPool[fetchInt(codeSegment, ip + 2)]);
+				builder.append(")");
 				ip += 6;
 				break;
 			case GOTO:
