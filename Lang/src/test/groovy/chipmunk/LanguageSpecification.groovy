@@ -67,7 +67,7 @@ class LanguageSpecification extends Specification {
 		}else{
 			try{
 				return script.run()
-			}catch(Exception e){
+			}catch(Throwable e){
 
 				for(def binaryModule : modules){
 					println(ChipmunkDisassembler.disassemble(binaryModule))
