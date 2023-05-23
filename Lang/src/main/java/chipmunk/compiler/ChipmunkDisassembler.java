@@ -369,6 +369,13 @@ public class ChipmunkDisassembler {
 			case PUSH:
 				builder.append("push ");
 				builder.append(fetchInt(codeSegment, ip + 1));
+				builder.append(" (");
+				if(constantPool[fetchInt(codeSegment, ip + 1)] != null){
+					builder.append(constantPool[fetchInt(codeSegment, ip + 1)].getClass().getSimpleName());
+					builder.append(": ");
+				}
+				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);
+				builder.append(")");
 				ip += 5;
 				break;
 			case EQ:
@@ -421,10 +428,7 @@ public class ChipmunkDisassembler {
 			case BIND:
 				builder.append("bind ");
 				builder.append(constantPool[fetchInt(codeSegment, ip + 1)]);
-				builder.append(" ");
-				builder.append(fetchByte(codeSegment, ip + 5));
-				builder.append(fetchByte(codeSegment, ip + 6));
-				ip += 7;
+				ip += 5;
 				break;
 			/*case INIT:
 				builder.append("init");

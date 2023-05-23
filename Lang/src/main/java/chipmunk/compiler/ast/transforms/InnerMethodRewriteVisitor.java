@@ -21,6 +21,9 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ast.*;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.symbols.SymbolTable;
 
 /**
  * Re-writes nested method declarations (either named methods or lambda methods),
@@ -40,13 +43,31 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 		if(node.is(NodeType.METHOD)){
 			var parent = node.getSymbolTable().getParent();
 			if(parent != null && parent.isMethodScope()){
-				// TODO - determine if this is a lambda or statement-style rewrite
-				// & perform rewrite
+				var id = Methods.getName(node);
+
+				var hoist = hoistTo(node);
+				var parentNode = node.getParent();
+				var index = parentNode.indexOf(node);
+				parentNode.removeChild(node);
+
+				node.getSymbolTable().setParent(hoist.getSymbolTable());
+				hoist.getSymbolTable().setSymbol(node.getSymbol());
+
+				hoist.addChild(node);
+
+				parentNode.addChild(index, new AstNode(NodeType.OPERATOR, new Token("::", TokenType.DOUBLECOLON),
+						Identifier.make("self"), id));
 			}
 
 		}
 
 		node.visitChildren(this);
+	}
+
+	protected AstNode hoistTo(AstNode node){
+		return node.getSymbolTable()
+				.findTable(t -> t.getScope() == SymbolTable.Scope.CLASS || t.getScope() == SymbolTable.Scope.MODULE)
+				.getNode();
 	}
 
 }

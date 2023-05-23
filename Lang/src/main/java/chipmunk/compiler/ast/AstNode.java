@@ -54,7 +54,9 @@ public class AstNode {
 	
 	public AstNode(NodeType type, Token token, AstNode... children){
 		this(type, token);
-		this.children.addAll(Arrays.asList(children));
+		for(var child : children){
+			addChild(child);
+		}
 	}
 
 	public NodeType getType(){
@@ -79,6 +81,10 @@ public class AstNode {
 
 	public List<AstNode> getChildren(){
 		return Collections.unmodifiableList(children);
+	}
+
+	public int indexOf(AstNode child){
+		return children.indexOf(child);
 	}
 
 	public AstNode getLeft(){
@@ -124,8 +130,7 @@ public class AstNode {
 	}
 	
 	public void addChild(AstNode child){
-		children.add(child);
-		child.setParent(this);
+		addChild(children.size(), child);
 	}
 
 	public void addChild(int index, AstNode child){
@@ -139,8 +144,8 @@ public class AstNode {
 	}
 
 	public void replaceChild(int index, AstNode child){
-		children.set(index, child).setParent(null);
 		child.setParent(this);
+		children.set(index, child).setParent(null);
 	}
 
 	public void removeChild(AstNode child){
@@ -160,8 +165,8 @@ public class AstNode {
 	}
 	
 	protected void addChildFirst(AstNode child){
-		children.add(0, child);
 		child.setParent(this);
+		children.add(0, child);
 	}
 
 	protected void setParent(AstNode parent){
@@ -189,8 +194,8 @@ public class AstNode {
 	}
 	
 	public void visitChildren(AstVisitor visitor){
-		for(AstNode child : children){
-			child.visit(visitor);
+		for(int i = 0; i < children.size(); i++){
+			children.get(i).visit(visitor);
 		}
 	}
 

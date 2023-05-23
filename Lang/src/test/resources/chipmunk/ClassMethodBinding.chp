@@ -19,8 +19,8 @@ module test
 
 class Target {
 
-    def bindMe(){
-        return 5
+    def bindMe(a, b, c){
+        return a + b + c
     }
 
 }
@@ -28,5 +28,5 @@ class Target {
 def main(){
     var target = Target.new()
     var method = target::bindMe
-    return method.call(1, 2, 3)
+    return method.call(0, 2, 3)
 }

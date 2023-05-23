@@ -125,7 +125,7 @@ public class ExpressionParser {
         register(TokenType.LBRACKET, new IndexOperatorParselet());
 
         // method def operator (allow method definitions in expressions)
-        register(TokenType.DEF, new MethodDefParselet());
+        register(TokenType.DEF, new MethodDefParselet(tokens));
         // class definition operator (allows creating anonymous classes in expressions)
         //register(Token.Type.CLASS, new ClassDefParselet());
     }

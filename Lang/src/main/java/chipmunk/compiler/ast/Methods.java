@@ -43,6 +43,10 @@ public class Methods {
         return node;
     }
 
+    public static AstNode getName(AstNode node){
+        return node.getChild(0);
+    }
+
     public static boolean isMethodNamed(AstNode node, String name){
         return node.is(NodeType.METHOD) && node.hasChildren() && Identifier.isIdentifierNamed(node.getChild(0), name);
     }
@@ -87,6 +91,10 @@ public class Methods {
     }
 
     public static String anonymousName(int line, int column){
-        return "anonL" + line + "C" + column;
+        return "anon$L" + line + "C" + column;
+    }
+
+    public static boolean isAnonymousName(String name){
+        return name.startsWith("anon$L");
     }
 }

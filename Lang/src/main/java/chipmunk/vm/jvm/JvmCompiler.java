@@ -37,6 +37,7 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1169,18 +1170,70 @@ public class JvmCompiler {
 
     protected void generateBinding(MethodVisitor mv, String methodName){
 
-        mv.visitTypeInsn(Opcodes.NEW, Type.getType(MethodBinding.class).getInternalName());
-        mv.visitInsn(Opcodes.DUP_X1);
-        mv.visitInsn(Opcodes.DUP_X1);
+        generateGetVM(mv);
         mv.visitInsn(Opcodes.SWAP);
-        generatePush(mv, methodName);
+        mv.visitLdcInsn(methodName);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getInternalName(ChipmunkVM.class),
+                "bind",
+                Type.getMethodDescriptor(Type.getType(MethodBinding.class), Type.getType(Object.class), Type.getType(String.class)),
+                false
+                );
+
+    }
+
+    public Class<?> bindingFor(ChipmunkClassLoader loader, String bindingName, Class<?> targetType, String methodName){
+
+        var internalName = jvmName(bindingName);
+
+        ClassWriter gen = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        gen.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, internalName, null, Type.getInternalName(MethodBinding.class), null);
+        gen.visitSource(internalName, null);
+        gen.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
+
+        MethodVisitor constructor = gen.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)), null, null);
+        constructor.visitCode();
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitVarInsn(Opcodes.ALOAD, 1);
+        constructor.visitVarInsn(Opcodes.ALOAD, 2);
+        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(MethodBinding.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)), false);
+        constructor.visitInsn(Opcodes.RETURN);
+        constructor.visitMaxs(0, 0);
+        constructor.visitEnd();
+
+        var methods = Arrays.stream(targetType.getMethods()).filter(m -> m.getName().equals(methodName)).toList();
+        for(var method : methods){
+            var descriptor = Type.getMethodDescriptor(method);
+            var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", descriptor, null, null);
+            methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);
+
+            methodWriter.visitCode();
+
+            methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+            methodWriter.visitFieldInsn(Opcodes.GETFIELD, internalName, MethodBinding.TARGET_FIELD_NAME, Type.getDescriptor(Object.class));
+
+            for(int i = 1; i <= method.getParameterCount(); i++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, i);
+            }
+
+            generateDynamicInvocation(methodWriter, methodName, method.getParameterCount() + 1);
+            methodWriter.visitInsn(Opcodes.ARETURN);
+
+            methodWriter.visitMaxs(0, 0);
+            methodWriter.visitEnd();
+        }
+
+        gen.visitEnd();
+        return loader.define(bindingName, gen.toByteArray());
+    }
+
+    protected void invokeConstructor(MethodVisitor mv, Class<?> target, Class<?>... pTypes){
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                Type.getType(MethodBinding.class).getInternalName(),
+                Type.getType(target).getInternalName(),
                 "<init>",
-                Type.getMethodType(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)).getDescriptor(),
+                Type.getMethodDescriptor(Type.VOID_TYPE, Arrays.stream(pTypes).map(Type::getType).toArray(Type[]::new)),
                 false);
-        mv.visitInsn(Opcodes.SWAP);
-        mv.visitInsn(Opcodes.POP);
     }
 
 /*    protected void ensureBindingExists(JvmCompilation compilation, String bindingSignature, String methodName){
@@ -1242,5 +1295,18 @@ public class JvmCompiler {
         Type[] pTypes = new Type[params];
         Arrays.fill(pTypes, objType);
         return pTypes;
+    }
+
+    protected void generateGetVM(MethodVisitor mw){
+        mw.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkScript.class),
+                "getCurrentScript",
+                Type.getMethodDescriptor(Type.getType(ChipmunkScript.class)),
+                false);
+        mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                Type.getInternalName(ChipmunkScript.class),
+                "getVM",
+                Type.getMethodDescriptor(Type.getType(ChipmunkVM.class)),
+                false);
     }
 }

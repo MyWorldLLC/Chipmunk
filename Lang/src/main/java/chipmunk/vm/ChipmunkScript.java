@@ -24,6 +24,7 @@ import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.vm.jvm.JvmCompilerConfig;
 
 import java.util.Collections;
@@ -57,7 +58,7 @@ public abstract class ChipmunkScript {
     protected volatile ModuleLoader loader;
     protected volatile ChipmunkLibraries libs;
     protected volatile LinkingPolicy linkPolicy;
-    protected volatile JvmCompilerConfig jvmCompilerConfig;
+    protected volatile JvmCompiler jvmCompiler;
 
     public ChipmunkScript(){
         tags = new CopyOnWriteArrayList<>();
@@ -74,12 +75,12 @@ public abstract class ChipmunkScript {
         this.vm = vm;
     }
 
-    public JvmCompilerConfig getJvmCompilerConfig() {
-        return jvmCompilerConfig;
+    public JvmCompiler getJvmCompiler() {
+        return jvmCompiler;
     }
 
-    public void setJvmCompilerConfig(JvmCompilerConfig jvmCompilerConfig) {
-        this.jvmCompilerConfig = jvmCompilerConfig;
+    public void setJvmCompiler(JvmCompiler jvmCompiler) {
+        this.jvmCompiler = jvmCompiler;
     }
 
     public void tag(Object tag){

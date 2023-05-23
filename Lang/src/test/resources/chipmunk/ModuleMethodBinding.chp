@@ -17,11 +17,11 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
-def bindMe(){
-   return 5
+def bindMe(a, b){
+   return a + b
 }
 
 def main(){
-    var method = getModule()::bindMe
-    return method(1, 2)
+    var method = self::bindMe
+    return method(2, 3)
 }

@@ -27,6 +27,7 @@ import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.ChipmunkLinker;
@@ -44,7 +45,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -194,7 +197,7 @@ public class ChipmunkVM {
 		script.setId(scriptIds.incrementAndGet());
 		script.setLinkPolicy(defaultLinkPolicy);
 		script.setLibs(defaultLibraries);
-		script.setJvmCompilerConfig(jvmCompiler.getConfig());
+		script.setJvmCompiler(jvmCompiler);
 
 		return script;
 	}
@@ -218,11 +221,11 @@ public class ChipmunkVM {
 			return module;
 		}
 
-		JvmCompilerConfig compilerConfig = script.getJvmCompilerConfig();
+		JvmCompilerConfig compilerConfig = script.getJvmCompiler().getConfig();
 		if(compilerConfig == null){
 			compilerConfig = defaultJvmCompilerConfig;
 		}
-		module = script.getModuleLoader().load(moduleName, new JvmCompiler(compilerConfig));
+		module = script.getModuleLoader().load(moduleName, script.getJvmCompiler());
 
 		if(module == null){
 			throw new ModuleLoadException(String.format("Module %s not found", moduleName));
@@ -343,6 +346,27 @@ public class ChipmunkVM {
 				scheduler.notifyInvocationEnded(script);
 			}
 		}, scriptPool);
+	}
+
+	public MethodBinding bind(Object target, String methodName) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+		return (MethodBinding) getBinding(target, methodName).getConstructor(Object.class, String.class).newInstance(target, methodName);
+	}
+
+	@AllowChipmunkLinkage
+	public Class<?> getBinding(Object target, String method){
+
+		Objects.requireNonNull(target, "Cannot bind to null");
+
+		var targetType = target.getClass();
+
+		var bindingName = MethodBinding.class.getName() + "$" + targetType.getName().replace('.', '_') + "$" + method;
+
+		var script = ChipmunkScript.getCurrentScript();
+		try {
+			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
+		} catch (ClassNotFoundException e) {
+			return script.getJvmCompiler().bindingFor(script.getModuleLoader().getClassLoader(), bindingName, targetType, method);
+		}
 	}
 
 }
