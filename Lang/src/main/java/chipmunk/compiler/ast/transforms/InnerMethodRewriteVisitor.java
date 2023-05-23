@@ -53,7 +53,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 
 				var nodeSymbols = node.getSymbolTable();
 
-				// TODO - rather than leaving the symbol here, where it isn't
+				// TODO - rather than leaving the symbol here, where it logically isn't
 				// we should have a mechanism in the symbol table to reflect hoists
 				//parent.removeSymbol(node.getSymbol());
 				nodeSymbols.setParent(hoist.getSymbolTable());
@@ -64,6 +64,8 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), id);
 
 				if(nodeSymbols.countUpvalueRefs() > 0){
+					System.out.println("Binding upvalues for %s: %d".formatted(Methods.getName(node), nodeSymbols.countUpvalueRefs()));
+					System.out.println(node.getSymbolTable().toString(true));
 					var upvalueRefs = nodeSymbols.getUpvalueRefs();
 					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
 							Literals.makeInt(Methods.getParamCount(node) - nodeSymbols.countUpvalueRefs()),
@@ -76,7 +78,6 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 						var param = Identifier.make(s.getName(), node.getLineNumber());
 						param.setSymbol(s);
 						Methods.addParam(node, param);
-						nodeSymbols.setSymbol(s.makeUpvalueRef());
 					});
 				}
 				parentNode.addChild(index, rewrite);

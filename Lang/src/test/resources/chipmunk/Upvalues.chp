@@ -17,7 +17,7 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
-var getMe = 15
+#var getMe = 15
 
 def main(){
 	var x = 5
@@ -31,4 +31,5 @@ def main(){
 	#var getViaSelf = def() self.getMe
 
 	#return [innerGet(), innerSet(3), getViaSelf()]
+	return innerGet()
 }

@@ -132,13 +132,13 @@ public class Codegen implements AstVisitor {
 
 		if(assign){
 			assembler.dup();
-			if(symbol.isUpvalueRef()){
+			if(symbol.isUpvalueRef() || symbol.isUpvalue()){
 				assembler.setUpvalue(localIndex);
 			}else{
 				assembler.setLocal(localIndex);
 			}
 		}else{
-			if(symbol.isUpvalueRef()){
+			if(symbol.isUpvalueRef() || symbol.isUpvalue()){
 				assembler.getUpvalue(localIndex);
 			}else{
 				assembler.getLocal(localIndex);

@@ -377,7 +377,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run Upvalues.chp"(){
 		when:
-		def result = compileAndRun("Upvalues.chp")
+		def result = compileAndRun("Upvalues.chp", true)
 
 		then: result == [5, 3, 15]
 	}
