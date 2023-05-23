@@ -221,6 +221,15 @@ public class Symbol {
 			builder.append(getDeclaringScope());
 		}
 
+		if(isUpvalue()){
+			builder.append(" upvalue ");
+		}
+
+		if(isUpvalueRef()){
+			builder.append(" upvalueRef: ");
+			builder.append(upvalueRef.getName());
+		}
+
 		builder.append(" type: ");
 		builder.append(type);
 
