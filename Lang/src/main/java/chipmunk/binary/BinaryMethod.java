@@ -25,8 +25,6 @@ public class BinaryMethod {
     protected int argCount;
     protected int defaultArgCount;
     protected int localCount;
-    protected int upvalueRefCount;
-    protected int upvalueLocalCount;
 
     protected byte[] instructions;
     protected ExceptionBlock[] exceptionTable;
@@ -61,22 +59,6 @@ public class BinaryMethod {
 
     public void setLocalCount(int count){
         localCount = count;
-    }
-
-    public void setUpvalueRefCount(int count){
-        upvalueRefCount = count;
-    }
-
-    public int getUpvalueRefCount(){
-        return upvalueRefCount;
-    }
-
-    public void setUpvalueLocalCount(int count){
-        upvalueLocalCount = count;
-    }
-
-    public int getUpvalueLocalCount(){
-        return upvalueLocalCount;
     }
 
     public Object[] getConstantPool(){

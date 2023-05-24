@@ -101,8 +101,6 @@ public class BinaryWriter {
         os.writeUTF(method.getDeclarationSymbol());
         os.writeInt(method.getLocalCount());
         os.writeInt(method.getArgCount());
-        os.writeInt(method.getUpvalueLocalCount());
-        os.writeInt(method.getUpvalueRefCount());
         os.writeInt(method.getDefaultArgCount());
 
         byte[] instructions = method.getCode();
