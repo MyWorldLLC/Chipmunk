@@ -105,12 +105,12 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
         if (symbol.getTable().isMethodScope()) {
 
-            // rewrite outer local symbols as parameters to the nested method
+            // rewrite outer local symbols as parameters to the nested method, marking outer upvalues
             if(!symbol.getName().equals("self") && scope.isOuterLocal(symbol)){
                 var declaringMethod = scope.findTable(t -> t.getScope() == SymbolTable.Scope.METHOD).getNode();
-                var localSymbol = symbol.clone();
+                symbol.markAsUpvalue();
 
-                localSymbol.markAsUpvalue(); // TODO - temporarily using upvalue flag to mark external local (implicit) params
+                var localSymbol = symbol.makeUpvalueRef();
 
                 var identifier = Identifier.make(localSymbol.getName(), declaringMethod.getLineNumber());
                 Methods.addParam(declaringMethod, identifier);

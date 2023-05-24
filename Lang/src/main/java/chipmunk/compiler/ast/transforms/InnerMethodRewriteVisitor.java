@@ -60,46 +60,26 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 
 				hoist.addChild(node);
 
-				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), Identifier.make(id.getName()));
+				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(),
+						Identifier.make("self"), Identifier.make(id.getName()));
 
 				var upvalues = nodeSymbols.getAllSymbols().stream()
-						.filter(Symbol::isUpvalue)
+						.filter(Symbol::isUpvalueRef)
 						.filter(s -> !s.getName().equals(id.getName()))
-						.filter(s -> !s.getName().contains("$"))
 						.toList();
 
 				if(upvalues.size() > 0){
-					//var upvalues = nodeSymbols.findSymbols(Symbol::isUpvalue);
 					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
+							// - 1 to not count self reference, since that's always bound and not treated
+							// as an upvalue.
 							Literals.makeInt(Methods.getParamCount(node) - upvalues.size() - 1),
 							Lists.makeListOf(upvalues
 									.stream()
-									.map(s -> Identifier.make(s.getName(), node.getLineNumber()))
+									.map(s -> Identifier.makeBinding(s.getName(), node.getLineNumber()))
 									.toArray(AstNode[]::new))
 					);
-					/*upvalues.forEach(s -> {
-						var param = Identifier.make(s.getName(), node.getLineNumber());
-						param.setSymbol(s);
-						Methods.addParam(node, param);
-					});*/
 				}
-				/*if(nodeSymbols.countUpvalueRefs() > 0){
-					System.out.println("Binding upvalues for %s: %d".formatted(Methods.getName(node), nodeSymbols.countUpvalueRefs()));
-					System.out.println(node.getSymbolTable().toString(true));
-					var upvalueRefs = nodeSymbols.getUpvalueRefs();
-					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
-							Literals.makeInt(Methods.getParamCount(node) - nodeSymbols.countUpvalueRefs()),
-							Lists.makeListOf(upvalueRefs
-									.stream()
-									.map(s -> Identifier.make(s.getName(), node.getLineNumber()))
-									.toArray(AstNode[]::new))
-							);
-					upvalueRefs.forEach(s -> {
-						var param = Identifier.make(s.getName(), node.getLineNumber());
-						param.setSymbol(s);
-						Methods.addParam(node, param);
-					});
-				}*/
+
 				if(!Methods.isAnonymousName(id.getName())){
 					// This is a nested def of a non-anonymous method, so rewrite as "var name = self::name"
 					parent.setSymbol(id);

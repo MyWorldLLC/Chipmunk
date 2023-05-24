@@ -256,6 +256,11 @@ public class ChipmunkAssembler {
 		writeByte(localIndex);
 	}
 
+	public void initUpvalue(int localIndex){
+		writeByte(Opcodes.INITUPVALUE);
+		writeByte(localIndex);
+	}
+
 	public void getUpvalue(int localIndex){
 		writeByte(Opcodes.GETUPVALUE);
 		writeByte(localIndex);

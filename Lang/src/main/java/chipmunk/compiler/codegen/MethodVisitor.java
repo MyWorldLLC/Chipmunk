@@ -122,7 +122,7 @@ public class MethodVisitor implements AstVisitor {
 				// TODO
 			}*/
 			
-			codegen.enterScope(symbols);
+			codegen.enterScope(symbols, Methods.getParamCount(node));
 			if(Methods.getBodyNodeCount(methodNode) == 1
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword

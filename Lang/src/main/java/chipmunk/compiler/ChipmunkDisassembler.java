@@ -428,6 +428,11 @@ public class ChipmunkDisassembler {
 				builder.append(fetchInt(codeSegment, ip + 1));
 				ip += 5;
 				break;
+			case INITUPVALUE:
+				builder.append("initupvalue ");
+				builder.append(fetchByte(codeSegment, ip + 1));
+				ip += 2;
+				break;
 			case GETUPVALUE:
 				builder.append("getupvalue ");
 				builder.append(fetchByte(codeSegment, ip + 1));

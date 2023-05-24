@@ -30,6 +30,7 @@ public enum NodeType {
     PARAM_LIST,
     VAR_DEC(),
     ID(),
+    BINDING(),
     IF_ELSE(),
     IF(SymbolTable.Scope.LOCAL),
     ELSE(SymbolTable.Scope.LOCAL),

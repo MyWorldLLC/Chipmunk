@@ -19,17 +19,24 @@ module test
 
 var getMe = 15
 
+def useParam(y){
+    def writeParam(){
+        y = 3
+    }
+    writeParam()
+    return y
+}
+
 def main(){
 	var x = 5
 
 	var innerGet = def () x
-	var innerSet = def (v) {
+    var innerSet = def (v) {
 	    x = v
 	    return x
 	}
 
 	var getViaSelf = def() self.getMe
 
-	#return [innerGet(), innerSet(3), getViaSelf()]
-	return [innerGet(), innerSet(3), x, getViaSelf()]
+	return [innerGet(), innerSet(3), x, getViaSelf(), useParam(4)]
 }

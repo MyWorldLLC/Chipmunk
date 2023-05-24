@@ -53,6 +53,9 @@ public class ExpressionVisitor implements AstVisitor {
 		if(node.is(NodeType.ID)){
 			assembler.onLine(node.getLineNumber());
 			codegen.emitLocalAccess(node.getToken().text());
+		}else if(node.is(NodeType.BINDING)){
+			assembler.onLine(node.getLineNumber());
+			codegen.emitBindingAccess(node.getToken().text());
 		}else if(node.is(NodeType.LITERAL)){
 			assembler.onLine(node.getLineNumber());
 			switch (node.getToken().type()) {

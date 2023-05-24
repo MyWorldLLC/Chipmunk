@@ -791,6 +791,10 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
+                case INITUPVALUE -> {
+                    generateUpvalueInit(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
                 case GETUPVALUE -> {
                     generateUpvalueGet(mv, instructions[ip + 1]);
                     ip += 2;
@@ -948,25 +952,31 @@ public class JvmCompiler {
         mv.visitVarInsn(Opcodes.ALOAD, index);
     }
 
-    protected void generateUpvalueSet(MethodVisitor mv, byte index){
+    protected void generateUpvalueInit(MethodVisitor mv, byte index){
+        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Upvalue.class));
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Upvalue.class), "<init>",
+                Type.getMethodDescriptor(Type.VOID_TYPE), false);
         mv.visitVarInsn(Opcodes.ASTORE, index);
-        /*mv.visitVarInsn(Opcodes.ALOAD, index);
+    }
+
+    protected void generateUpvalueSet(MethodVisitor mv, byte index){
+        mv.visitVarInsn(Opcodes.ALOAD, index);
         mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
 
         mv.visitInsn(Opcodes.SWAP);
 
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "set",
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);*/
+                Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Object.class)), false);
     }
 
     protected void generateUpvalueGet(MethodVisitor mv, byte index){
 
         mv.visitVarInsn(Opcodes.ALOAD, index);
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
+                Type.getMethodDescriptor(Type.getType(Object.class)), false);
 
-        //mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
-
-        //mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
-        //        Type.getMethodDescriptor(Type.getType(Object.class)), false);
     }
 
     protected void generateIfJump(MethodVisitor mv, Map<Integer, Label> labels, int jumpTarget){
@@ -1247,7 +1257,6 @@ public class JvmCompiler {
 
         for(var method : methods){
             var descriptor = Type.getMethodDescriptor(method);
-            System.out.println("Binding call %s".formatted(descriptor));
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", descriptor, null, null);
             methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);
 
@@ -1312,8 +1321,6 @@ public class JvmCompiler {
                 .filter(m -> m.getParameterCount() > pos + argCount - 1)
                 .toList();
 
-        System.out.println("Binding candidates: " + methods);
-
         for(var method : methods){
 
             // descriptor without bound params
@@ -1325,7 +1332,6 @@ public class JvmCompiler {
                     Type.getType(method.getReturnType()),
                     pTypes
             );
-            System.out.println("Arg binding call(%d)".formatted(pTypes.length));
 
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", methodType.getDescriptor(), null, null);
             methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);

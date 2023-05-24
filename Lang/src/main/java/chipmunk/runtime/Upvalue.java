@@ -4,8 +4,9 @@ public class Upvalue {
 
     protected volatile Object value;
 
-    public void set(Object value){
+    public Object set(Object value){
         this.value = value;
+        return value;
     }
 
     public Object get(){
