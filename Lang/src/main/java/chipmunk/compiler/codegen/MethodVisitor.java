@@ -166,8 +166,8 @@ public class MethodVisitor implements AstVisitor {
 
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
-		method.setUpvalueLocalCount(symbols.countUpvalues());
-		method.setUpvalueRefCount(symbols.countUpvalueRefs());
+		//method.setUpvalueLocalCount(symbols.countUpvalues());
+		//method.setUpvalueRefCount(symbols.countUpvalueRefs());
 		method.setModule(module);
 		method.setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 		method.setDebugTable(codegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));

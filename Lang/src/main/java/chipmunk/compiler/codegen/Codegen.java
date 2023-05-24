@@ -125,6 +125,7 @@ public class Codegen implements AstVisitor {
 		SymbolTable table = trace.getLast();
 		var symbol = table.getSymbol(name);
 		var localIndex = table.getLocalIndex(symbol);
+		System.out.println("Local index %s: %d".formatted(name, localIndex));
 
 		if(localIndex == -1){
 			throw new IllegalStateException(name + " is not a local. This is a compiler bug.");

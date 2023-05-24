@@ -23,6 +23,7 @@ package chipmunk.compiler.ast.transforms;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
 /**
@@ -41,7 +42,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 
 		// Hoist inner methods to closest non-method scoped node
-		if(node.is(NodeType.METHOD)){
+		if(isNestedMethod(node)){
 			var parent = node.getSymbolTable().getParent();
 			if(parent != null && parent.isMethodScope()){
 				var id = Methods.getName(node);
@@ -53,17 +54,38 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 
 				var nodeSymbols = node.getSymbolTable();
 
-				// TODO - rather than leaving the symbol here, where it logically isn't
-				// we should have a mechanism in the symbol table to reflect hoists
-				//parent.removeSymbol(node.getSymbol());
+				parent.removeSymbol(node.getSymbol());
 				nodeSymbols.setParent(hoist.getSymbolTable());
 				hoist.getSymbolTable().setSymbol(node.getSymbol());
 
 				hoist.addChild(node);
 
 				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), id);
+				node.getSymbolTable().removeSymbol(Methods.getName(node).getSymbol());
 
-				if(nodeSymbols.countUpvalueRefs() > 0){
+				var upvalues = nodeSymbols.getAllSymbols().stream()
+						.filter(Symbol::isUpvalue)
+						.filter(s -> !s.getName().equals(Identifier.getIdentifierName(Methods.getName(node))))
+						.toList();
+
+				if(upvalues.size() > 0){
+					System.out.println("Binding upvalues for %s: %d".formatted(Methods.getName(node), upvalues.size()));
+					System.out.println(node.getSymbolTable().toString(true));
+					//var upvalues = nodeSymbols.findSymbols(Symbol::isUpvalue);
+					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
+							Literals.makeInt(Methods.getParamCount(node) - upvalues.size()),
+							Lists.makeListOf(upvalues
+									.stream()
+									.map(s -> Identifier.make(s.getName(), node.getLineNumber()))
+									.toArray(AstNode[]::new))
+					);
+					/*upvalues.forEach(s -> {
+						var param = Identifier.make(s.getName(), node.getLineNumber());
+						param.setSymbol(s);
+						Methods.addParam(node, param);
+					});*/
+				}
+				/*if(nodeSymbols.countUpvalueRefs() > 0){
 					System.out.println("Binding upvalues for %s: %d".formatted(Methods.getName(node), nodeSymbols.countUpvalueRefs()));
 					System.out.println(node.getSymbolTable().toString(true));
 					var upvalueRefs = nodeSymbols.getUpvalueRefs();
@@ -79,7 +101,8 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 						param.setSymbol(s);
 						Methods.addParam(node, param);
 					});
-				}
+				}*/
+				System.out.println(rewrite.toString());
 				parentNode.addChild(index, rewrite);
 			}
 
@@ -92,6 +115,13 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 		return node.getSymbolTable()
 				.findTable(t -> t.getScope() == SymbolTable.Scope.CLASS || t.getScope() == SymbolTable.Scope.MODULE)
 				.getNode();
+	}
+
+	protected boolean isNestedMethod(AstNode node){
+		return node.is(NodeType.METHOD)
+				&& node.hasParent()
+				&& node.getParent().getSymbolTable() != null
+				&& node.getParent().getSymbolTable().isMethodScope();
 	}
 
 }

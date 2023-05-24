@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import chipmunk.compiler.ast.AstNode;
 
@@ -84,6 +83,10 @@ public class SymbolTable {
 			}
 		}
 		return symbols.get(symbols.indexOf(symbol));
+	}
+
+	public boolean defines(Symbol symbol){
+		return symbols.contains(symbol);
 	}
 
 	public Symbol getSymbolLocal(String name){
@@ -194,7 +197,8 @@ public class SymbolTable {
 
 		var localStartIndex = 0;
 
-		if(parent != null && parent.isMethodScope()){
+		// Don't cross method scope boundaries when resolving local start indices
+		if(parent != null && parent.isMethodScope() && scope != Scope.METHOD){
 			localStartIndex = parent.getLocalStartIndex() + parent.symbols.size();
 		}
 
@@ -256,16 +260,17 @@ public class SymbolTable {
 		return symbols.getParent().getScope();
 	}
 
-	public boolean isClosured(Symbol symbol){
+	public boolean isOuterLocal(Symbol symbol){
+
 		SymbolTable symbols = this;
-		boolean crossedMethodBoundary = false;
-		while(symbols.isMethodScope() && symbols != symbol.getTable()){
+		SymbolTable methodBoundary = null;
+		while(symbols.isMethodScope() && !symbols.defines(symbol)){
 			if(symbols.getScope() == Scope.METHOD){
-				crossedMethodBoundary = true;
+				methodBoundary = symbols;
 			}
 			symbols = symbols.getParent();
 		}
-		return symbols.isMethodScope() && crossedMethodBoundary;
+		return symbols.isMethodScope() && methodBoundary != null && symbols != methodBoundary;
 	}
 
 	public SymbolTable getMethodTable(){

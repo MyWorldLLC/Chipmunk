@@ -65,7 +65,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             if (child.is(NodeType.ID) && !isQualified(node, child)) {
 
-                if (!isMethodBindTarget(node, i)) {
+                if (!isMethodBindTarget(node, i) && !isMethodParam(child)) {
 
                     child = rewriteQualified(child);
                     node.replaceChild(i, child);
@@ -106,13 +106,15 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         if (symbol.getTable().isMethodScope()) {
             // No rewrite needed because this is a local variable
 
-            // Resolve upvalue references as parameters to the nested method
-            if(!symbol.getName().equals("self") && scope.isClosured(symbol)){
+            // Resolve outer local symbols as parameters to the nested method
+            if(!symbol.getName().equals("self") && scope.isOuterLocal(symbol)){
+                System.out.println("Is outer local: " + symbolName);
                 var declaringMethod = scope.findTable(t -> t.getScope() == SymbolTable.Scope.METHOD).getNode();
-                symbol.markAsUpvalue();
-                declaringMethod.getSymbolTable().setSymbol(symbol.makeUpvalueRef());
-                Methods.addParam(declaringMethod,
-                        Identifier.make(symbol.getName(), declaringMethod.getLineNumber()));
+                var localSymbol = symbol.clone();
+                localSymbol.markAsUpvalue(); // TODO - temporarily using upvalue flag to mark external local (implicit) params
+                declaringMethod.getSymbolTable().setSymbol(localSymbol);
+                var identifier = Identifier.make(localSymbol.getName(), declaringMethod.getLineNumber());
+                Methods.addParam(declaringMethod, identifier);
             }
             return child;
         }
@@ -207,5 +209,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             }
         }
         return false;
+    }
+
+    protected boolean isMethodParam(AstNode node){
+        return node.getParent() != null && node.getParent().is(NodeType.PARAM_LIST);
     }
 }

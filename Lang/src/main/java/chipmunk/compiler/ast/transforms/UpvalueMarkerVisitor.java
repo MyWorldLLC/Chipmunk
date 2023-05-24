@@ -89,7 +89,7 @@ public class UpvalueMarkerVisitor implements AstVisitor {
         if (symbol.getTable().isMethodScope()) {
             // Mark local variables that are in an outer method scope as upvalues,
             // and mark the upvalue reference in the nearest method-scope symbol table
-            if(!symbol.getName().equals("self") && scope.isClosured(symbol)){
+            if(!symbol.getName().equals("self") && scope.isOuterLocal(symbol)){
                 symbol.markAsUpvalue();
                 scope.nearest(SymbolTable.Scope.METHOD).setSymbol(symbol.makeUpvalueRef());
             }
