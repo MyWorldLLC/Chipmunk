@@ -22,12 +22,16 @@ package chipmunk.compiler.symbols;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import chipmunk.compiler.ast.AstNode;
 
 public class SymbolTable {
+
+	public static final int UNDEFINED_LOCAL_START_INDEX = -1;
 	
 	public enum Scope {
 		MODULE, CLASS, METHOD, LOCAL
@@ -37,7 +41,6 @@ public class SymbolTable {
 	protected String debugSymbol;
 	protected SymbolTable parent;
 	protected Scope scope;
-	protected int localStartIndex;
 	protected int maxChildLocalCount;
 	protected AstNode node;
 	
@@ -64,6 +67,10 @@ public class SymbolTable {
 			parent.reportChildLocalCount(symbols.size());
 		}
 	}
+
+	public boolean removeSymbol(Symbol symbol){
+		return symbols.remove(symbol);
+	}
 	
 	public Symbol getSymbol(String name){
 		Symbol symbol = new Symbol(name);
@@ -76,6 +83,10 @@ public class SymbolTable {
 			}
 		}
 		return symbols.get(symbols.indexOf(symbol));
+	}
+
+	public boolean defines(Symbol symbol){
+		return symbols.contains(symbol);
 	}
 
 	public Symbol getSymbolLocal(String name){
@@ -106,16 +117,15 @@ public class SymbolTable {
 	}
 	
 	public int getLocalIndex(Symbol symbol){
-		// TODO - support closures
 		if(scope == Scope.LOCAL || scope == Scope.METHOD){
 			if(symbols.contains(symbol)){
-				return symbols.indexOf(symbol) + localStartIndex;
+				return symbols.indexOf(symbol) + getLocalStartIndex();
 			}
 			if(parent != null){
 				return parent.getLocalIndex(symbol);
 			}
 		}
-		return -1;
+		return UNDEFINED_LOCAL_START_INDEX;
 	}
 	
 	public Scope getScope(){
@@ -128,10 +138,8 @@ public class SymbolTable {
 			// If scope changes to local, reset local min/max counts
 			// either their current values or 0 (preserves local min/max
 			// if scope is local and is set to local)
-			localStartIndex = Math.max(0, localStartIndex);
 			maxChildLocalCount = Math.max(0, maxChildLocalCount);
 		}else{
-			localStartIndex = -1;
 			maxChildLocalCount = -1;
 		}
 	}
@@ -147,10 +155,22 @@ public class SymbolTable {
 	public SymbolTable getParent(){
 		return parent;
 	}
+
+	public SymbolTable getParent(Scope scope){
+		var parent = getParent();
+		while(parent != null && parent.getScope() != scope){
+			parent = parent.getParent();
+		}
+		return parent;
+	}
+
+	public SymbolTable nearest(Scope scope){
+		return findTable(t -> t.getScope() == scope);
+	}
 	
 	public void setParent(SymbolTable parent){
 		this.parent = parent;
-		calculateLocalStartIndex();
+		getLocalStartIndex();
 		if(isInnerLocal()){
 			parent.reportChildLocalCount(this.getLocalMax());
 		}
@@ -169,14 +189,19 @@ public class SymbolTable {
 		return maxChildLocalCount + symbols.size();
 	}
 	
-	public void calculateLocalStartIndex(){
-		localStartIndex = 0;
-		if(scope == Scope.LOCAL && isInnerLocal()){
+	public int getLocalStartIndex(){
+
+		if(!isMethodScope()){
+			return -1;
+		}
+
+		var localStartIndex = 0;
+
+		// Don't cross method scope boundaries when resolving local start indices
+		if(parent != null && parent.isMethodScope() && scope != Scope.METHOD){
 			localStartIndex = parent.getLocalStartIndex() + parent.symbols.size();
 		}
-	}
-	
-	public int getLocalStartIndex(){
+
 		return localStartIndex;
 	}
 	
@@ -235,16 +260,17 @@ public class SymbolTable {
 		return symbols.getParent().getScope();
 	}
 
-	public boolean isClosured(Symbol symbol){
+	public boolean isOuterLocal(Symbol symbol){
+
 		SymbolTable symbols = this;
-		boolean crossedMethodBoundary = false;
-		while(symbols.isMethodScope() && symbols != symbol.getTable()){
+		SymbolTable methodBoundary = null;
+		while(symbols.isMethodScope() && !symbols.defines(symbol)){
 			if(symbols.getScope() == Scope.METHOD){
-				crossedMethodBoundary = true;
+				methodBoundary = symbols;
 			}
 			symbols = symbols.getParent();
 		}
-		return symbols.isMethodScope() && crossedMethodBoundary;
+		return symbols.isMethodScope() && methodBoundary != null && symbols != methodBoundary;
 	}
 
 	public SymbolTable getMethodTable(){
@@ -270,6 +296,10 @@ public class SymbolTable {
 		return symbols;
 	}
 
+	public List<Symbol> getUpvalueRefs(){
+		return findSymbols(s -> s.getUpvalueRef() != null);
+	}
+
 	public boolean isModuleMethodScope(){
 		return getMethodContainingScope() == Scope.MODULE;
 	}
@@ -293,15 +323,40 @@ public class SymbolTable {
 		}
 		return table;
 	}
-	
-	@Override
-	public String toString(){
+
+	public List<Symbol> findSymbols(Predicate<Symbol> s){
+		return symbols.stream().filter(s).toList();
+	}
+
+	public void sortSymbols(Comparator<Symbol> c){
+		symbols.sort(c);
+	}
+
+	public int count(Predicate<Symbol> p){
+		return (int) symbols.stream().filter(p).count();
+	}
+
+	public int countUpvalues(){
+		return count(Symbol::isUpvalue);
+	}
+
+	public int countUpvalueRefs(){
+		return count(s -> s.getUpvalueRef() != null);
+	}
+
+	public String toString(boolean pretty){
 		StringBuilder builder = new StringBuilder();
 		if(parent != null){
-			builder.append(parent.toString());
+			builder.append(parent.toString(pretty));
 			builder.append("\n^");
 		}
-		builder.append(symbols.toString());
+		builder.append(pretty
+				? symbols.stream().map(Symbol::toString).collect(Collectors.joining(",\n  ", "[\n  ", "\n]"))
+				: symbols);
 		return builder.toString();
+	}
+	@Override
+	public String toString(){
+		return toString(false);
 	}
 }

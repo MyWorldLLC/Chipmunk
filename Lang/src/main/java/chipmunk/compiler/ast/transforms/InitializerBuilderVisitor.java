@@ -51,9 +51,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             for(AstNode im : imports){
 
-                final int index = im.getTokenIndex();
                 final int line = im.getLineNumber();
-                final int column = 0;
 
                 final String moduleName = Imports.getModule(im).getName();
 
@@ -64,41 +62,26 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 // Create a module field named $imported_module_name & assign it to the retrieved module
                 AstNode dec = VarDec.makeImplicit(ChipmunkCompiler.importedModuleName(moduleName));
 
-                AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
+                var getModuleCallNode = Methods.makeInvocation(Identifier.make("vm"), "getModule", line, Literals.makeString("\"" + moduleName + "\""));
+
+                /*AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
                 vmDotNode.addChild(Identifier.make("vm"));
                 vmDotNode.addChild(Identifier.make("getModule"));
 
                 getModuleCallNode.addChild(vmDotNode);
                 getModuleCallNode.addChild(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
-
+*/
                 VarDec.setAssignment(dec, getModuleCallNode);
-               // importDeclarations.add(dec);
+
                 node.addChild(0, dec);
 
                 alreadyImported.add(moduleName);
-                //System.out.println("Generated import " + moduleName);
             }
-            //System.out.println("Initializer with imports: " + node);
-            // We need these import declarations to be the first things in the initializer,
-            // but we want to preserve the order of imports in case (a) this is the first
-            // import of any referenced module, and (b) the load order of modules matters
-            // (even if only for debugging purposes).
-            //for(int i = importDeclarations.size() - 1; i >= 0; i--){
-                //Methods.addToBody(initializer, 0, importDeclarations.get(i));
-            //}
 
             modulesAndClasses.push(node);
 
             node.visitChildren(this);
-
-            /*// After visiting children, collect all writes to '$' fields (imported module references)
-            // and sort them to the front of the child list. This ensures that they will be set before
-            // being referenced
-            initializer.sortChildren((a, b) -> a.is(NodeType.VAR_DEC)
-                    && VarDec.getVarName(a).startsWith("$")
-                    && VarDec.getAssignment(a) != null ? -1 : 0);
-            System.out.println(initializer);*/
 
             modulesAndClasses.pop();
 

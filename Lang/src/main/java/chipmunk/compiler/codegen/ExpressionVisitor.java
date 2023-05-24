@@ -53,6 +53,9 @@ public class ExpressionVisitor implements AstVisitor {
 		if(node.is(NodeType.ID)){
 			assembler.onLine(node.getLineNumber());
 			codegen.emitLocalAccess(node.getToken().text());
+		}else if(node.is(NodeType.BINDING)){
+			assembler.onLine(node.getLineNumber());
+			codegen.emitBindingAccess(node.getToken().text());
 		}else if(node.is(NodeType.LITERAL)){
 			assembler.onLine(node.getLineNumber());
 			switch (node.getToken().type()) {
@@ -115,17 +118,6 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.callAt("put", (byte)2);
 				assembler.pop();
 			}
-		}else if(node.is(NodeType.METHOD)){
-			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
-			visitor.visit(node);
-
-			codegen.getModule().getNamespace().addEntry(
-					BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, visitor.getMethod()));
-
-			assembler.onLine(node.getLineNumber());
-			// TODO - push closure locals
-			// TODO - have to get correct number of method params
-			assembler.bind(visitor.getMethodSymbol().getName()); // TODO - have to push closure locals & create a method binding here
 		}
 		/*else if(node instanceof ClassNode) {
 			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
@@ -216,7 +208,7 @@ public class ExpressionVisitor implements AstVisitor {
 					assembler.onLine(node.getLineNumber());
 					assembler.bind(rhs.getToken().text());
 				}else{
-					throw new SyntaxError("Binding nodeerator requires a compile-time static method name");
+					throw new SyntaxError("Binding node operator requires a compile-time static method name");
 				}
 
 			}

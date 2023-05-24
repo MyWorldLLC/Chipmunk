@@ -256,13 +256,18 @@ public class ChipmunkAssembler {
 		writeByte(localIndex);
 	}
 
-	public void getClosure(int localIndex){
-		writeByte(Opcodes.GETCLOSURE);
+	public void initUpvalue(int localIndex){
+		writeByte(Opcodes.INITUPVALUE);
 		writeByte(localIndex);
 	}
 
-	public void setClosure(int localIndex){
-		writeByte(Opcodes.SETCLOSURE);
+	public void getUpvalue(int localIndex){
+		writeByte(Opcodes.GETUPVALUE);
+		writeByte(localIndex);
+	}
+
+	public void setUpvalue(int localIndex){
+		writeByte(Opcodes.SETUPVALUE);
 		writeByte(localIndex);
 	}
 	

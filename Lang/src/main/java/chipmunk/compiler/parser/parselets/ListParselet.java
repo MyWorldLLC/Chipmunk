@@ -38,9 +38,13 @@ public class ListParselet implements PrefixParselet {
 		while(!tokens.peek(TokenType.RBRACKET)){
 
 			tokens.skipNewlinesAndComments();
-			list.addChild(parser.parseExpression());
+
+			if(!tokens.peek(TokenType.RBRACKET)){
+				list.addChild(parser.parseExpression());
+			}
+
 			tokens.skipNewlinesAndComments();
-			
+
 			if(!(tokens.dropNext(TokenType.COMMA) || tokens.peek(TokenType.RBRACKET))){
 				ChipmunkParser.syntaxError("Error parsing list", tokens.getFileName(), tokens.peek(), TokenType.COMMA, TokenType.RBRACKET);
 			}

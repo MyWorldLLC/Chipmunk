@@ -30,14 +30,10 @@ import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 import chipmunk.binary.*;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
-import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -298,13 +294,13 @@ public class JvmCompiler {
         // 0: self
         // 1: cClass
         // 2+: binaryConstructor params
-        Type[] initTypes = paramTypes(binaryConstructor.getArgCount() + 1);
+        Type[] initTypes = paramTypes(binaryConstructor.getArgCount());
         initTypes[0] = Type.getObjectType(jvmName(qualifiedCClassName));
 
         // The constructor params are:
         // 0: self
         // 1+: binaryConstructor params
-        Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount());
+        Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
         MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
         insConstructor.visitCode();
@@ -527,7 +523,8 @@ public class JvmCompiler {
 
         final Type objType = Type.getType(Object.class);
 
-        Type[] pTypes = new Type[Math.max(0, method.getArgCount())];
+        // Note: Chipmunk counts the 'self' parameter as an argument, but Java does not
+        Type[] pTypes = new Type[Math.max(0, method.getArgCount() - 1)];
         Arrays.fill(pTypes, objType);
 
         Type methodType = Type.getMethodType(objType, pTypes);
@@ -541,6 +538,15 @@ public class JvmCompiler {
 
         ExceptionBlock[] exceptionTable = method.getExceptionTable();
         int exceptionIndex = 0;
+
+        /*int firstUpvalueIndex = method.getArgCount();
+        for(int i = 0; i < method.getUpvalueLocalCount(); i++){
+            mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Upvalue.class));
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Upvalue.class), "<init>",
+                    Type.getMethodDescriptor(Type.VOID_TYPE), false);
+            mv.visitVarInsn(Opcodes.ASTORE, i + firstUpvalueIndex);
+        }*/
 
 
         byte[] instructions = method.getCode();
@@ -785,6 +791,18 @@ public class JvmCompiler {
                     generateMap(mv, fetchInt(instructions, ip + 1));
                     ip += 5;
                 }
+                case INITUPVALUE -> {
+                    generateUpvalueInit(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
+                case GETUPVALUE -> {
+                    generateUpvalueGet(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
+                case SETUPVALUE -> {
+                    generateUpvalueSet(mv, instructions[ip + 1]);
+                    ip += 2;
+                }
                 case BIND -> {
                     int methodNameIndex = fetchInt(instructions, ip + 1);
 
@@ -797,7 +815,11 @@ public class JvmCompiler {
 
         }
 
-        mv.visitMaxs(0, 0);
+        try{
+            mv.visitMaxs(0, 0);
+        }catch (Exception e){
+            throw new RuntimeException("Error while generating bytecode for %s. This is a compiler bug.".formatted(name), e);
+        }
         mv.visitEnd();
     }
 
@@ -928,6 +950,33 @@ public class JvmCompiler {
 
     protected void generateLocalGet(MethodVisitor mv, byte index){
         mv.visitVarInsn(Opcodes.ALOAD, index);
+    }
+
+    protected void generateUpvalueInit(MethodVisitor mv, byte index){
+        mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Upvalue.class));
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Upvalue.class), "<init>",
+                Type.getMethodDescriptor(Type.VOID_TYPE), false);
+        mv.visitVarInsn(Opcodes.ASTORE, index);
+    }
+
+    protected void generateUpvalueSet(MethodVisitor mv, byte index){
+        mv.visitVarInsn(Opcodes.ALOAD, index);
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+
+        mv.visitInsn(Opcodes.SWAP);
+
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "set",
+                Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(Object.class)), false);
+    }
+
+    protected void generateUpvalueGet(MethodVisitor mv, byte index){
+
+        mv.visitVarInsn(Opcodes.ALOAD, index);
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
+                Type.getMethodDescriptor(Type.getType(Object.class)), false);
+
     }
 
     protected void generateIfJump(MethodVisitor mv, Map<Integer, Label> labels, int jumpTarget){
@@ -1202,7 +1251,10 @@ public class JvmCompiler {
         constructor.visitMaxs(0, 0);
         constructor.visitEnd();
 
-        var methods = Arrays.stream(targetType.getMethods()).filter(m -> m.getName().equals(methodName)).toList();
+        var methods = Arrays.stream(targetType.getMethods())
+                .filter(m -> m.getName().equals(methodName))
+                .toList();
+
         for(var method : methods){
             var descriptor = Type.getMethodDescriptor(method);
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", descriptor, null, null);
@@ -1225,6 +1277,96 @@ public class JvmCompiler {
         }
 
         gen.visitEnd();
+        return loader.define(bindingName, gen.toByteArray());
+    }
+
+    public Class<?> argBindingFor(ChipmunkClassLoader loader, String bindingName, Class<? extends MethodBinding> delegateType, int pos, int argCount){
+
+        var internalName = jvmName(bindingName);
+
+        ClassWriter gen = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        gen.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, internalName, null, Type.getInternalName(MethodBinding.class), null);
+        gen.visitSource(internalName, null);
+        gen.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
+
+        for(int i = 0; i < argCount; i++){
+            gen.visitField(Opcodes.ACC_PROTECTED, "p" + i, Type.getDescriptor(Object.class), null, null).visitEnd();
+        }
+
+        MethodVisitor constructor = gen.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(MethodBinding.class), Type.INT_TYPE, Type.getType(Object[].class)), null, null);
+        constructor.visitCode();
+
+        // Invoke super
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitVarInsn(Opcodes.ALOAD, 1);
+        constructor.visitLdcInsn("call");
+        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(MethodBinding.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(String.class)), false);
+
+        // Invoke field set
+        for(int i = 0; i < argCount; i++){
+            constructor.visitVarInsn(Opcodes.ALOAD, 0);
+            constructor.visitVarInsn(Opcodes.ALOAD, 3);
+            constructor.visitLdcInsn(i);
+            constructor.visitInsn(Opcodes.AALOAD);
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, internalName, "p" + i, Type.getDescriptor(Object.class));
+        }
+
+        constructor.visitInsn(Opcodes.RETURN);
+        constructor.visitMaxs(0, 0);
+        constructor.visitEnd();
+
+        var methods = Arrays.stream(delegateType.getMethods())
+                .filter(m -> m.getName().equals("call"))
+                .filter(m -> m.getParameterCount() > pos + argCount - 1)
+                .toList();
+
+        for(var method : methods){
+
+            // descriptor without bound params
+            var pTypes = new Type[method.getParameterCount() - argCount];
+            for(int i = 0; i < pTypes.length; i++){
+                pTypes[i] = Type.getType(Object.class);
+            }
+            var methodType = Type.getMethodType(
+                    Type.getType(method.getReturnType()),
+                    pTypes
+            );
+
+            var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", methodType.getDescriptor(), null, null);
+            methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);
+
+            methodWriter.visitCode();
+
+            methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+            methodWriter.visitFieldInsn(Opcodes.GETFIELD, internalName, MethodBinding.TARGET_FIELD_NAME, Type.getDescriptor(Object.class));
+
+            int param = 1;
+            // leading unbound params
+            for(int i = 0; i < pos; i++, param++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, param);
+            }
+
+            // bound params
+            for(int i = 0; i < argCount; i++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, 0);
+                methodWriter.visitFieldInsn(Opcodes.GETFIELD, internalName, "p" + i, Type.getDescriptor(Object.class));
+            }
+
+            // trailing unbound params
+            for(; param <= method.getParameterCount() - argCount; param++){
+                methodWriter.visitVarInsn(Opcodes.ALOAD, param);
+            }
+
+            generateDynamicInvocation(methodWriter, "call", method.getParameterCount() + 1);
+            methodWriter.visitInsn(Opcodes.ARETURN);
+
+            methodWriter.visitMaxs(0, 0);
+            methodWriter.visitEnd();
+        }
+
+        gen.visitEnd();
+
         return loader.define(bindingName, gen.toByteArray());
     }
 

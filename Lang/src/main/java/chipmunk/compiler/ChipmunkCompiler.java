@@ -75,8 +75,9 @@ public class ChipmunkCompiler {
 		);
 
 		passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(
-				new InnerMethodRewriteVisitor(),
-				new SymbolAccessRewriteVisitor()));
+				//new UpvalueMarkerVisitor(),
+				new SymbolAccessRewriteVisitor(),
+				new InnerMethodRewriteVisitor()));
 	}
 
 	public ModuleLoader getModuleLoader(){

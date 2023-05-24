@@ -67,7 +67,7 @@ class LanguageSpecification extends Specification {
 		}else{
 			try{
 				return script.run()
-			}catch(Exception e){
+			}catch(Throwable e){
 
 				for(def binaryModule : modules){
 					println(ChipmunkDisassembler.disassemble(binaryModule))
@@ -92,7 +92,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run ModuleWithInitializer.chp"(){
 		when:
-		def result = compileAndRun("ModuleWithInitializer.chp")
+		def result = compileAndRun("ModuleWithInitializer.chp", true)
 		
 		then:
 		result == 5
@@ -359,11 +359,26 @@ class LanguageSpecification extends Specification {
 		result == 18
 	}
 
+	def "Run BoundMethodArgs.chp"(){
+		when:
+		def result = compileAndRun("BoundMethodArgs.chp", true)
+
+		then:
+		result == [11, 10, 14, 11, 11]
+	}
+
 	def "Run UnimplementedMethod.chp"(){
 		when:
 		def result = compileAndRun("UnimplementedMethod.chp")
 
 		then:
 		thrown(UnimplementedMethodException)
+	}
+
+	def "Run Upvalues.chp"(){
+		when:
+		def result = compileAndRun("Upvalues.chp", true)
+
+		then: result == [5, 3, 3, 15, 3]
 	}
 }

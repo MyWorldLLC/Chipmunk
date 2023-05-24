@@ -33,6 +33,14 @@ public class Identifier {
         return make(new Token(id, TokenType.IDENTIFIER));
     }
 
+    public static AstNode make(String id, int line){
+        return make(new Token(id, TokenType.IDENTIFIER, Token.UNKNOWN, line));
+    }
+
+    public static AstNode makeBinding(String id, int line){
+        return new AstNode(NodeType.BINDING, new Token(id, TokenType.IDENTIFIER, Token.UNKNOWN, line));
+    }
+
     public static boolean isIdentifierNamed(AstNode node, String name){
         return node.is(NodeType.ID) && node.getToken() != null && name.equals(node.getToken().text());
     }

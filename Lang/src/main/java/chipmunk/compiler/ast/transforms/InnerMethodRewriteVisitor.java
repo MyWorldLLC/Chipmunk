@@ -23,6 +23,7 @@ package chipmunk.compiler.ast.transforms;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
 /**
@@ -40,7 +41,8 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 	@Override
 	public void visit(AstNode node) {
 
-		if(node.is(NodeType.METHOD)){
+		// Hoist inner methods to closest non-method scoped node
+		if(isNestedMethod(node)){
 			var parent = node.getSymbolTable().getParent();
 			if(parent != null && parent.isMethodScope()){
 				var id = Methods.getName(node);
@@ -50,13 +52,43 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 				var index = parentNode.indexOf(node);
 				parentNode.removeChild(node);
 
-				node.getSymbolTable().setParent(hoist.getSymbolTable());
+				var nodeSymbols = node.getSymbolTable();
+
+				parent.removeSymbol(node.getSymbol());
+				nodeSymbols.setParent(hoist.getSymbolTable());
 				hoist.getSymbolTable().setSymbol(node.getSymbol());
 
 				hoist.addChild(node);
 
-				parentNode.addChild(index, new AstNode(NodeType.OPERATOR, new Token("::", TokenType.DOUBLECOLON),
-						Identifier.make("self"), id));
+				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(),
+						Identifier.make("self"), Identifier.make(id.getName()));
+
+				var upvalues = nodeSymbols.getAllSymbols().stream()
+						.filter(Symbol::isUpvalueRef)
+						.filter(s -> !s.getName().equals(id.getName()))
+						.toList();
+
+				if(upvalues.size() > 0){
+					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
+							// - 1 to not count self reference, since that's always bound and not treated
+							// as an upvalue.
+							Literals.makeInt(Methods.getParamCount(node) - upvalues.size() - 1),
+							Lists.makeListOf(upvalues
+									.stream()
+									.map(s -> Identifier.makeBinding(s.getName(), node.getLineNumber()))
+									.toArray(AstNode[]::new))
+					);
+				}
+
+				if(!Methods.isAnonymousName(id.getName())){
+					// This is a nested def of a non-anonymous method, so rewrite as "var name = self::name"
+					parent.setSymbol(id);
+					var assignment = VarDec.makeImplicit(id.getName());
+					VarDec.setAssignment(assignment, rewrite);
+					rewrite = assignment;
+				}
+
+				parentNode.addChild(index, rewrite);
 			}
 
 		}
@@ -68,6 +100,12 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 		return node.getSymbolTable()
 				.findTable(t -> t.getScope() == SymbolTable.Scope.CLASS || t.getScope() == SymbolTable.Scope.MODULE)
 				.getNode();
+	}
+
+	protected boolean isNestedMethod(AstNode node){
+		return node.is(NodeType.METHOD)
+				&& node.hasParent()
+				&& !node.getParent().is(NodeType.CLASS, NodeType.MODULE);
 	}
 
 }

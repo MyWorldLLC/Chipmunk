@@ -348,11 +348,16 @@ public class ChipmunkVM {
 		}, scriptPool);
 	}
 
+	@AllowChipmunkLinkage
 	public MethodBinding bind(Object target, String methodName) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 		return (MethodBinding) getBinding(target, methodName).getConstructor(Object.class, String.class).newInstance(target, methodName);
 	}
 
 	@AllowChipmunkLinkage
+	public MethodBinding bindArgs(MethodBinding delegate, int pos, Object[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+		return (MethodBinding) getArgBinding(delegate.getClass(), pos, args.length).getConstructor(MethodBinding.class, int.class, Object[].class).newInstance(delegate, pos, args);
+	}
+
 	public Class<?> getBinding(Object target, String method){
 
 		Objects.requireNonNull(target, "Cannot bind to null");
@@ -366,6 +371,17 @@ public class ChipmunkVM {
 			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
 			return script.getJvmCompiler().bindingFor(script.getModuleLoader().getClassLoader(), bindingName, targetType, method);
+		}
+	}
+
+	public Class<?> getArgBinding(Class<? extends MethodBinding> delegateType, int pos, int argCount){
+		var bindingName = delegateType.getName() + "$bound$%d$%d".formatted(pos, argCount);
+
+		var script = ChipmunkScript.getCurrentScript();
+		try {
+			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
+		} catch (ClassNotFoundException e) {
+			return script.getJvmCompiler().argBindingFor(script.getModuleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
 		}
 	}
 

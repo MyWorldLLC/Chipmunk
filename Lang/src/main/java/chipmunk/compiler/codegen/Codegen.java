@@ -95,9 +95,26 @@ public class Codegen implements AstVisitor {
 	public ChipmunkAssembler getAssembler(){
 		return assembler;
 	}
-	
+
 	public void enterScope(SymbolTable symbols){
+		enterScope(symbols, 0);
+	}
+	public void enterScope(SymbolTable symbols, int preserveArgs){
 		this.symbols = symbols;
+		// When we enter a scope, initialize upvalues for any upvalue-valued locals
+		// in the scope.
+		for(var symbol : symbols.getAllSymbols()){
+			if(symbol.isUpvalue()){
+				var localIndex = symbols.getLocalIndex(symbol);
+				if(localIndex < preserveArgs){
+					assembler.getLocal(localIndex);
+					assembler.initUpvalue(localIndex);
+					assembler.setUpvalue(localIndex);
+				}else{
+					assembler.initUpvalue(localIndex);
+				}
+			}
+		}
 	}
 	
 	public void exitScope(){
@@ -105,16 +122,20 @@ public class Codegen implements AstVisitor {
 			symbols = symbols.getParent();
 		}
 	}
+
+	public void emitBindingAccess(String name){
+		emitLocalReference(name, false, true);
+	}
 	
 	public void emitLocalAccess(String name){
-		emitLocalReference(name, false);
+		emitLocalReference(name, false, false);
 	}
 	
 	public void emitLocalAssignment(String name){
-		emitLocalReference(name, true);
+		emitLocalReference(name, true, false);
 	}
 	
-	private void emitLocalReference(String name, boolean assign){
+	private void emitLocalReference(String name, boolean assign, boolean bindingRead){
 
 		Deque<SymbolTable> trace = getSymbolTrace(name);
 
@@ -123,15 +144,26 @@ public class Codegen implements AstVisitor {
 		}
 
 		SymbolTable table = trace.getLast();
-		if(table.getLocalIndex(name) == -1){
+		var symbol = table.getSymbol(name);
+		var localIndex = table.getLocalIndex(symbol);
+
+		if(localIndex == -1){
 			throw new IllegalStateException(name + " is not a local. This is a compiler bug.");
 		}
 
 		if(assign){
 			assembler.dup();
-			assembler.setLocal(table.getLocalIndex(name));
+			if(symbol.isUpvalueRef() || symbol.isUpvalue()){
+				assembler.setUpvalue(localIndex);
+			}else{
+				assembler.setLocal(localIndex);
+			}
 		}else{
-			assembler.getLocal(table.getLocalIndex(name));
+			if(symbol.isUpvalueRef() || (symbol.isUpvalue() && !bindingRead)){
+				assembler.getUpvalue(localIndex);
+			}else{
+				assembler.getLocal(localIndex);
+			}
 		}
 
 	}

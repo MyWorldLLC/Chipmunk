@@ -65,7 +65,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             if (child.is(NodeType.ID) && !isQualified(node, child)) {
 
-                if (!isMethodBindTarget(node, i)) {
+                if (!isMethodBindTarget(node, i) && !isMethodParam(child)) {
 
                     child = rewriteQualified(child);
                     node.replaceChild(i, child);
@@ -104,16 +104,25 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         }
 
         if (symbol.getTable().isMethodScope()) {
-            // Mark local variables that are in an outer method scope as closures
-            if(scope.isClosured(symbol)){
-                symbol.markAsClosure();
+
+            // rewrite outer local symbols as parameters to the nested method, marking outer upvalues
+            if(!symbol.getName().equals("self") && scope.isOuterLocal(symbol)){
+                var declaringMethod = scope.findTable(t -> t.getScope() == SymbolTable.Scope.METHOD).getNode();
+                symbol.markAsUpvalue();
+
+                var localSymbol = symbol.makeUpvalueRef();
+
+                var identifier = Identifier.make(localSymbol.getName(), declaringMethod.getLineNumber());
+                Methods.addParam(declaringMethod, identifier);
+                declaringMethod.getSymbolTable().setSymbol(localSymbol);
             }
-            // No rewrite needed because this is a local variable
+
+            // No access rewrite needed because this is a local variable
             return child;
         }
 
         // If the symbol is found in the module scope call getModule() & emit access at module level
-        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE && !Methods.isNameOfMethodNode(scope.getNode(), child)) {
+        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE && !Methods.isNameOfMethodNode(scope.getNode(), child.getToken().text())) {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol
@@ -202,5 +211,9 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             }
         }
         return false;
+    }
+
+    protected boolean isMethodParam(AstNode node){
+        return node.getParent() != null && node.getParent().is(NodeType.PARAM_LIST);
     }
 }

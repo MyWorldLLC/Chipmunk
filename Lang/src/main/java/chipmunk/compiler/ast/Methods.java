@@ -38,44 +38,45 @@ public class Methods {
     public static AstNode make(Token def, Token name){
         var node = new AstNode(NodeType.METHOD, def);
         node.setSymbol(new Symbol(name.text()));
-        node.addChild(Identifier.make(name));
         node.addChild(new AstNode(NodeType.PARAM_LIST));
+        addParam(node, Identifier.make("self", name.line()));
         return node;
     }
 
-    public static AstNode getName(AstNode node){
-        return node.getChild(0);
+    public static Symbol getName(AstNode node){
+        ensureMethod(node);
+        return node.getSymbol();
     }
 
     public static boolean isMethodNamed(AstNode node, String name){
-        return node.is(NodeType.METHOD) && node.hasChildren() && Identifier.isIdentifierNamed(node.getChild(0), name);
+        return node.is(NodeType.METHOD) && node.getSymbol().isNamed(name);
     }
 
-    public static boolean isNameOfMethodNode(AstNode node, AstNode name){
-        return node.is(NodeType.METHOD) && node.hasChildren() && node.getChild(0) == name;
+    public static boolean isNameOfMethodNode(AstNode node, String name){
+        return node.is(NodeType.METHOD) && node.getSymbol().isNamed(name);
     }
 
     public static void addParam(AstNode node, AstNode param){
         ensureMethod(node);
-        node.getChild(1).addChild(param);
+        node.getChild(0).addChild(param);
     }
 
     public static int getParamCount(AstNode node){
         ensureMethod(node);
-        return node.getChild(1).childCount();
+        return node.getChild(0).childCount();
     }
 
     public static int getBodyNodeCount(AstNode node){
         ensureMethod(node);
-        return node.childCount() - 2;
+        return node.childCount() - 1;
     }
 
     public static int childIndexToBodyIndex(int index){
-        return index - 2;
+        return index - 1;
     }
 
     public static int bodyIndexToChildIndex(int index){
-        return index + 2;
+        return index + 1;
     }
 
     public static void addToBody(AstNode node, int bodyIndex, AstNode b){
@@ -96,5 +97,29 @@ public class Methods {
 
     public static boolean isAnonymousName(String name){
         return name.startsWith("anon$L");
+    }
+
+    public static AstNode makeInvocation(AstNode target, String name, int line, AstNode... params){
+        var callNode = Operators.make("(", TokenType.LPAREN, line,
+                Operators.make(".", TokenType.DOT, line,
+                        target,
+                        Identifier.make(name))
+        );
+        callNode.addChildren(params);
+        return callNode;
+    }
+
+    public static AstNode makeInvocation(AstNode target, String name, AstNode... params){
+        return makeInvocation(target, name, Token.UNKNOWN, params);
+    }
+
+    public static void visitParams(AstNode node, AstVisitor visitor){
+        ensureMethod(node);
+        node.getChild(0).visit(visitor);
+    }
+
+    public static void visitBody(AstNode node, AstVisitor visitor){
+        ensureMethod(node);
+        node.visitChildren(visitor, 1);
     }
 }

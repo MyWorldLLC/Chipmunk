@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.codegen;
 
+import java.util.Comparator;
 import java.util.List;
 
 import chipmunk.binary.DebugEntry;
@@ -82,6 +83,17 @@ public class MethodVisitor implements AstVisitor {
 			//method.setDefaultArgCount(methodNode.getDefaultParamCount());
 			
 			symbols = methodNode.getSymbolTable();
+			symbols.sortSymbols(Comparator.comparingInt(s -> {
+				if(s.getName().equals("self")){
+					return Integer.MIN_VALUE; // self is always the target of a bound method, and will never be an upvalue
+				}else if(s.isUpvalueRef()){
+					return 1; // sort upvalue refs to the tail of the parameter list
+				}else{
+					return -1; // normal parameters go between self & the upvalue refs
+				}
+			}));
+			symbols.setDebugSymbol(node.getSymbol().getName());
+
 			method.setDeclarationSymbol(symbols.getDebugSymbol());
 			
 			codegen = new Codegen(assembler, symbols, module);
@@ -110,16 +122,16 @@ public class MethodVisitor implements AstVisitor {
 				// TODO
 			}*/
 			
-			codegen.enterScope(symbols);
+			codegen.enterScope(symbols, Methods.getParamCount(node));
 			if(Methods.getBodyNodeCount(methodNode) == 1
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
-				visitor.visit(methodNode.getChild(methodNode.childCount() - 1));
+				Methods.visitBody(methodNode, visitor);
 				assembler._return();
 			}else {
 				// regular methods
-				methodNode.visitChildren(codegen, 2);
+				Methods.visitBody(methodNode, codegen);
 			}
 			codegen.exitScope();
 			
@@ -127,14 +139,7 @@ public class MethodVisitor implements AstVisitor {
 				// return null in case a return has not yet been hit
 				genDefaultReturn();
 			}
-			
-			// non-lambda methods are declared using statement block syntax. To support this, the result of assembling an
-			// inner method must be saved as a local variable in the containing method.
-			// TODO - forbid empty inner method names for non-lambda methods.
-			/*if(isInner) {
-				outerCodegen.getAssembler().push(getMethod());
-				outerCodegen.emitSymbolAssignment(getMethodSymbol().getName());
-			}*/
+
 		}
 		
 	}
@@ -161,6 +166,8 @@ public class MethodVisitor implements AstVisitor {
 
 		method.setCode(assembler.getCodeSegment());
 		method.setLocalCount(symbols.getLocalMax());
+		//method.setUpvalueLocalCount(symbols.countUpvalues());
+		//method.setUpvalueRefCount(symbols.countUpvalueRefs());
 		method.setModule(module);
 		method.setExceptionTable(codegen.getExceptionBlocks().toArray(new ExceptionBlock[]{}));
 		method.setDebugTable(codegen.getAssembler().getDebugTable().toArray(new DebugEntry[]{}));

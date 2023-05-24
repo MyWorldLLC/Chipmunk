@@ -109,6 +109,10 @@ public class AstNode {
 		return children.get(index);
 	}
 
+	public AstNode getChildNamed(String name){
+		return getChild(c -> c.getSymbol() != null && c.getSymbol().isNamed(name));
+	}
+
 	public AstNode getChild(Predicate<AstNode> p){
 		return children.stream().filter(p).findFirst().orElse(null);
 	}
