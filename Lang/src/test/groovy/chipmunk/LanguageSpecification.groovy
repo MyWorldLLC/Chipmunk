@@ -92,7 +92,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run ModuleWithInitializer.chp"(){
 		when:
-		def result = compileAndRun("ModuleWithInitializer.chp")
+		def result = compileAndRun("ModuleWithInitializer.chp", true)
 		
 		then:
 		result == 5

@@ -92,7 +92,7 @@ public class MethodVisitor implements AstVisitor {
 					return -1; // normal parameters go between self & the upvalue refs
 				}
 			}));
-			symbols.setDebugSymbol(Identifier.getIdentifierName(Methods.getName(node)));
+			symbols.setDebugSymbol(node.getSymbol().getName());
 
 			method.setDeclarationSymbol(symbols.getDebugSymbol());
 			
@@ -127,11 +127,11 @@ public class MethodVisitor implements AstVisitor {
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
-				visitor.visit(methodNode.getChild(methodNode.childCount() - 1));
+				Methods.visitBody(methodNode, visitor);
 				assembler._return();
 			}else {
 				// regular methods
-				methodNode.visitChildren(codegen, 2);
+				Methods.visitBody(methodNode, codegen);
 			}
 			codegen.exitScope();
 			

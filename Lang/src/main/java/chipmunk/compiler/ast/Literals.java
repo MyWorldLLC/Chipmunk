@@ -28,4 +28,8 @@ public class Literals {
     public static AstNode makeInt(int value){
         return new AstNode(NodeType.LITERAL, new Token(Integer.toString(value), TokenType.INTLITERAL));
     }
+
+    public static AstNode makeString(String value){
+        return new AstNode(NodeType.LITERAL, new Token(value, TokenType.STRINGLITERAL));
+    }
 }

@@ -39,17 +39,19 @@ public class MapParselet implements PrefixParselet {
 
 			tokens.skipNewlinesAndComments();
 
-			AstNode key = parser.parseExpression();
+			if(!tokens.peek(TokenType.RBRACE)){
+				AstNode key = parser.parseExpression();
 
-			tokens.skipNewlinesAndComments();
+				tokens.skipNewlinesAndComments();
 
-			var colon = tokens.getNext(TokenType.COLON);
+				var colon = tokens.getNext(TokenType.COLON);
 
-			tokens.skipNewlinesAndComments();
+				tokens.skipNewlinesAndComments();
 
-			AstNode value = parser.parseExpression();
-			
-			map.addChild(new AstNode(NodeType.KEY_VALUE, colon).withChild(key).withChild(value));
+				AstNode value = parser.parseExpression();
+
+				map.addChild(new AstNode(NodeType.KEY_VALUE, colon).withChild(key).withChild(value));
+			}
 
 			tokens.skipNewlinesAndComments();
 			

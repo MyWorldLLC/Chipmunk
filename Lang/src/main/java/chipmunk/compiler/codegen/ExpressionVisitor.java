@@ -115,17 +115,6 @@ public class ExpressionVisitor implements AstVisitor {
 				assembler.callAt("put", (byte)2);
 				assembler.pop();
 			}
-		}else if(node.is(NodeType.METHOD)){
-			MethodVisitor visitor = new MethodVisitor(assembler.getConstantPool(), codegen.getModule());
-			visitor.visit(node);
-
-			codegen.getModule().getNamespace().addEntry(
-					BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, visitor.getMethod()));
-
-			assembler.onLine(node.getLineNumber());
-			// TODO - push closure locals
-			// TODO - have to get correct number of method params
-			assembler.bind(visitor.getMethodSymbol().getName()); // TODO - have to push closure locals & create a method binding here
 		}
 		/*else if(node instanceof ClassNode) {
 			ClassVisitor visitor = new ClassVisitor(assembler.getConstantPool(), codegen.getModule());
@@ -211,6 +200,7 @@ public class ExpressionVisitor implements AstVisitor {
 				emitLogicalOr(node);
 			}
 			case DOUBLECOLON -> {
+				System.out.println("Left-hand of binding: " + lhs);
 				lhs.visit(this);
 				if(rhs.is(NodeType.ID)){
 					assembler.onLine(node.getLineNumber());

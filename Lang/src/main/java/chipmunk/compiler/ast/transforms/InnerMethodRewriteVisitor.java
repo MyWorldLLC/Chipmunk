@@ -60,12 +60,12 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 
 				hoist.addChild(node);
 
-				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), id);
-				node.getSymbolTable().removeSymbol(Methods.getName(node).getSymbol());
+				var rewrite = Operators.make("::", TokenType.DOUBLECOLON, node.getLineNumber(), Identifier.make("self"), Identifier.make(id.getName()));
 
 				var upvalues = nodeSymbols.getAllSymbols().stream()
 						.filter(Symbol::isUpvalue)
-						.filter(s -> !s.getName().equals(Identifier.getIdentifierName(Methods.getName(node))))
+						.filter(s -> !s.getName().equals(id.getName()))
+						.filter(s -> !s.getName().contains("$"))
 						.toList();
 
 				if(upvalues.size() > 0){
@@ -102,6 +102,13 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 						Methods.addParam(node, param);
 					});
 				}*/
+				if(!Methods.isAnonymousName(id.getName())){
+					// This is a nested def of a non-anonymous method, so rewrite as "var name = self::name"
+					parent.setSymbol(id);
+					var assignment = VarDec.makeImplicit(id.getName());
+					VarDec.setAssignment(assignment, rewrite);
+					rewrite = assignment;
+				}
 				System.out.println(rewrite.toString());
 				parentNode.addChild(index, rewrite);
 			}
@@ -120,8 +127,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 	protected boolean isNestedMethod(AstNode node){
 		return node.is(NodeType.METHOD)
 				&& node.hasParent()
-				&& node.getParent().getSymbolTable() != null
-				&& node.getParent().getSymbolTable().isMethodScope();
+				&& !node.getParent().is(NodeType.CLASS, NodeType.MODULE);
 	}
 
 }

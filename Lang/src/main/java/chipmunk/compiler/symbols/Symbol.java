@@ -151,6 +151,10 @@ public class Symbol {
 		this.name = name;
 	}
 
+	public boolean isNamed(String name){
+		return this.name.equals(name);
+	}
+
 	public SymbolTable getTable() {
 		return table;
 	}

@@ -294,13 +294,13 @@ public class JvmCompiler {
         // 0: self
         // 1: cClass
         // 2+: binaryConstructor params
-        Type[] initTypes = paramTypes(binaryConstructor.getArgCount() + 1);
+        Type[] initTypes = paramTypes(binaryConstructor.getArgCount());
         initTypes[0] = Type.getObjectType(jvmName(qualifiedCClassName));
 
         // The constructor params are:
         // 0: self
         // 1+: binaryConstructor params
-        Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount());
+        Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
         MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
         insConstructor.visitCode();
@@ -523,7 +523,8 @@ public class JvmCompiler {
 
         final Type objType = Type.getType(Object.class);
 
-        Type[] pTypes = new Type[Math.max(0, method.getArgCount())];
+        // Note: Chipmunk counts the 'self' parameter as an argument, but Java does not
+        Type[] pTypes = new Type[Math.max(0, method.getArgCount() - 1)];
         Arrays.fill(pTypes, objType);
 
         Type methodType = Type.getMethodType(objType, pTypes);
@@ -538,14 +539,14 @@ public class JvmCompiler {
         ExceptionBlock[] exceptionTable = method.getExceptionTable();
         int exceptionIndex = 0;
 
-        int firstUpvalueIndex = method.getArgCount();
+        /*int firstUpvalueIndex = method.getArgCount();
         for(int i = 0; i < method.getUpvalueLocalCount(); i++){
             mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(Upvalue.class));
             mv.visitInsn(Opcodes.DUP);
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Upvalue.class), "<init>",
                     Type.getMethodDescriptor(Type.VOID_TYPE), false);
             mv.visitVarInsn(Opcodes.ASTORE, i + firstUpvalueIndex);
-        }
+        }*/
 
 
         byte[] instructions = method.getCode();
@@ -810,7 +811,11 @@ public class JvmCompiler {
 
         }
 
-        mv.visitMaxs(0, 0);
+        try{
+            mv.visitMaxs(0, 0);
+        }catch (Exception e){
+            throw new RuntimeException("Error while generating bytecode for %s. This is a compiler bug.".formatted(name), e);
+        }
         mv.visitEnd();
     }
 
@@ -1314,6 +1319,7 @@ public class JvmCompiler {
                     Type.getType(method.getReturnType()),
                     pTypes
             );
+            System.out.println("Binding call(%d)".formatted(pTypes.length));
 
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", methodType.getDescriptor(), null, null);
             methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);

@@ -37,7 +37,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		AstNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo (id foo) (param_list))"
+		node.toString() == "(method foo (param_list (id self)))"
 	}
 	
 	def "parse def foo(arg1){}"(){
@@ -50,7 +50,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		AstNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo (id foo) (param_list (var_dec arg1 (id arg1))))"
+		node.toString() == "(method foo (param_list (id self) (var_dec arg1 (id arg1))))"
 	}
 	
 	def "parse def foo(arg1, arg2){}"(){
@@ -63,8 +63,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		AstNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo (id foo) (param_list (var_dec arg1 (id arg1)) (var_dec arg2 (id arg2))))"
-		node.toString() == "(method foo (id foo) (param_list (var_dec arg1 (id arg1)) (var_dec arg2 (id arg2))))"
+		node.toString() == "(method foo (param_list (id self) (var_dec arg1 (id arg1)) (var_dec arg2 (id arg2))))"
 	}
 	
 	def "parse method def with single var body"(){
@@ -81,7 +80,7 @@ class ChipmunkParserMethodSpecification extends Specification {
 		AstNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo (id foo) (param_list) (var_dec asdf (id asdf) (literal 1)))"
+		node.toString() == "(method foo (param_list (id self)) (var_dec asdf (id asdf) (literal 1)))"
 	}
 	
 	def "parse method def with multi var body"(){
@@ -99,6 +98,6 @@ class ChipmunkParserMethodSpecification extends Specification {
 		AstNode node = parser.parseMethodDef()
 		
 		then:
-		node.toString() == "(method foo (id foo) (param_list) (var_dec asdf (id asdf) (literal 1)) (var_dec asdf2 (id asdf2) (operator + (literal 1) (literal 2))))"
+		node.toString() == "(method foo (param_list (id self)) (var_dec asdf (id asdf) (literal 1)) (var_dec asdf2 (id asdf2) (operator + (literal 1) (literal 2))))"
 	}
 }
