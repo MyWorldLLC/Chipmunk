@@ -31,7 +31,7 @@ class ExpressionVisitorSpecification extends Specification {
 	
 	def "Evaluate boolean literal true"(){
 		when:
-		def result = parseAndCall("true", "Literal True")
+		def result = parseAndCall("true")
 		
 		then:
 		result instanceof Boolean
