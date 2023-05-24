@@ -17,19 +17,19 @@
 # along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
 module test
 
-#var getMe = 15
+var getMe = 15
 
 def main(){
 	var x = 5
 
 	var innerGet = def () x
-	#var innerSet = def (v) {
-	#    x = v
-	#    return x
-	#}
+	var innerSet = def (v) {
+	    x = v
+	    return x
+	}
 
-	#var getViaSelf = def() self.getMe
+	var getViaSelf = def() self.getMe
 
 	#return [innerGet(), innerSet(3), getViaSelf()]
-	return innerGet()
+	return [innerGet(), innerSet(3), x, getViaSelf()]
 }

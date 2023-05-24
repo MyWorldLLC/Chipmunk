@@ -200,7 +200,6 @@ public class ExpressionVisitor implements AstVisitor {
 				emitLogicalOr(node);
 			}
 			case DOUBLECOLON -> {
-				System.out.println("Left-hand of binding: " + lhs);
 				lhs.visit(this);
 				if(rhs.is(NodeType.ID)){
 					assembler.onLine(node.getLineNumber());

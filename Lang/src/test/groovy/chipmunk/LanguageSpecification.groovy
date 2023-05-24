@@ -379,6 +379,6 @@ class LanguageSpecification extends Specification {
 		when:
 		def result = compileAndRun("Upvalues.chp", true)
 
-		then: result == [5, 3, 15]
+		then: result == [5, 3, 3, 15]
 	}
 }

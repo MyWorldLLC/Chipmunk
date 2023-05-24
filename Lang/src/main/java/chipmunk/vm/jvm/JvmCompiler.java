@@ -949,24 +949,24 @@ public class JvmCompiler {
     }
 
     protected void generateUpvalueSet(MethodVisitor mv, byte index){
-
-        mv.visitVarInsn(Opcodes.ALOAD, index);
+        mv.visitVarInsn(Opcodes.ASTORE, index);
+        /*mv.visitVarInsn(Opcodes.ALOAD, index);
         mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
 
         mv.visitInsn(Opcodes.SWAP);
 
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "set",
-                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class)), false);*/
     }
 
     protected void generateUpvalueGet(MethodVisitor mv, byte index){
 
         mv.visitVarInsn(Opcodes.ALOAD, index);
 
-        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
+        //mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(Upvalue.class));
 
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
-                Type.getMethodDescriptor(Type.getType(Object.class)), false);
+        //mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(Upvalue.class), "get",
+        //        Type.getMethodDescriptor(Type.getType(Object.class)), false);
     }
 
     protected void generateIfJump(MethodVisitor mv, Map<Integer, Label> labels, int jumpTarget){
@@ -1241,9 +1241,13 @@ public class JvmCompiler {
         constructor.visitMaxs(0, 0);
         constructor.visitEnd();
 
-        var methods = Arrays.stream(targetType.getMethods()).filter(m -> m.getName().equals(methodName)).toList();
+        var methods = Arrays.stream(targetType.getMethods())
+                .filter(m -> m.getName().equals(methodName))
+                .toList();
+
         for(var method : methods){
             var descriptor = Type.getMethodDescriptor(method);
+            System.out.println("Binding call %s".formatted(descriptor));
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", descriptor, null, null);
             methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);
 
@@ -1305,8 +1309,10 @@ public class JvmCompiler {
 
         var methods = Arrays.stream(delegateType.getMethods())
                 .filter(m -> m.getName().equals("call"))
-                .filter(m -> m.getParameterCount() >= pos + argCount)
+                .filter(m -> m.getParameterCount() > pos + argCount - 1)
                 .toList();
+
+        System.out.println("Binding candidates: " + methods);
 
         for(var method : methods){
 
@@ -1319,7 +1325,7 @@ public class JvmCompiler {
                     Type.getType(method.getReturnType()),
                     pTypes
             );
-            System.out.println("Binding call(%d)".formatted(pTypes.length));
+            System.out.println("Arg binding call(%d)".formatted(pTypes.length));
 
             var methodWriter = gen.visitMethod(Opcodes.ACC_PUBLIC, "call", methodType.getDescriptor(), null, null);
             methodWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true);

@@ -69,11 +69,9 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 						.toList();
 
 				if(upvalues.size() > 0){
-					System.out.println("Binding upvalues for %s: %d".formatted(Methods.getName(node), upvalues.size()));
-					System.out.println(node.getSymbolTable().toString(true));
 					//var upvalues = nodeSymbols.findSymbols(Symbol::isUpvalue);
 					rewrite = Methods.makeInvocation(rewrite, "bindArgs", node.getLineNumber(),
-							Literals.makeInt(Methods.getParamCount(node) - upvalues.size()),
+							Literals.makeInt(Methods.getParamCount(node) - upvalues.size() - 1),
 							Lists.makeListOf(upvalues
 									.stream()
 									.map(s -> Identifier.make(s.getName(), node.getLineNumber()))
@@ -109,7 +107,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 					VarDec.setAssignment(assignment, rewrite);
 					rewrite = assignment;
 				}
-				System.out.println(rewrite.toString());
+
 				parentNode.addChild(index, rewrite);
 			}
 
