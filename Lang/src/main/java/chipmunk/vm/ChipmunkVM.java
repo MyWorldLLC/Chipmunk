@@ -221,10 +221,6 @@ public class ChipmunkVM {
 			return module;
 		}
 
-		JvmCompilerConfig compilerConfig = script.getJvmCompiler().getConfig();
-		if(compilerConfig == null){
-			compilerConfig = defaultJvmCompilerConfig;
-		}
 		module = script.getModuleLoader().load(moduleName, script.getJvmCompiler());
 
 		if(module == null){
