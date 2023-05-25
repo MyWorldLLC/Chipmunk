@@ -33,10 +33,10 @@ class VMSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkAssembler assembler = new ChipmunkAssembler()
 	
-	Integer negOne = new Integer(-1)
-	Integer one = new Integer(1)
-	Integer two = new Integer(2)
-	Integer three = new Integer(3)
+	Integer negOne = Integer.valueOf(-1)
+	Integer one = Integer.valueOf(1)
+	Integer two = Integer.valueOf(2)
+	Integer three = Integer.valueOf(3)
 
 	def "push and pop 1 item"(){
 		when:

@@ -385,4 +385,42 @@ public class ChipmunkVM {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T proxy(Class<T> interfaceType, Object target) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+		if(!interfaceType.isInterface()){
+			throw new IllegalArgumentException(interfaceType.getName() + " is not an interface type");
+		}
+
+		var isSamType = isSamType(interfaceType);
+
+		if(target instanceof MethodBinding && !isSamType){
+			throw new IllegalArgumentException("MethodBinding target may only be cast to a functional interface");
+		}
+
+		var proxyName = interfaceType.getName() + "$Proxy$" + target.getClass().getName().replace('.', '$');
+
+		var script = ChipmunkScript.getCurrentScript();
+		var classloader = script.getModuleLoader().getClassLoader();
+
+		Class<T> proxyType;
+		try {
+			proxyType = (Class<T>) classloader.loadClass(proxyName);
+		} catch (ClassNotFoundException e) {
+			proxyType = script.getJvmCompiler()
+					.makeProxyInterfaceImpl(script.getModuleLoader().getClassLoader(), proxyName, interfaceType, isSamType);
+		}
+
+		return proxyType.getConstructor(ChipmunkScript.class, Object.class).newInstance(script, target);
+	}
+
+	protected boolean isSamType(Class<?> interfaceType){
+		var nonDefaults = 0;
+		for(var method : interfaceType.getDeclaredMethods()){
+			if(!method.isDefault()){
+				nonDefaults++;
+			}
+		}
+		return nonDefaults == 1;
+	}
+
 }

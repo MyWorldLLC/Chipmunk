@@ -26,12 +26,10 @@ import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
 import chipmunk.modules.imports.JvmImportModule
-import chipmunk.modules.lang.LangModule
 import chipmunk.runtime.UnimplementedMethodException
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class StaticAccess {
@@ -380,5 +378,28 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("Upvalues.chp", true)
 
 		then: result == [5, 3, 3, 15, 3]
+	}
+
+	def "Proxy SamProxy interface"(){
+		when:
+		def methodBinding = compileAndRun("ProxySam.chp", true)
+		def proxy = vm.proxy(SamProxy.class, methodBinding)
+		def result = proxy.getFoo()
+
+		then:
+		notThrown(Exception)
+		result == "Hello, Proxy!"
+	}
+
+	def "Proxy DemoProxy interface"(){
+		when:
+		def methodBinding = compileAndRun("ProxyDemo.chp", true)
+		def proxy = vm.proxy(DemoProxy.class, methodBinding)
+		proxy.acceptFoo("Hello, Proxy!")
+		def result = proxy.appendFoo("abcd")
+
+		then:
+		notThrown(Exception)
+		result == "abcd1234"
 	}
 }

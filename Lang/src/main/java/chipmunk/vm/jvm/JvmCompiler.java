@@ -1370,6 +1370,88 @@ public class JvmCompiler {
         return loader.define(bindingName, gen.toByteArray());
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> makeProxyInterfaceImpl(ChipmunkClassLoader loader, String proxyName, Class<T> interfaceType, boolean isSamType){
+        var internalName = jvmName(proxyName);
+
+        var cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+        cw.visit(Opcodes.V14, Opcodes.ACC_PUBLIC, internalName, null, Type.getInternalName(Object.class),
+                new String[]{Type.getInternalName(interfaceType), Type.getInternalName(Proxy.class)});
+
+        cw.visitSource(internalName, null);
+
+        cw.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "script", Type.getDescriptor(ChipmunkScript.class), null, null).visitEnd();
+        cw.visitField(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "target", Type.getDescriptor(Object.class), null, null).visitEnd();
+
+        var constructor = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(ChipmunkScript.class), Type.getType(Object.class)),
+                null, null);
+
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE));
+
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitVarInsn(Opcodes.ALOAD, 1);
+        constructor.visitFieldInsn(Opcodes.PUTFIELD, internalName, "script", Type.getDescriptor(ChipmunkScript.class));
+
+        constructor.visitVarInsn(Opcodes.ALOAD, 0);
+        constructor.visitVarInsn(Opcodes.ALOAD, 2);
+        constructor.visitFieldInsn(Opcodes.PUTFIELD, internalName, "target", Type.getDescriptor(Object.class));
+
+        constructor.visitInsn(Opcodes.RETURN);
+
+        constructor.visitMaxs(0, 0);
+        constructor.visitEnd();
+
+        var getScript = cw.visitMethod(Opcodes.ACC_PUBLIC, "getScript", Type.getMethodDescriptor(Type.getType(ChipmunkScript.class)), null, null);
+
+        getScript.visitVarInsn(Opcodes.ALOAD, 0);
+        getScript.visitFieldInsn(Opcodes.GETFIELD, internalName, "script", Type.getDescriptor(ChipmunkScript.class));
+        getScript.visitInsn(Opcodes.ARETURN);
+
+        getScript.visitMaxs(0, 0);
+        getScript.visitEnd();
+
+        var getTarget = cw.visitMethod(Opcodes.ACC_PUBLIC, "getTarget", Type.getMethodDescriptor(Type.getType(Object.class)), null, null);
+
+        getTarget.visitVarInsn(Opcodes.ALOAD, 0);
+        getTarget.visitFieldInsn(Opcodes.GETFIELD, internalName, "script", Type.getDescriptor(Object.class));
+        getTarget.visitInsn(Opcodes.ARETURN);
+
+        getTarget.visitMaxs(0, 0);
+        getTarget.visitEnd();
+
+        for(var method : interfaceType.getMethods()){
+
+            var impl = cw.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), null, null);
+            impl.visitVarInsn(Opcodes.ALOAD, 0);
+            impl.visitFieldInsn(Opcodes.GETFIELD, internalName, "target", Type.getDescriptor(Object.class));
+
+            for(int i = 0; i < method.getParameterCount(); i++){
+                impl.visitVarInsn(Opcodes.ALOAD, i + 1);
+            }
+
+            // + 1 to include the target of the call
+            generateDynamicInvocation(impl, isSamType ? "call" : method.getName(), method.getParameterCount() + 1);
+
+            if(method.getReturnType().equals(void.class)){
+                impl.visitInsn(Opcodes.POP);
+                impl.visitInsn(Opcodes.RETURN);
+            }else{
+                impl.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(method.getReturnType()));
+                impl.visitInsn(Opcodes.ARETURN);
+            }
+
+            impl.visitMaxs(0, 0);
+            impl.visitEnd();
+        }
+
+        cw.visitEnd();
+
+        return (Class<T>) loader.define(proxyName, cw.toByteArray());
+    }
+
     protected void invokeConstructor(MethodVisitor mv, Class<?> target, Class<?>... pTypes){
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                 Type.getType(target).getInternalName(),
