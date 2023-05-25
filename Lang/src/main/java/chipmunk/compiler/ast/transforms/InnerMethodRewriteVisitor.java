@@ -129,7 +129,7 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 			}
 			parent = parent.getParent();
 		}
-		System.out.println(String.join("$", outerMethods));
+
 		return String.join("$", outerMethods);
 	}
 
