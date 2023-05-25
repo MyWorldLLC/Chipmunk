@@ -26,6 +26,10 @@ import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.stream.Collectors;
+
 /**
  * Re-writes nested method declarations (either named methods or lambda methods),
  * hoisting them to the nearest class or module scope with a mangled name. This
@@ -46,6 +50,11 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 			var parent = node.getSymbolTable().getParent();
 			if(parent != null && parent.isMethodScope()){
 				var id = Methods.getName(node);
+				var originalName = id.getName();
+
+				// Rewrite the original method name to one that cannot be duplicated (or directly accessed) in the
+				// enclosing namespace
+				id.setName(hoistedName(node));
 
 				var hoist = hoistTo(node);
 				var parentNode = node.getParent();
@@ -82,8 +91,9 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 
 				if(!Methods.isAnonymousName(id.getName())){
 					// This is a nested def of a non-anonymous method, so rewrite as "var name = self::name"
-					parent.setSymbol(id);
-					var assignment = VarDec.makeImplicit(id.getName());
+					// We need to keep the original symbol in this symbol table, not the renamed unique symbol.
+					parent.setSymbol(new Symbol(originalName));
+					var assignment = VarDec.makeImplicit(originalName);
 					VarDec.setAssignment(assignment, rewrite);
 					rewrite = assignment;
 				}
@@ -106,6 +116,21 @@ public class InnerMethodRewriteVisitor implements AstVisitor {
 		return node.is(NodeType.METHOD)
 				&& node.hasParent()
 				&& !node.getParent().is(NodeType.CLASS, NodeType.MODULE);
+	}
+
+	protected String hoistedName(AstNode node){
+
+		Deque<String> outerMethods = new ArrayDeque<>();
+		outerMethods.push(Methods.getName(node).getName());
+		var parent = node.getParent();
+		while(parent != null && !parent.is(NodeType.CLASS, NodeType.MODULE)){
+			if(parent.is(NodeType.METHOD)){
+				outerMethods.push(parent.getSymbol().getName());
+			}
+			parent = parent.getParent();
+		}
+		System.out.println(String.join("$", outerMethods));
+		return String.join("$", outerMethods);
 	}
 
 }

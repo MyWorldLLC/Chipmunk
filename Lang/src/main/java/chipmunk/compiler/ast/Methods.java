@@ -96,7 +96,7 @@ public class Methods {
     }
 
     public static boolean isAnonymousName(String name){
-        return name.startsWith("anon$L");
+        return name.contains("anon$L");
     }
 
     public static AstNode makeInvocation(AstNode target, String name, int line, AstNode... params){
