@@ -397,9 +397,13 @@ class LanguageSpecification extends Specification {
 		def proxy = vm.proxy(DemoProxy.class, methodBinding)
 		proxy.acceptFoo("Hello, Proxy!")
 		def result = proxy.appendFoo("abcd")
+		def iResult = proxy.getInt(10)
+		def fResult = proxy.getFloat(10.0f)
 
 		then:
 		notThrown(Exception)
 		result == "abcd1234"
+		iResult == 23
+		fResult == 32.0f
 	}
 }

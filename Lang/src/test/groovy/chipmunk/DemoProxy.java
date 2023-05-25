@@ -25,4 +25,7 @@ public interface DemoProxy {
     void acceptFoo(String foo);
     String appendFoo(String foo);
 
+    int getInt(int a);
+    float getFloat(float a);
+
 }

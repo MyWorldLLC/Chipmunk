@@ -23,6 +23,9 @@ class ProxyTarget {
 
     def appendFoo(foo) foo + "1234"
 
+    def getInt(a) 13 + a
+
+    def getFloat(a) 22.0 + a
 }
 
 def main(){

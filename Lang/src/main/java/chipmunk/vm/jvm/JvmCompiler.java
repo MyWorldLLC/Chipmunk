@@ -1111,6 +1111,58 @@ public class JvmCompiler {
         mv.visitLabel(ifEnd);
     }
 
+    protected void generateBoxingForType(MethodVisitor mv, Class<?> cls){
+        if (Byte.class.equals(cls) || byte.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Byte.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Byte.class), Type.BYTE_TYPE).getDescriptor(),
+                    false);
+        } else if (Short.class.equals(cls) || short.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Short.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Short.class), Type.SHORT_TYPE).getDescriptor(),
+                    false);
+        } else if (Integer.class.equals(cls) || int.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Integer.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Integer.class), Type.INT_TYPE).getDescriptor(),
+                    false);
+        } else if (Long.class.equals(cls) || long.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Long.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Long.class), Type.LONG_TYPE).getDescriptor(),
+                    false);
+        } else if (Boolean.class.equals(cls) || boolean.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Boolean.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Boolean.class), Type.BOOLEAN_TYPE).getDescriptor(),
+                    false);
+        } else if (Float.class.equals(cls) || float.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Float.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Float.class), Type.FLOAT_TYPE).getDescriptor(),
+                    false);
+        } else if (Double.class.equals(cls) || double.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Double.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Double.class), Type.DOUBLE_TYPE).getDescriptor(),
+                    false);
+        } else if (Character.class.equals(cls) || char.class.equals(cls)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    Type.getType(Character.class).getInternalName(),
+                    "valueOf",
+                    Type.getMethodType(Type.getType(Character.class), Type.CHAR_TYPE).getDescriptor(),
+                    false);
+        }
+    }
+
     protected void generateBoxing(MethodVisitor mv, Object o){
         if(o instanceof Byte){
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
@@ -1158,54 +1210,61 @@ public class JvmCompiler {
     }
 
     protected void generateUnboxing(MethodVisitor mv, Class<?> cls) {
-        if (Byte.class.equals(cls)) {
+        if (Byte.class.equals(cls) || byte.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Byte.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Byte.class).getInternalName(),
                     "byteValue",
                     Type.getMethodType(Type.BYTE_TYPE).getDescriptor(),
                     false);
-        } else if (Short.class.equals(cls)) {
+        } else if (Short.class.equals(cls) || short.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Short.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Short.class).getInternalName(),
                     "shortValue",
                     Type.getMethodType(Type.SHORT_TYPE).getDescriptor(),
                     false);
-        } else if (Integer.class.equals(cls)) {
+        } else if (Integer.class.equals(cls) || int.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Integer.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Integer.class).getInternalName(),
                     "intValue",
                     Type.getMethodType(Type.INT_TYPE).getDescriptor(),
                     false);
-        } else if (Long.class.equals(cls)) {
+        } else if (Long.class.equals(cls) || long.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Long.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Long.class).getInternalName(),
                     "longValue",
                     Type.getMethodType(Type.LONG_TYPE).getDescriptor(),
                     false);
-        } else if (Boolean.class.equals(cls)) {
+        } else if (Boolean.class.equals(cls) || boolean.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Boolean.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Boolean.class).getInternalName(),
                     "booleanValue",
                     Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
                     false);
-        } else if (Float.class.equals(cls)) {
+        } else if (Float.class.equals(cls) || float.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Float.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Float.class).getInternalName(),
                     "floatValue",
                     Type.getMethodType(Type.FLOAT_TYPE).getDescriptor(),
                     false);
-        } else if (Double.class.equals(cls)) {
+        } else if (Double.class.equals(cls) || double.class.equals(cls)) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Double.class).getInternalName());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                     Type.getType(Double.class).getInternalName(),
                     "doubleValue",
                     Type.getMethodType(Type.DOUBLE_TYPE).getDescriptor(),
+                    false);
+        } else if (Character.class.equals(cls) || char.class.equals(cls)) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(Character.class).getInternalName());
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+                    Type.getType(Character.class).getInternalName(),
+                    "charValue",
+                    Type.getMethodType(Type.CHAR_TYPE).getDescriptor(),
                     false);
         }
     }
@@ -1428,18 +1487,57 @@ public class JvmCompiler {
             impl.visitVarInsn(Opcodes.ALOAD, 0);
             impl.visitFieldInsn(Opcodes.GETFIELD, internalName, "target", Type.getDescriptor(Object.class));
 
+            var pTypes = method.getParameterTypes();
+
             for(int i = 0; i < method.getParameterCount(); i++){
-                impl.visitVarInsn(Opcodes.ALOAD, i + 1);
+                var pType = pTypes[i];
+                if(pType.isPrimitive()){
+                    if(pType.equals(byte.class)
+                            || pType.equals(boolean.class)
+                            || pType.equals(char.class)
+                            || pType.equals(short.class)
+                            || pType.equals(int.class)){
+                        impl.visitVarInsn(Opcodes.ILOAD, i + 1);
+                    }else if(pType.equals(float.class)){
+                        impl.visitVarInsn(Opcodes.FLOAD, i + 1);
+                    }else if(pType.equals(double.class)){
+                        impl.visitVarInsn(Opcodes.DLOAD, i + 1);
+                    }else if(pType.equals(long.class)){
+                        impl.visitVarInsn(Opcodes.LLOAD, i + 1);
+                    }
+                    generateBoxingForType(impl, pType);
+                }else{
+                    impl.visitVarInsn(Opcodes.ALOAD, i + 1);
+                }
+
             }
 
             // + 1 to include the target of the call
             generateDynamicInvocation(impl, isSamType ? "call" : method.getName(), method.getParameterCount() + 1);
 
-            if(method.getReturnType().equals(void.class)){
+            var rType = method.getReturnType();
+            if(rType.equals(void.class)){
                 impl.visitInsn(Opcodes.POP);
                 impl.visitInsn(Opcodes.RETURN);
+            }else if(rType.isPrimitive()){
+                generateUnboxing(impl, rType);
+
+                if(rType.equals(byte.class)
+                        || rType.equals(boolean.class)
+                        || rType.equals(char.class)
+                        || rType.equals(short.class)
+                        || rType.equals(int.class)){
+                    impl.visitInsn(Opcodes.IRETURN);
+                }else if(rType.equals(float.class)){
+                    impl.visitInsn(Opcodes.FRETURN);
+                }else if(rType.equals(double.class)){
+                    impl.visitInsn(Opcodes.DRETURN);
+                }else if(rType.equals(long.class)){
+                    impl.visitInsn(Opcodes.LRETURN);
+                }
+
             }else{
-                impl.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(method.getReturnType()));
+                impl.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(rType));
                 impl.visitInsn(Opcodes.ARETURN);
             }
 
