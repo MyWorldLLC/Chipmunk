@@ -14,6 +14,7 @@ jobs:
         run: echo "version=$(git describe --tags --always --first-parent)" >> "$GITHUB_OUTPUT"
 
   draft_release:
+    needs: get_version
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.draft_release.outputs.id }}
@@ -24,8 +25,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: CLI - ${{ steps.tag.outputs.tag }}
+          release_name: CLI - ${{ needs.get_version.outputs.version }}
           draft: true
           prerelease: false
 
