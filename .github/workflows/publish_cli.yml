@@ -73,7 +73,6 @@ jobs:
               INSTALLER_MEDIA_TYPE: application/x-apple-diskimage
 
     steps:
-      -
       - name: Build with Gradle
         run: ./gradlew :CLI:jpackage --info
 
