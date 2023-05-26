@@ -79,7 +79,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             return true;
         }
 
-        return expected.isAssignableFrom(COMPATIBLE_PRIMITIVES.get(test));
+        var compat = COMPATIBLE_PRIMITIVES.get(test);
+        return compat != null && expected.isAssignableFrom(compat);
     }
 
     @Override
