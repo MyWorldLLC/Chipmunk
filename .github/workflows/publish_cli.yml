@@ -6,7 +6,6 @@ on:
       - v*
 
 jobs:
-
   get_version:
     runs-on: ubuntu-latest
     outputs:
