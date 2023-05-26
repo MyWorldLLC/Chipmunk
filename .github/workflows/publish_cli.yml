@@ -17,6 +17,7 @@ jobs:
           settings-path: ${{ github.workspace }}
 
   get_version:
+    needs: checkout
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
