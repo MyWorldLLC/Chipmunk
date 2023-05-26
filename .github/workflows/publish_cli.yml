@@ -1,6 +1,9 @@
 name: publish_cli
 
-on: push
+on:
+  push:
+    tags:
+      - v*
 
 jobs:
 
