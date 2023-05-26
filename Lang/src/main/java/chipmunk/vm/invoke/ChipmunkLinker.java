@@ -55,6 +55,33 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         libraries.set(libs);
     }
 
+    public static final Map<Class<?>, Class<?>> COMPATIBLE_PRIMITIVES = Map.ofEntries(
+            Map.entry(Boolean.class, boolean.class),
+            Map.entry(boolean.class, Boolean.class),
+            Map.entry(Byte.class, byte.class),
+            Map.entry(byte.class, Byte.class),
+            Map.entry(Character.class, char.class),
+            Map.entry(char.class, Character.class),
+            Map.entry(Double.class, double.class),
+            Map.entry(double.class, Double.class),
+            Map.entry(Float.class, float.class),
+            Map.entry(float.class, Float.class),
+            Map.entry(Integer.class, int.class),
+            Map.entry(int.class, Integer.class),
+            Map.entry(Long.class, long.class),
+            Map.entry(long.class, Long.class),
+            Map.entry(Short.class, short.class),
+            Map.entry(short.class, Short.class)
+    );
+
+    public static boolean isCallTypeCompatible(Class<?> expected, Class<?> test){
+        if(expected.isAssignableFrom(test)){
+            return true;
+        }
+
+        return expected.isAssignableFrom(COMPATIBLE_PRIMITIVES.get(test));
+    }
+
     @Override
     public GuardedInvocation getGuardedInvocation(LinkRequest linkRequest, LinkerServices linkerServices) throws Exception {
 
@@ -214,8 +241,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
             Class<?> retType = m.getReturnType();
 
-            // TODO - check type conversions on primitive return types
-            if (retType.equals(void.class) || expectedReturnType.isAssignableFrom(retType) || retType.isPrimitive()) {
+            if (retType.equals(void.class) || isCallTypeCompatible(expectedReturnType, retType)) {
 
                 boolean paramsMatch = true;
                 boolean isStatic = Modifier.isStatic(m.getModifiers());
@@ -226,7 +252,8 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     Class<?> callPType = pTypes[i + 1];
                     Class<?> candidatePType = candidatePTypes[i];
 
-                    if (!candidatePType.isAssignableFrom(callPType != null ? callPType : Object.class)) {
+                    //isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class);
+                    if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
                         paramsMatch = false;
                         break;
                     }

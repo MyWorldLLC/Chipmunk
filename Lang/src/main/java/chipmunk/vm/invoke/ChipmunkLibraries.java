@@ -80,8 +80,7 @@ public class ChipmunkLibraries {
             }
 
             Class<?> retType = m.getReturnType();
-
-            if (retType.equals(void.class) || returnType.isAssignableFrom(retType) || retType.isPrimitive()) {
+            if (retType.equals(void.class) || ChipmunkLinker.isCallTypeCompatible(returnType, retType)) {
 
                 boolean matches = true;
                 for (int i = 0; i < candidatePTypes.length; i++) {
@@ -93,7 +92,7 @@ public class ChipmunkLibraries {
                         continue;
                     }
 
-                    if (!candidatePType.isAssignableFrom(callPType)) {
+                    if (!ChipmunkLinker.isCallTypeCompatible(candidatePType, callPType)) {
                         matches = false;
                         break;
                     }
