@@ -3,15 +3,21 @@ name: publish_cli
 on: push
 
 jobs:
+
+  get_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Get version
+        id: version
+        run: echo "version=$(git describe --tags --always --first-parent)" >> "$GITHUB_OUTPUT"
+
   draft_release:
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.draft_release.outputs.id }}
     steps:
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-
       - name: Create Draft Release
         id: draft_release
         uses: actions/create-release@v1
@@ -24,7 +30,7 @@ jobs:
           prerelease: false
 
   build:
-    needs: draft_release
+    needs: [version, draft_release]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -62,17 +68,13 @@ jobs:
           server-id: github
           settings-path: ${{ github.workspace }}
 
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-
       - name: Build with Gradle
         run: ./gradlew :CLI:jpackage --info
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ steps.tag.outputs.tag }}
+          name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ needs.version.outputs.version }}
           path: CLI/build/installer/*.${{ matrix.env.INSTALLER_EXT }}
 
       - name: Publish release asset
