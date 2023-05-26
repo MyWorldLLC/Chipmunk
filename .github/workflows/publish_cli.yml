@@ -4,25 +4,14 @@ on: push
 
 jobs:
 
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: '0' # Get all tags - necessary for Gradle versioning
-      - name: Set up JDK 1.16
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.16
-          server-id: github
-          settings-path: ${{ github.workspace }}
-
   get_version:
-    needs: checkout
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0' # Get all tags - necessary for versioning
       - name: Get version
         id: version
         run: echo "version=$(git describe --tags --always --first-parent)" >> "$GITHUB_OUTPUT"
@@ -73,6 +62,17 @@ jobs:
               INSTALLER_MEDIA_TYPE: application/x-apple-diskimage
 
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0' # Get all tags - necessary for Gradle versioning
+
+      - name: Set up JDK 1.16
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.16
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
       - name: Build with Gradle
         run: ./gradlew :CLI:jpackage --info
 
