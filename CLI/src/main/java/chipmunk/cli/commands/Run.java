@@ -133,7 +133,6 @@ public class Run implements Callable<Integer> {
             }
 
             for(Path sourcePath : sourcePaths){
-                System.out.println("Compiling sources: " + sourcePaths);
                 sources.add(new ChipmunkSource(Files.newInputStream(sourcePath), sourcePath.getFileName().toString()));
             }
 
