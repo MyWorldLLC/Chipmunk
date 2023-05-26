@@ -1,11 +1,6 @@
 name: publish_cli
 
-on:
-  push:
-    tags:
-      - v*
-      - cli*
-      - ci*
+on: push
 
 jobs:
   draft_release:
