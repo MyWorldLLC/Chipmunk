@@ -30,7 +30,7 @@ jobs:
           prerelease: false
 
   build:
-    needs: [version, draft_release]
+    needs: [get_version, draft_release]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -74,7 +74,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ needs.version.outputs.version }}
+          name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ needs.get_version.outputs.version }}
           path: CLI/build/installer/*.${{ matrix.env.INSTALLER_EXT }}
 
       - name: Publish release asset
