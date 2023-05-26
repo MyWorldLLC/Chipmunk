@@ -89,7 +89,7 @@ task run(type: JavaExec){
 def sanitizedVersion(){
     def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem
     def sanitizedVersion = version.replaceFirst('\\D+', '')
-    if(os.isWindows() && sanitizedVersion.indexOf('-') != -1) {
+    if((os.isWindows() || os.isMacOsX()) && sanitizedVersion.indexOf('-') != -1) {
         sanitizedVersion = sanitizedVersion.substring(0, sanitizedVersion.indexOf('-'))
     }
     sanitizedVersion
