@@ -406,4 +406,12 @@ class LanguageSpecification extends Specification {
 		iResult == 23
 		fResult == 32.0f
 	}
+
+	def "Run MultilineExpressions.chp"(){
+		when:
+		def result = compileAndRun("MultilineExpressions.chp", true)
+
+		then:
+		result ==  7
+	}
 }

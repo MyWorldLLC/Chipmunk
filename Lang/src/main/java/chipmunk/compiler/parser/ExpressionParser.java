@@ -156,6 +156,8 @@ public class ExpressionParser {
 
     public AstNode parseExpression(int minPrecedence){
 
+        tokens.skipNewlinesAndComments();
+
         Token token = tokens.get();
 
         PrefixParselet prefixParser = prefix.get(token.type());
@@ -165,6 +167,8 @@ public class ExpressionParser {
         }
 
         AstNode left = prefixParser.parse(this, token);
+
+        tokens.skipNewlinesAndComments();
 
         token = tokens.peek();
         while(minPrecedence < getPrecedence(token)){
@@ -179,6 +183,8 @@ public class ExpressionParser {
             left = infixParser.parse(this, left, token);
             token = tokens.peek();
         }
+
+        tokens.skipNewlinesAndComments();
 
         return left;
     }
