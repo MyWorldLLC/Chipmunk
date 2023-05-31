@@ -181,6 +181,7 @@ public class ExpressionParser {
             }
 
             left = infixParser.parse(this, left, token);
+            tokens.skipNewlinesAndComments();
             token = tokens.peek();
         }
 
