@@ -308,13 +308,17 @@ public class NativeTypeLib implements ChipmunkLibrary {
         }
     }
 
+    protected static int listIndex(List<Object> a, int i){
+        return i < 0 ? a.size() + i : i;
+    }
+
     public static Object getAt(ArrayList<Object> a, Integer i){
-        return i < 0 ? a.get(a.size() + i) : a.get(i);
+        return a.get(listIndex(a, i));
     }
 
     public static ArrayList<Object> getAt(ArrayList<Object> a, IntegerRange r) {
-        int beginIndex = r.getStart();
-        int endIndex = r.isInclusive() ? r.getEnd() + 1 : r.getEnd();
+        int beginIndex = listIndex(a, r.getStart());
+        int endIndex = r.isInclusive() ? listIndex(a, r.getEnd()) + 1 : listIndex(a, r.getEnd());
         ArrayList<Object> newList = new ArrayList<>(endIndex - beginIndex);
         for(int i = beginIndex; i < endIndex; i++){
             newList.add(a.get(i));
@@ -323,7 +327,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
     }
 
     public static Object setAt(ArrayList<Object> a, Integer i, Object element){
-        return i < 0 ? a.set(a.size() + i, element) : a.set(i, element);
+        return a.set(listIndex(a, i), element);
     }
 
     public static Object remove(ArrayList<Object> a, Integer i){
