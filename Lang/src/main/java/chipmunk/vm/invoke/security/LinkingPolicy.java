@@ -23,6 +23,7 @@ package chipmunk.vm.invoke.security;
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.ChipmunkObject;
+import chipmunk.runtime.NativeTypeLib;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -38,6 +39,10 @@ public class LinkingPolicy {
     public LinkingPolicy(SecurityMode mode){
         this.mode = mode;
         entries = new CopyOnWriteArrayList<>();
+
+        if(mode == SecurityMode.DENYING){
+            add(new ClassPolicyEntry(SecurityMode.ALLOWING).add(NativeTypeLib.class));
+        }
     }
 
     public SecurityMode getDefaultMode(){
