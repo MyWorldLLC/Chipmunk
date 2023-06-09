@@ -115,7 +115,7 @@ public class ExpressionVisitor implements AstVisitor {
 				this.visit(keyValue.getChild(0));
 				// value
 				this.visit(keyValue.getChild(1));
-				assembler.callAt("put", (byte)2);
+				assembler.callAt("setAt", (byte)2);
 				assembler.pop();
 			}
 		}
