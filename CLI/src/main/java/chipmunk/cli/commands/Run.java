@@ -96,6 +96,7 @@ public class Run implements Callable<Integer> {
             List<Path> sourcePaths = new ArrayList<>();
             List<ChipmunkSource> sources = new ArrayList<>();
 
+            codePath = codePath.trim();
 
             // If no script specified, read from System.in
             if (codePath.equals(NO_SOURCE)) {
