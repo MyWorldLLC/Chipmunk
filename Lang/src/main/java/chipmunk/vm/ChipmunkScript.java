@@ -48,6 +48,13 @@ public abstract class ChipmunkScript {
         return currentScript.get();
     }
 
+    public static void trap(TrapType type){
+        var handler = getCurrentScript().getTrapHandler();
+        if(handler != null){
+            handler.trap(type);
+        }
+    }
+
     protected long id;
     private volatile boolean yieldFlag;
 
@@ -56,11 +63,18 @@ public abstract class ChipmunkScript {
 
     protected volatile ChipmunkVM vm;
     protected volatile ModuleLoader loader;
+    protected volatile TrapHandler trapHandler;
     protected volatile ChipmunkLibraries libs;
     protected volatile LinkingPolicy linkPolicy;
     protected volatile JvmCompiler jvmCompiler;
 
     public ChipmunkScript(){
+        this(null);
+    }
+
+    public ChipmunkScript(TrapHandler trapHandler){
+        this.trapHandler = trapHandler;
+
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
 
@@ -91,6 +105,7 @@ public abstract class ChipmunkScript {
         tags.remove(tag);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getTag(Class<T> tagType){
         for(Object o : tags){
             if(tagType.isInstance(o)){
@@ -118,6 +133,14 @@ public abstract class ChipmunkScript {
 
     protected void setId(long id){
         this.id = id;
+    }
+
+    public void setTrapHandler(TrapHandler trapHandler){
+        this.trapHandler = trapHandler;
+    }
+
+    public TrapHandler getTrapHandler(){
+        return trapHandler;
     }
 
     public void setModuleLoader(ModuleLoader loader){

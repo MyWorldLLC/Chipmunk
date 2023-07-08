@@ -56,6 +56,7 @@ public class ChipmunkVM {
 	protected volatile LinkingPolicy defaultLinkPolicy;
 	protected volatile ChipmunkLibraries defaultLibraries;
 	protected volatile JvmCompilerConfig defaultJvmCompilerConfig;
+	protected volatile TrapHandler defaultTrapHandler;
 
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
 	protected final AtomicLong scriptIds;
@@ -112,6 +113,14 @@ public class ChipmunkVM {
 
 	public void setDefaultJvmCompilerConfig(JvmCompilerConfig defaultJvmCompilerConfig) {
 		this.defaultJvmCompilerConfig = defaultJvmCompilerConfig;
+	}
+
+	public TrapHandler getDefaultTrapHandler(){
+		return defaultTrapHandler;
+	}
+
+	public void setDefaultTrapHandler(TrapHandler handler){
+		defaultTrapHandler = handler;
 	}
 
 	public void start() {
@@ -198,6 +207,7 @@ public class ChipmunkVM {
 		script.setLinkPolicy(defaultLinkPolicy);
 		script.setLibs(defaultLibraries);
 		script.setJvmCompiler(jvmCompiler);
+		script.setTrapHandler(defaultTrapHandler);
 
 		return script;
 	}
