@@ -414,4 +414,12 @@ class LanguageSpecification extends Specification {
 		then:
 		result ==  7
 	}
+
+	def "Run VariableShadowing.chp"(){
+		when:
+		def result = compileAndRun("VariableShadowing.chp", true)
+
+		then:
+		result ==  20
+	}
 }

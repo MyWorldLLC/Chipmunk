@@ -50,6 +50,10 @@ public class VarDec {
         return null;
     }
 
+    public static boolean hasAssignment(AstNode node){
+        return getAssignment(node) != null;
+    }
+
     public static AstNode getIdentifier(AstNode node){
         Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getType());
         return node.getChild(0);

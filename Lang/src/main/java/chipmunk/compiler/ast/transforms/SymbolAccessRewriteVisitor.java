@@ -43,6 +43,7 @@ import chipmunk.compiler.ast.*;
 public class SymbolAccessRewriteVisitor implements AstVisitor {
 
     protected SymbolTable scope;
+    protected Symbol shadow;
 
     @Override
     public void visit(AstNode node) {
@@ -59,7 +60,12 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         // that are non-local
 
         // If visiting a variable declaration, don't rewrite the variable name being declared!
-        int startIndex = node.is(NodeType.VAR_DEC) ? 1 : 0;
+        var isDec = node.is(NodeType.VAR_DEC);
+        if(isDec){
+            // Support local variable shadowing
+            shadow = node.getSymbol();
+        }
+        int startIndex = isDec ? 1 : 0;
         for(int i = startIndex; i < node.childCount(); i++) {
             AstNode child = node.getChild(i);
 
@@ -67,7 +73,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
                 if (!isMethodBindTarget(node, i) && !isMethodParam(child)) {
 
-                    child = rewriteQualified(child);
+                    child = rewriteQualified(child, shadow);
                     node.replaceChild(i, child);
 
                 }
@@ -75,6 +81,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 child.visit(this);
             }
         }
+        shadow = null;
 
         if(node.getType().isBlock()){
             scope = scope.getParent();
@@ -89,11 +96,11 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         return false;
     }
 
-    protected AstNode rewriteQualified(AstNode child) {
+    protected AstNode rewriteQualified(AstNode child, Symbol shadow) {
 
         // Terminal id node - check & rewrite access if needed
         String symbolName = child.getToken().text();
-        Symbol symbol = scope.getSymbol(symbolName);
+        Symbol symbol = scope.getSymbol(symbolName, shadow);
 
         final int index = child.getToken().index();
         final int line = child.getToken().line();

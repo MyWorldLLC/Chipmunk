@@ -73,9 +73,13 @@ public class SymbolTable {
 	}
 	
 	public Symbol getSymbol(String name){
+		return getSymbol(name, null);
+	}
+
+	public Symbol getSymbol(String name, Symbol shadow){
 		Symbol symbol = new Symbol(name);
-		
-		if(!symbols.contains(symbol)){
+
+		if(!symbols.contains(symbol) || (shadow != null && shadow.equals(symbol))){
 			if(parent != null){
 				return parent.getSymbol(name);
 			}else{
