@@ -307,28 +307,28 @@ public class ChipmunkVM {
 		}
 	}
 
-	public Future<Object> runAsync(ChipmunkScript script) {
+	public CompletableFuture<Object> runAsync(ChipmunkScript script) {
 		return invokeAsync(script, script, "run");
 	}
 
-	public Future<Object> runAsync(ChipmunkScript script, Object[] params) {
+	public CompletableFuture<Object> runAsync(ChipmunkScript script, Object[] params) {
 		return invokeAsync(script, script, "run", params);
 	}
 
-	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName){
+	public CompletableFuture<Object> invokeAsync(ChipmunkScript script, Object target, String methodName){
 		return invokeAsync(script, target, methodName, null);
 	}
 
-	public Future<Object> invokeAsync(ChipmunkScript script, Object target, String methodName, Object[] params){
+	public CompletableFuture<Object> invokeAsync(ChipmunkScript script, Object target, String methodName, Object[] params){
 		scheduler.notifyQueuedForInvocation(script);
-		return scriptPool.submit(() -> {
+		return CompletableFuture.supplyAsync(() -> {
 			Object value = invoke(script, target, methodName, params);
 			ChipmunkScript.setCurrentScript(null);
 			return value;
-		});
+		}, scriptPool);
 	}
 
-	public Future<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
+	public CompletableFuture<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
 		scheduler.notifyQueuedForInvocation(script);
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -342,7 +342,7 @@ public class ChipmunkVM {
 		}, scriptPool);
 	}
 
-	public Future<Void> runInScriptPool(ChipmunkScript script, Runnable task){
+	public CompletableFuture<Void> runInScriptPool(ChipmunkScript script, Runnable task){
 		scheduler.notifyQueuedForInvocation(script);
 		return CompletableFuture.runAsync(() -> {
 			try {
