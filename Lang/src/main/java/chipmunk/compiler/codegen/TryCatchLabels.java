@@ -26,13 +26,29 @@ import java.util.List;
 public class TryCatchLabels extends BlockLabels {
 	
 	protected final List<BlockLabels> catchBlocks;
+	protected final String successTarget;
+	protected boolean successMarked;
 	
-	public TryCatchLabels(String start, String end) {
+	public TryCatchLabels(String start, String end, String successTarget) {
 		super(start, end);
 		catchBlocks = new ArrayList<>();
+		this.successTarget = successTarget;
+		successMarked = false;
 	}
 	
 	public List<BlockLabels> getCatchBlocks(){
 		return catchBlocks;
+	}
+
+	public String getSuccessTarget(){
+		return successTarget;
+	}
+
+	public void setSuccessMarked(){
+		successMarked = true;
+	}
+
+	public boolean isSuccessMarked(){
+		return successMarked;
 	}
 }

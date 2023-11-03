@@ -35,7 +35,6 @@ import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static chipmunk.compiler.assembler.Opcodes.*;
 
@@ -131,7 +130,6 @@ public class JvmCompiler {
         run.visitEnd();
 
         sw.visitEnd();
-
         return (ChipmunkScript) instantiate(sources.getModuleLoader().getClassLoader().define("ChipmunkScriptImpl", sw.toByteArray()));
     }
 
@@ -193,7 +191,7 @@ public class JvmCompiler {
         getDependencies.visitEnd();*/
 
         // Module constructor/initializer
-        MethodVisitor moduleInit = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        MethodVisitor moduleInit = new JvmSandboxingVisitor(moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), null);
         moduleInit.visitCode();
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
         moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -221,7 +219,6 @@ public class JvmCompiler {
         try {
             return cls.getConstructor().newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -250,7 +247,7 @@ public class JvmCompiler {
         cClassWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class constructor
-        MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        MethodVisitor clsConstructor = new JvmSandboxingVisitor(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), null);
         clsConstructor.visitCode();
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -302,7 +299,7 @@ public class JvmCompiler {
         // 1+: binaryConstructor params
         Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
-        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
+        MethodVisitor insConstructor = new JvmSandboxingVisitor(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null), null);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -316,7 +313,7 @@ public class JvmCompiler {
         if(cls.getInstanceNamespace().has("toString")
                 && cls.getInstanceNamespace().getEntry("toString").getType() == FieldType.METHOD){
 
-            MethodVisitor toString = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "toString", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null);
+            MethodVisitor toString = new JvmSandboxingVisitor(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "toString", Type.getMethodType(Type.getType(String.class)).getDescriptor(), null, null), null);
             toString.visitCode();
 
             // Invoke the toString() method defined in Chipmunk code
@@ -367,7 +364,7 @@ public class JvmCompiler {
         Type insType = Type.getObjectType(jvmName(qualifiedInsName));
         Type newMethodType = Type.getMethodType(insType, constructorTypes);
 
-        MethodVisitor callMethod = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", newMethodType.getDescriptor(), null, null);
+        MethodVisitor callMethod = new JvmSandboxingVisitor(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "new", newMethodType.getDescriptor(), null, null), null);
         callMethod.visitCode();
         callMethod.visitTypeInsn(Opcodes.NEW, insType.getInternalName());
         callMethod.visitInsn(Opcodes.DUP);
@@ -381,7 +378,7 @@ public class JvmCompiler {
         callMethod.visitEnd();
 
         // Generate CClass.getModule()
-        MethodVisitor cClassGetModule = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null);
+        MethodVisitor cClassGetModule = new JvmSandboxingVisitor(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getModule", Type.getMethodType(Type.getType(ChipmunkModule.class)).getDescriptor(), null, null), null);
         cClassGetModule.visitCode();
         // TODO - pass module to cClass constructor?
         cClassGetModule.visitMethodInsn(Opcodes.INVOKESTATIC,
@@ -410,7 +407,7 @@ public class JvmCompiler {
         cClassGetModule.visitEnd();
 
         // Generate cClass.getTraits()
-        MethodVisitor getTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null);
+        MethodVisitor getTraits = new JvmSandboxingVisitor(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null), null);
         getTraits.visitCode();
         getTraits.visitVarInsn(Opcodes.ALOAD, 0);
         getTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$traits", Type.getDescriptor(TraitField[].class));
@@ -419,7 +416,7 @@ public class JvmCompiler {
         getTraits.visitEnd();
 
         // Generate cClass.getSharedTraits()
-        MethodVisitor getSharedTraits = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getSharedTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null);
+        MethodVisitor getSharedTraits = new JvmSandboxingVisitor(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "getSharedTraits", Type.getMethodType(Type.getType(TraitField[].class)).getDescriptor(), null, null), null);
         getSharedTraits.visitCode();
         getSharedTraits.visitVarInsn(Opcodes.ALOAD, 0);
         getSharedTraits.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedCClassName), "$sharedTraits", Type.getDescriptor(TraitField[].class));
@@ -430,7 +427,7 @@ public class JvmCompiler {
         cClassWriter.visitEnd();
 
         // Implement ChipmunkObject.getChipmunkClass()
-        MethodVisitor insGetCClass = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "getChipmunkClass", Type.getMethodType(Type.getType(ChipmunkClass.class)).getDescriptor(), null, null);
+        MethodVisitor insGetCClass = new JvmSandboxingVisitor(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "getChipmunkClass", Type.getMethodType(Type.getType(ChipmunkClass.class)).getDescriptor(), null, null), null);
         insGetCClass.visitVarInsn(Opcodes.ALOAD, 0);
         insGetCClass.visitFieldInsn(Opcodes.GETFIELD, jvmName(qualifiedInsName), "$cClass", Type.getType(ChipmunkClass.class).getDescriptor());
         insGetCClass.visitInsn(Opcodes.ARETURN);
@@ -495,7 +492,7 @@ public class JvmCompiler {
                 .stream()
                 .filter(e -> (e.getFlags() & BinaryConstants.TRAIT_FLAG) != 0)
                 .map(BinaryNamespace.Entry::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         if(!traitNames.isEmpty()){
             init.visitVarInsn(Opcodes.ALOAD, 0);
@@ -529,7 +526,7 @@ public class JvmCompiler {
 
         Type methodType = Type.getMethodType(objType, pTypes);
 
-        MethodVisitor mv = cw.visitMethod(flags, name, methodType.getDescriptor(), null, null);
+        MethodVisitor mv = new JvmSandboxingVisitor(cw.visitMethod(flags, name, methodType.getDescriptor(), null, null), null);
         mv.visitCode();
 
         Map<Integer, Label> labelMappings = new HashMap<>();

@@ -25,11 +25,13 @@ import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
+import chipmunk.modules.TestModule
 import chipmunk.modules.imports.JvmImportModule
 import chipmunk.runtime.UnimplementedMethodException
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
+import chipmunk.vm.jvm.Uncatchable
 import spock.lang.Specification
 
 class StaticAccess {
@@ -46,6 +48,7 @@ class LanguageSpecification extends Specification {
 	def compileAndRun(String scriptName, boolean disassembleOnException = false){
 		ModuleLoader loader = new ModuleLoader()
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
+		loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })
 
 		compiler.setModuleLoader(loader)
 
@@ -222,6 +225,14 @@ class LanguageSpecification extends Specification {
 		
 		then:
 		result == 2
+	}
+
+	def "Run TryUncatchable.chp"(){
+		when:
+		compileAndRun("TryUncatchable.chp")
+
+		then:
+		thrown(Uncatchable.class)
 	}
 	
 	def "Run Fibonacci.chp"(){

@@ -37,6 +37,12 @@ public class TryCatchVisitor implements AstVisitor {
 			TryCatchLabels labels = codegen.pushTryCatch();
 			
 			node.visitChildren(this);
+
+			// If no finally block exists, set the success target
+			// (this will run right after the last catch block has been assembled)
+			if(!labels.isSuccessMarked()){
+				setSuccessTarget(labels);
+			}
 			
 			// Build exception table
 			ExceptionBlock block = new ExceptionBlock();
@@ -48,14 +54,16 @@ public class TryCatchVisitor implements AstVisitor {
 			codegen.addExceptionBlock(block);
 			codegen.exitTryCatch();
 		}else if(node.getType() == NodeType.TRY) {
-			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getStartLabel());
+			TryCatchLabels labels = codegen.peekClosestTryCatch();
+			codegen.getAssembler().setLabelTarget(labels.getStartLabel());
 		
 			// Assemble try body
 			codegen.enterScope(node.getSymbolTable());
 			node.visitChildren(codegen);
 			codegen.exitScope();
-			
-			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getEndLabel());
+
+			codegen.getAssembler()._goto(labels.getSuccessTarget());
+			codegen.getAssembler().setLabelTarget(labels.getEndLabel());
 		}else if(node.getType() == NodeType.CATCH) {
 			
 			CatchBlock catchLabels = new CatchBlock(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
@@ -75,9 +83,12 @@ public class TryCatchVisitor implements AstVisitor {
 			
 			codegen.getAssembler().setLabelTarget(catchLabels.getEndLabel());
 		}else if(node.getType() == NodeType.FINALLY) {
-			BlockLabels finallyLabels = new BlockLabels(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
-			codegen.peekClosestTryCatch().getCatchBlocks().add(finallyLabels);
-			
+			TryCatchLabels tryCatch = codegen.peekClosestTryCatch();
+			FinallyBlock finallyLabels = new FinallyBlock(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
+			tryCatch.getCatchBlocks().add(finallyLabels);
+
+			setSuccessTarget(tryCatch);
+
 			codegen.getAssembler().setLabelTarget(finallyLabels.getStartLabel());
 			
 			// Assemble finally body
@@ -88,6 +99,11 @@ public class TryCatchVisitor implements AstVisitor {
 			codegen.getAssembler().setLabelTarget(finallyLabels.getEndLabel());
 		}
 
+	}
+
+	protected void setSuccessTarget(TryCatchLabels labels){
+		codegen.getAssembler().setLabelTarget(labels.getSuccessTarget());
+		labels.setSuccessMarked();
 	}
 
 }

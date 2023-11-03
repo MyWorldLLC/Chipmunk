@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2023 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,5 +20,5 @@
 
 package chipmunk.vm.jvm;
 
-public class ForcedYieldThrowable extends Uncatchable {
+public class Uncatchable extends Throwable {
 }
