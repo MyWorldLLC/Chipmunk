@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class JvmSandboxingVisitor extends MethodVisitor {
 
@@ -222,8 +224,16 @@ public class JvmSandboxingVisitor extends MethodVisitor {
     }
 
     protected static Class<?> classForName(String name) throws ClassNotFoundException {
-        // TODO - arrays
+        if(name.contains("[]")){
+            // This is an array type
+            return arrayClassForName(name);
+        }else{
+            // This is a plain type
+            return plainClassForName(name);
+        }
+    }
 
+    protected static Class<?> plainClassForName(String name) throws ClassNotFoundException {
         return switch (name){
             case "void" -> void.class;
             case "boolean" -> boolean.class;
@@ -236,6 +246,29 @@ public class JvmSandboxingVisitor extends MethodVisitor {
             case "double" -> double.class;
             default -> Class.forName(name);
         };
+    }
+
+    protected static Class<?> arrayClassForName(String name) throws ClassNotFoundException {
+
+        var jvmName = switch(name.replace("[]", "")){
+            case "boolean" -> "Z";
+            case "byte" -> "B";
+            case "char" -> "C";
+            case "short" -> "S";
+            case "int" -> "I";
+            case "long" -> "J";
+            case "float" -> "F";
+            case "double" -> "D";
+            default -> "L" + name + ";";
+        };
+
+        var nestingPrefix = Pattern.compile("\\[]")
+                .matcher(name)
+                .results()
+                .map(s -> "[")
+                .collect(Collectors.joining());
+
+        return Class.forName(nestingPrefix + jvmName);
     }
 
 }
