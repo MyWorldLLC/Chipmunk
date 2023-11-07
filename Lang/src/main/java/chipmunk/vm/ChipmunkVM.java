@@ -34,10 +34,7 @@ import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
-import chipmunk.vm.jvm.CompilationUnit;
-import chipmunk.vm.jvm.JvmCompilation;
-import chipmunk.vm.jvm.JvmCompiler;
-import chipmunk.vm.jvm.JvmCompilerConfig;
+import chipmunk.vm.jvm.*;
 import chipmunk.vm.scheduler.Scheduler;
 import jdk.dynalink.linker.GuardedInvocation;
 
@@ -78,7 +75,7 @@ public class ChipmunkVM {
 		// TODO - make configurable
 		scriptPool = new ForkJoinPool(4,
 				ForkJoinPool.defaultForkJoinWorkerThreadFactory,
-				(thread, throwable) -> {throwable.printStackTrace();},
+				(thread, throwable) -> throwable.printStackTrace(),
 				true,
 				4,
 				8,
@@ -88,7 +85,7 @@ public class ChipmunkVM {
 				TimeUnit.SECONDS);
 		scheduler = new Scheduler();
 
-		defaultJvmCompilerConfig = new JvmCompilerConfig();
+		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy);
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){
@@ -255,7 +252,7 @@ public class ChipmunkVM {
 	}
 
 	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
-		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader());
+		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultLinkPolicy);
 		return jvmCompiler.compileModule(compilation);
 	}
 
@@ -427,6 +424,30 @@ public class ChipmunkVM {
 			}
 		}
 		return nonDefaults == 1;
+	}
+
+	public static void trap(Object payload){
+
+	}
+
+	public static void backJump(TrapSite site){
+
+	}
+
+	public static void trapObjectAlloc(TrapSite site, Class<?> objectType){
+
+	}
+
+	public static void trapArrayAlloc(TrapSite site, Class<?> arrayType, int dimensions, int capacity){
+
+	}
+
+	public static void trapMethodCall(TrapSite site, MethodIdentifier method){
+
+	}
+
+	public static void trapObjectInit(TrapSite site, Object object){
+
 	}
 
 }

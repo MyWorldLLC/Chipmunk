@@ -22,6 +22,7 @@ package chipmunk.vm.jvm;
 
 import chipmunk.binary.BinaryModule;
 import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.invoke.security.LinkingPolicy;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -38,11 +39,15 @@ public class JvmCompilation {
     protected final Set<String> bindings;
     protected final Deque<NamespaceInfo> namespaceInfo;
 
-    public JvmCompilation(BinaryModule module, ModuleLoader loader){
+    protected final LinkingPolicy policy;
+
+    public JvmCompilation(BinaryModule module, ModuleLoader loader, LinkingPolicy policy){
         this.module = module;
         this.loader = loader;
         namespaceInfo = new ArrayDeque<>();
         bindings = new HashSet<>();
+
+        this.policy = policy;
     }
 
     public BinaryModule getModule() {
@@ -51,6 +56,10 @@ public class JvmCompilation {
 
     public ModuleLoader getLoader(){
         return loader;
+    }
+
+    public LinkingPolicy getLinkingPolicy(){
+        return policy;
     }
 
     public String getPackagePrefix() {

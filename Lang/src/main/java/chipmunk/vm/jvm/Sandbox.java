@@ -20,6 +20,7 @@
 
 package chipmunk.vm.jvm;
 
+import chipmunk.vm.ChipmunkVM;
 import org.objectweb.asm.*;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class JvmSandboxingVisitor extends MethodVisitor {
+public class Sandbox extends MethodVisitor {
 
     public record TryCatch(Label start, Label end, Label handler, Label chainHandler){
 
@@ -44,8 +45,9 @@ public class JvmSandboxingVisitor extends MethodVisitor {
     protected final List<Label> visited;
     protected final List<TryCatch> guardedBlocks;
     protected int trap;
+    protected int methodId;
 
-    public JvmSandboxingVisitor(MethodVisitor delegate, SandboxContext sandbox){
+    public Sandbox(MethodVisitor delegate, SandboxContext sandbox){
         super(Opcodes.ASM9, delegate);
         this.sandbox = sandbox;
 
@@ -63,7 +65,7 @@ public class JvmSandboxingVisitor extends MethodVisitor {
     public void visitJumpInsn(final int opcode, final Label label){
         if(labelVisited(label) && sandbox.getTrapConfig().isEnabled(TrapFlag.BACK_JUMP)){
             // Label has already been visited, so this is a backjump
-            // TODO - insert trap call
+            generateBackJumpTrap();
         }
         super.visitJumpInsn(opcode, label);
     }
@@ -108,40 +110,43 @@ public class JvmSandboxingVisitor extends MethodVisitor {
 
     @Override
     public void visitTypeInsn(final int opcode, final String type){
-        if(opcode == Opcodes.NEW && sandbox.getTrapConfig().isEnabled(TrapFlag.OBJECT_ALLOC, TrapFlag.PRE_OBJECT_ALLOC)){
-            // TODO - insert trap call
-            super.visitLdcInsn(makeTrapSite(TrapSite.Position.PRE));
+        if(opcode == Opcodes.NEW && sandbox.getTrapConfig().isEnabled(TrapFlag.OBJECT_ALLOC)){
+            generateObjectAllocTrap(TrapSite.Position.PRE, type);
+        }else if((opcode == Opcodes.ANEWARRAY)
+                && sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC)){
+            generateArrayAllocTrap(TrapSite.Position.PRE, type, 1);
+        }
 
-        }else if(opcode == Opcodes.ANEWARRAY && sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC, TrapFlag.PRE_ARRAY_ALLOC)){
-            // TODO - insert trap call
-        }
         super.visitTypeInsn(opcode, type);
-        if(opcode == Opcodes.NEW && sandbox.getTrapConfig().isEnabled(TrapFlag.OBJECT_ALLOC, TrapFlag.POST_OBJECT_ALLOC)){
-            // TODO - insert trap call
-        }else if(opcode == Opcodes.ANEWARRAY && sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC, TrapFlag.POST_ARRAY_ALLOC)){
-            // TODO - insert trap call
+    }
+
+    @Override
+    public void visitIntInsn(final int opcode, final int operand){
+        if(opcode == Opcodes.NEWARRAY && sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC)){
+            generateArrayAllocTrap(TrapSite.Position.PRE, arrayOperandToClassName(operand), 1);
         }
+        super.visitIntInsn(opcode, operand);
     }
 
     @Override
     public void visitMultiANewArrayInsn(final String descriptor, final int numDimensions){
-        if(sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC, TrapFlag.PRE_ARRAY_ALLOC)){
-            // TODO - insert trap call
+        if(sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC)){
+            generateArrayAllocTrap(TrapSite.Position.PRE, descriptor, numDimensions);
         }
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
-        if(sandbox.getTrapConfig().isEnabled(TrapFlag.ARRAY_ALLOC, TrapFlag.POST_ARRAY_ALLOC)){
-            // TODO - insert trap call
-        }
     }
 
     @Override
     public void visitMethodInsn(final int opcode, final String owner, final String name, final String descriptor, final boolean isInterface){
         if(sandbox.getTrapConfig().isEnabled(TrapFlag.METHOD_CALL, TrapFlag.PRE_METHOD_CALL)){
-            // TODO - insert trap call
+            generateMethodTrap(TrapSite.Position.PRE, owner, name, descriptor);
         }
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>") && sandbox.getTrapConfig().isEnabled(TrapFlag.OBJECT_INIT)){
+            generateInitTrap();
+        }
         if(sandbox.getTrapConfig().isEnabled(TrapFlag.METHOD_CALL, TrapFlag.POST_METHOD_CALL)){
-            // TODO - insert trap call
+            generateMethodTrap(TrapSite.Position.POST, owner, name, descriptor);
         }
     }
 
@@ -177,9 +182,62 @@ public class JvmSandboxingVisitor extends MethodVisitor {
         unmarkGuardedBlock(tc.start(), tc.end());
     }
 
-    protected void generateBackJumpTrap(TrapSite.Position pos){
-        super.visitLdcInsn(makeTrapSite(pos));
+    protected void generateBackJumpTrap(){
+        super.visitLdcInsn(makeTrapSite(TrapSite.Position.PRE));
+        super.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkVM.class),
+                "trapBackJump",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TrapSite.class)),
+                false);
+    }
 
+    protected void generateInitTrap(){
+        super.visitInsn(Opcodes.DUP);
+        super.visitLdcInsn(makeTrapSite(TrapSite.Position.POST));
+        super.visitInsn(Opcodes.SWAP);
+        super.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkVM.class),
+                "trapObjectInit",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TrapSite.class), Type.getType(Object.class)),
+                false);
+    }
+
+    protected void generateMethodTrap(TrapSite.Position pos, String targetClass, String targetMethodName, String targetDescriptor){
+        super.visitLdcInsn(makeTrapSite(pos));
+        super.visitLdcInsn(makeMethodId(targetClass, targetMethodName, targetDescriptor));
+        super.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkVM.class),
+                "trapMethodCall",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TrapSite.class), Type.getType(MethodIdentifier.class)),
+                false);
+    }
+
+    protected void generateObjectAllocTrap(TrapSite.Position pos, String targetClass){
+        super.visitLdcInsn(makeTrapSite(pos));
+        super.visitLdcInsn(makeClassConst(targetClass));
+        super.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkVM.class),
+                "trapObjectAlloc",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TrapSite.class), Type.getType(Class.class)),
+                false);
+    }
+
+    protected void generateArrayAllocTrap(TrapSite.Position pos, String arrayClassDescriptor, int dimensions){
+        // Only pre-allocation trapping is supported, so top of stack will always be an int defining the
+        // array length. Dup/swap it down the parameter chain until it's in the trailing argument position for
+        // the trap call
+        super.visitInsn(Opcodes.DUP);
+        super.visitLdcInsn(makeTrapSite(pos));
+        super.visitInsn(Opcodes.SWAP);
+        super.visitLdcInsn(makeClassConst(arrayClassDescriptor));
+        super.visitInsn(Opcodes.SWAP);
+        super.visitLdcInsn(dimensions);
+        super.visitInsn(Opcodes.SWAP);
+        super.visitMethodInsn(Opcodes.INVOKESTATIC,
+                Type.getInternalName(ChipmunkVM.class),
+                "trapArrayAlloc",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TrapSite.class), Type.getType(Class.class), Type.INT_TYPE, Type.INT_TYPE),
+                false);
     }
 
     protected ConstantDynamic makeTrapSite(TrapSite.Position pos){
@@ -192,9 +250,10 @@ public class JvmSandboxingVisitor extends MethodVisitor {
                 Type.getDescriptor(TrapSite.class),
                 new Handle(
                         Opcodes.H_INVOKESTATIC,
-                        Type.getInternalName(JvmSandboxingVisitor.class),
+                        Type.getInternalName(Sandbox.class),
                         "bootstrapTrapsite",
                         Type.getMethodDescriptor(
+                                Type.getType(TrapSite.class),
                                 Type.getType(TrapSite.Position.class),
                                 Type.getType(String.class),
                                 Type.getType(String.class),
@@ -212,15 +271,65 @@ public class JvmSandboxingVisitor extends MethodVisitor {
                 lineNumber);
     }
 
-    protected static TrapSite bootstrapTrapsite(TrapSite.Position pos, String className, String method, String returnType, String[] params, int line) throws ClassNotFoundException {
+    protected ConstantDynamic makeMethodId(String targetClass, String targetMethodName, String targetDescriptor){
+        var paramNames = Arrays.stream(Type.getArgumentTypes(targetDescriptor))
+                .map(Type::getClassName)
+                .toArray(String[]::new);
+
+        return new ConstantDynamic("method$" + (methodId++),
+                Type.getDescriptor(TrapSite.class),
+                new Handle(
+                        Opcodes.H_INVOKESTATIC,
+                        Type.getInternalName(Sandbox.class),
+                        "bootstrapMethodId",
+                        Type.getMethodDescriptor(
+                                Type.getType(MethodIdentifier.class),
+                                Type.getType(String.class),
+                                Type.getType(String.class),
+                                Type.getType(String.class),
+                                Type.getType(String[].class)
+                        ),
+                        false
+                ),
+                targetClass,
+                targetMethodName,
+                Type.getReturnType(targetDescriptor).getClassName(),
+                paramNames,
+                lineNumber);
+    }
+
+    protected ConstantDynamic makeClassConst(String targetClass) {
+        return new ConstantDynamic("cls$" + targetClass,
+                Type.getDescriptor(Class.class),
+                new Handle(
+                        Opcodes.H_INVOKESTATIC,
+                        Type.getInternalName(Sandbox.class),
+                        "classForName",
+                        Type.getMethodDescriptor(
+                                Type.getType(Class.class),
+                                Type.getType(String.class)
+                        ),
+                        false
+                ),
+                targetClass);
+    }
+
+    protected static Class<?>[] signature(String returnType, String[] params) throws ClassNotFoundException {
         var signature = new Class<?>[params.length + 1];
         signature[0] = classForName(returnType);
 
         for(int i = 1; i < params.length; i++){
             signature[i] = classForName(params[i - 1]);
         }
+        return signature;
+    }
 
-        return new TrapSite(pos, className, method, signature, line);
+    protected static TrapSite bootstrapTrapsite(TrapSite.Position pos, String className, String method, String returnType, String[] params, int line) throws ClassNotFoundException {
+        return new TrapSite(pos, new MethodIdentifier(classForName(className), method, signature(returnType, params)), line);
+    }
+
+    protected static MethodIdentifier bootstrapMethodId(String className, String methodName, String returnType, String[] params) throws ClassNotFoundException {
+        return new MethodIdentifier(classForName(className), methodName, signature(returnType, params));
     }
 
     protected static Class<?> classForName(String name) throws ClassNotFoundException {
@@ -269,6 +378,20 @@ public class JvmSandboxingVisitor extends MethodVisitor {
                 .collect(Collectors.joining());
 
         return Class.forName(nestingPrefix + jvmName);
+    }
+
+    protected String arrayOperandToClassName(int operand){
+        return switch (operand){
+            case Opcodes.T_BYTE -> "[B";
+            case Opcodes.T_BOOLEAN -> "[Z";
+            case Opcodes.T_CHAR -> "[C";
+            case Opcodes.T_SHORT -> "[S";
+            case Opcodes.T_INT -> "[I";
+            case Opcodes.T_LONG -> "[J";
+            case Opcodes.T_FLOAT -> "[F";
+            case Opcodes.T_DOUBLE -> "[D";
+            default -> throw new IllegalArgumentException("Unsupported array operand type 0x%X".formatted(operand));
+        };
     }
 
 }

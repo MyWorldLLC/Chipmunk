@@ -1,18 +1,21 @@
 package chipmunk.vm;
 
+import chipmunk.vm.jvm.MethodIdentifier;
 import chipmunk.vm.jvm.TrapSite;
 
 public interface TrapHandler {
 
     default void runtimeTrap(Object payload){}
 
-    // TODO - replace this verbosity with dynamically computed constants
     default void backJump(TrapSite site){}
-    default void methodCall(TrapSite site,
-                            String targetCls, String targetMethodName, String targetMethodSignature){}
+    default void methodCall(TrapSite site, MethodIdentifier method){}
 
-    default void arrayAlloc(TrapSite site, int dimensions, int capacity){}
+    default void arrayAlloc(TrapSite site, Class<?> arrayClass, int dimensions, int capacity){}
 
-    default void objectAlloc(TrapSite site, String targetCls, String targetConstructorSignature){}
+    default void objectAlloc(TrapSite site, Class<?> type){}
+
+    default void objectInit(TrapSite site, Object object){
+
+    }
 
 }

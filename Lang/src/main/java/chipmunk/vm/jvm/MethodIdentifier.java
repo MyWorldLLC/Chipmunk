@@ -20,10 +20,4 @@
 
 package chipmunk.vm.jvm;
 
-public record TrapSite(Position position, MethodIdentifier method, int lineNumber) {
-
-    public enum Position {
-        PRE, POST
-    }
-
-}
+public record MethodIdentifier(Class<?> cls, String methodName, Class<?>[] signature) {}

@@ -20,18 +20,28 @@
 
 package chipmunk.vm.jvm;
 
+import chipmunk.vm.invoke.security.LinkingPolicy;
+
 public class JvmCompilerConfig {
 
     public enum YieldType {
         THREAD_YIELD, FORCED_PREEMPT
     }
 
+    protected final LinkingPolicy linkingPolicy;
+
     protected volatile boolean disableBackjumpChecks;
     protected volatile YieldType yieldType;
 
-    public JvmCompilerConfig(){
+    public JvmCompilerConfig(LinkingPolicy policy){
         disableBackjumpChecks = false;
         yieldType = YieldType.THREAD_YIELD;
+
+        linkingPolicy = policy;
+    }
+
+    public LinkingPolicy getLinkingPolicy(){
+        return linkingPolicy;
     }
 
     public void setIsCompilingBackjumpChecks(boolean useChecks){
