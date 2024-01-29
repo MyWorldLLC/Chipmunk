@@ -140,7 +140,7 @@ public abstract class ChipmunkScript {
     }
 
     public TrapHandler getTrapHandler(){
-        return trapHandler;
+        return trapHandler != null ? trapHandler : vm.getDefaultTrapHandler();
     }
 
     public void setModuleLoader(ModuleLoader loader){

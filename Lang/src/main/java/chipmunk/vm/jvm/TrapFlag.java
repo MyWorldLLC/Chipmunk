@@ -26,6 +26,7 @@ public enum TrapFlag {
     PRE_METHOD_CALL,
     POST_METHOD_CALL,
     ARRAY_ALLOC,
+    POST_ARRAY_ALLOC,
     OBJECT_ALLOC,
     OBJECT_INIT
 }

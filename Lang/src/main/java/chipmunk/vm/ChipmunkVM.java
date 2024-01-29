@@ -86,6 +86,8 @@ public class ChipmunkVM {
 		scheduler = new Scheduler();
 
 		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy);
+
+		defaultTrapHandler = new TrapHandler() {};
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){
