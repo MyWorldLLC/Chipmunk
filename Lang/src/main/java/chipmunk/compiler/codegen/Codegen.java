@@ -83,10 +83,10 @@ public class Codegen implements AstVisitor {
 	}
 	
 	public void visit(AstNode node){
-		AstVisitor visitor = visitors.get(node.getType());
+		AstVisitor visitor = visitors.get(node.getNodeType());
 		
 		if(visitor == null){
-			throw new IllegalArgumentException("Unknown node type %s at %s %d:%d ".formatted(node.getType(), module.getFileName(), Token.lineOrNone(node.getToken()), Token.columnOrNone(node.getToken())));
+			throw new IllegalArgumentException("Unknown node type %s at %s %d:%d ".formatted(node.getNodeType(), module.getFileName(), Token.lineOrNone(node.getToken()), Token.columnOrNone(node.getToken())));
 		}
 		
 		node.visit(visitor);

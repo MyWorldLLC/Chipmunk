@@ -39,7 +39,7 @@ public class UpvalueMarkerVisitor implements AstVisitor {
             return;
         }
 
-        if(node.getType().isBlock()){
+        if(node.getNodeType().isBlock()){
             scope = node.getSymbolTable();
         }
 
@@ -63,7 +63,7 @@ public class UpvalueMarkerVisitor implements AstVisitor {
             }
         }
 
-        if(node.getType().isBlock()){
+        if(node.getNodeType().isBlock()){
             scope = scope.getParent();
         }
 

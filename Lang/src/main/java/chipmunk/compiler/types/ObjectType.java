@@ -24,7 +24,11 @@ import java.util.List;
 
 public record ObjectType(String name, boolean isPrimitive, boolean isType, List<ObjectType> superTypes) {
 
-    public static final ObjectType ANY = new ObjectType("Any", false, true, List.of());
+    public static final ObjectType ANY = new ObjectType("Any", false, true);
+
+    public ObjectType(String name, boolean isPrimitive, boolean isType){
+        this(name, isPrimitive, isType, List.of());
+    }
 
     public ObjectType typeOf(){
         return classOf(name, superTypes);

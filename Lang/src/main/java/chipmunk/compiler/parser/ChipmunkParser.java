@@ -301,22 +301,26 @@ public class ChipmunkParser {
 			isFinal = true;
 		}
 
+		var paramParser = new VarDecParser(false, true);
+
 		var def = tokens.getNext(TokenType.DEF);
 		AstNode node = Methods.make(def, tokens.getNext(TokenType.IDENTIFIER));
 		node.getSymbol().setFinal(isFinal);
 
 		tokens.forceNext(TokenType.LPAREN);
-		while(tokens.peek(TokenType.IDENTIFIER)){
-			var id = tokens.get();
-			AstNode param = VarDec.makeImplicit(id);
-			if(tokens.peek(TokenType.EQUALS)){
-				tokens.dropNext();
-				VarDec.setAssignment(param, parseExpression());
-			}
+		while(paramParser.peek(tokens)){
+			AstNode param = paramParser.parse(tokens);
 			tokens.dropNext(TokenType.COMMA);
 			Methods.addParam(node, param);
 		}
 		tokens.forceNext(TokenType.RPAREN);
+		tokens.skipNewlinesAndComments();
+
+
+		if(tokens.dropNext(TokenType.COLON)){
+			node.setResultTypeName(tokens.getNext(TokenType.IDENTIFIER));
+		}
+
 		tokens.skipNewlinesAndComments();
 		
 		// If the next token is a block start, parse this as a regular
@@ -345,19 +349,21 @@ public class ChipmunkParser {
 				new Token("def", TokenType.DEF),
 				Methods.anonymousName(tokens.peek().line(), tokens.peek().column()));
 
+		var paramParser = new VarDecParser(false, true);
+
 		tokens.forceNext(TokenType.LPAREN);
-		while(tokens.peek(TokenType.IDENTIFIER)){
-			var id = tokens.get();
-			AstNode param = VarDec.makeImplicit(id);
-			if(tokens.peek(TokenType.EQUALS)){
-				tokens.dropNext();
-				VarDec.setAssignment(param, parseExpression());
-			}
+		while(paramParser.peek(tokens)){
+			AstNode param = paramParser.parse(tokens);
 			tokens.dropNext(TokenType.COMMA);
 			Methods.addParam(node, param);
-			tokens.dropNext(TokenType.COMMA);
 		}
 		tokens.forceNext(TokenType.RPAREN);
+		tokens.skipNewlines();
+
+		if(tokens.dropNext(TokenType.COLON)){
+			node.setResultTypeName(tokens.getNext(TokenType.IDENTIFIER));
+		}
+
 		tokens.skipNewlines();
 		
 		// If the next token is a block start, parse this as a regular

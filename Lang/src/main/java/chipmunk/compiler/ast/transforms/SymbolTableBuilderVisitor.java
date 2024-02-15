@@ -46,21 +46,21 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 				}
 			}
 
-			if(node.getType() == NodeType.CLASS){
+			if(node.getNodeType() == NodeType.CLASS){
 				node.getSymbol().setType(SymbolType.CLASS);
-			}else if(node.getType() == NodeType.METHOD){
+			}else if(node.getNodeType() == NodeType.METHOD){
 				node.getSymbol().setType(SymbolType.METHOD);
-			}else if(node.getType() == NodeType.VAR_DEC){
+			}else if(node.getNodeType() == NodeType.VAR_DEC){
 				node.getSymbol().setType(SymbolType.VAR);
 			}
 
 		}
 		
-		if(node.getType().isBlock()){
+		if(node.getNodeType().isBlock()){
 			SymbolTable blockTable = node.getSymbolTable();
 			blockTable.setParent(currentScope);
 			
-			if(node.getType() == NodeType.METHOD){
+			if(node.getNodeType() == NodeType.METHOD){
 				blockTable.setSymbol(new Symbol("self", true));
 			}
 
@@ -70,7 +70,7 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 
 		node.visitChildren(this);
 		
-		if(currentScope != null && node.getType().isBlock()){
+		if(currentScope != null && node.getNodeType().isBlock()){
 			currentScope = currentScope.getParent();
 		}
 	}

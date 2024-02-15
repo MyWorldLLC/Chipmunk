@@ -127,4 +127,9 @@ public class ImportParser implements Parser<AstNode> {
         }
         return node;
     }
+
+    @Override
+    public boolean peek(TokenStream t){
+        return recognizer.testAll(t);
+    }
 }

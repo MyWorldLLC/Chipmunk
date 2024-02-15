@@ -33,7 +33,7 @@ public class TryCatchVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node.getType() == NodeType.TRY_CATCH) {
+		if(node.getNodeType() == NodeType.TRY_CATCH) {
 			TryCatchLabels labels = codegen.pushTryCatch();
 			
 			node.visitChildren(this);
@@ -47,7 +47,7 @@ public class TryCatchVisitor implements AstVisitor {
 			
 			codegen.addExceptionBlock(block);
 			codegen.exitTryCatch();
-		}else if(node.getType() == NodeType.TRY) {
+		}else if(node.getNodeType() == NodeType.TRY) {
 			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getStartLabel());
 		
 			// Assemble try body
@@ -56,7 +56,7 @@ public class TryCatchVisitor implements AstVisitor {
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(codegen.peekClosestTryCatch().getEndLabel());
-		}else if(node.getType() == NodeType.CATCH) {
+		}else if(node.getNodeType() == NodeType.CATCH) {
 			
 			CatchBlock catchLabels = new CatchBlock(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
 			codegen.peekClosestTryCatch().getCatchBlocks().add(catchLabels);
@@ -74,7 +74,7 @@ public class TryCatchVisitor implements AstVisitor {
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(catchLabels.getEndLabel());
-		}else if(node.getType() == NodeType.FINALLY) {
+		}else if(node.getNodeType() == NodeType.FINALLY) {
 			BlockLabels finallyLabels = new BlockLabels(codegen.getAssembler().nextLabelName(), codegen.getAssembler().nextLabelName());
 			codegen.peekClosestTryCatch().getCatchBlocks().add(finallyLabels);
 			

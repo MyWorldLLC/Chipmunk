@@ -422,4 +422,12 @@ class LanguageSpecification extends Specification {
 		then:
 		result ==  20
 	}
+
+	def "Run TypeAnnotations.chp"(){
+		when:
+		def result = compileAndRun("TypeAnnotations.chp", true)
+
+		then:
+		result ==  [5, 3, 3, 15, 3]
+	}
 }

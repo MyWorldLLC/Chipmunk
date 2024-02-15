@@ -27,6 +27,6 @@ import chipmunk.util.Require;
 public record ParsedModule(String fileName, AstNode ast) {
 
     public ParsedModule {
-        Require.require(ast.is(NodeType.MODULE), "%s is not a module AST", ast.getType());
+        Require.require(ast.is(NodeType.MODULE), "%s is not a module AST", ast.getNodeType());
     }
 }

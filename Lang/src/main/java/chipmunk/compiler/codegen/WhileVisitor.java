@@ -37,7 +37,7 @@ public class WhileVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node.getType() == NodeType.WHILE){
+		if(node.getNodeType() == NodeType.WHILE){
 			
 			LoopLabels labels = codegen.pushLoop();
 

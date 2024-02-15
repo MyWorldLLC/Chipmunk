@@ -65,6 +65,26 @@ public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> {
         return null;
     }
 
+    public boolean testAll(V source){
+        for(var pattern : patterns){
+            if(test(source, pattern)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean test(V source, Pattern<S, V, T, R> pattern){
+        var dup = source.duplicate();
+        for(var t : pattern.pattern()){
+            var s = nextMatchable(dup);
+            if(!matcher.test(s, t)){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public <EX extends Throwable> R matchAll(V source, Supplier<EX> noneMatch) throws EX {
         var ast = matchAll(source);
         if(ast == null){
@@ -74,14 +94,10 @@ public class PatternRecognizer<S, V extends Visitor<S>, E, T, R> {
     }
 
     public R match(V source, Pattern<S, V, T, R> pattern){
-        var dup = source.duplicate();
-        for(var t : pattern.pattern()){
-            var s = nextMatchable(dup);
-            if(!matcher.test(s, t)){
-                return null;
-            }
+        if(test(source, pattern)){
+            return pattern.action().apply(source);
         }
-        return pattern.action().apply(source);
+        return null;
     }
 
     protected E nextMatchable(Visitor<S> source){

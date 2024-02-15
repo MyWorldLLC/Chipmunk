@@ -36,7 +36,7 @@ public class ForVisitor implements AstVisitor {
 	
 	@Override
 	public void visit(AstNode node) {
-		if(node.getType() == NodeType.FOR){
+		if(node.getNodeType() == NodeType.FOR){
 			
 			SymbolTable symbols = node.getSymbolTable();
 			LoopLabels labels = codegen.pushLoop();

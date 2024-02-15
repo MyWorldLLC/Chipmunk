@@ -32,4 +32,9 @@ public class IfElseParser implements Parser<AstNode> {
         return null;
     }
 
+    @Override
+    public boolean peek(TokenStream t){
+        return false;
+    }
+
 }
