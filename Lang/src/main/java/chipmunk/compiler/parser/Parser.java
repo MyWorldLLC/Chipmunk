@@ -26,5 +26,6 @@ import chipmunk.compiler.lexer.TokenStream;
 public interface Parser<T> {
 
     T parse(TokenStream t) throws SyntaxError;
+    boolean peek(TokenStream t);
 
 }

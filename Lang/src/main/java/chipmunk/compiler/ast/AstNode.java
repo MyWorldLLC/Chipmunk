@@ -23,6 +23,7 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
+import chipmunk.compiler.types.ObjectType;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -36,7 +37,10 @@ public class AstNode {
 	protected final NodeType type;
 	protected final Token token;
 	protected Symbol symbol;
-	protected SymbolTable symbols;
+	protected final SymbolTable symbols;
+
+	protected Token resultTypeName;
+	protected ObjectType resultType;
 
 	public AstNode(NodeType type){
 		this(type, null);
@@ -49,7 +53,10 @@ public class AstNode {
 		if(type.isBlock()){
 			symbols = new SymbolTable(type.getScope());
 			symbols.setNode(this);
+		}else{
+			symbols = null;
 		}
+		resultType = ObjectType.ANY;
 	}
 	
 	public AstNode(NodeType type, Token token, AstNode... children){
@@ -59,12 +66,28 @@ public class AstNode {
 		}
 	}
 
-	public NodeType getType(){
+	public NodeType getNodeType(){
 		return type;
 	}
 
 	public Token getToken(){
 		return token;
+	}
+
+	public ObjectType getResultType(){
+		return resultType;
+	}
+
+	public void setResultType(ObjectType resultType){
+		this.resultType = resultType;
+	}
+
+	public Token getResultTypeName() {
+		return resultTypeName;
+	}
+
+	public void setResultTypeName(Token resultTypeName) {
+		this.resultTypeName = resultTypeName;
 	}
 
 	public Symbol getSymbol(){
@@ -224,7 +247,7 @@ public class AstNode {
 		if(is(type)){
 			return f.get();
 		}
-		throw new IllegalArgumentException("Required node type %s, got %s".formatted(type, getType()));
+		throw new IllegalArgumentException("Required node type %s, got %s".formatted(type, getNodeType()));
 	}
 
 	public void requireType(NodeType type, Runnable r){

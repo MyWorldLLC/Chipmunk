@@ -63,4 +63,9 @@ public class StatementParser implements Parser<AstNode> {
         return null;
     }
 
+    @Override
+    public boolean peek(TokenStream t){
+        return recognizer.testAll(t);
+    }
+
 }

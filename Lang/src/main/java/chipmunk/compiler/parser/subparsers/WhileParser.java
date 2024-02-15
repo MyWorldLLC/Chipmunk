@@ -57,4 +57,9 @@ public class WhileParser implements Parser<AstNode> {
         return recognizer.matchAll(t);
     }
 
+    @Override
+    public boolean peek(TokenStream t){
+        return recognizer.testAll(t);
+    }
+
 }

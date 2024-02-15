@@ -32,7 +32,7 @@ public record NodePattern(NodeFetcher fetcher, Predicate<AstNode> predicate) {
             (node, pattern) -> pattern.predicate().test(pattern.fetcher().apply(node));
 
     public static NodePattern type(NodeFetcher fetcher, NodeType type){
-        return new NodePattern(fetcher, n -> type.equals(n.getType()));
+        return new NodePattern(fetcher, n -> type.equals(n.getNodeType()));
     }
 
 }

@@ -45,7 +45,7 @@ public class Imports {
     }
 
     public static boolean isImportAll(AstNode n){
-        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getType());
+        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getNodeType());
         return n.childCount() > 1 && n.getChild(1).getChild(0).getSymbol().getName().equals("*");
     }
 
@@ -56,7 +56,7 @@ public class Imports {
     }
 
     public static Symbol getModule(AstNode n){
-        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getType());
+        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getNodeType());
         return n.getChild(0).getSymbol();
     }
 
@@ -72,7 +72,7 @@ public class Imports {
     }
 
     public static boolean isAliased(AstNode n){
-        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getType());
+        Require.require(n.is(NodeType.IMPORT), "%s is not an import node", n.getNodeType());
         return n.childCount() == 3;
     }
 

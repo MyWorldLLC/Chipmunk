@@ -52,7 +52,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             return;
         }
 
-        if(node.getType().isBlock()){
+        if(node.getNodeType().isBlock()){
             scope = node.getSymbolTable();
         }
 
@@ -83,7 +83,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         }
         shadow = null;
 
-        if(node.getType().isBlock()){
+        if(node.getNodeType().isBlock()){
             scope = scope.getParent();
         }
 

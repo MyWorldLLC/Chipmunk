@@ -43,7 +43,7 @@ public class VarDec {
     }
 
     public static AstNode getAssignment(AstNode node){
-        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getType());
+        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getNodeType());
         if(node.childCount() > 1){
             return node.getChild(1);
         }
@@ -55,7 +55,7 @@ public class VarDec {
     }
 
     public static AstNode getIdentifier(AstNode node){
-        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getType());
+        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getNodeType());
         return node.getChild(0);
     }
 
@@ -71,7 +71,7 @@ public class VarDec {
     }
 
     public static String getVarName(AstNode node){
-        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getType());
+        Require.require(node.is(NodeType.VAR_DEC), "%s is not a variable declaration", node.getNodeType());
         return getIdentifier(node).getToken().text();
     }
 

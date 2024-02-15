@@ -88,7 +88,7 @@ public class Methods {
     }
 
     public static void ensureMethod(AstNode node){
-        Require.require(node.is(NodeType.METHOD), "%s is not a method", node.getType());
+        Require.require(node.is(NodeType.METHOD), "%s is not a method", node.getNodeType());
     }
 
     public static String anonymousName(int line, int column){
