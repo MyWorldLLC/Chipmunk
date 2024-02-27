@@ -126,6 +126,7 @@ public class ExpressionParser {
 
         // method def operator (allow method definitions in expressions)
         register(TokenType.DEF, new MethodDefParselet(tokens));
+        register(TokenType.IF, new IfElseParselet());
         // class definition operator (allows creating anonymous classes in expressions)
         //register(Token.Type.CLASS, new ClassDefParselet());
     }

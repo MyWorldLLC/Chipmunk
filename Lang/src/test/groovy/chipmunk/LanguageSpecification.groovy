@@ -242,6 +242,14 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 8
 	}
+
+	def "Run IfElseExpressions.chp"(){
+		when:
+		def result = compileAndRun("IfElseExpressions.chp", true)
+
+		then:
+		result == [2, 5]
+	}
 	
 	def "Run Mandelbrot.chp"(){
 		when:
