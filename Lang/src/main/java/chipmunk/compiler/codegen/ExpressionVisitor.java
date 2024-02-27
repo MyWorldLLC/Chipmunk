@@ -318,13 +318,16 @@ public class ExpressionVisitor implements AstVisitor {
 				var elseLabel = assembler.nextLabelName();
 				var endLabel = assembler.nextLabelName();
 
+				assembler.onLine(test.getLineNumber());
 				test.visit(this);
 
 				assembler._if(elseLabel);
+				assembler.onLine(ifBranch.getLineNumber());
 				ifBranch.visit(this);
 				assembler._goto(endLabel);
 
 				assembler.setLabelTarget(elseLabel);
+				assembler.onLine(elseBranch.getLineNumber());
 				elseBranch.visit(this);
 				assembler.setLabelTarget(endLabel);
 			}
