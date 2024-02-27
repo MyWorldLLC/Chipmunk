@@ -23,6 +23,7 @@ package chipmunk.compiler.codegen;
 import chipmunk.binary.BinaryNamespace;
 import chipmunk.compiler.*;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
+import chipmunk.compiler.assembler.Label;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
@@ -309,6 +310,23 @@ public class ExpressionVisitor implements AstVisitor {
 				node.visitChildren(this);
 				assembler.onLine(node.getLineNumber());
 				assembler.as();
+			}
+			case IF -> {
+				var test = node.getChild(0);
+				var ifBranch = node.getChild(1);
+				var elseBranch = node.getChild(2);
+				var elseLabel = assembler.nextLabelName();
+				var endLabel = assembler.nextLabelName();
+
+				test.visit(this);
+
+				assembler._if(elseLabel);
+				ifBranch.visit(this);
+				assembler._goto(endLabel);
+
+				assembler.setLabelTarget(elseLabel);
+				elseBranch.visit(this);
+				assembler.setLabelTarget(endLabel);
 			}
 			default ->
 				throw new SyntaxError(

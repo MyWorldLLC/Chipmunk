@@ -278,6 +278,10 @@ public class ChipmunkAssembler {
 	public void as(){
 		writeByte(Opcodes.AS);
 	}
+
+	public void _if(Label elseLabel){
+		_if(elseLabel.getName());
+	}
 	
 	public void _if(String elseLabel){
 		writeByte(Opcodes.IF);
