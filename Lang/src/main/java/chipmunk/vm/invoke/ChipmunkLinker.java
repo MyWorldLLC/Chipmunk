@@ -25,6 +25,7 @@ import chipmunk.runtime.ChipmunkObject;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -245,6 +246,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             if (retType.equals(void.class) || isCallTypeCompatible(expectedReturnType, retType)) {
 
                 boolean paramsMatch = true;
+                long interfaceParamMask = 0;
                 boolean isStatic = Modifier.isStatic(m.getModifiers());
                 for (int i = 0; i < candidatePTypes.length; i++) {
 
@@ -255,6 +257,10 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
                     //isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class);
                     if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
+                        if(candidatePType.isInterface()){
+                            interfaceParamMask |= (1L << i);
+                            continue;
+                        }
                         paramsMatch = false;
                         break;
                     }
@@ -270,6 +276,15 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     var handle = isStatic
                             ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Object.class)
                             : lookup.unreflect(m);
+                    while(interfaceParamMask != 0){
+                        for(int i = candidatePTypes.length - 1; i >= 0; i--){
+                            var paramIndex = isStatic ? i : i + 1;
+                            if((interfaceParamMask & 1) != 0){
+                                handle = MethodHandles.filterArguments(handle, paramIndex, ProxyFilter.filterFor(lookup, candidatePTypes[i]).asType(MethodType.methodType(candidatePTypes[i], Object.class)));
+                            }
+                            interfaceParamMask >>>= 1; // Do unsigned right shift so that a 1 in the leading bit isn't propagated
+                        }
+                    }
                     if(m.isVarArgs()){
                         handle = handle.asVarargsCollector(Object[].class);
                     }

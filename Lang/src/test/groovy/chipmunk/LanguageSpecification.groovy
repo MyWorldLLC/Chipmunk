@@ -44,6 +44,10 @@ class LanguageSpecification extends Specification {
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
 	def compileAndRun(String scriptName, boolean disassembleOnException = false){
+		return compileAndRunWithArgs(scriptName, null, disassembleOnException)
+	}
+
+	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = false){
 		ModuleLoader loader = new ModuleLoader()
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
 
@@ -60,21 +64,23 @@ class LanguageSpecification extends Specification {
 		script.setModuleLoader(loader)
 		ChipmunkScript.setCurrentScript(script)
 
+		def argArray = args != null ? args.toArray() : null
+
 		if(!disassembleOnException){
-			return script.run()
+			return argArray == null ? script.run() : script.run(argArray)
 		}else{
 			try{
-				return script.run()
+				return argArray == null ? script.run() : script.run(argArray)
 			}catch(Throwable e){
 
 				for(def binaryModule : modules){
 					println(ChipmunkDisassembler.disassemble(binaryModule))
 				}
-				
+
 				def sw = new StringWriter()
 				e.printStackTrace(new PrintWriter(sw))
 				println(sw.toString())
-				
+
 				throw e
 			}
 		}
@@ -413,6 +419,14 @@ class LanguageSpecification extends Specification {
 		result == "abcd1234"
 		iResult == 23
 		fResult == 32.0f
+	}
+
+	def "Run ProxyArguments.chp"(){
+		when:
+		def result = compileAndRunWithArgs("ProxyArguments.chp", [new SimpleDemoProxyReceiver()], true)
+
+		then:
+		result == 7.0f
 	}
 
 	def "Run MultilineExpressions.chp"(){
