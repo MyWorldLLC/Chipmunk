@@ -402,7 +402,7 @@ public class ChipmunkVM {
 			throw new IllegalArgumentException("MethodBinding target may only be cast to a functional interface");
 		}
 
-		var proxyName = interfaceType.getName() + "$Proxy$" + target.getClass().getName().replace('.', '$');
+		var proxyName = "chipmunk.proxy." + interfaceType.getName() + "$Proxy$" + target.getClass().getName().replace('.', '$');
 
 		var script = ChipmunkScript.getCurrentScript();
 		var classloader = script.getModuleLoader().getClassLoader();
