@@ -219,6 +219,42 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return null;
     }
 
+    public static void linkOrder(Method[] methods){
+        Arrays.sort(methods, (m1, m2) -> {
+            // Favor shorter parameter lists first
+            if(m1.getParameterCount() < m2.getParameterCount()){
+                return -1;
+            }
+
+            // Favor simple types over interfaces (which will be proxied to). This
+            // ensures that interface linkage only happens if a more appropriate linkage
+            // is not found first. This is important because without type information,
+            // interface receiver types will match with any parameter, resulting in some
+            // cases where interface proxying happens when a different method is available
+            // with an identical type match. Worse, these scenarios are unpredictable since
+            // the order of methods returned by Object.getMethods() is not specified.
+            if(m1.getParameterCount() == m2.getParameterCount()){
+                var p1Types = m1.getParameterTypes();
+                var p2Types = m2.getParameterTypes();
+                int m1Weight = 0;
+                for(int i = 0; i < p1Types.length; i++){
+                    var p1IsInterface = p1Types[i].isInterface();
+                    var p2IsInterface = p2Types[i].isInterface();
+
+                    if(p1IsInterface && !p2IsInterface){
+                        m1Weight++;
+                    }else if(!p1IsInterface && p2IsInterface){
+                        m1Weight--;
+                    }
+                }
+                return m1Weight;
+            }
+
+            // At this point we know m2 has a shorter parameter list
+            return 1;
+        });
+    }
+
     public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException {
 
         Class<?> receiverType;
@@ -230,7 +266,9 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             receiverType = receiver.getClass();
         }
 
-        for (Method m : receiverType.getMethods()) {
+        var methods = receiverType.getMethods();
+        linkOrder(methods);
+        for (Method m : methods) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
 
             if (candidatePTypes.length != pTypes.length - 1 && !m.isVarArgs()) {
