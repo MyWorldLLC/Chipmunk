@@ -60,7 +60,7 @@ public class ChipmunkVM {
 
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
 	protected final AtomicLong scriptIds;
-	protected final ForkJoinPool scriptPool;
+	protected final ExecutorService scriptExecutor;
 	protected final Scheduler scheduler;
 
 	public ChipmunkVM() {
@@ -75,17 +75,7 @@ public class ChipmunkVM {
 
 		runningScripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
-		// TODO - make configurable
-		scriptPool = new ForkJoinPool(4,
-				ForkJoinPool.defaultForkJoinWorkerThreadFactory,
-				(thread, throwable) -> {throwable.printStackTrace();},
-				true,
-				4,
-				8,
-				0,
-				null,
-				60,
-				TimeUnit.SECONDS);
+		scriptExecutor = Executors.newVirtualThreadPerTaskExecutor();
 		scheduler = new Scheduler();
 
 		defaultJvmCompilerConfig = new JvmCompilerConfig();
@@ -128,7 +118,7 @@ public class ChipmunkVM {
 	}
 
 	public void stop(){
-		scriptPool.shutdown();
+		scriptExecutor.shutdown();
 		scheduler.shutdown();
 	}
 
@@ -325,7 +315,7 @@ public class ChipmunkVM {
 			Object value = invoke(script, target, methodName, params);
 			ChipmunkScript.setCurrentScript(null);
 			return value;
-		}, scriptPool);
+		}, scriptExecutor);
 	}
 
 	public CompletableFuture<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
@@ -339,7 +329,7 @@ public class ChipmunkVM {
 			} finally {
 				scheduler.notifyInvocationEnded(script);
 			}
-		}, scriptPool);
+		}, scriptExecutor);
 	}
 
 	public CompletableFuture<Void> runInScriptPool(ChipmunkScript script, Runnable task){
@@ -351,7 +341,7 @@ public class ChipmunkVM {
 			} finally {
 				scheduler.notifyInvocationEnded(script);
 			}
-		}, scriptPool);
+		}, scriptExecutor);
 	}
 
 	@AllowChipmunkLinkage
