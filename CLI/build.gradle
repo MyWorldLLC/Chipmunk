@@ -41,7 +41,7 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -58,7 +58,8 @@ compileJava {
 }
 
 jar {
-    baseName 'Chipmunk-CLI'
+
+    archiveBaseName = 'Chipmunk-CLI'
     manifest {
         attributes (
                 'Application-Name' : 'Chipmunk CLI',
@@ -80,7 +81,7 @@ clean {
 
 task run(type: JavaExec){
     javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(21)
     }
     mainClass = 'chipmunk.cli.ChipmunkCLI'
     classpath = sourceSets.main.runtimeClasspath

@@ -28,12 +28,17 @@ dependencies {
     implementation project(':Lang')
     implementation 'org.freemarker:freemarker:2.3.31'
 
-    testImplementation 'org.spockframework:spock-core:2.0-M4-groovy-3.0'
+    testImplementation 'org.apache.groovy:groovy:4.0.21'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 

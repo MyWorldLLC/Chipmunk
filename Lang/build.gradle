@@ -42,15 +42,20 @@ dependencies {
 
 	implementation 'org.ow2.asm:asm:9.0'
 
-    testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
+	testImplementation 'org.apache.groovy:groovy:4.0.21'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 
     jmh 'org.openjdk.jmh:jmh-core:1.32'
 	jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.32'
 }
 
+test {
+	useJUnitPlatform()
+}
+
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(16)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -87,7 +92,7 @@ sourceSets {
 }
 
 jar {
-	baseName 'Chipmunk'
+	archiveBaseName = 'Chipmunk'
 }
 
 publishing {
@@ -134,7 +139,7 @@ task jmhCompile(type: JavaCompile, dependsOn: jmhClasses) {
 
 task jmh(type: JavaExec, dependsOn: jmhCompile) {
 	javaLauncher = javaToolchains.launcherFor {
-		languageVersion = JavaLanguageVersion.of(16)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 	main = 'chipmunk.benchmark.ChipmunkBenchmarks'
 
@@ -153,7 +158,7 @@ tasks.named("processProfilingResources") {
 
 task runProfiler(type:JavaExec) {
 	javaLauncher = javaToolchains.launcherFor {
-		languageVersion = JavaLanguageVersion.of(16)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
     main = 'chipmunk.profiling.ChipmunkProfiler'
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath

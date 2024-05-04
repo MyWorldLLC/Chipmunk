@@ -29,17 +29,22 @@ repositories {
 dependencies {
     implementation project(':Lang')
 
-    testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
+    testImplementation 'org.apache.groovy:groovy:4.0.21'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 }
 
 group = 'myworld'
 version = rootProject.ext.buildVersion
 
+test {
+    useJUnitPlatform()
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
     toolchain {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
