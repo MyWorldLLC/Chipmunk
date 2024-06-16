@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 public class ChipmunkVM {
 
@@ -418,28 +419,38 @@ public class ChipmunkVM {
 		return nonDefaults == 1;
 	}
 
-	public static void trap(Object payload){
+	private static void handleTrap(Consumer<TrapHandler> h){
+		var script = ChipmunkScript.getCurrentScript();
+		if(script != null){
+			var handler = script.getTrapHandler();
+			if(handler != null){
+				h.accept(handler);
+			}
+		}
+	}
 
+	public static void trap(Object payload){
+		handleTrap(handler -> handler.runtimeTrap(payload));
 	}
 
 	public static void backJump(TrapSite site){
-
+		handleTrap(handler -> handler.backJump(site));
 	}
 
 	public static void trapObjectAlloc(TrapSite site, Class<?> objectType){
-
+		handleTrap(hander -> hander.objectAlloc(site, objectType));
 	}
 
 	public static void trapArrayAlloc(TrapSite site, Class<?> arrayType, int dimensions, int capacity){
-
+		handleTrap(handler -> handler.arrayAlloc(site, arrayType, dimensions, capacity));
 	}
 
 	public static void trapMethodCall(TrapSite site, MethodIdentifier method){
-
+		handleTrap(handler -> handler.methodCall(site, method));
 	}
 
 	public static void trapObjectInit(TrapSite site, Object object){
-
+		handleTrap(handler -> handler.postObjectInit(site, object));
 	}
 
 }
