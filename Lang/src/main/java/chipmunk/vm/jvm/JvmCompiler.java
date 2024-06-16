@@ -31,11 +31,11 @@ import chipmunk.binary.*;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.security.LinkingPolicy;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static chipmunk.compiler.assembler.Opcodes.*;
 
@@ -43,8 +43,8 @@ public class JvmCompiler {
 
     protected final JvmCompilerConfig config;
 
-    public JvmCompiler(){
-        this(new JvmCompilerConfig());
+    public JvmCompiler(LinkingPolicy linkingPolicy){
+        this(new JvmCompilerConfig(linkingPolicy));
     }
 
     public JvmCompiler(JvmCompilerConfig config){
@@ -131,12 +131,11 @@ public class JvmCompiler {
         run.visitEnd();
 
         sw.visitEnd();
-
         return (ChipmunkScript) instantiate(sources.getModuleLoader().getClassLoader().define("ChipmunkScriptImpl", sw.toByteArray()));
     }
 
     public ChipmunkModule compileModule(BinaryModule module){
-        return compileModule(new JvmCompilation(module, new ModuleLoader()));
+        return compileModule(new JvmCompilation(module, new ModuleLoader(), config.getLinkingPolicy()));
     }
 
     public ChipmunkModule compileModule(JvmCompilation compilation){
@@ -193,7 +192,8 @@ public class JvmCompiler {
         getDependencies.visitEnd();*/
 
         // Module constructor/initializer
-        MethodVisitor moduleInit = moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy());
+        MethodVisitor moduleInit = new Sandbox(moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         moduleInit.visitCode();
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
         moduleInit.visitMethodInsn(Opcodes.INVOKESPECIAL, objType.getInternalName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -221,7 +221,6 @@ public class JvmCompiler {
         try {
             return cls.getConstructor().newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -250,7 +249,8 @@ public class JvmCompiler {
         cClassWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class constructor
-        MethodVisitor clsConstructor = cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null);
+        var sandbox = new SandboxContext(qualifiedCClassName, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy());
+        MethodVisitor clsConstructor = new Sandbox(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         clsConstructor.visitCode();
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         clsConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -302,7 +302,8 @@ public class JvmCompiler {
         // 1+: binaryConstructor params
         Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
-        MethodVisitor insConstructor = cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null);
+        sandbox = new SandboxContext(qualifiedInsName, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), compilation.getLinkingPolicy());
+        MethodVisitor insConstructor = new Sandbox(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null), sandbox);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
         insConstructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(Object.class), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), false);
@@ -458,7 +459,7 @@ public class JvmCompiler {
             }
 
             if(entry.getType() == FieldType.METHOD){
-                visitMethod(compilation, namespaceInfo.getWriter(), flags, entry.getName(), entry.getBinaryMethod());
+                visitMethod(compilation, namespaceInfo.getWriter(), namespaceInfo.getName(), flags, entry.getName(), entry.getBinaryMethod());
             }else if(entry.getType() == FieldType.CLASS){
 
                 // Generate class
@@ -495,7 +496,7 @@ public class JvmCompiler {
                 .stream()
                 .filter(e -> (e.getFlags() & BinaryConstants.TRAIT_FLAG) != 0)
                 .map(BinaryNamespace.Entry::getName)
-                .collect(Collectors.toList());
+                .toList();
 
         if(!traitNames.isEmpty()){
             init.visitVarInsn(Opcodes.ALOAD, 0);
@@ -519,7 +520,7 @@ public class JvmCompiler {
 
     }
 
-    protected void visitMethod(JvmCompilation compilation, ClassWriter cw, int flags, String name, BinaryMethod method){
+    protected void visitMethod(JvmCompilation compilation, ClassWriter cw, String className, int flags, String name, BinaryMethod method){
 
         final Type objType = Type.getType(Object.class);
 
@@ -529,7 +530,8 @@ public class JvmCompiler {
 
         Type methodType = Type.getMethodType(objType, pTypes);
 
-        MethodVisitor mv = cw.visitMethod(flags, name, methodType.getDescriptor(), null, null);
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName() + "." + className, name, methodType.getDescriptor(), compilation.getLinkingPolicy());
+        MethodVisitor mv = new Sandbox(cw.visitMethod(flags, name, methodType.getDescriptor(), null, null), sandbox);
         mv.visitCode();
 
         Map<Integer, Label> labelMappings = new HashMap<>();

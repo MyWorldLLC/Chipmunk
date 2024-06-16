@@ -48,10 +48,10 @@ public abstract class ChipmunkScript {
         return currentScript.get();
     }
 
-    public static void trap(TrapType type){
+    public static void trap(Object payload){
         var handler = getCurrentScript().getTrapHandler();
         if(handler != null){
-            handler.trap(type);
+            handler.runtimeTrap(payload);
         }
     }
 
@@ -140,7 +140,7 @@ public abstract class ChipmunkScript {
     }
 
     public TrapHandler getTrapHandler(){
-        return trapHandler;
+        return trapHandler != null ? trapHandler : vm.getDefaultTrapHandler();
     }
 
     public void setModuleLoader(ModuleLoader loader){

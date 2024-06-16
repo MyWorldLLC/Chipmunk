@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2023 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,5 +20,13 @@
 
 package chipmunk.vm.jvm;
 
-public class ForcedYieldThrowable extends Uncatchable {
+public enum TrapFlag {
+    BACK_JUMP,
+    METHOD_CALL,
+    PRE_METHOD_CALL,
+    POST_METHOD_CALL,
+    ARRAY_ALLOC,
+    POST_ARRAY_ALLOC,
+    OBJECT_ALLOC,
+    OBJECT_INIT
 }

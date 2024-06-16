@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2023 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,5 +20,28 @@
 
 package chipmunk.vm.jvm;
 
-public class ForcedYieldThrowable extends Uncatchable {
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+public class TrapConfig {
+
+    protected final Set<TrapFlag> enabledTraps;
+
+    public TrapConfig(){
+        enabledTraps = new HashSet<>();
+    }
+
+    public void enable(TrapFlag flag){
+        enabledTraps.add(flag);
+    }
+
+    public boolean isEnabled(TrapFlag... flags){
+        return Arrays.stream(flags).anyMatch(enabledTraps::contains);
+    }
+
+    public void disable(TrapFlag flag){
+        enabledTraps.remove(flag);
+    }
+
 }

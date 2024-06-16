@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2023 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,7 +18,10 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm;
+package chipmunk.compiler.codegen;
 
-public class ForcedYieldThrowable extends Uncatchable {
+public class FinallyBlock extends BlockLabels {
+    public FinallyBlock(String start, String end) {
+        super(start, end);
+    }
 }

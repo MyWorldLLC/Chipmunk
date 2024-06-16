@@ -261,7 +261,7 @@ public class Codegen implements AstVisitor {
 	}
 	
 	public TryCatchLabels pushTryCatch() {
-		TryCatchLabels labels = new TryCatchLabels(assembler.nextLabelName(), assembler.nextLabelName());
+		TryCatchLabels labels = new TryCatchLabels(assembler.nextLabelName(), assembler.nextLabelName(), assembler.nextLabelName());
 		tryCatchStack.add(labels);
 		return labels;
 	}
