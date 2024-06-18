@@ -40,14 +40,16 @@ public class JvmCompilation {
     protected final Deque<NamespaceInfo> namespaceInfo;
 
     protected final LinkingPolicy policy;
+    protected final TrapConfig trapConfig;
 
-    public JvmCompilation(BinaryModule module, ModuleLoader loader, LinkingPolicy policy){
+    public JvmCompilation(BinaryModule module, ModuleLoader loader, LinkingPolicy policy, TrapConfig trapConfig){
         this.module = module;
         this.loader = loader;
         namespaceInfo = new ArrayDeque<>();
         bindings = new HashSet<>();
 
         this.policy = policy;
+        this.trapConfig = trapConfig;
     }
 
     public BinaryModule getModule() {
@@ -60,6 +62,10 @@ public class JvmCompilation {
 
     public LinkingPolicy getLinkingPolicy(){
         return policy;
+    }
+
+    public TrapConfig getTrapConfig(){
+        return trapConfig;
     }
 
     public String getPackagePrefix() {

@@ -38,10 +38,6 @@ public class SandboxContext {
         this.trapConfig = trapConfig;
     }
 
-    public SandboxContext(String className, String methodName, String methodDescriptor, LinkingPolicy policy){
-        this(className, methodName, methodDescriptor, policy, new TrapConfig());
-    }
-
     public String getClassName(){
         return className;
     }

@@ -44,7 +44,7 @@ public class JvmCompiler {
     protected final JvmCompilerConfig config;
 
     public JvmCompiler(LinkingPolicy linkingPolicy){
-        this(new JvmCompilerConfig(linkingPolicy));
+        this(new JvmCompilerConfig(linkingPolicy, new TrapConfig()));
     }
 
     public JvmCompiler(JvmCompilerConfig config){
@@ -135,7 +135,7 @@ public class JvmCompiler {
     }
 
     public ChipmunkModule compileModule(BinaryModule module){
-        return compileModule(new JvmCompilation(module, new ModuleLoader(), config.getLinkingPolicy()));
+        return compileModule(new JvmCompilation(module, new ModuleLoader(), config.getLinkingPolicy(), config.getTrapConfig()));
     }
 
     public ChipmunkModule compileModule(JvmCompilation compilation){
@@ -192,7 +192,7 @@ public class JvmCompiler {
         getDependencies.visitEnd();*/
 
         // Module constructor/initializer
-        var sandbox = new SandboxContext(compilation.getPrefixedModuleName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy());
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
         MethodVisitor moduleInit = new Sandbox(moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         moduleInit.visitCode();
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
@@ -249,7 +249,7 @@ public class JvmCompiler {
         cClassWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class constructor
-        var sandbox = new SandboxContext(qualifiedCClassName, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy());
+        var sandbox = new SandboxContext(qualifiedCClassName, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
         MethodVisitor clsConstructor = new Sandbox(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         clsConstructor.visitCode();
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -302,7 +302,7 @@ public class JvmCompiler {
         // 1+: binaryConstructor params
         Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
-        sandbox = new SandboxContext(qualifiedInsName, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), compilation.getLinkingPolicy());
+        sandbox = new SandboxContext(qualifiedInsName, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
         MethodVisitor insConstructor = new Sandbox(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null), sandbox);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -530,7 +530,7 @@ public class JvmCompiler {
 
         Type methodType = Type.getMethodType(objType, pTypes);
 
-        var sandbox = new SandboxContext(compilation.getPrefixedModuleName() + "." + className, name, methodType.getDescriptor(), compilation.getLinkingPolicy());
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName() + "." + className, name, methodType.getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
         MethodVisitor mv = new Sandbox(cw.visitMethod(flags, name, methodType.getDescriptor(), null, null), sandbox);
         mv.visitCode();
 
@@ -714,9 +714,6 @@ public class JvmCompiler {
                 }
                 case GOTO -> {
                     int jumpTarget = fetchInt(instructions, ip + 1);
-                    if(jumpTarget < ip && !config.areBackjumpChecksDisabled()){
-                        generateBackjumpCheckpoint(config.getYieldType(), mv);
-                    }
                     generateGoto(mv, jumpTarget, labelMappings);
                     ip += 5;
                 }
@@ -1067,50 +1064,6 @@ public class JvmCompiler {
                 "<init>",
                 Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE).getDescriptor(),
                 false);
-    }
-
-    protected void generateBackjumpCheckpoint(JvmCompilerConfig.YieldType yieldType, MethodVisitor mv){
-        // Get the executing script instance
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                Type.getType(ChipmunkScript.class).getInternalName(),
-                "getCurrentScript",
-                Type.getMethodType(Type.getType(ChipmunkScript.class)).getDescriptor(),
-                false);
-
-        // Get the yield status
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-                Type.getType(ChipmunkScript.class).getInternalName(),
-                "isYielded",
-                Type.getMethodType(Type.BOOLEAN_TYPE).getDescriptor(),
-                false);
-
-        // Generate the yield guard
-        Label ifEnd = new Label();
-        mv.visitJumpInsn(Opcodes.IFEQ, ifEnd);
-
-        // Generate the yield
-        switch (yieldType) {
-            case THREAD_YIELD -> {
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                        Type.getType(Thread.class).getInternalName(),
-                        "yield",
-                        Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
-                        false);
-            }
-            case FORCED_PREEMPT -> {
-                mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ForcedYieldThrowable.class));
-                mv.visitInsn(Opcodes.DUP);
-                mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                        Type.getInternalName(ForcedYieldThrowable.class),
-                        "<init>",
-                        Type.getMethodType(Type.VOID_TYPE).getDescriptor(),
-                        false);
-                mv.visitInsn(Opcodes.ATHROW);
-            }
-        }
-
-        // Close the yield guard
-        mv.visitLabel(ifEnd);
     }
 
     protected void generateBoxingForType(MethodVisitor mv, Class<?> cls){

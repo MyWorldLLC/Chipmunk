@@ -76,7 +76,7 @@ public class ChipmunkVM {
 		scriptExecutor = Executors.newVirtualThreadPerTaskExecutor();
 		scheduler = new Scheduler();
 
-		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy);
+		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy, new TrapConfig());
 
 		defaultTrapHandler = new TrapHandler() {};
 	}
@@ -245,7 +245,7 @@ public class ChipmunkVM {
 	}
 
 	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
-		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultLinkPolicy);
+		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultLinkPolicy, defaultJvmCompilerConfig.getTrapConfig());
 		return jvmCompiler.compileModule(compilation);
 	}
 
