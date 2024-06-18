@@ -22,15 +22,21 @@ package chipmunk.vm.jvm;
 
 import chipmunk.vm.invoke.security.LinkingPolicy;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class JvmCompilerConfig {
 
     protected final LinkingPolicy linkingPolicy;
     protected final TrapConfig trapConfig;
 
-    public JvmCompilerConfig(LinkingPolicy policy, TrapConfig trapConfig){
+    protected final Set<Class<? extends Throwable>> uncatchable;
 
+    public JvmCompilerConfig(LinkingPolicy policy, TrapConfig trapConfig){
         linkingPolicy = policy;
         this.trapConfig = trapConfig;
+        uncatchable = new HashSet<>();
+        uncatchable.add(Uncatchable.class);
     }
 
     public LinkingPolicy getLinkingPolicy(){
@@ -41,5 +47,13 @@ public class JvmCompilerConfig {
         return trapConfig;
     }
 
+    public JvmCompilerConfig addUncatchable(Class<? extends Throwable> t){
+        uncatchable.add(t);
+        return this;
+    }
+
+    public Set<Class<? extends Throwable>> getUncatchable(){
+        return uncatchable;
+    }
 
 }

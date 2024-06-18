@@ -90,7 +90,6 @@ public class Sandbox extends MethodVisitor {
     public void visitTryCatchBlock(final Label start, final Label end, Label handler, final String type){
 
         if(!isGuardedBlock(start, end)){
-            var uncatchableHandler = new Label();
 
             // Sometimes end == handler. In that case, we need to split them - a new handler label is created
             // and passed to the original block's visit call below, and the new label is tracked with the guarded
@@ -101,10 +100,14 @@ public class Sandbox extends MethodVisitor {
                 handler = chainHandler;
             }
 
-            super.visitTryCatchBlock(start, end, uncatchableHandler, Type.getInternalName(Uncatchable.class));
-            guardedBlocks.add(new TryCatch(start, end, uncatchableHandler, chainHandler));
-        }
 
+            for(var uncatchable : sandbox.getUncatchable()){
+                var uncatchableHandler = new Label();
+
+                super.visitTryCatchBlock(start, end, uncatchableHandler, Type.getInternalName(uncatchable));
+                guardedBlocks.add(new TryCatch(start, end, uncatchableHandler, chainHandler));
+            }
+        }
         super.visitTryCatchBlock(start, end, handler, type);
     }
 
@@ -168,15 +171,21 @@ public class Sandbox extends MethodVisitor {
 
     protected void insertUncatchableHandler(TryCatch tc){
 
-        var uncaughtEntry = guardedBlocks.stream()
+        var uncaughtEntries = guardedBlocks.stream()
                 .filter(t -> t.sameBlock(tc.start(), tc.end()))
-                .findFirst()
-                .get();
+                .toList();
 
-        super.visitLabel(uncaughtEntry.handler());
-        visitInsn(Opcodes.ATHROW);
-        if(uncaughtEntry.chainHandler() != null){
-            super.visitLabel(uncaughtEntry.chainHandler());
+        // First generate the re-throwers
+        for(var uncaughtEntry : uncaughtEntries){
+            super.visitLabel(uncaughtEntry.handler());
+            visitInsn(Opcodes.ATHROW);
+        }
+
+        // After the re-throw sections, mark the chained handlers for the block
+        for(var uncaughtEntry : uncaughtEntries){
+            if(uncaughtEntry.chainHandler() != null){
+                super.visitLabel(uncaughtEntry.chainHandler());
+            }
         }
 
         unmarkGuardedBlock(tc.start(), tc.end());

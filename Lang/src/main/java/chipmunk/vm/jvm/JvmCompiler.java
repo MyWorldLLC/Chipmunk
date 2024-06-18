@@ -135,7 +135,7 @@ public class JvmCompiler {
     }
 
     public ChipmunkModule compileModule(BinaryModule module){
-        return compileModule(new JvmCompilation(module, new ModuleLoader(), config.getLinkingPolicy(), config.getTrapConfig()));
+        return compileModule(new JvmCompilation(module, new ModuleLoader(), config));
     }
 
     public ChipmunkModule compileModule(JvmCompilation compilation){
@@ -192,7 +192,7 @@ public class JvmCompiler {
         getDependencies.visitEnd();*/
 
         // Module constructor/initializer
-        var sandbox = new SandboxContext(compilation.getPrefixedModuleName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName(), "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getConfig());
         MethodVisitor moduleInit = new Sandbox(moduleWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         moduleInit.visitCode();
         moduleInit.visitVarInsn(Opcodes.ALOAD, 0);
@@ -249,7 +249,7 @@ public class JvmCompiler {
         cClassWriter.visitAnnotation(Type.getDescriptor(AllowChipmunkLinkage.class), true).visitEnd();
 
         // Generate class constructor
-        var sandbox = new SandboxContext(qualifiedCClassName, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
+        var sandbox = new SandboxContext(qualifiedCClassName, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), compilation.getConfig());
         MethodVisitor clsConstructor = new Sandbox(cClassWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE).getDescriptor(), null, null), sandbox);
         clsConstructor.visitCode();
         clsConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -302,7 +302,7 @@ public class JvmCompiler {
         // 1+: binaryConstructor params
         Type[] constructorTypes = paramTypes(binaryConstructor.getArgCount() - 1);
 
-        sandbox = new SandboxContext(qualifiedInsName, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
+        sandbox = new SandboxContext(qualifiedInsName, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), compilation.getConfig());
         MethodVisitor insConstructor = new Sandbox(cInsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", Type.getMethodType(Type.VOID_TYPE, initTypes).getDescriptor(), null, null), sandbox);
         insConstructor.visitCode();
         insConstructor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -530,7 +530,7 @@ public class JvmCompiler {
 
         Type methodType = Type.getMethodType(objType, pTypes);
 
-        var sandbox = new SandboxContext(compilation.getPrefixedModuleName() + "." + className, name, methodType.getDescriptor(), compilation.getLinkingPolicy(), compilation.getTrapConfig());
+        var sandbox = new SandboxContext(compilation.getPrefixedModuleName() + "." + className, name, methodType.getDescriptor(), compilation.getConfig());
         MethodVisitor mv = new Sandbox(cw.visitMethod(flags, name, methodType.getDescriptor(), null, null), sandbox);
         mv.visitCode();
 

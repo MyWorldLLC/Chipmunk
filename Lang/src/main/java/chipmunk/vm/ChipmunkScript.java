@@ -74,7 +74,6 @@ public abstract class ChipmunkScript {
 
     public ChipmunkScript(TrapHandler trapHandler){
         this.trapHandler = trapHandler;
-
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
 

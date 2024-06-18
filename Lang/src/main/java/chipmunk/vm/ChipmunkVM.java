@@ -245,7 +245,7 @@ public class ChipmunkVM {
 	}
 
 	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
-		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultLinkPolicy, defaultJvmCompilerConfig.getTrapConfig());
+		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultJvmCompilerConfig);
 		return jvmCompiler.compileModule(compilation);
 	}
 

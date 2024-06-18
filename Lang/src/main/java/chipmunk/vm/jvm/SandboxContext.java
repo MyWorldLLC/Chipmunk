@@ -22,20 +22,21 @@ package chipmunk.vm.jvm;
 
 import chipmunk.vm.invoke.security.LinkingPolicy;
 
+import java.util.Set;
+
 public class SandboxContext {
 
     protected final String className;
     protected final String methodName;
     protected final String methodDescriptor;
-    protected final LinkingPolicy policy;
-    protected final TrapConfig trapConfig;
 
-    public SandboxContext(String className, String methodName, String methodDescriptor, LinkingPolicy policy, TrapConfig trapConfig){
+    protected final JvmCompilerConfig config;
+
+    public SandboxContext(String className, String methodName, String methodDescriptor, JvmCompilerConfig config){
         this.className = className;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.policy = policy;
-        this.trapConfig = trapConfig;
+        this.config = config;
     }
 
     public String getClassName(){
@@ -50,12 +51,20 @@ public class SandboxContext {
         return methodDescriptor;
     }
 
+    public JvmCompilerConfig getCompilerConfig(){
+        return config;
+    }
+
     public LinkingPolicy getLinkingPolicy(){
-        return policy;
+        return config.getLinkingPolicy();
     }
 
     public TrapConfig getTrapConfig(){
-        return trapConfig;
+        return config.getTrapConfig();
+    }
+
+    public Set<Class<? extends Throwable>> getUncatchable(){
+        return config.getUncatchable();
     }
 
 }
