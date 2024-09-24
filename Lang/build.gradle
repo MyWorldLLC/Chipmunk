@@ -21,11 +21,13 @@
 
 plugins {
 	id 'maven-publish'
-	id 'org.asciidoctor.jvm.convert' version '3.1.0'
+	//id 'org.asciidoctor.jvm.convert' version '3.1.0'
+
 }
 
 apply plugin: 'java'
 apply plugin: 'groovy'
+apply plugin: 'antlr'
 
 group = 'myworld'
 version = rootProject.ext.buildVersion
@@ -41,6 +43,7 @@ configurations {
 dependencies {
 
 	implementation 'org.ow2.asm:asm:9.0'
+	antlr 'org.antlr:antlr4:4.13.2'
 
 	testImplementation 'org.apache.groovy:groovy:4.0.21'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
@@ -61,9 +64,12 @@ java {
 
 sourceSets {
 	main {
-	  java {
-		srcDir 'src/main/java'
-	  }
+	  	java {
+			srcDir 'src/main/java'
+	  	}
+		antlr {
+			srcDir 'src/main/antlr'
+		}
 	}
 	
 	profiling {
@@ -119,9 +125,9 @@ publishing {
 	}
 }
 
-asciidoctor {
+/*asciidoctor {
 	sourceDir 'src/doc/asciidoc'
-}
+}*/
 
 clean {
 	delete 'build'
