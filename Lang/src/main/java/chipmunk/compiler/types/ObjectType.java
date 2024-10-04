@@ -25,6 +25,10 @@ import java.util.List;
 public record ObjectType(String name, boolean isPrimitive, boolean isType, List<ObjectType> superTypes) {
 
     public static final ObjectType ANY = new ObjectType("Any", false, true);
+    public static final ObjectType INT = new ObjectType("Int", true, false);
+    public static final ObjectType FLOAT = new ObjectType("Float", true, false);
+    public static final ObjectType LONG = new ObjectType("Long", true, false);
+    public static final ObjectType DOUBLE = new ObjectType("Double", true, false);
 
     public ObjectType(String name, boolean isPrimitive, boolean isType){
         this(name, isPrimitive, isType, List.of());
