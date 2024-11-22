@@ -119,9 +119,10 @@ publishing {
 	}
 }
 
-/*asciidoctor {
-	sourceDir 'src/doc/asciidoc'
-}*/
+
+//asciidoctor {
+//	sourceDir 'src/doc/asciidoc'
+//}
 
 clean {
 	delete 'build'
