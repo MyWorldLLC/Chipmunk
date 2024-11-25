@@ -21,7 +21,7 @@
 
 plugins {
 	id 'maven-publish'
-	id 'org.asciidoctor.jvm.convert' version '3.1.0'
+	//id 'org.asciidoctor.jvm.convert' version '3.1.0'
 }
 
 apply plugin: 'java'
@@ -114,9 +114,9 @@ publishing {
 	}
 }
 
-asciidoctor {
+/*asciidoctor {
 	sourceDir 'src/doc/asciidoc'
-}
+}*/
 
 clean {
 	delete 'build'
