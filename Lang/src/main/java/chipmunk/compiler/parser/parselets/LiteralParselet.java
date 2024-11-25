@@ -25,6 +25,7 @@ import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ExpressionParser;
+import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.ObjectType;
 
 public class LiteralParselet implements PrefixParselet {
@@ -33,10 +34,10 @@ public class LiteralParselet implements PrefixParselet {
 	public AstNode parse(ExpressionParser parser, Token token) {
 		var node = new AstNode(NodeType.LITERAL, token);
 		switch (token.type()){
-			case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> node.setResultType(ObjectType.primitive("int"));
-			case FLOATLITERAL -> node.setResultType(ObjectType.primitive("float"));
-			case BOOLLITERAL -> node.setResultType(ObjectType.primitive("boolean"));
-			case STRINGLITERAL -> node.setResultType(ObjectType.classBased("string"));
+			case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> node.setResultType(BuiltinTypes.INTEGER);
+			case FLOATLITERAL -> node.setResultType(BuiltinTypes.FLOAT);
+			case BOOLLITERAL -> node.setResultType(BuiltinTypes.BOOLEAN);
+			case STRINGLITERAL -> node.setResultType(BuiltinTypes.STRING);
 		}
 		return node;
 	}
