@@ -23,13 +23,22 @@ package chipmunk.compiler.parser.parselets;
 import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ExpressionParser;
+import chipmunk.compiler.types.ObjectType;
 
 public class LiteralParselet implements PrefixParselet {
 
 	@Override
 	public AstNode parse(ExpressionParser parser, Token token) {
-		return new AstNode(NodeType.LITERAL, token);
+		var node = new AstNode(NodeType.LITERAL, token);
+		switch (token.type()){
+			case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> node.setResultType(ObjectType.primitive("int"));
+			case FLOATLITERAL -> node.setResultType(ObjectType.primitive("float"));
+			case BOOLLITERAL -> node.setResultType(ObjectType.primitive("boolean"));
+			case STRINGLITERAL -> node.setResultType(ObjectType.classBased("string"));
+		}
+		return node;
 	}
 
 }
