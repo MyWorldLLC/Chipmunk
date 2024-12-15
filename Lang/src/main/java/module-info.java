@@ -1,6 +1,7 @@
 open module chipmunk.lang {
     requires jdk.dynalink;
     requires org.objectweb.asm;
+    requires hummingbird;
     exports chipmunk;
     exports chipmunk.binary;
     exports chipmunk.compiler;

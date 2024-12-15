@@ -31,6 +31,7 @@ group = 'myworld'
 version = rootProject.ext.buildVersion
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
 
@@ -41,6 +42,7 @@ configurations {
 dependencies {
 
 	implementation 'org.ow2.asm:asm:9.0'
+	implementation 'myworld:hummingbird:0.0.1-SNAPSHOT'
 
 	testImplementation 'org.apache.groovy:groovy:4.0.21'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
