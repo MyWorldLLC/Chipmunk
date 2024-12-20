@@ -29,6 +29,7 @@ import chipmunk.compiler.CompileChipmunk;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
+import chipmunk.vm.hvm.HvmCompiler;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
@@ -137,6 +138,10 @@ public class ChipmunkVM {
 		return new JvmCompiler(config);
 	}
 
+	private HvmCompiler createHvmCompiler(){
+		return new HvmCompiler();
+	}
+
 	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
 		return compileScript(createJvmCompiler(compilation.getJvmCompilerConfig()), compilation);
 	}
@@ -206,7 +211,7 @@ public class ChipmunkVM {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
-		ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
+		ChipmunkModule compiled = createHvmCompiler().compileModule(expModule);
 		return invoke(compiled, "evaluate");
 	}
 
