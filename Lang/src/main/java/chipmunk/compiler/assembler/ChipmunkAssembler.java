@@ -30,13 +30,10 @@ public class ChipmunkAssembler {
 	
 	private ByteArrayOutputStream code;
 	private int index;
-	private int labelNumber;
-	
 	private List<Object> constantPool;
-	
-	private List<Label> labels;
-	private List<LabelTarget> labelTargets;
-	private List<DebugEntry> debugTable;
+
+	private DebugTable debugTable;
+	private Labeler labels;
 	
 	private int callSite;
 	
@@ -47,14 +44,11 @@ public class ChipmunkAssembler {
 	public ChipmunkAssembler(List<Object> constants){
 		code = new ByteArrayOutputStream();
 		index = 0;
-		labelNumber = 0;
 		
 		constantPool = constants;
 		
-		labels = new ArrayList<>();
-		labelTargets = new ArrayList<>();
-		
-		debugTable = new ArrayList<>();
+		debugTable = new DebugTable();
+		labels = new Labeler();
 		
 		callSite = 0;
 	}
@@ -63,20 +57,20 @@ public class ChipmunkAssembler {
 		return constantPool;
 	}
 	
-	public List<DebugEntry> getDebugTable(){
+	public DebugTable getDebugTable(){
 		return debugTable;
 	}
 	
 	public byte[] getCodeSegment(){
 		// resolve labels
 		byte[] codeBytes = code.toByteArray();
-		for(int i = 0; i < labels.size(); i++){
+		for(int i = 0; i < labels.labelCount(); i++){
 			Label label = labels.get(i);
 			
 			boolean resolved = false;
-			for(int target = 0; target < labelTargets.size(); target++){
+			for(int target = 0; target < labels.labelTargetCount(); target++){
 				
-				LabelTarget labelTarget = labelTargets.get(target);
+				LabelTarget labelTarget = labels.getTarget(target);
 				if(labelTarget.getName().equals(label.getName())){
 					
 					int targetIndex = labelTarget.getCodeIndex();
@@ -100,7 +94,7 @@ public class ChipmunkAssembler {
 	}
 	
 	public int getLabelTarget(String label) {
-		for(LabelTarget target : labelTargets) {
+		for(LabelTarget target : labels.getTargets()) {
 			if(target.getName().equals(label)) {
 				return target.getCodeIndex();
 			}
@@ -110,39 +104,6 @@ public class ChipmunkAssembler {
 	
 	public int getCallSiteCount() {
 		return callSite;
-	}
-	
-	public void onLine(int lineNumber) {
-		if(debugTable.size() == 0) {
-			
-			DebugEntry debug = new DebugEntry();
-			debug.beginIndex = index;
-			debug.lineNumber = lineNumber;
-			
-			debugTable.add(debug);
-			
-			return;
-		}else {
-
-			DebugEntry dbg = debugTable.get(debugTable.size() - 1);
-			
-			if(dbg.lineNumber != lineNumber) {
-				dbg.endIndex = index;
-				
-				DebugEntry next = new DebugEntry();
-				next.beginIndex = index;
-				next.lineNumber = lineNumber;
-				
-				debugTable.add(next);
-			}
-		}
-		
-	}
-	
-	public void closeLine() {
-		if(debugTable.size() > 0) {
-			debugTable.get(debugTable.size() - 1).endIndex = index;
-		}
 	}
 	
 	public void add(){
@@ -286,7 +247,7 @@ public class ChipmunkAssembler {
 	public void _if(String elseLabel){
 		writeByte(Opcodes.IF);
 		
-		label(elseLabel);
+		labels.label(elseLabel, index);
 		
 		writeInt(0);
 		
@@ -306,38 +267,6 @@ public class ChipmunkAssembler {
 		writeInt(entryIndex);
 	}
 	
-	public Label label(String labelName){
-		Label label = new Label(labelName, index);
-		labels.add(label);
-		return label;
-	}
-	
-	public Label label(){
-		
-		Label label = new Label(nextLabelName(), index);
-		labels.add(label);
-		
-		return label;
-	}
-	
-	public String nextLabelName(){
-		String name = Integer.toString(labelNumber);
-		labelNumber++;
-		return name;
-	}
-	
-	public LabelTarget setLabelTarget(String label){
-		LabelTarget target = new LabelTarget(label, index);
-		labelTargets.add(target);
-		return target;
-	}
-	
-	public LabelTarget setLabelTarget(Label label){
-		LabelTarget target = new LabelTarget(label.getName(), index);
-		labelTargets.add(target);
-		return target;
-	}
-	
 	public void _goto(Label label){
 		_goto(label.getName());
 	}
@@ -345,7 +274,7 @@ public class ChipmunkAssembler {
 	public void _goto(String label){
 		writeByte(Opcodes.GOTO);
 		
-		label(label);
+		labels.label(label, index);
 		
 		writeInt(0);
 	}
@@ -471,6 +400,22 @@ public class ChipmunkAssembler {
 		writeByte(Opcodes.IMPORT);
 		writeInt(importIndex);
 	}*/
+
+	public void setLabelTarget(String labelName){
+		labels.setLabelTarget(labelName, index);
+	}
+
+	public String nextLabelName(){
+		return labels.nextLabelName();
+	}
+
+	public void onLine(int lineNumber){
+		debugTable.onLine(lineNumber, index);
+	}
+
+	public void closeLine(){
+		debugTable.closeLine(index);
+	}
 	
 	private void writeByte(byte b) {
 		code.write(b);

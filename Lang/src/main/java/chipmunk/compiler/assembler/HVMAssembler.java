@@ -11,6 +11,8 @@ public class HVMAssembler {
 
     private final Operands operands = new Operands();
     protected final Executable.Builder builder = new Executable.Builder();
+    private final Labeler labels = new Labeler();
+    private final DebugTable debugTable = new DebugTable();
 
     public void push(Object value){
         Operand op = null;
@@ -158,6 +160,18 @@ public class HVMAssembler {
                 builder.appendOpcode(Opcodes.DSUB(a.register(), a.register(), a.register() + 1));
             }
         }
+    }
+
+    public Labeler labeler(){
+        return labels;
+    }
+
+    public void onLine(int lineNumber){
+        debugTable.onLine(lineNumber, 0); // TODO - ip
+    }
+
+    public void closeLine(){
+        debugTable.closeLine(0); // TODO - ip
     }
 
     protected void promoteType(Operand a, Operand b){
