@@ -18,34 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk.runtime.hvm;
 
-import java.util.Stack;
+public class CFlags {
 
-public class Operands {
+    public static final int SHARED = 0b001;
+    public static final int FINAL  = 0b010;
+    public static final int TRAIT  = 0b100;
 
-    protected Stack<HVMType> types = new Stack<>();
-    protected final int reserved;
-
-    public Operands(){
-        this(0);
+    public static int combine(int... flags){
+        var combined = 0;
+        for(var f : flags){
+            combined |= f;
+        }
+        return combined;
     }
 
-    public Operands(int reserved){
-        this.reserved = reserved;
+    public static boolean isSet(int flags, int flag){
+        return (flags & flag) != 0;
     }
-
-    public Operand push(HVMType type){
-        types.push(type);
-        return new Operand(calculateRegister(), type);
-    }
-
-    public Operand pop(){
-        return new Operand(calculateRegister(), types.pop());
-    }
-
-    private int calculateRegister(){
-        return reserved + types.size() - 1;
-    }
-
 }

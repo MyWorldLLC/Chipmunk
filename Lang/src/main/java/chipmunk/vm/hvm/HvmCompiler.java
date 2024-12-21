@@ -37,7 +37,6 @@ public class HvmCompiler {
 
     public ChipmunkModule compileModule(BinaryModule module){
         var builder = Executable.builder();
-        var operands = new Operands();
 
         // For now assume we have a single method with no arguments
         module.getNamespace().getEntries().forEach(e -> {
@@ -47,9 +46,13 @@ public class HvmCompiler {
         var method = module.getNamespace().getEntries().get(2).getBinaryMethod();
         var constants = method.getConstantPool();
         var code = method.getCode();
+
+        var operands = new Operands(method.getArgCount() + method.getLocalCount());
+
         var ip = 0;
         while(ip < code.length){
             switch (code[ip]){
+                // Arithmetic
                 case PUSH -> ip = push(builder, constants, operands, code, ip);
                 case ADD -> ip = add(builder, operands, ip);
                 case MUL -> ip = mul(builder, operands, ip);
@@ -61,6 +64,17 @@ public class HvmCompiler {
                 case DEC -> ip = dec(builder, operands, ip);
                 case POS -> ip = pos(builder, operands, ip);
                 case NEG -> ip = neg(builder, operands, ip);
+
+                // Bitwise
+                case BXOR -> ip = bxor(builder, operands, ip);
+                case BAND -> ip = band(builder, operands, ip);
+                case BOR -> ip = bor(builder, operands, ip);
+                case BNEG -> ip = bneg(builder, operands, ip);
+                case LSHIFT -> ip = lshift(builder, operands, ip);
+                case RSHIFT -> ip = rshift(builder, operands, ip);
+                case URSHIFT -> ip = urshift(builder, operands, ip);
+
+                // Flow control
                 case RETURN -> ip = _return(builder, operands, ip);
                 default -> {
                     throw new IllegalArgumentException("Unknown opcode 0x%02X".formatted(code[ip]));
@@ -270,6 +284,82 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
+
+        return ip + 1;
+    }
+
+    private int bxor(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), b.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int band(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), b.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int bor(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BOR(a.register(), a.register(), b.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int bneg(Executable.Builder builder, Operands operands, int ip){
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BNOT(a.register(), a.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int lshift(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BLSHIFT(a.register(), a.register(), b.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int rshift(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BSRSHIFT(a.register(), a.register(), b.register()));
+        operands.push(LONG);
+
+        return ip + 1;
+    }
+
+    private int urshift(Executable.Builder builder, Operands operands, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        // Disregard operand types - treat everything as a long
+        builder.appendOpcode(Opcodes.BURSHIFT(a.register(), a.register(), b.register()));
+        operands.push(LONG);
 
         return ip + 1;
     }

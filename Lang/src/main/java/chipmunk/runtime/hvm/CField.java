@@ -18,34 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk.runtime.hvm;
 
-import java.util.Stack;
+public record CField(int offset, int flags, CType pType, String name) {
 
-public class Operands {
-
-    protected Stack<HVMType> types = new Stack<>();
-    protected final int reserved;
-
-    public Operands(){
-        this(0);
-    }
-
-    public Operands(int reserved){
-        this.reserved = reserved;
-    }
-
-    public Operand push(HVMType type){
-        types.push(type);
-        return new Operand(calculateRegister(), type);
-    }
-
-    public Operand pop(){
-        return new Operand(calculateRegister(), types.pop());
-    }
-
-    private int calculateRegister(){
-        return reserved + types.size() - 1;
+    public int calculateAddress(long pointer){
+        return (int) pointer + offset;
     }
 
 }
