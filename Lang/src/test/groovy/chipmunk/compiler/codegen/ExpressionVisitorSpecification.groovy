@@ -52,7 +52,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0")
 		
 		then:
-		result instanceof Integer
 		result == 0
 	}
 	
@@ -61,7 +60,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 		
 		then:
-		result instanceof Integer
 		result == -1
 	}
 	
@@ -88,7 +86,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0xA6")
 		
 		then:
-		result instanceof Integer
 		result == 0xA6
 	}
 	
@@ -97,7 +94,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0o12")
 		
 		then:
-		result instanceof Integer
 		result == 012
 	}
 	
@@ -106,7 +102,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0b101")
 		
 		then:
-		result instanceof Integer
 		result == 0b101
 	}
 	
@@ -135,8 +130,15 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 + 2")
 
 		then:
-		//result instanceof Long
 		result == 3
+	}
+
+	def "Generate and run code for 1 + 2.0"(){
+		when:
+		def result = parseAndCall("1 + 2.0")
+
+		then:
+		Double.longBitsToDouble(result as long) == 3.0d
 	}
 	
 	def "Generate and run code for +1"(){
@@ -144,7 +146,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+1")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -153,7 +154,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 
 		then:
-		result instanceof Integer
 		result == -1
 	}
 
@@ -162,8 +162,23 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+-1")
 
 		then:
-		result instanceof Integer
 		result == 1
+	}
+
+	def "Generate and run code for -1.0"(){
+		when:
+		def result = parseAndCall("-1.0")
+
+		then:
+		Double.longBitsToDouble(result as long) == -1.0d
+	}
+
+	def "Generate and run code for +-1.0"(){
+		when:
+		def result = parseAndCall("+-1.0")
+
+		then:
+		Double.longBitsToDouble(result as long) == 1.0d
 	}
 	
 	def "Generate and run code for 1 * 2"(){
@@ -171,7 +186,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 * 2")
 
 		then:
-		result instanceof Integer
 		result == 2
 	}
 
@@ -180,8 +194,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 / 2")
 
 		then:
-		result instanceof Float
-		result == 0.5
+		Double.longBitsToDouble(result as long) == 0.5d
 	}
 
 	def "Generate and run code for 1 // 2"(){
@@ -189,7 +202,14 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 // 2")
 
 		then:
-		result instanceof Integer
+		result == 0
+	}
+
+	def "Generate and run code for 1.0 // 2"(){
+		when:
+		def result = parseAndCall("1.0 // 2")
+
+		then:
 		result == 0
 	}
 
@@ -198,8 +218,15 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("3 % 2")
 
 		then:
-		result instanceof Integer
 		result == 1
+	}
+
+	def "Generate and run code for 3.0 % 2"(){
+		when:
+		def result = parseAndCall("3.0 % 2")
+
+		then:
+		Double.longBitsToDouble(result as long) == 1.0
 	}
 	
 	def "Generate and run code for 2**1**2"(){
@@ -207,8 +234,15 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2**1**2")
 
 		then:
-		result instanceof Integer
 		result == 2
+	}
+
+	def "Generate and run code for 2.0**1**2.0"(){
+		when:
+		def result = parseAndCall("2.0**1**2.0")
+
+		then:
+		Double.longBitsToDouble(result as long) == 2.0d
 	}
 	
 	def "Generate and run code for true && true"(){
