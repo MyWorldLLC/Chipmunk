@@ -85,7 +85,12 @@ public class HvmCompiler {
                 case SETLOCAL -> ip = setlocal(builder, operands, registerStates, code, ip);
 
                 // Flow control
+                case IF -> ip = _if(builder, operands, code, ip);
+                case GOTO -> ip = _goto(builder, code, ip);
                 case RETURN -> ip = _return(builder, operands, ip);
+
+                // Comparison/Boolean operations
+                case EQ -> ip = eq(builder, operands, code, ip);
                 default -> {
                     throw new IllegalArgumentException("Unknown opcode 0x%02X".formatted(code[ip]));
                 }
@@ -401,9 +406,55 @@ public class HvmCompiler {
         return ip + 5;
     }
 
+    private int _if(Executable.Builder builder, Operands operands, byte[] code, int ip){
+        var a = operands.pop();
+
+        var target = fetchInt(code, ip + 1);
+
+        switch (a.type()){
+            case LONG -> {
+                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 0L));
+                builder.appendOpcode(Opcodes.IFNE(a.register(), a.register() + 1, target));
+            }
+            case DOUBLE -> {
+                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 0d));
+                builder.appendOpcode(Opcodes.DIFNE(a.register(), a.register() + 1, target));
+            }
+        }
+
+        return ip + 5;
+    }
+
+    private int _goto(Executable.Builder builder, byte[] code, int ip){
+        var target = fetchInt(code, ip);
+        builder.appendOpcode(Opcodes.GOTO(target));
+        return ip + 5;
+    }
+
     private int _return(Executable.Builder builder, Operands operands, int ip){
         var op = operands.pop();
         builder.appendOpcode(Opcodes.RETURN(op.register()));
+        return ip + 1;
+    }
+
+    private int eq(Executable.Builder builder, Operands operands, byte[] code, int ip){
+        var b = operands.pop();
+        var a = operands.pop();
+
+        promoteNarrower(builder, a, b);
+
+        if(code[ip + 1] == IF){
+            var target = fetchInt(code, ip + 2);
+            // Fuse to IFEQ
+            switch (wider(a, b)){
+                case LONG -> builder.appendOpcode(Opcodes.IFEQ(a.register(), b.register(), target));
+                case DOUBLE -> builder.appendOpcode(Opcodes.DIFEQ(a.register(), b.register(), target));
+            }
+            return ip + 6;
+        }else{
+            // TODO - emit boolean result since this isn't a fused operation
+        }
+
         return ip + 1;
     }
 
