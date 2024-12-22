@@ -48,12 +48,12 @@ public class HvmCompiler {
         var code = method.getCode();
 
         var operands = new Operands(method.getArgCount() + method.getLocalCount());
+        var registerStates = new RegisterStates();
 
         var ip = 0;
         while(ip < code.length){
             switch (code[ip]){
                 // Arithmetic
-                case PUSH -> ip = push(builder, constants, operands, code, ip);
                 case ADD -> ip = add(builder, operands, ip);
                 case MUL -> ip = mul(builder, operands, ip);
                 case DIV -> ip = div(builder, operands, ip);
@@ -73,6 +73,16 @@ public class HvmCompiler {
                 case LSHIFT -> ip = lshift(builder, operands, ip);
                 case RSHIFT -> ip = rshift(builder, operands, ip);
                 case URSHIFT -> ip = urshift(builder, operands, ip);
+
+                // Stack
+                // Note: swap not implemented since it is currently unused by the assembler
+                case POP -> operands.pop();
+                case DUP -> operands.dup();
+                case PUSH -> ip = push(builder, constants, operands, code, ip);
+
+                // Locals
+                case GETLOCAL -> ip = getlocal(builder, operands, registerStates, code, ip);
+                case SETLOCAL -> ip = setlocal(builder, operands, registerStates, code, ip);
 
                 // Flow control
                 case RETURN -> ip = _return(builder, operands, ip);
@@ -364,6 +374,33 @@ public class HvmCompiler {
         return ip + 1;
     }
 
+    private int getlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
+        var index = fetchInt(code, ip);
+
+        var type = registerStates.getLocal(index);
+        if(type == null){
+            // Default locals to long if they're not initialized, though in theory this should never happen,
+            // and we probably should throw here instead
+            type = LONG;
+        }
+
+        var target = operands.push(type);
+        builder.appendOpcode(Opcodes.COPY(target.register(), index));
+
+        return ip + 5;
+    }
+
+    private int setlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
+        var index = fetchInt(code, ip);
+
+        var source = operands.pop();
+        registerStates.setLocal(index, source.type());
+
+        builder.appendOpcode(Opcodes.COPY(index, source.register()));
+
+        return ip + 5;
+    }
+
     private int _return(Executable.Builder builder, Operands operands, int ip){
         var op = operands.pop();
         builder.appendOpcode(Opcodes.RETURN(op.register()));
@@ -397,6 +434,10 @@ public class HvmCompiler {
             return DOUBLE;
         }
         return LONG;
+    }
+
+    protected int calculateLocalRegister(int argCount, int localIndex){
+        return argCount + localIndex;
     }
 
     private int fetchInt(byte[] instructions, int ip) {

@@ -18,40 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk.vm.hvm;
 
-import java.util.Stack;
+import chipmunk.compiler.assembler.HVMType;
 
-public class Operands {
+import java.util.HashMap;
+import java.util.Map;
 
-    protected Stack<HVMType> types = new Stack<>();
-    protected final int reserved;
+public class RegisterStates {
 
-    public Operands(){
-        this(0);
+    private final Map<Integer, HVMType> states = new HashMap<>();
+
+    public HVMType setLocal(int localIndex, HVMType type){
+        return states.put(localIndex, type);
     }
 
-    public Operands(int reserved){
-        this.reserved = reserved;
-    }
-
-    public Operand push(HVMType type){
-        types.push(type);
-        return new Operand(calculateRegister(), type);
-    }
-
-    public Operand pop(){
-        return new Operand(calculateRegister(), types.pop());
-    }
-
-    public Operand dup(){
-        var type = types.peek();
-        types.push(type);
-        return new Operand(calculateRegister(), type);
-    }
-
-    private int calculateRegister(){
-        return reserved + types.size() - 1;
+    public HVMType getLocal(int localIndex){
+        return states.get(localIndex);
     }
 
 }
