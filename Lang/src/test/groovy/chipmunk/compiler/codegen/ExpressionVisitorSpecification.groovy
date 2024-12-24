@@ -34,8 +34,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true")
 		
 		then:
-		result instanceof Boolean
-		result == true
+		result == 1
+		//result == true
 	}
 	
 	def "Evaluate boolean literal false"(){
@@ -43,8 +43,8 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false")
 		
 		then:
-		result instanceof Boolean
-		result == false
+		result == 0
+		//result == true
 	}
 	
 	def "Evaluate int literal 0"(){
@@ -68,8 +68,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0.0")
 		
 		then:
-		result instanceof Float
-		result == 0.0
+		Double.longBitsToDouble(result as long) == 0.0d
 	}
 	
 	def "Evaluate float literal -1.0"(){
@@ -77,8 +76,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1.0")
 		
 		then:
-		result instanceof Float
-		result == -1.0
+		Double.longBitsToDouble(result as long) == -1.0d
 	}
 	
 	def "Evaluate hex literal 0xA6"(){
@@ -250,7 +248,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && true")
 
 		then:
-		result instanceof Boolean
 		result == true
 	}
 	
@@ -259,7 +256,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && false")
 
 		then:
-		result instanceof Boolean
 		result == false
 	}
 
@@ -268,7 +264,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || true")
 
 		then:
-		result instanceof Boolean
 		result == true
 	}
 
@@ -277,7 +272,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || false")
 
 		then:
-		result instanceof Boolean
 		result == true
 	}
 
@@ -286,7 +280,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false || false")
 
 		then:
-		result instanceof Boolean
 		result == false
 	}
 	
@@ -295,7 +288,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5")
 
 		then:
-		result instanceof Boolean
 		result == true
 	}
 	

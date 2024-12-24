@@ -20,24 +20,4 @@
 
 package chipmunk.vm.hvm;
 
-import chipmunk.runtime.ChipmunkModule;
-import myworld.hummingbird.Executable;
-import myworld.hummingbird.HummingbirdVM;
-
-public class HvmModule implements ChipmunkModule {
-
-    private final HummingbirdVM vm;
-
-    public HvmModule(Executable exe){
-        vm = new HummingbirdVM(exe);
-        System.out.println("Code length: " + exe.code().length);
-    }
-
-    /**
-     * For use with the CVM's eval() method
-     */
-    public Object evaluate(){
-        return vm.run();
-    }
-
-}
+public record IpRange(int b0, int b1, int h) {}

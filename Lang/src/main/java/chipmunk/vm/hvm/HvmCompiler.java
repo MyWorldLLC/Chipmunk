@@ -49,6 +49,14 @@ public class HvmCompiler {
 
         var operands = new Operands(method.getArgCount() + method.getLocalCount());
         var registerStates = new RegisterStates();
+        var remapping = new IpRemapping();
+
+        // TODO - have to handle ip remapping between Chipmunk & HVM bytecode. Chipmunk
+        // uses the raw ip, which means that one instruction could take 1, 5, or more bytes.
+        // HVM uses the instruction index, which means every value of ip points to a specific
+        // instruction. Multi-byte Chipmunk instructions mean that we can't use the raw jump
+        // targets Chipmunk specifies - we have to re-calculate them after the Chipmunk bytecode
+        // has been decoded.
 
         var ip = 0;
         while(ip < code.length){
@@ -90,7 +98,11 @@ public class HvmCompiler {
                 case RETURN -> ip = _return(builder, operands, ip);
 
                 // Comparison/Boolean operations
+                case NOT -> ip = not(builder, operands, ip);
                 case EQ -> ip = eq(builder, operands, code, ip);
+
+                // Object operations
+                case TRUTH -> ip = truth(builder, operands, ip);
                 default -> {
                     throw new IllegalArgumentException("Unknown opcode 0x%02X".formatted(code[ip]));
                 }
@@ -113,7 +125,11 @@ public class HvmCompiler {
             op = operands.push(DOUBLE);
         }else if(value instanceof String){
             op = operands.push(STRING_REF);
-        }else if(value == null){
+        }else if(value instanceof Boolean b){
+            value = b ? 1L : 0L;
+            op = operands.push(LONG);
+        }
+        else if(value == null){
             op = operands.push(LONG);
             value = 0L;
         }else{
@@ -380,7 +396,7 @@ public class HvmCompiler {
     }
 
     private int getlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
-        var index = fetchInt(code, ip);
+        var index = fetchInt(code, ip + 1);
 
         var type = registerStates.getLocal(index);
         if(type == null){
@@ -396,7 +412,7 @@ public class HvmCompiler {
     }
 
     private int setlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
-        var index = fetchInt(code, ip);
+        var index = fetchInt(code, ip + 1);
 
         var source = operands.pop();
         registerStates.setLocal(index, source.type());
@@ -413,11 +429,11 @@ public class HvmCompiler {
 
         switch (a.type()){
             case LONG -> {
-                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 0L));
+                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
                 builder.appendOpcode(Opcodes.IFNE(a.register(), a.register() + 1, target));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 0d));
+                builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1d));
                 builder.appendOpcode(Opcodes.DIFNE(a.register(), a.register() + 1, target));
             }
         }
@@ -426,7 +442,7 @@ public class HvmCompiler {
     }
 
     private int _goto(Executable.Builder builder, byte[] code, int ip){
-        var target = fetchInt(code, ip);
+        var target = fetchInt(code, ip + 1);
         builder.appendOpcode(Opcodes.GOTO(target));
         return ip + 5;
     }
@@ -434,6 +450,17 @@ public class HvmCompiler {
     private int _return(Executable.Builder builder, Operands operands, int ip){
         var op = operands.pop();
         builder.appendOpcode(Opcodes.RETURN(op.register()));
+        return ip + 1;
+    }
+
+    private int not(Executable.Builder builder, Operands operands, int ip){
+        var a = operands.pop();
+
+        // Assume value is a 1/0 boolean & flip the truth bit
+        builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
+        builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), a.register() + 1));
+        operands.push(LONG);
+
         return ip + 1;
     }
 
@@ -455,6 +482,15 @@ public class HvmCompiler {
             // TODO - emit boolean result since this isn't a fused operation
         }
 
+        return ip + 1;
+    }
+
+    private int truth(Executable.Builder builder, Operands operands, int ip){
+        // TODO - probably needs to be changed
+        var a = operands.pop();
+        builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
+        builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), a.register() + 1));
+        operands.push(LONG);
         return ip + 1;
     }
 

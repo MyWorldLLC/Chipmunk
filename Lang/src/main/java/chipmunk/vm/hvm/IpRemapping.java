@@ -20,24 +20,25 @@
 
 package chipmunk.vm.hvm;
 
-import chipmunk.runtime.ChipmunkModule;
-import myworld.hummingbird.Executable;
-import myworld.hummingbird.HummingbirdVM;
+import java.util.ArrayList;
+import java.util.List;
 
-public class HvmModule implements ChipmunkModule {
+public class IpRemapping {
 
-    private final HummingbirdVM vm;
+    private final List<IpRange> remappings = new ArrayList<>();
 
-    public HvmModule(Executable exe){
-        vm = new HummingbirdVM(exe);
-        System.out.println("Code length: " + exe.code().length);
+    public int remap(int ip, int nextIp, int hIp){
+        remappings.add(new IpRange(ip, nextIp, hIp));
+        return nextIp;
     }
 
-    /**
-     * For use with the CVM's eval() method
-     */
-    public Object evaluate(){
-        return vm.run();
+    public IpRange find(int ip){
+        for(var range : remappings){
+            if(ip >= range.b0() && ip < range.b1()){
+                return range;
+            }
+        }
+        return null;
     }
 
 }
