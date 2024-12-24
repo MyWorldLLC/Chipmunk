@@ -36,7 +36,6 @@ import static chipmunk.compiler.assembler.Opcodes.*;
 public class HvmCompiler {
 
     public ChipmunkModule compileModule(BinaryModule module){
-        var builder = Executable.builder();
 
         // For now assume we have a single method with no arguments
         module.getNamespace().getEntries().forEach(e -> {
@@ -44,12 +43,10 @@ public class HvmCompiler {
         });
 
         var method = module.getNamespace().getEntries().get(2).getBinaryMethod();
+        var builder = new HvmCodeBuilder(method);
+
         var constants = method.getConstantPool();
         var code = method.getCode();
-
-        var operands = new Operands(method.getArgCount() + method.getLocalCount());
-        var registerStates = new RegisterStates();
-        var remapping = new IpRemapping();
 
         // TODO - have to handle ip remapping between Chipmunk & HVM bytecode. Chipmunk
         // uses the raw ip, which means that one instruction could take 1, 5, or more bytes.
@@ -58,53 +55,53 @@ public class HvmCompiler {
         // targets Chipmunk specifies - we have to re-calculate them after the Chipmunk bytecode
         // has been decoded.
 
-        var ip = 0;
-        while(ip < code.length){
-            switch (code[ip]){
+        while(builder.hasNextOp()){
+            var op = builder.nextOp();
+            switch (op){
                 // Arithmetic
-                case ADD -> ip = add(builder, operands, ip);
-                case MUL -> ip = mul(builder, operands, ip);
-                case DIV -> ip = div(builder, operands, ip);
-                case FDIV -> ip = fdiv(builder, operands, ip);
-                case MOD -> ip = mod(builder, operands, ip);
-                case POW -> ip = pow(builder, operands, ip);
-                case INC -> ip = inc(builder, operands, ip);
-                case DEC -> ip = dec(builder, operands, ip);
-                case POS -> ip = pos(builder, operands, ip);
-                case NEG -> ip = neg(builder, operands, ip);
+                case ADD -> add(builder);
+                case MUL -> mul(builder);
+                case DIV -> div(builder);
+                case FDIV -> fdiv(builder);
+                case MOD -> mod(builder);
+                case POW -> pow(builder);
+                case INC -> inc(builder);
+                case DEC -> dec(builder);
+                case POS -> pos(builder);
+                case NEG -> neg(builder);
 
                 // Bitwise
-                case BXOR -> ip = bxor(builder, operands, ip);
-                case BAND -> ip = band(builder, operands, ip);
-                case BOR -> ip = bor(builder, operands, ip);
-                case BNEG -> ip = bneg(builder, operands, ip);
-                case LSHIFT -> ip = lshift(builder, operands, ip);
-                case RSHIFT -> ip = rshift(builder, operands, ip);
-                case URSHIFT -> ip = urshift(builder, operands, ip);
+                case BXOR -> bxor(builder);
+                case BAND -> band(builder);
+                case BOR -> bor(builder);
+                case BNEG -> bneg(builder);
+                case LSHIFT -> lshift(builder);
+                case RSHIFT -> rshift(builder);
+                case URSHIFT -> urshift(builder);
 
                 // Stack
                 // Note: swap not implemented since it is currently unused by the assembler
-                case POP -> operands.pop();
-                case DUP -> operands.dup();
-                case PUSH -> ip = push(builder, constants, operands, code, ip);
+                case POP -> builder.operands().pop();
+                case DUP -> builder.operands().dup();
+                case PUSH -> push(builder);
 
                 // Locals
-                case GETLOCAL -> ip = getlocal(builder, operands, registerStates, code, ip);
-                case SETLOCAL -> ip = setlocal(builder, operands, registerStates, code, ip);
+                case GETLOCAL -> getlocal(builder);
+                case SETLOCAL -> setlocal(builder);
 
                 // Flow control
-                case IF -> ip = _if(builder, operands, code, ip);
-                case GOTO -> ip = _goto(builder, code, ip);
-                case RETURN -> ip = _return(builder, operands, ip);
+                case IF -> _if(builder);
+                case GOTO -> _goto(builder);
+                case RETURN -> _return(builder);
 
                 // Comparison/Boolean operations
-                case NOT -> ip = not(builder, operands, ip);
-                case EQ -> ip = eq(builder, operands, code, ip);
+                case NOT -> not(builder);
+                case EQ -> eq(builder);
 
                 // Object operations
-                case TRUTH -> ip = truth(builder, operands, ip);
+                case TRUTH -> truth(builder);
                 default -> {
-                    throw new IllegalArgumentException("Unknown opcode 0x%02X".formatted(code[ip]));
+                    throw new IllegalArgumentException("Unknown opcode 0x%02X".formatted(op));
                 }
             }
         }
@@ -112,8 +109,9 @@ public class HvmCompiler {
         return new HvmModule(builder.build());
     }
 
-    private int push(Executable.Builder builder, Object[] constants, Operands operands, byte[] code, int ip){
-        var value = constants[fetchInt(code, ip + 1)];
+    private void push(HvmCodeBuilder builder){
+        var operands = builder.operands();
+        var value = builder.constant(builder.fetchInt());
 
         Operand op;
         if(value instanceof Integer || value instanceof Long){
@@ -141,11 +139,10 @@ public class HvmCompiler {
             value = builder.appendData(value.toString().getBytes(StandardCharsets.UTF_8));
         }
         builder.appendOpcode(Opcodes.CONST(op.register(), value));
-
-        return ip + 5;
     }
 
-    private int add(Executable.Builder builder, Operands operands, int ip){
+    private void add(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -161,11 +158,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int mul(Executable.Builder builder, Operands operands, int ip){
+    private void mul(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -181,11 +177,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int div(Executable.Builder builder, Operands operands, int ip){
+    private void div(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -194,11 +189,10 @@ public class HvmCompiler {
 
         builder.appendOpcode(Opcodes.DDIV(a.register(), a.register(), b.register()));
         operands.push(DOUBLE);
-
-        return ip + 1;
     }
 
-    private int fdiv(Executable.Builder builder, Operands operands, int ip){
+    private void fdiv(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -207,11 +201,10 @@ public class HvmCompiler {
 
         builder.appendOpcode(Opcodes.DIV(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int mod(Executable.Builder builder, Operands operands, int ip){
+    private void mod(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -227,11 +220,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int pow(Executable.Builder builder, Operands operands, int ip){
+    private void pow(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
@@ -247,11 +239,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int inc(Executable.Builder builder, Operands operands, int ip){
+    private void inc(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         switch (a.type()){
@@ -264,11 +255,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int dec(Executable.Builder builder, Operands operands, int ip){
+    private void dec(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         switch (a.type()){
@@ -281,11 +271,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int pos(Executable.Builder builder, Operands operands, int ip){
+    private void pos(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         switch (a.type()){
@@ -298,11 +287,10 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int neg(Executable.Builder builder, Operands operands, int ip){
+    private void neg(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         switch (a.type()){
@@ -315,88 +303,82 @@ public class HvmCompiler {
                 operands.push(DOUBLE);
             }
         }
-
-        return ip + 1;
     }
 
-    private int bxor(Executable.Builder builder, Operands operands, int ip){
+    private void bxor(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int band(Executable.Builder builder, Operands operands, int ip){
+    private void band(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int bor(Executable.Builder builder, Operands operands, int ip){
+    private void bor(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BOR(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int bneg(Executable.Builder builder, Operands operands, int ip){
+    private void bneg(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BNOT(a.register(), a.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int lshift(Executable.Builder builder, Operands operands, int ip){
+    private void lshift(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BLSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int rshift(Executable.Builder builder, Operands operands, int ip){
+    private void rshift(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BSRSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int urshift(Executable.Builder builder, Operands operands, int ip){
+    private void urshift(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
         builder.appendOpcode(Opcodes.BURSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int getlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
-        var index = fetchInt(code, ip + 1);
+    private void getlocal(HvmCodeBuilder builder){
+        var operands = builder.operands();
+        var registerStates = builder.registerStates();
+
+        var index = builder.fetchInt();
 
         var type = registerStates.getLocal(index);
         if(type == null){
@@ -407,94 +389,89 @@ public class HvmCompiler {
 
         var target = operands.push(type);
         builder.appendOpcode(Opcodes.COPY(target.register(), index));
-
-        return ip + 5;
     }
 
-    private int setlocal(Executable.Builder builder, Operands operands, RegisterStates registerStates, byte[] code, int ip){
-        var index = fetchInt(code, ip + 1);
+    private void setlocal(HvmCodeBuilder builder){
+        var operands = builder.operands();
+        var registerStates = builder.registerStates();
+        var index = builder.fetchInt();
 
         var source = operands.pop();
         registerStates.setLocal(index, source.type());
 
         builder.appendOpcode(Opcodes.COPY(index, source.register()));
-
-        return ip + 5;
     }
 
-    private int _if(Executable.Builder builder, Operands operands, byte[] code, int ip){
+    private void _if(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
-        var target = fetchInt(code, ip + 1);
+        var target = builder.fetchInt();
 
         switch (a.type()){
             case LONG -> {
                 builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
-                builder.appendOpcode(Opcodes.IFNE(a.register(), a.register() + 1, target));
+                builder.deferOpcode(() -> Opcodes.IFNE(a.register(), a.register() + 1, builder.remapIp(target)));
             }
             case DOUBLE -> {
                 builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1d));
-                builder.appendOpcode(Opcodes.DIFNE(a.register(), a.register() + 1, target));
+                builder.deferOpcode(() -> Opcodes.DIFNE(a.register(), a.register() + 1, builder.remapIp(target)));
             }
         }
-
-        return ip + 5;
     }
 
-    private int _goto(Executable.Builder builder, byte[] code, int ip){
-        var target = fetchInt(code, ip + 1);
-        builder.appendOpcode(Opcodes.GOTO(target));
-        return ip + 5;
+    private void _goto(HvmCodeBuilder builder){
+        var target = builder.fetchInt();
+        builder.deferOpcode(() ->
+           Opcodes.GOTO(builder.remapIp(target))
+        );
     }
 
-    private int _return(Executable.Builder builder, Operands operands, int ip){
+    private void  _return(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var op = operands.pop();
         builder.appendOpcode(Opcodes.RETURN(op.register()));
-        return ip + 1;
     }
 
-    private int not(Executable.Builder builder, Operands operands, int ip){
+    private void not(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var a = operands.pop();
 
         // Assume value is a 1/0 boolean & flip the truth bit
         builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
         builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), a.register() + 1));
         operands.push(LONG);
-
-        return ip + 1;
     }
 
-    private int eq(Executable.Builder builder, Operands operands, byte[] code, int ip){
+    private void eq(HvmCodeBuilder builder){
+        var operands = builder.operands();
         var b = operands.pop();
         var a = operands.pop();
 
         promoteNarrower(builder, a, b);
 
-        if(code[ip + 1] == IF){
-            var target = fetchInt(code, ip + 2);
+        if(builder.peekNextOp() == IF){
+            var target = builder.fetchInt();
             // Fuse to IFEQ
             switch (wider(a, b)){
                 case LONG -> builder.appendOpcode(Opcodes.IFEQ(a.register(), b.register(), target));
                 case DOUBLE -> builder.appendOpcode(Opcodes.DIFEQ(a.register(), b.register(), target));
             }
-            return ip + 6;
         }else{
             // TODO - emit boolean result since this isn't a fused operation
         }
-
-        return ip + 1;
     }
 
-    private int truth(Executable.Builder builder, Operands operands, int ip){
+    private void truth(HvmCodeBuilder builder){
         // TODO - probably needs to be changed
+        var operands = builder.operands();
         var a = operands.pop();
         builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
         builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), a.register() + 1));
         operands.push(LONG);
-        return ip + 1;
     }
 
-    protected void promoteNarrower(Executable.Builder builder, Operand a, Operand b){
+    protected void promoteNarrower(HvmCodeBuilder builder, Operand a, Operand b){
         if(a.type() == LONG && b.type() == DOUBLE){
             // Promote register with a
             builder.appendOpcode(Opcodes.L2D(a.register(), a.register()));
@@ -504,13 +481,13 @@ public class HvmCompiler {
         }
     }
 
-    protected void toDouble(Executable.Builder builder, Operand a){
+    protected void toDouble(HvmCodeBuilder builder, Operand a){
         if(a.type() == LONG){
             builder.appendOpcode(Opcodes.L2D(a.register(), a.register()));
         }
     }
 
-    protected void toLong(Executable.Builder builder, Operand a){
+    protected void toLong(HvmCodeBuilder builder, Operand a){
         if(a.type() == DOUBLE){
             builder.appendOpcode(Opcodes.D2L(a.register(), a.register()));
         }
@@ -521,18 +498,6 @@ public class HvmCompiler {
             return DOUBLE;
         }
         return LONG;
-    }
-
-    protected int calculateLocalRegister(int argCount, int localIndex){
-        return argCount + localIndex;
-    }
-
-    private int fetchInt(byte[] instructions, int ip) {
-        int b1 = instructions[ip] & 0xFF;
-        int b2 = instructions[ip + 1] & 0xFF;
-        int b3 = instructions[ip + 2] & 0xFF;
-        int b4 = instructions[ip + 3] & 0xFF;
-        return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
     }
 
 }

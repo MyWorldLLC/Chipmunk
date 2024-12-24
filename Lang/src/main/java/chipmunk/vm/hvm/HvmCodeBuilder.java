@@ -24,7 +24,6 @@ import chipmunk.binary.BinaryMethod;
 import chipmunk.compiler.assembler.Operands;
 import myworld.hummingbird.Executable;
 import myworld.hummingbird.Opcode;
-import myworld.hummingbird.Opcodes;
 import myworld.hummingbird.Symbol;
 
 import java.util.HashMap;
@@ -56,7 +55,19 @@ public class HvmCodeBuilder {
         ip = 0;
     }
 
-    public int appendDate(byte[] data){
+    public Operands operands(){
+        return operands;
+    }
+
+    public IpRemapping remapping(){
+        return remapping;
+    }
+
+    public RegisterStates registerStates(){
+        return registerStates;
+    }
+
+    public int appendData(byte[] data){
         return builder.appendData(data);
     }
 
@@ -92,6 +103,10 @@ public class HvmCodeBuilder {
         return builder.build();
     }
 
+    public boolean hasNextOp(){
+        return ip < method.getCode().length;
+    }
+
     public byte nextOp(){
         lastIp = ip;
         var opcode = method.getCode()[ip];
@@ -99,7 +114,11 @@ public class HvmCodeBuilder {
         return opcode;
     }
 
-    public int readInt(){
+    public byte peekNextOp(){
+        return method.getCode()[ip + 1];
+    }
+
+    public int fetchInt(){
         var instructions = method.getCode();
         int b1 = instructions[ip] & 0xFF;
         int b2 = instructions[ip + 1] & 0xFF;
@@ -107,6 +126,18 @@ public class HvmCodeBuilder {
         int b4 = instructions[ip + 3] & 0xFF;
         ip += 4;
         return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+    }
+
+    public Object[] constants(){
+        return method.getConstantPool();
+    }
+
+    public Object constant(int index){
+        return constants()[index];
+    }
+
+    public int remapIp(int cIp){
+        return remapping.find(cIp).h();
     }
 
     // TODO - constant tracking (avoid redundant CONST)

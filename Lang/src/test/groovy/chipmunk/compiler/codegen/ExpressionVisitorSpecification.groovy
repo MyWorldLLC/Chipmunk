@@ -28,14 +28,17 @@ import spock.lang.Specification
 class ExpressionVisitorSpecification extends Specification {
 
 	ChipmunkVM vm = new ChipmunkVM()
+
+	def truthy(Object result){
+		return (result as long) == 1L
+	}
 	
 	def "Evaluate boolean literal true"(){
 		when:
 		def result = parseAndCall("true")
 		
 		then:
-		result == 1
-		//result == true
+		truthy(result) == true
 	}
 	
 	def "Evaluate boolean literal false"(){
@@ -43,8 +46,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false")
 		
 		then:
-		result == 0
-		//result == true
+		truthy(result) == false
 	}
 	
 	def "Evaluate int literal 0"(){
@@ -248,7 +250,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && true")
 
 		then:
-		result == true
+		truthy(result) == true
 	}
 	
 	def "Generate and run code for true && false"(){
@@ -256,7 +258,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && false")
 
 		then:
-		result == false
+		truthy(result) == false
 	}
 
 	def "Generate and run code for true || true"(){
@@ -264,7 +266,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || true")
 
 		then:
-		result == true
+		truthy(result) == true
 	}
 
 	def "Generate and run code for true || false"(){
@@ -272,7 +274,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || false")
 
 		then:
-		result == true
+		truthy(result) == true
 	}
 
 	def "Generate and run code for false || false"(){
@@ -280,7 +282,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false || false")
 
 		then:
-		result == false
+		truthy(result) == false
 	}
 	
 	def "Generate and run code for complex comparison"(){
@@ -288,7 +290,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5")
 
 		then:
-		result == true
+		truthy(result) == true
 	}
 	
 	def "Evaluate []"(){
