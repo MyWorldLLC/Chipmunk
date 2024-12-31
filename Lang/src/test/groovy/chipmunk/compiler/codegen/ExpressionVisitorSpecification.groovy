@@ -279,10 +279,18 @@ class ExpressionVisitorSpecification extends Specification {
 
 	def "Generate and run code for false || false"(){
 		when:
-		def result = parseAndCall("false || false")
+		def result = parseAndCall("false || false", "False or")
 
 		then:
 		truthy(result) == false
+	}
+
+	def "Generate and run code for false || true"(){
+		when:
+		def result = parseAndCall("false || true")
+
+		then:
+		truthy(result) == true
 	}
 	
 	def "Generate and run code for complex comparison"(){

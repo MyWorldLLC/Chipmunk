@@ -23,9 +23,7 @@ package chipmunk.vm.hvm;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.assembler.HVMType;
 import chipmunk.compiler.assembler.Operand;
-import chipmunk.compiler.assembler.Operands;
 import chipmunk.runtime.ChipmunkModule;
-import myworld.hummingbird.Executable;
 import myworld.hummingbird.Opcodes;
 
 import java.nio.charset.StandardCharsets;
@@ -38,15 +36,9 @@ public class HvmCompiler {
     public ChipmunkModule compileModule(BinaryModule module){
 
         // For now assume we have a single method with no arguments
-        module.getNamespace().getEntries().forEach(e -> {
-            System.out.println(e.getType() + " " + e.getName());
-        });
-
+        // evaluate() will be the third method for eval() calls
         var method = module.getNamespace().getEntries().get(2).getBinaryMethod();
         var builder = new HvmCodeBuilder(method);
-
-        var constants = method.getConstantPool();
-        var code = method.getCode();
 
         // TODO - have to handle ip remapping between Chipmunk & HVM bytecode. Chipmunk
         // uses the raw ip, which means that one instruction could take 1, 5, or more bytes.
@@ -97,6 +89,8 @@ public class HvmCompiler {
                 // Comparison/Boolean operations
                 case NOT -> not(builder);
                 case EQ -> eq(builder);
+                case LT -> lt(builder);
+                case LE -> le(builder);
 
                 // Object operations
                 case TRUTH -> truth(builder);
@@ -138,7 +132,7 @@ public class HvmCompiler {
             // Strings have to be encoded in the data section, with the address pushed as a constant.
             value = builder.appendData(value.toString().getBytes(StandardCharsets.UTF_8));
         }
-        builder.appendOpcode(Opcodes.CONST(op.register(), value));
+        builder.appendOpcode(Opcodes.CONST(builder.getTos(), value));
     }
 
     private void add(HvmCodeBuilder builder){
@@ -150,12 +144,12 @@ public class HvmCompiler {
 
         switch (wider(a, b)){
             case LONG -> {
-                builder.appendOpcode(Opcodes.ADD(a.register(), a.register(), b.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.ADD(builder.getTos(), a.register(), b.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DADD(a.register(), a.register(), b.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DADD(builder.getTos(), a.register(), b.register()));
             }
         }
     }
@@ -169,12 +163,12 @@ public class HvmCompiler {
 
         switch (wider(a, b)){
             case LONG -> {
-                builder.appendOpcode(Opcodes.MUL(a.register(), a.register(), b.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.MUL(builder.getTos(), a.register(), b.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DMUL(a.register(), a.register(), b.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DMUL(builder.getTos(), a.register(), b.register()));
             }
         }
     }
@@ -187,8 +181,9 @@ public class HvmCompiler {
         toDouble(builder, b);
         toDouble(builder, a);
 
-        builder.appendOpcode(Opcodes.DDIV(a.register(), a.register(), b.register()));
         operands.push(DOUBLE);
+        builder.appendOpcode(Opcodes.DDIV(builder.getTos(), a.register(), b.register()));
+
     }
 
     private void fdiv(HvmCodeBuilder builder){
@@ -199,8 +194,8 @@ public class HvmCompiler {
         toLong(builder, b);
         toLong(builder, a);
 
-        builder.appendOpcode(Opcodes.DIV(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.DIV(builder.getTos(), a.register(), b.register()));
     }
 
     private void mod(HvmCodeBuilder builder){
@@ -212,12 +207,13 @@ public class HvmCompiler {
 
         switch (wider(a, b)){
             case LONG -> {
-                builder.appendOpcode(Opcodes.REM(a.register(), a.register(), b.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.REM(builder.getTos(), a.register(), b.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DREM(a.register(), a.register(), b.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DREM(builder.getTos(), a.register(), b.register()));
+
             }
         }
     }
@@ -231,12 +227,12 @@ public class HvmCompiler {
 
         switch (wider(a, b)){
             case LONG -> {
-                builder.appendOpcode(Opcodes.POW(a.register(), a.register(), b.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.POW(builder.getTos(), a.register(), b.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DPOW(a.register(), a.register(), b.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DPOW(builder.getTos(), a.register(), b.register()));
             }
         }
     }
@@ -247,12 +243,12 @@ public class HvmCompiler {
 
         switch (a.type()){
             case LONG -> {
-                builder.appendOpcode(Opcodes.CADD(a.register(), a.register(), 1L));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.CADD(builder.getTos(), a.register(), 1L));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DCADD(a.register(), a.register(), 1.0d));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DCADD(builder.getTos(), a.register(), 1.0d));
             }
         }
     }
@@ -263,12 +259,12 @@ public class HvmCompiler {
 
         switch (a.type()){
             case LONG -> {
-                builder.appendOpcode(Opcodes.CADD(a.register(), a.register(), -1L));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.CADD(builder.getTos(), a.register(), -1L));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DCADD(a.register(), a.register(), -1.0d));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DCADD(builder.getTos(), a.register(), -1.0d));
             }
         }
     }
@@ -279,12 +275,12 @@ public class HvmCompiler {
 
         switch (a.type()){
             case LONG -> {
-                builder.appendOpcode(Opcodes.ABS(a.register(), a.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.ABS(builder.getTos(), a.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DABS(a.register(), a.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DABS(builder.getTos(), a.register()));
             }
         }
     }
@@ -295,12 +291,12 @@ public class HvmCompiler {
 
         switch (a.type()){
             case LONG -> {
-                builder.appendOpcode(Opcodes.NEG(a.register(), a.register()));
                 operands.push(LONG);
+                builder.appendOpcode(Opcodes.NEG(builder.getTos(), a.register()));
             }
             case DOUBLE -> {
-                builder.appendOpcode(Opcodes.DNEG(a.register(), a.register()));
                 operands.push(DOUBLE);
+                builder.appendOpcode(Opcodes.DNEG(builder.getTos(), a.register()));
             }
         }
     }
@@ -311,8 +307,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BXOR(builder.getTos(), a.register(), b.register()));
     }
 
     private void band(HvmCodeBuilder builder){
@@ -321,8 +317,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BAND(builder.getTos(), a.register(), b.register()));
     }
 
     private void bor(HvmCodeBuilder builder){
@@ -331,8 +327,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BOR(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BOR(builder.getTos(), a.register(), b.register()));
     }
 
     private void bneg(HvmCodeBuilder builder){
@@ -340,8 +336,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BNOT(a.register(), a.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BNOT(builder.getTos(), a.register()));
     }
 
     private void lshift(HvmCodeBuilder builder){
@@ -350,8 +346,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BLSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BLSHIFT(builder.getTos(), a.register(), b.register()));
     }
 
     private void rshift(HvmCodeBuilder builder){
@@ -360,8 +356,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BSRSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BSRSHIFT(builder.getTos(), a.register(), b.register()));
     }
 
     private void urshift(HvmCodeBuilder builder){
@@ -370,8 +366,8 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Disregard operand types - treat everything as a long
-        builder.appendOpcode(Opcodes.BURSHIFT(a.register(), a.register(), b.register()));
         operands.push(LONG);
+        builder.appendOpcode(Opcodes.BURSHIFT(builder.getTos(), a.register(), b.register()));
     }
 
     private void getlocal(HvmCodeBuilder builder){
@@ -387,8 +383,8 @@ public class HvmCompiler {
             type = LONG;
         }
 
-        var target = operands.push(type);
-        builder.appendOpcode(Opcodes.COPY(target.register(), index));
+        operands.push(type);
+        builder.appendOpcode(Opcodes.COPY(builder.getTos(), index));
     }
 
     private void setlocal(HvmCodeBuilder builder){
@@ -411,10 +407,12 @@ public class HvmCompiler {
         switch (a.type()){
             case LONG -> {
                 builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
+                builder.markJump(target);
                 builder.deferOpcode(() -> Opcodes.IFNE(a.register(), a.register() + 1, builder.remapIp(target)));
             }
             case DOUBLE -> {
                 builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1d));
+                builder.markJump(target);
                 builder.deferOpcode(() -> Opcodes.DIFNE(a.register(), a.register() + 1, builder.remapIp(target)));
             }
         }
@@ -422,14 +420,17 @@ public class HvmCompiler {
 
     private void _goto(HvmCodeBuilder builder){
         var target = builder.fetchInt();
+        builder.markJump(target);
         builder.deferOpcode(() ->
-           Opcodes.GOTO(builder.remapIp(target))
+            Opcodes.GOTO(builder.remapIp(target))
         );
     }
 
-    private void  _return(HvmCodeBuilder builder){
+    private void _return(HvmCodeBuilder builder){
         var operands = builder.operands();
         var op = operands.pop();
+        System.out.println("Return @%d".formatted(builder.builder.indexOfNextOpcode()));
+        //builder.appendOpcode(Opcodes.DEBUG(op.register(), op.register()));
         builder.appendOpcode(Opcodes.RETURN(op.register()));
     }
 
@@ -438,9 +439,10 @@ public class HvmCompiler {
         var a = operands.pop();
 
         // Assume value is a 1/0 boolean & flip the truth bit
-        builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
-        builder.appendOpcode(Opcodes.BXOR(a.register(), a.register(), a.register() + 1));
         operands.push(LONG);
+        var tos = builder.getTos();
+        builder.appendOpcode(Opcodes.CONST(tos + 1, 1L));
+        builder.appendOpcode(Opcodes.BXOR(tos, a.register(), tos + 1));
     }
 
     private void eq(HvmCodeBuilder builder){
@@ -452,23 +454,107 @@ public class HvmCompiler {
 
         if(builder.peekNextOp() == IF){
             var target = builder.fetchInt();
-            // Fuse to IFEQ
+            // Fuse to IFNE
             switch (wider(a, b)){
-                case LONG -> builder.appendOpcode(Opcodes.IFEQ(a.register(), b.register(), target));
-                case DOUBLE -> builder.appendOpcode(Opcodes.DIFEQ(a.register(), b.register(), target));
+                case LONG -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.IFNE(a.register(), b.register(), builder.remapIp(target)));
+                }
+                case DOUBLE -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.DIFNE(a.register(), b.register(), builder.remapIp(target)));
+                }
             }
         }else{
-            // TODO - emit boolean result since this isn't a fused operation
+            switch (wider(a, b)){
+                case LONG -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TIFEQ(builder.getTos(), b.register(), a.register()));
+                }
+                case DOUBLE -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TDIFEQ(builder.getTos(), b.register(), a.register()));
+                }
+            }
+        }
+    }
+
+    private void lt(HvmCodeBuilder builder){
+        var operands = builder.operands();
+        var b = operands.pop();
+        var a = operands.pop();
+
+        promoteNarrower(builder, a, b);
+
+        if(builder.peekNextOp() == IF){
+            var target = builder.fetchInt();
+            // Fuse to IFLT
+            switch (wider(a, b)){
+                case LONG -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.IFLT(a.register(), b.register(), builder.remapIp(target)));
+                }
+                case DOUBLE -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.DIFLT(a.register(), b.register(), builder.remapIp(target)));
+                }
+            }
+        }else{
+            switch (wider(a, b)){
+                case LONG -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TIFLT(builder.getTos(), b.register(), a.register()));
+                }
+                case DOUBLE -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TDIFLT(builder.getTos(), b.register(), a.register()));
+                }
+            }
+        }
+    }
+
+    private void le(HvmCodeBuilder builder){
+        var operands = builder.operands();
+        var b = operands.pop();
+        var a = operands.pop();
+
+        promoteNarrower(builder, a, b);
+
+        if(builder.peekNextOp() == IF){
+            var target = builder.fetchInt();
+            // Fuse to IFLE
+            switch (wider(a, b)){
+                case LONG -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.IFLE(a.register(), b.register(), builder.remapIp(target)));
+                }
+                case DOUBLE -> {
+                    builder.markJump(target);
+                    builder.deferOpcode(() -> Opcodes.DIFLE(a.register(), b.register(), builder.remapIp(target)));
+                }
+            }
+        }else{
+            switch (wider(a, b)){
+                case LONG -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TIFLE(builder.getTos(), b.register(), a.register()));
+                }
+                case DOUBLE -> {
+                    operands.push(LONG);
+                    builder.appendOpcode(Opcodes.TDIFLE(builder.getTos(), b.register(), a.register()));
+                }
+            }
         }
     }
 
     private void truth(HvmCodeBuilder builder){
-        // TODO - probably needs to be changed
         var operands = builder.operands();
         var a = operands.pop();
-        builder.appendOpcode(Opcodes.CONST(a.register() + 1, 1L));
-        builder.appendOpcode(Opcodes.BAND(a.register(), a.register(), a.register() + 1));
         operands.push(LONG);
+        var tos = builder.getTos();
+        builder.appendOpcode(Opcodes.CONST(tos + 1, 1L));
+        builder.appendOpcode(Opcodes.BAND(tos, a.register(), tos + 1));
+        builder.appendOpcode(Opcodes.DEBUG(tos, a.register()));
     }
 
     protected void promoteNarrower(HvmCodeBuilder builder, Operand a, Operand b){

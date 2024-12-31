@@ -20,26 +20,22 @@
 
 package chipmunk.vm.hvm;
 
-import chipmunk.runtime.ChipmunkModule;
-import myworld.hummingbird.Executable;
-import myworld.hummingbird.HummingbirdVM;
+import java.util.HashMap;
+import java.util.Map;
 
-public class HvmModule implements ChipmunkModule {
+public class TosStates {
 
-    private final HummingbirdVM vm;
+    private final Map<Integer, Integer> phi = new HashMap<>();
 
-    public HvmModule(Executable exe){
-        vm = new HummingbirdVM(exe);
-        for(int i = 0; i < exe.code().length; i++){
-            System.out.println(i + ": " + "0x%02X r%d, r%d, r%d, r%d".formatted(exe.code()[i].opcode(), exe.code()[i].dst(), exe.code()[i].src(), exe.code()[i].extra(), exe.code()[i].extra1()));
+    public void markOpcode(int opIndex, int tos){
+        if(!phi.containsKey(opIndex)){
+            phi.put(opIndex, tos);
         }
     }
 
-    /**
-     * For use with the CVM's eval() method
-     */
-    public Object evaluate(){
-        return vm.run();
+    public int getTosRegister(int opIndex){
+        var reg = phi.get(opIndex);
+        return reg == null ? -1 : reg;
     }
 
 }

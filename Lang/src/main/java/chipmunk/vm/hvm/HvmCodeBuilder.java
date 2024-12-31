@@ -37,6 +37,7 @@ public class HvmCodeBuilder {
     protected final IpRemapping remapping;
     protected final RegisterStates registerStates;
     protected final Operands operands;
+    protected final TosStates tosStates;
 
     protected final Map<Integer, Supplier<Opcode>> deferredOps;
     protected final Map<Integer, Supplier<Symbol>> deferredSymbols;
@@ -50,6 +51,7 @@ public class HvmCodeBuilder {
         remapping = new IpRemapping();
         registerStates = new RegisterStates(); // Currently used only by get/set local
         operands = new Operands(method.getArgCount() + method.getLocalCount());
+        tosStates = new TosStates();
         deferredOps = new HashMap<>();
         deferredSymbols = new HashMap<>();
         ip = 0;
@@ -78,7 +80,24 @@ public class HvmCodeBuilder {
     public int appendOpcode(Opcode op){
         var hIp = builder.appendOpcode(op);
         remapping.remap(lastIp, ip, hIp);
+        tosStates.markOpcode(hIp, op.dst());
         return hIp;
+    }
+
+    public void markJump(int target){
+        markJump(target, getTos());
+    }
+
+    public void markJump(int target, int tos){
+        tosStates.markOpcode(target, tos);
+    }
+
+    public int getTos(){
+        var reg = tosStates.getTosRegister(ip);
+        if(reg == -1){
+            reg = operands.currentTos();
+        }
+        return reg;
     }
 
     public int deferOpcode(Supplier<Opcode> factory){

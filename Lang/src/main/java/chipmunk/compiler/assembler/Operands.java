@@ -37,21 +37,25 @@ public class Operands {
 
     public Operand push(HVMType type){
         types.push(type);
-        return new Operand(calculateRegister(), type);
+        return new Operand(currentTos(), type);
     }
 
     public Operand pop(){
-        return new Operand(calculateRegister(), types.pop());
+        return new Operand(currentTos(), types.pop());
     }
 
     public Operand dup(){
         var type = types.peek();
         types.push(type);
-        return new Operand(calculateRegister(), type);
+        return new Operand(currentTos(), type);
     }
 
-    private int calculateRegister(){
+    public int currentTos(){
         return reserved + types.size() - 1;
+    }
+
+    public int nextPushedTos(){
+        return currentTos() + 1;
     }
 
 }
