@@ -20,35 +20,68 @@
 
 package chipmunk.profiling;
 
-import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class ChipmunkProfiler {
 
+	private final ChipmunkVM vm = new ChipmunkVM();
+	private final Map<String, Map<String, Callable<Object>>> programs = new HashMap<>();
+
 	
 	public static void main(String[] args) throws Throwable {
+		var category = "chipmunk";
+		var program = "countToAMillion";
+		if(args.length > 0){
+			if(args.length == 1){
+				program = args[0];
+			}else{
+				category = args[0];
+				program = args[1];
+			}
+		}
 
-		ChipmunkVM vm = new ChipmunkVM();
-		ChipmunkScript countToAMillion = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
-		ChipmunkScript countingForLoop = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop");
+		var profiler = new ChipmunkProfiler();
 
-		ChipmunkScript fibonacci = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci");
-		ChipmunkScript mandelbrot = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot");
+		var chipmunkPrograms = new HashMap<String, Callable<Object>>();
+		chipmunkPrograms.put("countToAMillion", profiler.load("countToAMillion", "CountToAMillion.chp"));
+		chipmunkPrograms.put("countingForLoop", profiler.load("countingForLoop", "CountingForLoop.chp"));
+		chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
+		chipmunkPrograms.put("mandelbrot", profiler.load("mandelbrot", "Mandelbrot.chp"));
 
+		chipmunkPrograms.put("polymorphism", profiler.load("polymorphism", "PolymorphicCalling.chp"));
+		chipmunkPrograms.put("nonpolymorphism", profiler.load("nonpolymorphism", "NonpolymorphicCalling.chp"));
 
-		ChipmunkScript polymorphism = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("PolymorphicCalling.chp"), "polymorphism");
-		ChipmunkScript nonpolymorphism = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism");
-		
+		var javaPrograms = new HashMap<String, Callable<Object>>();
+		javaPrograms.put("countToAMillion", TestPrograms.countOneMillion());
+		javaPrograms.put("callOneMillion", TestPrograms.callOneMillion());
+		javaPrograms.put("fibonacci30", TestPrograms.fibonacci30());
+		javaPrograms.put("mathBench", TestPrograms.mathBench());
+
+		profiler.programs.put("chipmunk", chipmunkPrograms);
+		profiler.programs.put("java", javaPrograms);
+
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
+		var selected = profiler.programs.get(category).get(program);
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = vm.runAsync(polymorphism).get();
+			value = selected.call();
 			long endTime = System.nanoTime();
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}
 		
 	}
+
+	private Callable<Object> load(String name, String resource) throws Exception {
+		var script = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream(resource), name);
+		return script::run;
+	}
+
+
 
 }
