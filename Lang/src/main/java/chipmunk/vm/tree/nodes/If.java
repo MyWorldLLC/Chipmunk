@@ -20,7 +20,7 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class If implements Node {
@@ -29,14 +29,14 @@ public class If implements Node {
     public Node _else;
 
     @Override
-    public Object execute(Context ctx) {
-        long t;
+    public Object execute(Fiber ctx) {
+        boolean t;
         try {
-            t = ((Number) test.execute(ctx)).longValue();
+            t = test.executeBoolean(ctx);
         } catch (Exception e) {
             throw e;
         }
-        if (t != 0) {
+        if (t) {
             try {
                 return _if.execute(ctx);
             } catch (Exception e) {

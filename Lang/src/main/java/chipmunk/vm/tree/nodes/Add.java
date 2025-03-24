@@ -20,14 +20,24 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
-public class Add implements Node {
+public final class Add implements Node {
     public Node l, r;
 
     @Override
-    public Object execute(Context ctx) {
-        return ((Number)l.execute(ctx)).longValue() + ((Number)r.execute(ctx)).longValue();
+    public Object execute(Fiber ctx) {
+        return executeInt(ctx);
+    }
+
+    @Override
+    public int executeInt(Fiber ctx){
+        return l.executeInt(ctx) + r.executeInt(ctx);
+    }
+
+    @Override
+    public float executeFloat(Fiber ctx){
+        return executeInt(ctx);
     }
 }

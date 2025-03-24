@@ -20,8 +20,10 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
+
+import static chipmunk.vm.tree.Conversions.toFloat;
 
 public class GetVar implements Node {
     int v;
@@ -31,7 +33,12 @@ public class GetVar implements Node {
     }
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         return ctx.getLocal(v);
+    }
+
+    @Override
+    public float executeFloat(Fiber ctx){
+        return toFloat(execute(ctx));
     }
 }

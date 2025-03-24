@@ -20,22 +20,23 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class Const implements Node {
-    int value;
+    Object value;
 
     public Const(int v) {
         value = v;
     }
 
     public Const(float f) {
-        value = Float.floatToIntBits(f);
+        value = f;
     }
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         return value;
     }
+
 }

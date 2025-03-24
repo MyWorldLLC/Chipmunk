@@ -20,7 +20,7 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class CallNode implements Node {
@@ -35,12 +35,12 @@ public class CallNode implements Node {
     }
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         for (int i = 0; i < args.length; i++) {
-            ctx.setLocal(i + locals, ((Number)args[i].execute(ctx)).longValue());
+            ctx.setLocal(i + locals, args[i].execute(ctx));
         }
         ctx.preCall(locals);
-        long result = (Long)f.execute(ctx);
+        var result = f.execute(ctx);
         ctx.postCall();
         return result;
     }

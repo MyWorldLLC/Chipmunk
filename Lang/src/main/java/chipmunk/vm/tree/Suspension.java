@@ -20,9 +20,9 @@
 
 package chipmunk.vm.tree;
 
-public record Suspension(long state, long value, NodePartial[] states) {
+public record Suspension(Object state, Object value, NodePartial[] states) {
 
-    public Suspension(long state, NodePartial... states) {
+    public Suspension(Object state, NodePartial... states) {
         this(state, 0, states);
     }
 

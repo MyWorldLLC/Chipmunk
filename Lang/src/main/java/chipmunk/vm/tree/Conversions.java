@@ -20,28 +20,28 @@
 
 package chipmunk.vm.tree;
 
-import static chipmunk.vm.tree.Conversions.*;
+public class Conversions {
 
-public interface Node {
-    Object execute(Fiber ctx);
-
-    default boolean executeBoolean(Fiber ctx){
-        return toBoolean(execute(ctx));
+    public static boolean toBoolean(Object o){
+        return o != null && (
+                ((o instanceof Boolean b) && b)
+                || toInt(o) != 0
+        );
     }
 
-    default int executeInt(Fiber ctx){
-        return toInt(execute(ctx));
+    public static int toInt(Object o){
+        return ((Number)o).intValue();
     }
 
-    default float executeFloat(Fiber ctx){
-        return toFloat(execute(ctx));
+    public static long toLong(Object o){
+        return ((Number)o).longValue();
     }
 
-    default long executeLong(Fiber ctx){
-        return toLong(execute(ctx));
+    public static float toFloat(Object o){
+        return ((Number)o).floatValue();
     }
 
-    default double executeDouble(Fiber ctx){
-        return toDouble(execute(ctx));
+    public static double toDouble(Object o){
+        return ((Number)o).doubleValue();
     }
 }

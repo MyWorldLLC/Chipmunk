@@ -20,14 +20,14 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class ReturnNode implements Node {
     public Node e;
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         var v = e.execute(ctx);
         ctx._return = true;
         return v;

@@ -51,6 +51,7 @@ public class ChipmunkProfiler {
 		chipmunkPrograms.put("countingForLoop", profiler.load("countingForLoop", "CountingForLoop.chp"));
 		chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
 		chipmunkPrograms.put("mandelbrot", profiler.load("mandelbrot", "Mandelbrot.chp"));
+		chipmunkPrograms.put("mathBench", profiler.load("mathBench", "MathBench.chp"));
 
 		chipmunkPrograms.put("polymorphism", profiler.load("polymorphism", "PolymorphicCalling.chp"));
 		chipmunkPrograms.put("nonpolymorphism", profiler.load("nonpolymorphism", "NonpolymorphicCalling.chp"));

@@ -20,39 +20,42 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
+
+import static chipmunk.vm.tree.Conversions.toBoolean;
+import static chipmunk.vm.tree.Conversions.toInt;
 
 public class While implements Node {
     public Node test;
     public Node body;
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         return doBody(ctx, doTest(ctx, 0));
     }
 
-    public long doTest(Context ctx, long prior) {
+    public boolean doTest(Fiber ctx, Object prior) {
         try {
-            return (Integer)test.execute(ctx);
+            return test.executeBoolean(ctx);
         } catch (Exception e) {
-            ctx.suspendStateless(e, (ctx1, t) -> doBody(ctx1, t));
+            ctx.suspendStateless(e, (c, s) -> doBody(ctx, toBoolean(s)));
         }
-        return 0;
+        return false;
     }
 
-    public long doBody(Context ctx, long t) {
-        while (t != 0 && !ctx.checkInterrupt()) {
+    public Object doBody(Fiber ctx, boolean t) {
+        while (t && !ctx.checkInterrupt()) {
             try {
                 body.execute(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, (ctx1, prior) -> doTest(ctx1, prior));
+                ctx.suspendStateless(e, this::doTest);
             }
 
             try {
-                t = ((Number)test.execute(ctx)).longValue();
+                t = test.executeBoolean(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, (ctx1, t1) -> doBody(ctx1, t1));
+                ctx.suspendStateless(e, (c, s) -> doBody(c, toBoolean(s)));
             }
         }
         return 0;

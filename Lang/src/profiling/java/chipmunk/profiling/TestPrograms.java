@@ -20,7 +20,7 @@
 
 package chipmunk.profiling;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
 
@@ -39,7 +39,7 @@ public class TestPrograms {
 
     public static Callable<Object> countOneMillion(){
 
-        var ctx = new Context();
+        var ctx = new Fiber();
 
         var initX = new SetVar(0);
         initX.value = new Const(0);
@@ -69,7 +69,7 @@ public class TestPrograms {
 
     public static Callable<Object> fibonacci30(){
 
-        var ctx = new Context();
+        var ctx = new Fiber();
         var fib = new FunctionNode();
 
         var getN = new GetVar(0);
@@ -122,7 +122,7 @@ public class TestPrograms {
         # }
          */
 
-        var ctx = new Context();
+        var ctx = new Fiber();
 
         var initI = new SetVar(0); // i = 0
         initI.value = new Const(0);
@@ -153,11 +153,11 @@ public class TestPrograms {
         plus1.l = addTwoI;
         plus1.r = new Const(1);
 
-        var toFloat = new I2F(); // (float)(i + i + 2 * i + 1)
-        toFloat.i = plus1;
+        //var toFloat = new I2F(); // (float)(i + i + 2 * i + 1)
+        //toFloat.i = plus1;
 
         var fSub = new FSub(); // (float)(i + i + 2 * i + 1) - 0.379
-        fSub.l = toFloat;
+        fSub.l = plus1;
         fSub.r = new Const(0.379f);
 
         var div = new FDiv(); // ((float)(i + i + 2 * i + 1) - 0.379) / x
@@ -182,11 +182,11 @@ public class TestPrograms {
         var program = new FunctionNode();
         program.nodes = new Node[]{initX, loop, getX};
 
-        return () -> Float.intBitsToFloat(((Number)program.execute(ctx)).intValue());
+        return () -> program.execute(ctx);
     }
 
     public static Callable<Object> callOneMillion(){
-        var ctx = new Context();
+        var ctx = new Fiber();
 
         var f = new FunctionNode();
         f.nodes = new Node[]{new Const(1)};

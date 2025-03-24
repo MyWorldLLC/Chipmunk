@@ -20,14 +20,14 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class FunctionNode implements Node {
     public Node[] nodes;
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         for (int i = 0; i < nodes.length - 1; i++) {
             var v = nodes[i].execute(ctx);
             if (ctx._return) {

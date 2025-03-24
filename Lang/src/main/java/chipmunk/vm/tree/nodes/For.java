@@ -20,8 +20,10 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
+
+import static chipmunk.vm.tree.Conversions.*;
 
 public class For implements Node {
     public Node pre;
@@ -30,34 +32,34 @@ public class For implements Node {
     public Node post;
 
     @Override
-    public Object execute(Context ctx) {
-        doPre(ctx, 0);
-        return doBody(ctx, doTest(ctx, 0));
+    public Object execute(Fiber ctx) {
+        doPre(ctx);
+        return doBody(ctx, doTest(ctx));
     }
 
-    public int doPre(Context ctx, int prior) {
+    public Object doPre(Fiber ctx) {
         if (pre != null) {
             try {
                 pre.execute(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, (ctx1, prior1) -> doTest(ctx1, prior1));
+                ctx.suspendStateless(e, (c, s) -> doTest(c));
             }
         }
-        return 0;
+        return null;
     }
 
-    public long doTest(Context ctx, long prior) {
+    public boolean doTest(Fiber ctx) {
         try {
-            return ((Number)test.execute(ctx)).longValue();
+            return test.executeBoolean(ctx);
         } catch (Exception e) {
-            ctx.suspendStateless(e, this::doBody);
+            ctx.suspendStateless(e, (c, s) -> doBody(c, toBoolean(s)));
         }
-        return 0; // suspend() will rethrow so this will never be reached
+        return false; // suspend() will rethrow so this will never be reached
     }
 
-    public long doBody(Context ctx, long test) {
-        long t = test;
-        while (t != 0 && !ctx.checkInterrupt()) {
+    public Object doBody(Fiber ctx, boolean test) {
+        var t = test;
+        while (t && !ctx.checkInterrupt()) {
             try {
                 body.execute(ctx);
             } catch (Exception e) {
@@ -65,20 +67,20 @@ public class For implements Node {
             }
 
             doPost(ctx, 0);
-            t = doTest(ctx, 0);
+            t = doTest(ctx);
         }
         return 0;
     }
 
-    public long doPost(Context ctx, long prior) {
+    public Object doPost(Fiber ctx, Object prior) {
         if (post != null) {
             try {
                 post.execute(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, this::doTest);
+                ctx.suspendStateless(e, (c, s) -> doTest(c));
             }
         }
-        return 0;
+        return null;
     }
 
 }

@@ -20,14 +20,14 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class Block implements Node {
     public Node[] body;
 
     @Override
-    public Object execute(Context ctx) {
+    public Object execute(Fiber ctx) {
         long result = 0;
         for (int i = 0; i < body.length; i++) {
             try {

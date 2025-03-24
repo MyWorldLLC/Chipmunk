@@ -24,16 +24,17 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 
+import static chipmunk.vm.tree.Conversions.toInt;
+
 /**
  * Fiber execution context. Note that interrupt() is the only method that can
  * be called from a thread that is not the currently executing thread.
  */
-public class Context {
+public class Fiber {
     int[] frame = new int[40];
     int framePtr = 0;
     int stackPtr = 0;
-    long[] locals = new long[200];
-    Object[] localRefs = new Object[200];
+    Object[] locals = new Object[200];
 
     volatile boolean interrupt;
     public boolean _return;
@@ -52,12 +53,12 @@ public class Context {
         _return = false;
     }
 
-    public long setLocal(int local, long value) {
+    public Object setLocal(int local, Object value) {
         locals[stackPtr + local] = value;
         return value;
     }
 
-    public long getLocal(int local) {
+    public Object getLocal(int local) {
         return locals[stackPtr + local];
     }
 
@@ -69,13 +70,13 @@ public class Context {
         return interrupt;
     }
 
-    public void resume(Context ctx) {
+    public void resume(Fiber ctx) {
         var suspension = suspensions.pop();
         while (suspension != null) {
             var value = suspension.value();
             // TODO - add support for exception handlers to suspensions. When executing a suspension,
             // if an exception is thrown walk back through the suspension stack and execute the nearest handler.
-            for (int i = (int) suspension.state(); i < suspension.states().length; i++) {
+            for (int i = toInt(suspension.state()); i < suspension.states().length; i++) {
                 try {
                     value = suspension.states()[i].execute(ctx, i);
                 } catch (Exception e) {
@@ -91,7 +92,7 @@ public class Context {
         suspend(t, 0, resumables);
     }
 
-    public void suspend(Throwable t, long state, NodePartial... resumables) throws RuntimeException {
+    public void suspend(Throwable t, Object state, NodePartial... resumables) throws RuntimeException {
         suspensions.add(new Suspension(state, resumables));
         throw new RuntimeException(t);
     }

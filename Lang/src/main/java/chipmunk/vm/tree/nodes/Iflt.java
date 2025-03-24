@@ -20,24 +20,24 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class Iflt implements Node {
     public Node l, r;
 
     @Override
-    public Object execute(Context ctx) {
-        long a;
+    public Object execute(Fiber ctx) {
+        int a;
         try {
-            a = (Long)l.execute(ctx);
+            a = l.executeInt(ctx);
         } catch (Exception e) {
             throw e;
         }
 
-        long b;
+        int b;
         try {
-            b = (Integer)r.execute(ctx);
+            b = r.executeInt(ctx);
         } catch (Exception e) {
             throw e;
         }

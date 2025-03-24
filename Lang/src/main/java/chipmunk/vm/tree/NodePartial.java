@@ -21,5 +21,5 @@
 package chipmunk.vm.tree;
 
 public interface NodePartial {
-    long execute(Context ctx, long state);
+    Object execute(Fiber ctx, Object state);
 }

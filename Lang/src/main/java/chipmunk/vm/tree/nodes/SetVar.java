@@ -20,7 +20,7 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class SetVar implements Node {
@@ -32,8 +32,14 @@ public class SetVar implements Node {
     }
 
     @Override
-    public Object execute(Context ctx) {
-        var r = value.execute(ctx);
-        return ctx.setLocal(v, ((Number)r).intValue());
+    public Object execute(Fiber ctx) {
+        Object r;
+        try{
+            r = value.execute(ctx);
+        }catch (Exception e){
+            ctx.suspendStateless(e, (c, value) -> ctx.setLocal(v, value));
+            throw e; // Unreachable, since suspend will rethrow
+        }
+        return ctx.setLocal(v, r);
     }
 }

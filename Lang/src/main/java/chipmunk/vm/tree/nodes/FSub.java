@@ -20,14 +20,19 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class FSub implements Node {
     public Node l, r;
 
     @Override
-    public Object execute(Context ctx) {
-        return Float.floatToIntBits(Float.intBitsToFloat((int)l.execute(ctx)) - Float.intBitsToFloat((int)r.execute(ctx)));
+    public Object execute(Fiber ctx) {
+        return executeFloat(ctx);
+    }
+
+    @Override
+    public float executeFloat(Fiber ctx){
+        return l.executeFloat(ctx) - r.executeFloat(ctx);
     }
 }

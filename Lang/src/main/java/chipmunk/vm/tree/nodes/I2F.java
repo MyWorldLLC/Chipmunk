@@ -20,14 +20,19 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Context;
+import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
-public class I2F implements Node {
+public final class I2F implements Node {
     public Node i;
 
     @Override
-    public Object execute(Context ctx) {
-        return Float.floatToIntBits(((Number) i.execute(ctx)).floatValue());
+    public Object execute(Fiber ctx) {
+        return executeFloat(ctx);
+    }
+
+    @Override
+    public float executeFloat(Fiber ctx){
+        return i.executeFloat(ctx);
     }
 }
