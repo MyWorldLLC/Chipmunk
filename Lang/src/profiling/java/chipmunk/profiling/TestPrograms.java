@@ -20,6 +20,8 @@
 
 package chipmunk.profiling;
 
+import chipmunk.vm.tree.CClass;
+import chipmunk.vm.tree.CMethod;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
@@ -216,6 +218,69 @@ public class TestPrograms {
 
         var program = new FunctionNode();
         program.nodes = new Node[]{initX, loop, getX};
+
+        return () -> program.execute(ctx);
+    }
+
+    public static Callable<Object> callAtOneMillion(){
+        var ctx = new Fiber();
+
+        var initX = new SetVar(0);
+        initX.value = new Const(0);
+
+        var cClass = new CClass("testClass", 1, 0, 0, 0);
+
+        var fn = new FunctionNode();
+        fn.nodes = new Node[]{new Const(1)};
+
+        var method = new CMethod();
+        method.name = "fn";
+        method.argCount = 0;
+        method.code = fn;
+
+        cClass.defineMethod(0, method);
+
+        var obj = cClass.instantiate();
+
+        var initObj = new SetVar(1);
+        initObj.value = new Const(obj);
+
+        var getObj = new GetVar(1);
+
+        var getX = new GetVar(0);
+
+        var test = new Iflt();
+        test.l = getX;
+        test.r = new Const(1000000);
+
+        var callF = new CallAtNode(2, getObj, "fn");
+
+        var xPlus1 = new Add();
+        xPlus1.l = new GetVar(0);
+        xPlus1.r = callF;
+
+        var setX = new SetVar(0);
+        setX.value = xPlus1;
+
+        var loop = new For();
+        loop.pre = initX;
+        loop.test = test;
+        loop.body = setX;
+
+        var program = new FunctionNode();
+        program.nodes = new Node[]{initX, initObj, loop, getX};
+
+        return () -> program.execute(ctx);
+    }
+
+    public static Callable<Object> callJavaMethod(){
+        var ctx = new Fiber();
+        var str = new Const("Hello, World!");
+
+        var call = new CallAtNode(0, str, "toString");
+
+        var program = new FunctionNode();
+        program.nodes = new Node[]{call};
 
         return () -> program.execute(ctx);
     }

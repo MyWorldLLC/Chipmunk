@@ -24,7 +24,6 @@ import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 import static chipmunk.vm.tree.Conversions.toBoolean;
-import static chipmunk.vm.tree.Conversions.toInt;
 
 public class While implements Node {
     public Node test;
@@ -32,10 +31,10 @@ public class While implements Node {
 
     @Override
     public Object execute(Fiber ctx) {
-        return doBody(ctx, doTest(ctx, 0));
+        return doBody(ctx, doTest(ctx));
     }
 
-    public boolean doTest(Fiber ctx, Object prior) {
+    public boolean doTest(Fiber ctx) {
         try {
             return test.executeBoolean(ctx);
         } catch (Exception e) {
@@ -52,12 +51,8 @@ public class While implements Node {
                 ctx.suspendStateless(e, this::doTest);
             }
 
-            try {
-                t = test.executeBoolean(ctx);
-            } catch (Exception e) {
-                ctx.suspendStateless(e, (c, s) -> doBody(c, toBoolean(s)));
-            }
+            t = doTest(ctx);
         }
-        return 0;
+        return null;
     }
 }

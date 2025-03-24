@@ -18,21 +18,13 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree.nodes;
+package chipmunk.vm.tree;
 
-import chipmunk.vm.tree.Fiber;
-import chipmunk.vm.tree.Node;
+public interface StatelessNodePartial extends NodePartial {
 
-public class Const implements Node {
-    Object value;
+    Object execute(Fiber ctx);
 
-    public Const(Object obj){
-        value = obj;
+    default Object execute(Fiber ctx, Object s){
+        return execute(ctx);
     }
-
-    @Override
-    public Object execute(Fiber ctx) {
-        return value;
-    }
-
 }

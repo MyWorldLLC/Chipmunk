@@ -30,7 +30,6 @@ public class ChipmunkProfiler {
 
 	private final ChipmunkVM vm = new ChipmunkVM();
 	private final Map<String, Map<String, Callable<Object>>> programs = new HashMap<>();
-
 	
 	public static void main(String[] args) throws Throwable {
 		var category = "chipmunk";
@@ -59,8 +58,10 @@ public class ChipmunkProfiler {
 		var javaPrograms = new HashMap<String, Callable<Object>>();
 		javaPrograms.put("countToAMillion", TestPrograms.countOneMillion());
 		javaPrograms.put("callOneMillion", TestPrograms.callOneMillion());
+		javaPrograms.put("callAtOneMillion", TestPrograms.callAtOneMillion());
 		javaPrograms.put("fibonacci30", TestPrograms.fibonacci30());
 		javaPrograms.put("mathBench", TestPrograms.mathBench());
+		javaPrograms.put("callJavaMethod", TestPrograms.callJavaMethod());
 
 		profiler.programs.put("chipmunk", chipmunkPrograms);
 		profiler.programs.put("java", javaPrograms);

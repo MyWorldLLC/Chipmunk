@@ -18,21 +18,16 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree.nodes;
+package chipmunk.vm.tree;
 
-import chipmunk.vm.tree.Fiber;
-import chipmunk.vm.tree.Node;
+public class CallUtil {
 
-public class Const implements Node {
-    Object value;
-
-    public Const(Object obj){
-        value = obj;
-    }
-
-    @Override
-    public Object execute(Fiber ctx) {
-        return value;
+    public static Class<?>[] argTypes(Object[] args){
+        var types = new Class<?>[args.length];
+        for(var i = 0; i < args.length; i++){
+            types[i] = args[i] != null ? args[i].getClass() : null;
+        }
+        return types;
     }
 
 }

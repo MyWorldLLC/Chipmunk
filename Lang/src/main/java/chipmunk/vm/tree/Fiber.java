@@ -23,6 +23,9 @@ package chipmunk.vm.tree;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static chipmunk.vm.tree.Conversions.toInt;
 
@@ -35,6 +38,7 @@ public class Fiber {
     int framePtr = 0;
     int stackPtr = 0;
     Object[] locals = new Object[200];
+    Object[] nodeCaches = new Object[20];
 
     volatile boolean interrupt;
     public boolean _return;
@@ -88,6 +92,10 @@ public class Fiber {
 
     }
 
+    public void suspendStateless(Throwable t, StatelessNodePartial... resumables) throws RuntimeException {
+        suspend(t, 0, resumables);
+    }
+
     public void suspendStateless(Throwable t, NodePartial... resumables) throws RuntimeException {
         suspend(t, 0, resumables);
     }
@@ -95,5 +103,22 @@ public class Fiber {
     public void suspend(Throwable t, Object state, NodePartial... resumables) throws RuntimeException {
         suspensions.add(new Suspension(state, resumables));
         throw new RuntimeException(t);
+    }
+
+    public <T> T getNodeCache(Node node, Class<T> type, Supplier<T> init){
+        var idx = Objects.hashCode(node) % nodeCaches.length;
+        var cached = nodeCaches[idx];
+        if(cached == null || !type.equals(cached.getClass())){
+            cached = init.get();
+            nodeCaches[idx] = cached;
+        }
+        return type.cast(cached);
+    }
+
+    public <T> T replaceNodeCache(Node node, Supplier<T> init){
+        var idx = Objects.hashCode(node) % nodeCaches.length;
+        var cache = init.get();
+        nodeCaches[idx] = cache;
+        return cache;
     }
 }
