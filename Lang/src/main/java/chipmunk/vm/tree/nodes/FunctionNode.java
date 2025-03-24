@@ -27,7 +27,7 @@ public class FunctionNode implements Node {
     public Node[] nodes;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         for (int i = 0; i < nodes.length - 1; i++) {
             var v = nodes[i].execute(ctx);
             if (ctx._return) {

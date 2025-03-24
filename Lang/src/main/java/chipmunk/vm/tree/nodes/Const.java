@@ -35,7 +35,7 @@ public class Const implements Node {
     }
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         return value;
     }
 }

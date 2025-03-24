@@ -28,13 +28,13 @@ public class While implements Node {
     public Node body;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         return doBody(ctx, doTest(ctx, 0));
     }
 
     public long doTest(Context ctx, long prior) {
         try {
-            return test.execute(ctx);
+            return (Integer)test.execute(ctx);
         } catch (Exception e) {
             ctx.suspendStateless(e, (ctx1, t) -> doBody(ctx1, t));
         }
@@ -50,7 +50,7 @@ public class While implements Node {
             }
 
             try {
-                t = test.execute(ctx);
+                t = ((Number)test.execute(ctx)).longValue();
             } catch (Exception e) {
                 ctx.suspendStateless(e, (ctx1, t1) -> doBody(ctx1, t1));
             }

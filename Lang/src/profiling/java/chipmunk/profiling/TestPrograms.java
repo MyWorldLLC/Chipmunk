@@ -182,7 +182,7 @@ public class TestPrograms {
         var program = new FunctionNode();
         program.nodes = new Node[]{initX, loop, getX};
 
-        return () -> Float.intBitsToFloat((int)program.execute(ctx));
+        return () -> Float.intBitsToFloat(((Number)program.execute(ctx)).intValue());
     }
 
     public static Callable<Object> callOneMillion(){

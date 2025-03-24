@@ -27,7 +27,7 @@ public class Add implements Node {
     public Node l, r;
 
     @Override
-    public long execute(Context ctx) {
-        return l.execute(ctx) + r.execute(ctx);
+    public Object execute(Context ctx) {
+        return ((Number)l.execute(ctx)).longValue() + ((Number)r.execute(ctx)).longValue();
     }
 }

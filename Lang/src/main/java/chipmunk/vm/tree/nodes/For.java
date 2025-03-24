@@ -30,7 +30,7 @@ public class For implements Node {
     public Node post;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         doPre(ctx, 0);
         return doBody(ctx, doTest(ctx, 0));
     }
@@ -48,7 +48,7 @@ public class For implements Node {
 
     public long doTest(Context ctx, long prior) {
         try {
-            return test.execute(ctx);
+            return ((Number)test.execute(ctx)).longValue();
         } catch (Exception e) {
             ctx.suspendStateless(e, this::doBody);
         }

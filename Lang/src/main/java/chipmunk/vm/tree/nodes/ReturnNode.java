@@ -27,7 +27,7 @@ public class ReturnNode implements Node {
     public Node e;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         var v = e.execute(ctx);
         ctx._return = true;
         return v;

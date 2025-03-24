@@ -27,7 +27,7 @@ public class FSub implements Node {
     public Node l, r;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         return Float.floatToIntBits(Float.intBitsToFloat((int)l.execute(ctx)) - Float.intBitsToFloat((int)r.execute(ctx)));
     }
 }

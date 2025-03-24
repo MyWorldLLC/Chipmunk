@@ -21,5 +21,5 @@
 package chipmunk.vm.tree;
 
 public interface Node {
-    long execute(Context ctx);
+    Object execute(Context ctx);
 }

@@ -35,12 +35,12 @@ public class CallNode implements Node {
     }
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         for (int i = 0; i < args.length; i++) {
-            ctx.setLocal(i + locals, args[i].execute(ctx));
+            ctx.setLocal(i + locals, ((Number)args[i].execute(ctx)).longValue());
         }
         ctx.preCall(locals);
-        long result = f.execute(ctx);
+        long result = (Long)f.execute(ctx);
         ctx.postCall();
         return result;
     }

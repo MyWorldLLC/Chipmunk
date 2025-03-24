@@ -29,10 +29,10 @@ public class If implements Node {
     public Node _else;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         long t;
         try {
-            t = test.execute(ctx);
+            t = ((Number) test.execute(ctx)).longValue();
         } catch (Exception e) {
             throw e;
         }

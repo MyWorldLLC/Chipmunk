@@ -27,17 +27,17 @@ public class Iflt implements Node {
     public Node l, r;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         long a;
         try {
-            a = l.execute(ctx);
+            a = (Long)l.execute(ctx);
         } catch (Exception e) {
             throw e;
         }
 
         long b;
         try {
-            b = r.execute(ctx);
+            b = (Integer)r.execute(ctx);
         } catch (Exception e) {
             throw e;
         }

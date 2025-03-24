@@ -27,11 +27,11 @@ public class Block implements Node {
     public Node[] body;
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         long result = 0;
         for (int i = 0; i < body.length; i++) {
             try {
-                result = body[i].execute(ctx);
+                result = (Long)body[i].execute(ctx);
             } catch (Exception e) {
                 throw e;
             }

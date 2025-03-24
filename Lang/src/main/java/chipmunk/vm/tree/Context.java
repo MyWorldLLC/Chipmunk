@@ -32,7 +32,8 @@ public class Context {
     int[] frame = new int[40];
     int framePtr = 0;
     int stackPtr = 0;
-    long[] vars = new long[200];
+    long[] locals = new long[200];
+    Object[] localRefs = new Object[200];
 
     volatile boolean interrupt;
     public boolean _return;
@@ -52,12 +53,12 @@ public class Context {
     }
 
     public long setLocal(int local, long value) {
-        vars[stackPtr + local] = value;
+        locals[stackPtr + local] = value;
         return value;
     }
 
     public long getLocal(int local) {
-        return vars[stackPtr + local];
+        return locals[stackPtr + local];
     }
 
     public void interrupt(){

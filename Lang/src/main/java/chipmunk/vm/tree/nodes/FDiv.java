@@ -27,7 +27,7 @@ public class FDiv implements Node {
     public Node l, r;
 
     @Override
-    public long execute(Context ctx) {
-        return Float.floatToIntBits(Float.intBitsToFloat((int)l.execute(ctx)) / Float.intBitsToFloat((int)r.execute(ctx)));
+    public Object execute(Context ctx) {
+        return Float.floatToIntBits(Float.intBitsToFloat(((Number)l.execute(ctx)).intValue()) / Float.intBitsToFloat(((Number)r.execute(ctx)).intValue()));
     }
 }

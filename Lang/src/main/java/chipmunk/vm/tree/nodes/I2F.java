@@ -27,7 +27,7 @@ public class I2F implements Node {
     public Node i;
 
     @Override
-    public long execute(Context ctx) {
-        return Float.floatToIntBits((float) i.execute(ctx));
+    public Object execute(Context ctx) {
+        return Float.floatToIntBits(((Number) i.execute(ctx)).floatValue());
     }
 }

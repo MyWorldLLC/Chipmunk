@@ -32,8 +32,8 @@ public class SetVar implements Node {
     }
 
     @Override
-    public long execute(Context ctx) {
+    public Object execute(Context ctx) {
         var r = value.execute(ctx);
-        return ctx.setLocal(v, r);
+        return ctx.setLocal(v, ((Number)r).intValue());
     }
 }
