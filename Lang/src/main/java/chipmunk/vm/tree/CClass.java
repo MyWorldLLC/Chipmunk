@@ -65,6 +65,16 @@ public class CClass {
         instanceMethods[i] = method;
     }
 
+    public int getFieldIndex(String name){
+        for(int i = 0; i < instanceFields.length; i++){
+            var f = instanceFields[i];
+            if(f.name().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public CObject instantiate(){
         var obj = new CObject();
         obj.cls = this;

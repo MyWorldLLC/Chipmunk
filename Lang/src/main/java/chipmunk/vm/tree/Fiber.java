@@ -20,6 +20,9 @@
 
 package chipmunk.vm.tree;
 
+import chipmunk.vm.ChipmunkVM;
+import chipmunk.vm.invoke.security.SecurityMode;
+
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -34,6 +37,7 @@ import static chipmunk.vm.tree.Conversions.toInt;
  * be called from a thread that is not the currently executing thread.
  */
 public class Fiber {
+    public final ChipmunkVM vm;
     int[] frame = new int[40];
     int framePtr = 0;
     int stackPtr = 0;
@@ -44,6 +48,14 @@ public class Fiber {
     public boolean _return;
 
     Deque<Suspension> suspensions = new ArrayDeque<>();
+
+    public Fiber(){
+        this(new ChipmunkVM(SecurityMode.DENYING));
+    }
+
+    public Fiber(ChipmunkVM vm){
+        this.vm = vm;
+    }
 
     public void preCall(int locals) {
         frame[framePtr] = stackPtr;

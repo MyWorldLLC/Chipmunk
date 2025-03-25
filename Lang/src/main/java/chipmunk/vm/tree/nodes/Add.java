@@ -28,16 +28,9 @@ public final class Add implements Node {
 
     @Override
     public Object execute(Fiber ctx) {
+        // TODO - determine types & either hit runtime library definition
+        // or resort to CObject.add()
         return executeInt(ctx);
     }
 
-    @Override
-    public int executeInt(Fiber ctx){
-        return l.executeInt(ctx) + r.executeInt(ctx);
-    }
-
-    @Override
-    public float executeFloat(Fiber ctx){
-        return executeInt(ctx);
-    }
 }

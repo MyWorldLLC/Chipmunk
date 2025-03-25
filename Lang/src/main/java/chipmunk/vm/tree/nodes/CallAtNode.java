@@ -20,10 +20,7 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.CObject;
-import chipmunk.vm.tree.CallUtil;
-import chipmunk.vm.tree.Fiber;
-import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,7 +42,12 @@ public class CallAtNode implements Node {
     // TODO - support suspensions
     @Override
     public Object execute(Fiber ctx){
-        var target = obj.execute(ctx);
+        Object target = null;
+        try{
+            target = obj.execute(ctx);
+        }catch (Exception e){
+            ctx.suspendStateless(e, (c) -> {/* TODO */return null;});
+        }
 
         if(target instanceof CObject cObj){
 
@@ -53,6 +55,8 @@ public class CallAtNode implements Node {
             for (int i = 0; i < args.length; i++) {
                 ctx.setLocal(i + locals + 1, args[i].execute(ctx));
             }
+
+            // TODO - method caching
 
             var method = cObj.cls.getMethod(cObj, targetName, args.length);
             ctx.preCall(locals);
@@ -101,6 +105,15 @@ public class CallAtNode implements Node {
     private record CachedNativeCall(Class<?> targetType, Class<?>[] argTypes, Method method){
 
         public boolean checkCall(Class<?> targetType, Class<?>[] argTypes){
+            return targetType.equals(this.targetType) && Arrays.equals(this.argTypes, argTypes);
+        }
+
+    }
+
+    // Arg types must be Object[] because it can be a mix of Java classes & CClasses.
+    private record CachedCall(CClass targetType, Object[] argTypes, CMethod method){
+
+        public boolean checkCall(CClass targetType, Object[] argTypes){
             return targetType.equals(this.targetType) && Arrays.equals(this.argTypes, argTypes);
         }
 

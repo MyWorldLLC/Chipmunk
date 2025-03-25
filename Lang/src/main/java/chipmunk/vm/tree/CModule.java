@@ -20,27 +20,5 @@
 
 package chipmunk.vm.tree;
 
-public class CObject {
-
-    public CClass cls;
-    public Object[] fields;
-
-    // TODO - move to nodes for consistency with call/callAt
-
-    public Object getField(String name){
-        var idx = cls.getFieldIndex(name);
-        if(idx == -1){
-            // TODO - trait lookup & resolution
-            // TODO - throw exception
-        }
-        return fields[idx];
-    }
-
-    public Object getField(int index){
-        if(index < 0 || index > fields.length){
-            // TODO - throw exception
-        }
-        return fields[index];
-    }
-
+public class CModule extends CObject {
 }

@@ -202,7 +202,7 @@ public class TestPrograms {
         test.l = getX;
         test.r = new Const(1000000);
 
-        var callF = new CallNode(1, f, new Node[0]);
+        var callF = new CallNode(1, f);
 
         var xPlus1 = new Add();
         xPlus1.l = new GetVar(0);
@@ -284,4 +284,5 @@ public class TestPrograms {
 
         return () -> program.execute(ctx);
     }
+
 }
