@@ -23,6 +23,8 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
+import java.math.BigDecimal;
+
 public class If implements Node {
     public Node test;
     public Node _if;
@@ -32,7 +34,7 @@ public class If implements Node {
     public Object execute(Fiber ctx) {
         boolean t;
         try {
-            t = test.executeBoolean(ctx);
+            t = (Boolean) test.execute(ctx);
         } catch (Exception e) {
             throw e;
         }
@@ -45,6 +47,6 @@ public class If implements Node {
         } else if (_else != null) {
             return _else.execute(ctx);
         }
-        return 0;
+        return new BigDecimal(0);
     }
 }

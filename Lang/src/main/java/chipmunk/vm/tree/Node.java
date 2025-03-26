@@ -20,28 +20,6 @@
 
 package chipmunk.vm.tree;
 
-import static chipmunk.vm.tree.Conversions.*;
-
 public interface Node {
     Object execute(Fiber ctx);
-
-    default boolean executeBoolean(Fiber ctx){
-        return toBoolean(execute(ctx));
-    }
-
-    default int executeInt(Fiber ctx){
-        return toInt(execute(ctx));
-    }
-
-    default float executeFloat(Fiber ctx){
-        return toFloat(execute(ctx));
-    }
-
-    default long executeLong(Fiber ctx){
-        return toLong(execute(ctx));
-    }
-
-    default double executeDouble(Fiber ctx){
-        return toDouble(execute(ctx));
-    }
 }

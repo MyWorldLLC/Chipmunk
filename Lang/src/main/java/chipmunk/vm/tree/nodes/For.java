@@ -23,8 +23,6 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
-import static chipmunk.vm.tree.Conversions.*;
-
 public class For implements Node {
     public Node pre;
     public Node test;
@@ -42,22 +40,22 @@ public class For implements Node {
             try {
                 pre.execute(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, (c, s) -> doTest(c));
+                ctx.suspendStateless(e, this::doTest);
             }
         }
         return null;
     }
 
-    public boolean doTest(Fiber ctx) {
+    public Boolean doTest(Fiber ctx) {
         try {
-            return test.executeBoolean(ctx);
+            return (Boolean) test.execute(ctx);
         } catch (Exception e) {
-            ctx.suspendStateless(e, (c, s) -> doBody(c, toBoolean(s)));
+            ctx.suspendStateless(e, (c, s) -> doBody(c, (Boolean) s));
         }
         return false; // suspend() will rethrow so this will never be reached
     }
 
-    public Object doBody(Fiber ctx, boolean test) {
+    public Object doBody(Fiber ctx, Boolean test) {
         var t = test;
         while (t && !ctx.checkInterrupt()) {
             try {
@@ -66,18 +64,18 @@ public class For implements Node {
                 ctx.suspendStateless(e, this::doPost);
             }
 
-            doPost(ctx, 0);
+            doPost(ctx);
             t = doTest(ctx);
         }
         return 0;
     }
 
-    public Object doPost(Fiber ctx, Object prior) {
+    public Object doPost(Fiber ctx) {
         if (post != null) {
             try {
                 post.execute(ctx);
             } catch (Exception e) {
-                ctx.suspendStateless(e, (c, s) -> doTest(c));
+                ctx.suspendStateless(e, this::doTest);
             }
         }
         return null;

@@ -36,7 +36,7 @@ public class While implements Node {
 
     public boolean doTest(Fiber ctx) {
         try {
-            return test.executeBoolean(ctx);
+            return (Boolean) test.execute(ctx);
         } catch (Exception e) {
             ctx.suspendStateless(e, (c, s) -> doBody(ctx, toBoolean(s)));
         }

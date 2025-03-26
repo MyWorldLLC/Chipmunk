@@ -26,6 +26,7 @@ import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
 
+import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 
 public class TestPrograms {
@@ -44,17 +45,17 @@ public class TestPrograms {
         var ctx = new Fiber();
 
         var initX = new SetVar(0);
-        initX.value = new Const(0);
+        initX.value = new Const(new BigDecimal(0));
 
         var getX = new GetVar(0);
 
         var test = new Iflt();
         test.l = getX;
-        test.r = new Const(1000000);
+        test.r = new Const(new BigDecimal(1000000));
 
         var add = new Add();
         add.l = new GetVar(0);
-        add.r = new Const(1);
+        add.r = new Const(new BigDecimal(1));
 
         var body = new SetVar(0);
         body.value = add;
@@ -78,7 +79,7 @@ public class TestPrograms {
 
         var test = new Iflt();
         test.l = getN;
-        test.r = new Const(2);
+        test.r = new Const(new BigDecimal(2));
 
         var _if = new If();
         _if.test = test;
@@ -90,11 +91,11 @@ public class TestPrograms {
 
         var subOne = new Sub();
         subOne.l = getN;
-        subOne.r = new Const(1);
+        subOne.r = new Const(new BigDecimal(1));
 
         var subTwo = new Sub();
         subTwo.l = getN;
-        subTwo.r = new Const(2);
+        subTwo.r = new Const(new BigDecimal(2));
 
         var callOne = new CallNode(4, fib, subOne);
 
@@ -111,7 +112,7 @@ public class TestPrograms {
 
         fib.nodes = new Node[]{_if};
 
-        var callFib = new CallNode(4, fib, new Const(30));
+        var callFib = new CallNode(4, fib, new Const(new BigDecimal(30)));
         return () -> callFib.execute(ctx);
     }
 
@@ -127,24 +128,24 @@ public class TestPrograms {
         var ctx = new Fiber();
 
         var initI = new SetVar(0); // i = 0
-        initI.value = new Const(0);
+        initI.value = new Const(new BigDecimal(0));
 
         var initX = new SetVar(1); // x = 1.0f
-        initX.value = new Const(1.0f);
+        initX.value = new Const(new BigDecimal("1.0"));
 
         var getI = new GetVar(0);
         var getX = new GetVar(1);
 
         var test = new Iflt();
         test.l = getI;
-        test.r = new Const(99999999); // i < 99999999
+        test.r = new Const(new BigDecimal(99999999)); // i < 99999999
 
         var addIPlusI = new Add(); // i + i
         addIPlusI.l = getI;
         addIPlusI.r = getI;
 
         var twoI = new Mul(); // 2 * i
-        twoI.l = new Const(2);
+        twoI.l = new Const(new BigDecimal(2));
         twoI.r = getI;
 
         var addTwoI = new Add(); // i + i + 2 * i
@@ -153,14 +154,14 @@ public class TestPrograms {
 
         var plus1 = new Add(); // i + i + 2 * i + 1
         plus1.l = addTwoI;
-        plus1.r = new Const(1);
+        plus1.r = new Const(new BigDecimal(1));
 
         //var toFloat = new I2F(); // (float)(i + i + 2 * i + 1)
         //toFloat.i = plus1;
 
         var fSub = new FSub(); // (float)(i + i + 2 * i + 1) - 0.379
         fSub.l = plus1;
-        fSub.r = new Const(0.379f);
+        fSub.r = new Const(new BigDecimal("0.379"));
 
         var div = new FDiv(); // ((float)(i + i + 2 * i + 1) - 0.379) / x
         div.l = fSub;
@@ -171,7 +172,7 @@ public class TestPrograms {
 
         var addIPlus1 = new Add(); // i++
         addIPlus1.l = getI;
-        addIPlus1.r = new Const(1);
+        addIPlus1.r = new Const(new BigDecimal(1));
         var incrementI = new SetVar(0);
         incrementI.value = addIPlus1;
 
@@ -191,16 +192,16 @@ public class TestPrograms {
         var ctx = new Fiber();
 
         var f = new FunctionNode();
-        f.nodes = new Node[]{new Const(1)};
+        f.nodes = new Node[]{new Const(new BigDecimal(1))};
 
         var initX = new SetVar(0);
-        initX.value = new Const(0);
+        initX.value = new Const(new BigDecimal(0));
 
         var getX = new GetVar(0);
 
         var test = new Iflt();
         test.l = getX;
-        test.r = new Const(1000000);
+        test.r = new Const(new BigDecimal(1000000));
 
         var callF = new CallNode(1, f);
 
@@ -226,12 +227,12 @@ public class TestPrograms {
         var ctx = new Fiber();
 
         var initX = new SetVar(0);
-        initX.value = new Const(0);
+        initX.value = new Const(new BigDecimal(0));
 
         var cClass = new CClass("testClass", 1, 0, 0, 0);
 
         var fn = new FunctionNode();
-        fn.nodes = new Node[]{new Const(1)};
+        fn.nodes = new Node[]{new Const(new BigDecimal(1))};
 
         var method = new CMethod();
         method.name = "fn";
@@ -251,7 +252,7 @@ public class TestPrograms {
 
         var test = new Iflt();
         test.l = getX;
-        test.r = new Const(1000000);
+        test.r = new Const(new BigDecimal(1000000));
 
         var callF = new CallAtNode(2, getObj, "fn");
 
@@ -283,6 +284,18 @@ public class TestPrograms {
         program.nodes = new Node[]{call};
 
         return () -> program.execute(ctx);
+    }
+
+    public static Callable<Object> javaCountBigDecimal(){
+        return () -> {
+            var x = new BigDecimal(0);
+            var one = new BigDecimal(1);
+            var oneMillion = new BigDecimal(1000000);
+            while(x.compareTo(oneMillion) < 0){
+                x = x.add(one);
+            }
+            return x;
+        };
     }
 
 }

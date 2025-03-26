@@ -23,6 +23,8 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
+import java.math.BigDecimal;
+
 public final class Add implements Node {
     public Node l, r;
 
@@ -30,7 +32,9 @@ public final class Add implements Node {
     public Object execute(Fiber ctx) {
         // TODO - determine types & either hit runtime library definition
         // or resort to CObject.add()
-        return executeInt(ctx);
+        var a = (BigDecimal) l.execute(ctx);
+        var b = (BigDecimal) r.execute(ctx);
+        return a.add(b);
     }
 
 }

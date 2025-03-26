@@ -23,16 +23,16 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
+import java.math.BigDecimal;
+
 public class Mul implements Node {
     public Node l, r;
 
     @Override
     public Object execute(Fiber ctx) {
-        return executeInt(ctx);
+        var a = (BigDecimal) l.execute(ctx);
+        var b = (BigDecimal) r.execute(ctx);
+        return a.multiply(b);
     }
 
-    @Override
-    public int executeInt(Fiber ctx) {
-        return l.executeInt(ctx) * r.executeInt(ctx);
-    }
 }

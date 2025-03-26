@@ -62,6 +62,7 @@ public class ChipmunkProfiler {
 		javaPrograms.put("fibonacci30", TestPrograms.fibonacci30());
 		javaPrograms.put("mathBench", TestPrograms.mathBench());
 		javaPrograms.put("callJavaMethod", TestPrograms.callJavaMethod());
+		javaPrograms.put("javaCountBigDecimal", TestPrograms.javaCountBigDecimal());
 
 		profiler.programs.put("chipmunk", chipmunkPrograms);
 		profiler.programs.put("java", javaPrograms);
@@ -83,7 +84,5 @@ public class ChipmunkProfiler {
 		var script = vm.compileScript(ChipmunkProfiler.class.getResourceAsStream(resource), name);
 		return script::run;
 	}
-
-
 
 }

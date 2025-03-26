@@ -27,20 +27,21 @@ public class Iflt implements Node {
     public Node l, r;
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Object execute(Fiber ctx) {
-        int a;
+        Object a;
         try {
-            a = l.executeInt(ctx);
+            a = l.execute(ctx);
         } catch (Exception e) {
             throw e;
         }
 
-        int b;
+        Object b;
         try {
-            b = r.executeInt(ctx);
+            b = r.execute(ctx);
         } catch (Exception e) {
             throw e;
         }
-        return a < b ? 1 : 0;
+        return ((Comparable)a).compareTo(b) < 0;
     }
 }
