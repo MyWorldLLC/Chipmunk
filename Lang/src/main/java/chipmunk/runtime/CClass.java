@@ -18,27 +18,34 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree;
+package chipmunk.runtime;
 
 public class CClass {
 
-    CField[] sharedFields;
-    CMethod[] sharedMethods;
+    final String name;
 
-    CField[] instanceFields;
-    CMethod[] instanceMethods;
-    int[] traits;
+    final CField[] sharedFields;
+    final CMethod[] sharedMethods;
+
+    final CField[] instanceFields;
+    final CMethod[] instanceMethods;
+    final int[] traits;
 
     public CClass(String name, int iMethods, int iFields, int sMethods, int sFields){
+        this(name, iMethods, iFields, sMethods, sFields, 0);
+    }
+
+    public CClass(String name, int iMethods, int iFields, int sMethods, int sFields, int traits){
+
+        this.name = name;
+
         instanceMethods = new CMethod[iMethods];
         instanceFields = new CField[iFields];
-        traits = new int[0]; // TODO
+        this.traits = new int[traits];
 
         sharedMethods = new CMethod[sMethods];
         sharedFields = new CField[sFields];
     }
-
-    // TODO - init traits from fields
 
     public CMethod getMethod(CObject obj, String name, int args){
         for(int i = 0; i < instanceMethods.length; i++){
@@ -61,8 +68,16 @@ public class CClass {
         return null;
     }
 
-    public void defineMethod(int i, CMethod method){
+    public CMethod getInstanceMethod(int index){
+        return instanceMethods[index];
+    }
+
+    public void defineInstanceMethod(int i, CMethod method){
         instanceMethods[i] = method;
+    }
+
+    public boolean isTrait(int field){
+        return instanceFields[field].isTrait();
     }
 
     public int getFieldIndex(String name){

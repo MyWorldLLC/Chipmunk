@@ -18,6 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree;
+package chipmunk.vm.invoke;
 
-public record CField(String name, boolean isTrait) {}
+import chipmunk.vm.tree.Fiber;
+
+public interface Invoker {
+
+    Object invoke(Fiber fiber, Object target, int argCount, Object... args) throws Throwable;
+
+}

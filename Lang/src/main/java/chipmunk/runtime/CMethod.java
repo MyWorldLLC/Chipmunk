@@ -18,7 +18,14 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree;
+package chipmunk.runtime;
 
-public class CModule extends CObject {
+import chipmunk.vm.tree.nodes.FunctionNode;
+
+public class CMethod {
+
+    public String name;
+    public int argCount;
+    public FunctionNode code;
+
 }

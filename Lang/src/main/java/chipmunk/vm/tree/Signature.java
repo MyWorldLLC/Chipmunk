@@ -18,22 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree.nodes;
+package chipmunk.vm.tree;
 
-import chipmunk.vm.tree.Fiber;
-import chipmunk.vm.tree.Node;
+public class Signature {
 
-import static chipmunk.vm.tree.Conversions.toFloat;
+    protected final String name;
+    protected final int argCount;
 
-public class GetVar implements Node {
-    int v;
-
-    public GetVar(int v) {
-        this.v = v;
+    public Signature(String name, int argCount) {
+        this.name = name;
+        this.argCount = argCount;
     }
 
-    @Override
-    public Object execute(Fiber ctx) {
-        return ctx.getLocal(v);
+    public String getName() {
+        return name;
+    }
+
+    public int getArgCount() {
+        return argCount;
     }
 }

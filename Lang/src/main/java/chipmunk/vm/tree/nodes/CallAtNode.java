@@ -20,6 +20,9 @@
 
 package chipmunk.vm.tree.nodes;
 
+import chipmunk.runtime.CClass;
+import chipmunk.runtime.CMethod;
+import chipmunk.runtime.CObject;
 import chipmunk.vm.tree.*;
 
 import java.lang.reflect.InvocationTargetException;

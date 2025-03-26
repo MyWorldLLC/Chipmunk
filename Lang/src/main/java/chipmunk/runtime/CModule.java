@@ -18,22 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree.nodes;
+package chipmunk.runtime;
 
-import chipmunk.vm.tree.Fiber;
-import chipmunk.vm.tree.Node;
-
-import static chipmunk.vm.tree.Conversions.toFloat;
-
-public class GetVar implements Node {
-    int v;
-
-    public GetVar(int v) {
-        this.v = v;
-    }
-
-    @Override
-    public Object execute(Fiber ctx) {
-        return ctx.getLocal(v);
-    }
+public class CModule extends CObject {
 }

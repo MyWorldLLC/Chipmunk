@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree;
+package chipmunk.runtime;
 
 public class CObject {
 

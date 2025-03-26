@@ -31,4 +31,5 @@ open module chipmunk.lang {
     exports chipmunk.vm.jvm;
     exports chipmunk.vm.locators;
     exports chipmunk.vm.scheduler;
+    exports chipmunk.vm.tree;
 }

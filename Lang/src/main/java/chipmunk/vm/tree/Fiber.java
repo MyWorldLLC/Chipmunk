@@ -22,6 +22,7 @@ package chipmunk.vm.tree;
 
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.tree.nodes.FunctionNode;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;

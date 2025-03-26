@@ -20,8 +20,8 @@
 
 package chipmunk.profiling;
 
-import chipmunk.vm.tree.CClass;
-import chipmunk.vm.tree.CMethod;
+import chipmunk.runtime.CClass;
+import chipmunk.runtime.CMethod;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
@@ -239,7 +239,7 @@ public class TestPrograms {
         method.argCount = 0;
         method.code = fn;
 
-        cClass.defineMethod(0, method);
+        cClass.defineInstanceMethod(0, method);
 
         var obj = cClass.instantiate();
 
