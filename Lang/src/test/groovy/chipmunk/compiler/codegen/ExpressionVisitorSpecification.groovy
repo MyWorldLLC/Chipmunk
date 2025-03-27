@@ -52,7 +52,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0")
 		
 		then:
-		result instanceof Integer
 		result == 0
 	}
 	
@@ -61,7 +60,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 		
 		then:
-		result instanceof Integer
 		result == -1
 	}
 	
@@ -70,7 +68,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0.0")
 		
 		then:
-		result instanceof Float
 		result == 0.0
 	}
 	
@@ -79,7 +76,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1.0")
 		
 		then:
-		result instanceof Float
 		result == -1.0
 	}
 	
@@ -88,7 +84,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0xA6")
 		
 		then:
-		result instanceof Integer
 		result == 0xA6
 	}
 	
@@ -97,7 +92,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0o12")
 		
 		then:
-		result instanceof Integer
 		result == 012
 	}
 	
@@ -106,7 +100,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0b101")
 		
 		then:
-		result instanceof Integer
 		result == 0b101
 	}
 	
@@ -115,7 +108,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall(source)
 		
 		then:
-		result instanceof String
 		result == expected
 		
 		where:
@@ -135,7 +127,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 + 2")
 
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -144,7 +135,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+1")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -153,7 +143,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 
 		then:
-		result instanceof Integer
 		result == -1
 	}
 
@@ -162,7 +151,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+-1")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -171,7 +159,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 * 2")
 
 		then:
-		result instanceof Integer
 		result == 2
 	}
 
@@ -180,7 +167,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 / 2")
 
 		then:
-		result instanceof Float
 		result == 0.5
 	}
 
@@ -189,7 +175,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 // 2")
 
 		then:
-		result instanceof Integer
 		result == 0
 	}
 
@@ -198,7 +183,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("3 % 2")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -207,7 +191,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2**1**2")
 
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	

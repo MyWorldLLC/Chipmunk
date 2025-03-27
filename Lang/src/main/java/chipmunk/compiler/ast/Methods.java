@@ -122,4 +122,9 @@ public class Methods {
         ensureMethod(node);
         node.visitChildren(visitor, 1);
     }
+
+    public static AstNode getLambdaBody(AstNode node){
+        ensureMethod(node);
+        return node.getChild(1);
+    }
 }

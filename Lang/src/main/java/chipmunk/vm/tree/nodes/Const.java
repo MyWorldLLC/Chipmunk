@@ -23,6 +23,8 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
+import java.math.BigDecimal;
+
 public class Const implements Node {
     Object value;
 
@@ -33,6 +35,14 @@ public class Const implements Node {
     @Override
     public Object execute(Fiber ctx) {
         return value;
+    }
+
+    public static Const number(Integer number){
+        return new Const(new BigDecimal(number));
+    }
+
+    public static Const number(Float number){
+        return new Const(new BigDecimal(number));
     }
 
 }

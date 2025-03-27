@@ -26,9 +26,11 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
+import chipmunk.runtime.CModule;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
+import chipmunk.vm.invoke.CLinker;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
@@ -36,6 +38,7 @@ import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.*;
 import chipmunk.vm.scheduler.Scheduler;
+import chipmunk.vm.tree.Fiber;
 import jdk.dynalink.linker.GuardedInvocation;
 
 import java.io.IOException;
@@ -204,10 +207,16 @@ public class ChipmunkVM {
 
 	public Object eval(String exp) throws Throwable {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule expModule = compiler.compileExpression(exp);
+		CModule expModule = compiler.compileExpression(exp);
 
-		ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
-		return invoke(compiled, "evaluate");
+		var fiber = new Fiber(this);
+		var expMethod = expModule.cls.getMethod(expModule, "evaluate", 1);
+
+		// TODO - use invoke mechanism for proper sandboxing
+		return expMethod.code.execute(fiber);
+
+		//ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
+		//return invoke(compiled, "evaluate");
 	}
 
 	@AllowChipmunkLinkage
@@ -295,6 +304,10 @@ public class ChipmunkVM {
 			//ChipmunkScript.setCurrentScript(null);
 			scheduler.notifyInvocationEnded(script);
 		}
+	}
+
+	public CLinker getDefaultLinker(){
+		return new CLinker(defaultLinkPolicy, defaultLibraries);
 	}
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script) {

@@ -26,6 +26,12 @@ import chipmunk.vm.tree.Node;
 public class FunctionNode implements Node {
     public Node[] nodes;
 
+    public FunctionNode(){}
+
+    public FunctionNode(Node... body){
+        nodes = body;
+    }
+
     @Override
     public Object execute(Fiber ctx) {
         for (int i = 0; i < nodes.length - 1; i++) {

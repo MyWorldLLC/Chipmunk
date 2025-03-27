@@ -20,6 +20,11 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.tree.nodes.FunctionNode;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class CClass {
 
     final String name;
@@ -95,6 +100,33 @@ public class CClass {
         obj.cls = this;
         obj.fields = new Object[instanceFields.length];
         return obj;
+    }
+
+    public static Builder builder(String name){
+        return new Builder(name);
+    }
+
+    public static class Builder {
+
+        private final String name;
+        private final List<CMethod> methods = new ArrayList<>();
+
+        public Builder(String name) {
+            this.name = name;
+        }
+
+        public Builder withInstanceMethod(CMethod method){
+            methods.add(method);
+            return this;
+        }
+
+        public CClass build(){
+            var cls = new CClass(name, methods.size(), 0, 0, 0);
+            for(int i = 0; i < methods.size(); i++){
+                cls.instanceMethods[i] = methods.get(i);
+            }
+            return cls;
+        }
     }
 
 }

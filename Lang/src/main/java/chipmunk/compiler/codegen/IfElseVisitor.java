@@ -44,7 +44,7 @@ public class IfElseVisitor implements AstVisitor {
 			assembler.setLabelTarget(endLabels.getEndLabel());
 			codegen.exitIfElse();
 		}else if(node.is(NodeType.IF)){
-			node.getLeft().visit(new ExpressionVisitor(codegen));
+			//node.getLeft().visit(new ExpressionVisitor(codegen));
 			
 			String endOfIf = assembler.nextLabelName();
 			// go to end of this node's body if the if does not evaluate true

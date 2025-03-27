@@ -20,24 +20,4 @@
 
 package chipmunk.runtime;
 
-public class CModule extends CObject {
-
-    protected final String name;
-    protected String fileName;
-
-    public CModule(String name) {
-        this.name = name;
-    }
-
-    public String getName(){
-        return name;
-    }
-
-    public void setFileName(String name){
-        this.fileName = fileName;
-    }
-
-    public String getFileName(){
-        return fileName;
-    }
-}
+public class Suspend extends RuntimeException {}

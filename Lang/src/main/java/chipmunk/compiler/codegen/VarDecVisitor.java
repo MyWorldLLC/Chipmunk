@@ -40,7 +40,7 @@ public class VarDecVisitor implements AstVisitor {
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(node.getChild().getToken().text());
 		
 		if(node.childCount() > 1){
-			node.getChild(1).visit(new ExpressionVisitor(codegen));
+			//node.getChild(1).visit(new ExpressionVisitor(codegen));
 		}else{
 			assembler.pushNull();
 		}

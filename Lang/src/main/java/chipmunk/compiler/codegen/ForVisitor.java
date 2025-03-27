@@ -46,7 +46,7 @@ public class ForVisitor implements AstVisitor {
 			codegen.enterScope(symbols);
 			
 			// Visit iterator expression and push the iterator
-			iter.getRight().visit(new ExpressionVisitor(codegen));
+			//iter.getRight().visit(new ExpressionVisitor(codegen));
 			assembler.iter();
 			assembler.setLocal(symbols.getLocalIndex(iter.getSymbol()));
 

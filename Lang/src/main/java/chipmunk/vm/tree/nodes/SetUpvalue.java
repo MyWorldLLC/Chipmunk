@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2025 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,12 +18,27 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm;
+package chipmunk.vm.tree.nodes;
 
-public interface BlockingTag {
+import chipmunk.runtime.Suspend;
+import chipmunk.runtime.Upvalue;
+import chipmunk.vm.tree.Fiber;
 
-    default boolean isBlocking(){
-        return true;
+public class SetUpvalue extends SetVar {
+
+    public SetUpvalue(int v) {
+        super(v);
     }
 
+    @Override
+    public Object execute(Fiber ctx) {
+        Object result;
+        try{
+            result = value.execute(ctx);
+        }catch (Suspend s){
+            ctx.suspendStateless(s, (c, prior) -> ((Upvalue) ctx.getLocal(v)).set(prior));
+            throw s;
+        }
+        return ((Upvalue) ctx.getLocal(v)).set(result);
+    }
 }

@@ -18,26 +18,18 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.runtime;
+package chipmunk.compiler.codegen;
 
-public class CModule extends CObject {
+import chipmunk.compiler.ast.AstNode;
+import chipmunk.vm.tree.Node;
 
-    protected final String name;
-    protected String fileName;
+public interface CodegenVisitor {
 
-    public CModule(String name) {
-        this.name = name;
-    }
+    Node visit(AstNode node);
 
-    public String getName(){
-        return name;
-    }
-
-    public void setFileName(String name){
-        this.fileName = fileName;
-    }
-
-    public String getFileName(){
-        return fileName;
+    default void visitChildren(AstNode node){
+        for(var child : node.getChildren()){
+            visit(child);
+        }
     }
 }

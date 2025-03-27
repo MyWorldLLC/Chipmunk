@@ -36,6 +36,12 @@ import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.runtime.CModule;
+import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.nodes.GetUpvalue;
+import chipmunk.vm.tree.nodes.GetVar;
+import chipmunk.vm.tree.nodes.SetUpvalue;
+import chipmunk.vm.tree.nodes.SetVar;
 
 public class Codegen implements AstVisitor {
 
@@ -43,7 +49,7 @@ public class Codegen implements AstVisitor {
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
-	protected BinaryModule module;
+	protected CModule module;
 	
 	protected List<LoopLabels> loopStack;
 	protected List<IfElseLabels> ifElseStack;
@@ -52,7 +58,7 @@ public class Codegen implements AstVisitor {
 	protected List<ExceptionBlock> exceptions;
 	
 	
-	public Codegen(BinaryModule module){
+	public Codegen(CModule module){
 		visitors = new HashMap<>();
 		loopStack = new ArrayList<>();
 		ifElseStack = new ArrayList<>();
@@ -63,7 +69,7 @@ public class Codegen implements AstVisitor {
 		this.module = module;
 	}
 	
-	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, BinaryModule module){
+	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
 		visitors = new HashMap<>();
 		loopStack = new ArrayList<>();
 		ifElseStack = new ArrayList<>();
@@ -74,7 +80,7 @@ public class Codegen implements AstVisitor {
 		this.module = module;
 	}
 	
-	public BinaryModule getModule() {
+	public CModule getModule() {
 		return module;
 	}
 	
@@ -123,19 +129,19 @@ public class Codegen implements AstVisitor {
 		}
 	}
 
-	public void emitBindingAccess(String name){
-		emitLocalReference(name, false, true);
+	public Node emitBindingAccess(String name){
+		return emitLocalReference(name, false, true);
 	}
 	
-	public void emitLocalAccess(String name){
-		emitLocalReference(name, false, false);
+	public Node emitLocalAccess(String name){
+		return emitLocalReference(name, false, false);
 	}
 	
-	public void emitLocalAssignment(String name){
-		emitLocalReference(name, true, false);
+	public SetVar emitLocalAssignment(String name){
+		return (SetVar) emitLocalReference(name, true, false);
 	}
 	
-	private void emitLocalReference(String name, boolean assign, boolean bindingRead){
+	private Node emitLocalReference(String name, boolean assign, boolean bindingRead){
 
 		Deque<SymbolTable> trace = getSymbolTrace(name);
 
@@ -152,20 +158,18 @@ public class Codegen implements AstVisitor {
 		}
 
 		if(assign){
-			assembler.dup();
 			if(symbol.isUpvalueRef() || symbol.isUpvalue()){
-				assembler.setUpvalue(localIndex);
+				return new SetUpvalue(localIndex);
 			}else{
-				assembler.setLocal(localIndex);
+				return new SetVar(localIndex);
 			}
 		}else{
 			if(symbol.isUpvalueRef() || (symbol.isUpvalue() && !bindingRead)){
-				assembler.getUpvalue(localIndex);
+				return new GetUpvalue(localIndex);
 			}else{
-				assembler.getLocal(localIndex);
+				return new GetVar(localIndex);
 			}
 		}
-
 	}
 	
 	private Deque<SymbolTable> getSymbolTrace(String name){

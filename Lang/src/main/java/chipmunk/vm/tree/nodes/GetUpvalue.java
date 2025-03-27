@@ -18,26 +18,20 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.runtime;
+package chipmunk.vm.tree.nodes;
 
-public class CModule extends CObject {
+import chipmunk.runtime.Upvalue;
+import chipmunk.vm.tree.Fiber;
 
-    protected final String name;
-    protected String fileName;
+public class GetUpvalue extends GetVar {
 
-    public CModule(String name) {
-        this.name = name;
+    public GetUpvalue(int v) {
+        super(v);
     }
 
-    public String getName(){
-        return name;
+    @Override
+    public Object execute(Fiber ctx) {
+        return ((Upvalue) ctx.getLocal(v)).get();
     }
 
-    public void setFileName(String name){
-        this.fileName = fileName;
-    }
-
-    public String getFileName(){
-        return fileName;
-    }
 }

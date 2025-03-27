@@ -253,67 +253,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         });
     }
 
-    public Method getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException{
-        Class<?> receiverType;
-        if(receiver == null){
-            receiverType = Object.class;
-        }else if(receiver instanceof Class){
-            receiverType = (Class<?>) receiver;
-        }else{
-            receiverType = receiver.getClass();
-        }
-
-        var methods = receiverType.getMethods();
-        linkOrder(methods);
-        for (Method m : methods) {
-            Class<?>[] candidatePTypes = m.getParameterTypes();
-
-            if (candidatePTypes.length != pTypes.length - 1 && !m.isVarArgs()) {
-                continue;
-            }
-
-            if (!getMethodName(m).equals(methodName)) {
-                continue;
-            }
-
-            Class<?> retType = m.getReturnType();
-
-            if (retType.equals(void.class) || isCallTypeCompatible(expectedReturnType, retType)) {
-
-                boolean paramsMatch = true;
-                long interfaceParamMask = 0;
-                boolean isStatic = Modifier.isStatic(m.getModifiers());
-                for (int i = 0; i < candidatePTypes.length; i++) {
-
-                    // Need to offset by 1 because the incoming types include the receiver type
-                    // while the candidate types do not
-                    Class<?> callPType = pTypes[i + 1];
-                    Class<?> candidatePType = candidatePTypes[i];
-
-                    if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
-                        if (candidatePType.isInterface()) {
-                            interfaceParamMask |= (1L << i);
-                            continue;
-                        }
-                        paramsMatch = false;
-                        break;
-                    }
-                }
-
-                if (paramsMatch || m.isVarArgs()) {
-                    // We have a match!
-                    LinkingPolicy linkPolicy = getLinkingPolicy();
-                    if (linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m, params)) {
-                        throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
-                    }
-                    m.setAccessible(true);
-                    return m;
-                }
-            }
-        }
-        return null;
-    }
-
     public MethodHandle getMethodHandle(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException {
 
         Class<?> receiverType;
@@ -604,7 +543,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return override != null ? override.value() : m.getName();
     }
 
-    public String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){
+    public static String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){
         String receiverName;
         if(receiver == null){
             receiverName = "null";

@@ -96,7 +96,7 @@ public class MethodVisitor implements AstVisitor {
 
 			method.setDeclarationSymbol(symbols.getDebugSymbol());
 			
-			codegen = new Codegen(assembler, symbols, module);
+			//codegen = new Codegen(assembler, symbols, module);
 			
 			ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 
@@ -127,7 +127,7 @@ public class MethodVisitor implements AstVisitor {
 					&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
 				// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
 				ExpressionVisitor visitor = new ExpressionVisitor(codegen);
-				Methods.visitBody(methodNode, visitor);
+				//Methods.visitBody(methodNode, visitor);
 				assembler._return();
 			}else {
 				// regular methods

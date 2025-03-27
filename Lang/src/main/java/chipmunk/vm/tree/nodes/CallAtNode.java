@@ -23,6 +23,7 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CObject;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.tree.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -34,12 +35,19 @@ public class CallAtNode implements Node {
     Node obj;
     String targetName;
     Node[] args;
+    boolean isOperator;
 
     public CallAtNode(int locals, Node obj, String name, Node... args) {
         this.locals = locals;
         this.args = args;
         this.obj = obj;
         this.targetName = name;
+    }
+
+    public static CallAtNode operator(int locals, Node obj, String name, Node... args){
+        var node = new CallAtNode(locals, obj, name, args);
+        node.isOperator = true;
+        return node;
     }
 
     // TODO - support suspensions
@@ -56,6 +64,7 @@ public class CallAtNode implements Node {
 
             ctx.setLocal(locals, cObj);
             for (int i = 0; i < args.length; i++) {
+                // TODO = suspension
                 ctx.setLocal(i + locals + 1, args[i].execute(ctx));
             }
 
@@ -69,16 +78,25 @@ public class CallAtNode implements Node {
 
         }else{
             try {
-                var readyArgs = new Object[args.length];
-                for (int i = 0; i < args.length; i++) {
-                    readyArgs[i] = args[i].execute(ctx);
+                Object[] readyArgs;
+                int arg0Index = 0;
+                if(isOperator){
+                    readyArgs = new Object[args.length + 1];
+                    arg0Index = 1;
+                    readyArgs[0] = target;
+                }else{
+                    readyArgs = new Object[args.length];
+                }
+                for (int i = arg0Index; i < readyArgs.length; i++) {
+                    // TODO = suspension
+                    readyArgs[i] = args[i - arg0Index].execute(ctx);
                 }
                 var targetType = target.getClass();
                 var argTypes = CallUtil.argTypes(readyArgs);
 
-                var cached = ctx.getNodeCache(this, CachedNativeCall.class, () -> cacheInit(targetType, argTypes));
+                var cached = ctx.getNodeCache(this, CachedNativeCall.class, () -> cacheInit(ctx.vm, targetType, readyArgs, argTypes));
                 if(!cached.checkCall(targetType, argTypes)){
-                    cached = ctx.replaceNodeCache(this, () -> cacheInit(targetType, argTypes));
+                    cached = ctx.replaceNodeCache(this, () -> cacheInit(ctx.vm, targetType, readyArgs, argTypes));
                 }
                 return cached.method.invoke(target, readyArgs);
             } catch (InvocationTargetException | IllegalAccessException e) {
@@ -87,21 +105,21 @@ public class CallAtNode implements Node {
         }
     }
 
-    private CachedNativeCall cacheInit(Class<?> targetType, Class<?>[] argTypes){
-        var method = resolveMethod(targetType, argTypes);
+    private CachedNativeCall cacheInit(ChipmunkVM vm, Class<?> targetType, Object[] args, Class<?>[] argTypes){
+        var method = resolveMethod(vm, targetType, args, argTypes);
         if(method != null){
             method.setAccessible(true);
         }
         return new CachedNativeCall(targetType, argTypes, method);
     }
 
-    private Method resolveMethod(Class<?> targetType, Class<?>[] argTypes){
-        // TODO - VM security checks
-        // TODO - varargs & static methods
+    private Method resolveMethod(ChipmunkVM vm, Class<?> targetType, Object[] args, Class<?>[] argTypes){
         try {
-            return targetType.getMethod(targetName, argTypes);
+            return vm.getDefaultLinker().getMethod(targetType, targetName, args, argTypes, true);
         } catch (NoSuchMethodException e) {
             return null;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 

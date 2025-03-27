@@ -54,7 +54,7 @@ public class WhileVisitor implements AstVisitor {
 
 			// Mark and generate the guard
 			assembler.setLabelTarget(labels.getGuardLabel());
-			node.getChild().visit(new ExpressionVisitor(codegen));
+			//node.getChild().visit(new ExpressionVisitor(codegen));
 			assembler.closeLine();
 			
 			// If guard evaluates false, jump to end
