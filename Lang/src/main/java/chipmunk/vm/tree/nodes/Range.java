@@ -20,29 +20,31 @@
 
 package chipmunk.vm.tree.nodes;
 
+import chipmunk.runtime.BigDecimalRange;
 import chipmunk.vm.tree.Fiber;
 import chipmunk.vm.tree.Node;
 
 import java.math.BigDecimal;
 
-public class Const implements Node {
-    Object value;
+public class Range implements Node {
 
-    public Const(Object obj){
-        value = obj;
+    private static final BigDecimal STEP = new BigDecimal(1);
+
+    protected final Node start, end;
+    protected final boolean inclusive;
+
+    public Range(Node start, Node end, boolean inclusive){
+        this.start = start;
+        this.end = end;
+        this.inclusive = inclusive;
     }
 
     @Override
     public Object execute(Fiber ctx) {
-        return value;
-    }
+        // TODO - suspension
+        BigDecimal s = (BigDecimal) start.execute(ctx);
+        BigDecimal e = (BigDecimal) end.execute(ctx);
 
-    public static Const number(Integer number){
-        return new Const(new BigDecimal(number));
+        return new BigDecimalRange(s, e, STEP, inclusive);
     }
-
-    public static Const number(Float number){
-        return new Const(new BigDecimal(number));
-    }
-
 }

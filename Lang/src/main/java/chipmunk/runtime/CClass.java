@@ -110,6 +110,7 @@ public class CClass {
 
         private final String name;
         private final List<CMethod> methods = new ArrayList<>();
+        private final List<CField> fields = new ArrayList<>();
 
         public Builder(String name) {
             this.name = name;
@@ -120,10 +121,18 @@ public class CClass {
             return this;
         }
 
+        public Builder withInstanceField(CField field){
+            fields.add(field);
+            return this;
+        }
+
         public CClass build(){
-            var cls = new CClass(name, methods.size(), 0, 0, 0);
+            var cls = new CClass(name, methods.size(), fields.size(), 0, 0);
             for(int i = 0; i < methods.size(); i++){
                 cls.instanceMethods[i] = methods.get(i);
+            }
+            for(int i = 0; i < fields.size(); i++){
+                cls.instanceFields[i] = fields.get(i);
             }
             return cls;
         }

@@ -24,6 +24,7 @@ import chipmunk.vm.invoke.security.LinkingPolicy;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import static chipmunk.vm.invoke.ChipmunkLinker.formatMethodSignature;
 import static chipmunk.vm.invoke.ChipmunkLinker.isCallTypeCompatible;
@@ -57,7 +58,7 @@ public class CLinker {
         for (Method m : methods) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
 
-            if (candidatePTypes.length != pTypes.length - 1 && !m.isVarArgs()) {
+            if (candidatePTypes.length != pTypes.length && !m.isVarArgs()) {
                 continue;
             }
 
@@ -74,9 +75,7 @@ public class CLinker {
                 boolean isStatic = Modifier.isStatic(m.getModifiers());
                 for (int i = 0; i < candidatePTypes.length; i++) {
 
-                    // Need to offset by 1 because the incoming types include the receiver type
-                    // while the candidate types do not
-                    Class<?> callPType = pTypes[i + 1];
+                    Class<?> callPType = pTypes[i];
                     Class<?> candidatePType = candidatePTypes[i];
 
                     if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {

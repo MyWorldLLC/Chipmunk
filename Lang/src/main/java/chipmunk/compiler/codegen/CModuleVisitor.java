@@ -22,10 +22,9 @@ package chipmunk.compiler.codegen;
 
 import chipmunk.binary.*;
 import chipmunk.compiler.ast.*;
-import chipmunk.compiler.symbols.Symbol;
 import chipmunk.runtime.CClass;
+import chipmunk.runtime.CField;
 import chipmunk.runtime.CModule;
-import chipmunk.vm.tree.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,6 @@ public class CModuleVisitor implements AstVisitor {
 
     protected String fileName;
     protected CModule module;
-    protected Codegen initCodegen;
 
     protected List<Object> constantPool;
     protected List<BinaryImport> imports;
@@ -58,8 +56,6 @@ public class CModuleVisitor implements AstVisitor {
             module = new CModule(node.getSymbol().getName());
             builder = CClass.builder(node.getSymbol().getName());
 
-            //module.setFileName(fileName);
-
             node.visitChildren(this);
 
         }else if(node.is(NodeType.CLASS)){
@@ -73,15 +69,7 @@ public class CModuleVisitor implements AstVisitor {
             */
         }else if(node.is(NodeType.METHOD)){
 
-            /*MethodVisitor visitor = new MethodVisitor(constantPool, module);
-            node.visit(visitor);
-            BinaryMethod method = visitor.getMethod();
-
-            module.getNamespace().addEntry(
-                    BinaryNamespace.Entry.makeMethod(visitor.getMethodSymbol().getName(), (byte)0, method));
-            */
-
-            var visitor = new CMethodVisitor(constantPool, module);
+            var visitor = new CMethodVisitor(module);
             node.visit(visitor);
 
             builder.withInstanceMethod(visitor.getMethod());
@@ -102,16 +90,15 @@ public class CModuleVisitor implements AstVisitor {
 
         }else if(node.is(NodeType.VAR_DEC)){
 
-            /*byte flags = 0;
+            int flags = 0;
             if(node.getSymbol().isFinal()){
-                flags |= BinaryConstants.FINAL_FLAG;
+                flags |= CField.FINAL_FLAG;
             }
 
             // At this point, if there was an in-line assignment for this it was already moved to an initializer
             // AST, so we don't need to do anything except add the method to the module namespace.
 
-            module.getNamespace().getEntries().add(BinaryNamespace.Entry.makeField(VarDec.getVarName(node), flags));
-            */
+            builder.withInstanceField(new CField(VarDec.getVarName(node), false, flags));
         }else{
             throw new IllegalArgumentException("Error parsing module " + module.getName() + ": illegal AST node type " + node.getClass());
         }
@@ -120,7 +107,10 @@ public class CModuleVisitor implements AstVisitor {
     public CModule getModule(){
         //module.setConstantPool(constantPool.toArray());
         //module.setImports(imports.toArray(new BinaryImport[]{}));
+
         module.cls = builder.build();
+        module.setFileName(fileName);
+
         return module;
     }
 }

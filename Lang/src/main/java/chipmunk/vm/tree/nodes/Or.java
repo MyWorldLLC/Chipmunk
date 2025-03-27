@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2025 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,27 +18,28 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm
+package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.ChipmunkVM
-import chipmunk.compiler.ChipmunkCompiler
-import spock.lang.Ignore
-import spock.lang.Specification
+import chipmunk.vm.tree.Fiber;
+import chipmunk.vm.tree.Node;
 
-@Ignore
-class JvmCompilerSpecification extends Specification {
+public class Or implements Node {
 
-    ChipmunkVM vm = new ChipmunkVM()
-    ChipmunkCompiler cc = new ChipmunkCompiler()
+    private final Node l, r;
 
-    def "Load as Java code & run"(){
-        when:
-        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
-        def instance = vm.load(module)
+    public Or(Node l, Node r){
+        this.l = l;
+        this.r = r;
+    }
 
-        def result = vm.invoke(instance, "main")
-
-        then:
-        result == 10
+    @Override
+    public Object execute(Fiber ctx) {
+        // TODO - support CObject.truth()
+        var lResult = (Boolean) l.execute(ctx); // TODO - suspension
+        if(lResult){
+            return Boolean.TRUE;
+        }
+        var rResult = (Boolean) r.execute(ctx);
+        return rResult;
     }
 }

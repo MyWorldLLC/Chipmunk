@@ -22,6 +22,8 @@ package chipmunk.compiler.codegen
 
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.runtime.CList
+import chipmunk.runtime.CMap
 import chipmunk.vm.ChipmunkVM
 import spock.lang.Specification
 
@@ -253,7 +255,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("[]")
 		
 		then:
-		result instanceof List
+		result instanceof CList
 		result.size() == 0
 	}
 	
@@ -262,7 +264,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("{}")
 		
 		then:
-		result instanceof Map
+		result instanceof CMap
 		result.size() == 0
 	}
 	
@@ -271,7 +273,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("[1, 2, 3]")
 		
 		then:
-		result instanceof List
+		result instanceof CList
 		result.size() == 3
 		result.get(0) == 1
 		result.get(1) == 2
@@ -283,10 +285,10 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4, "foo" : 'bar'}""")
 		
 		then:
-		result instanceof Map
+		result instanceof CMap
 		result.size() == 3
-		result.get(1) == 2
-		result.get(3) == 4
+		result.get(new BigDecimal(1)) == 2
+		result.get(new BigDecimal(3)) == 4
 		result.get("foo") == "bar"
 	}
 	
@@ -295,7 +297,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[3]""")
 		
 		then:
-		result instanceof Integer
 		result == 4
 	}
 	
@@ -304,7 +305,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1]""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -313,7 +313,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1] = 0""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -322,7 +321,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[1] = 0""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	

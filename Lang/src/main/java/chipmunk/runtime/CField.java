@@ -20,4 +20,16 @@
 
 package chipmunk.runtime;
 
-public record CField(String name, boolean isTrait) {}
+public record CField(String name, boolean isTrait, int flags) {
+
+    public static final int FINAL_FLAG = 0x1;
+
+    public CField(String name){
+        this(name, false, 0);
+    }
+
+    public CField(String name, boolean isTrait){
+        this(name, isTrait, 0);
+    }
+
+}

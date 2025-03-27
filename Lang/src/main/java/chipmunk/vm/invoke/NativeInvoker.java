@@ -59,6 +59,7 @@ public class NativeInvoker implements Invoker {
         try{
             // We don't need to call validate() here because the method will handle parameter
             // type checking and conversion as necessary.
+            // TODO - memory tracing
             return method.invoke(target, args);
         }catch (InvocationTargetException e){
             throw e.getTargetException();

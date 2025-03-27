@@ -20,10 +20,6 @@
 
 package chipmunk.compiler.codegen;
 
-import chipmunk.binary.BinaryMethod;
-import chipmunk.binary.BinaryModule;
-import chipmunk.binary.DebugEntry;
-import chipmunk.binary.ExceptionBlock;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
@@ -56,26 +52,17 @@ public class CMethodVisitor  implements AstVisitor {
     protected boolean isInner;
 
 
-    public CMethodVisitor(ChipmunkAssembler assembler, CModule module){
-        this.assembler = assembler;
+    public CMethodVisitor(CModule module){
         defaultReturn = true;
         isInner = false;
         this.module = module;
     }
 
-    public CMethodVisitor(List<Object> constantPool, CModule module){
-        assembler = new ChipmunkAssembler(constantPool);
-        defaultReturn = true;
-        isInner = false;
-        this.module = module;
-    }
-
-    public CMethodVisitor(Codegen outerCodegen, List<Object> constantPool, CModule module){
-        assembler = new ChipmunkAssembler(constantPool);
-        this.outerCodegen = outerCodegen;
-        defaultReturn = true;
-        isInner = true;
-        this.module = module;
+    public static CMethodVisitor innerMethodVisitor(Codegen outerCodegen, CModule module){
+        var visitor = new CMethodVisitor(module);
+        visitor.isInner = true;
+        visitor.outerCodegen = outerCodegen;
+        return visitor;
     }
 
     @Override
@@ -87,9 +74,6 @@ public class CMethodVisitor  implements AstVisitor {
             methodNode = node;
 
             method.argCount = Methods.getParamCount(node);
-
-            //method.setArgCount(Methods.getParamCount(node));
-            //method.setDefaultArgCount(methodNode.getDefaultParamCount());
 
             symbols = methodNode.getSymbolTable();
             symbols.sortSymbols(Comparator.comparingInt(s -> {
@@ -103,15 +87,13 @@ public class CMethodVisitor  implements AstVisitor {
             }));
             symbols.setDebugSymbol(node.getSymbol().getName());
 
-            //method.setDeclarationSymbol(symbols.getDebugSymbol());
-
             codegen = new Codegen(assembler, symbols, module);
 
             ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
 
             codegen.setVisitorForNode(OPERATOR, expStatVisitor);
             codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
-            //codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, assembler.getConstantPool(), module));
+            codegen.setVisitorForNode(METHOD, CMethodVisitor.innerMethodVisitor(codegen, module));
             //codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
             codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
             codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
@@ -119,17 +101,6 @@ public class CMethodVisitor  implements AstVisitor {
             codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
             codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
             codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
-
-            // The VM sets the locals for arguments for us - we only need to handle default arguments
-            // that aren't supplied in the call.
-            // TODO - this will overwrite all default arguments that were supplied. To support these
-            // properly, generate code to determine number of arguments in call and jump to the right
-            // point to initialize non-supplied arguments.
-			/*int startAt = Methods.getParamCount(methodNode);
-			if(methodNode.hasDefaultParams()){
-				startAt -= methodNode.getDefaultParamCount();
-				// TODO
-			}*/
 
             codegen.enterScope(symbols, Methods.getParamCount(node));
             if(Methods.getBodyNodeCount(methodNode) == 1
@@ -139,8 +110,6 @@ public class CMethodVisitor  implements AstVisitor {
                 ExpressionVisitor visitor = new ExpressionVisitor(codegen);
                 var code = visitor.visit(Methods.getLambdaBody(methodNode));
                 method.code = new FunctionNode(code);
-                //Methods.visitBody(methodNode, visitor);
-                //assembler._return();
             }else {
                 // regular methods
                 Methods.visitBody(methodNode, codegen);
@@ -157,13 +126,13 @@ public class CMethodVisitor  implements AstVisitor {
     }
 
     public void genSelfReturn(){
-        assembler.getLocal(0);
-        assembler._return();
+        //assembler.getLocal(0);
+        //assembler._return();
     }
 
     public void genDefaultReturn(){
-        assembler.pushNull();
-        assembler._return();
+        //assembler.pushNull();
+        //assembler._return();
     }
 
     public boolean willGenDefaultReturn(){

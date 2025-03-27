@@ -84,7 +84,7 @@ public class Fiber {
     }
 
     public boolean checkInterrupt() {
-        return interrupt;
+        return _return || interrupt;
     }
 
     public void resume(Fiber ctx) {
