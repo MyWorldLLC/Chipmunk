@@ -25,7 +25,6 @@ import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
-import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;
@@ -143,11 +142,11 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
+	public ChipmunkModule load(String moduleName) throws IOException, BinaryFormatException {
 		BinaryModule binMod = loadBinary(moduleName);
 
 		if(binMod != null){
-			return compiler.compileModule(binMod);
+			return null; // TODO - load CModule
 		}
 
 		return loadNative(moduleName);

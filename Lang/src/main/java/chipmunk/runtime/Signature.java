@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2025 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,27 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm
+package chipmunk.runtime;
 
-import chipmunk.vm.ChipmunkVM
-import chipmunk.compiler.ChipmunkCompiler
-import spock.lang.Ignore
-import spock.lang.Specification
+public class Signature {
 
-@Ignore
-class JvmCompilerSpecification extends Specification {
+    protected final String name;
+    protected final int argCount;
 
-    ChipmunkVM vm = new ChipmunkVM()
-    ChipmunkCompiler cc = new ChipmunkCompiler()
+    public Signature(String name, int argCount) {
+        this.name = name;
+        this.argCount = argCount;
+    }
 
-    def "Load as Java code & run"(){
-        when:
-        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
-        def instance = vm.load(module)
+    public String getName() {
+        return name;
+    }
 
-        def result = vm.invoke(instance, "main")
-
-        then:
-        result == 10
+    public int getArgCount() {
+        return argCount;
     }
 }
