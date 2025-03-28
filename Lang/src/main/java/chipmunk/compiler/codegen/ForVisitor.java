@@ -56,7 +56,7 @@ public class ForVisitor implements AstVisitor {
 			assembler.setLabelTarget(labels.getStartLabel());
 
 			// Generate body
-			node.visitChildren(codegen, 1);
+			//node.visitChildren(codegen, 1);
 			codegen.exitScope();
 
 			// Generate the guard - the "next" bytecode operates as the guard

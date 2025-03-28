@@ -51,6 +51,9 @@ public class VarDecVisitor implements CodegenVisitor {
 		}else{
 			setNode.value = new Value(null);
 		}
+
+		//codegen.appendToBlock(setNode);
+
 		return setNode;
 	}
 

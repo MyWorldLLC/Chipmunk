@@ -362,6 +362,7 @@ public class ExpressionVisitor implements CodegenVisitor {
 			//var value = op.getRight().visit(this);
 			var assign = codegen.emitLocalAssignment(lhs.getToken().text());
 			assign.value = this.visit(op.getRight());
+			return assign;
 		}
 		return null;
 	}

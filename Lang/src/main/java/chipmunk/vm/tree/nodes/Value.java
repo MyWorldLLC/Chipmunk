@@ -26,7 +26,7 @@ import chipmunk.vm.tree.Node;
 import java.math.BigDecimal;
 
 public class Value implements Node {
-    Object value;
+    protected final Object value;
 
     public Value(Object obj){
         value = obj;
@@ -34,6 +34,10 @@ public class Value implements Node {
 
     @Override
     public Object execute(Fiber ctx) {
+        return value;
+    }
+
+    public Object getValue(){
         return value;
     }
 

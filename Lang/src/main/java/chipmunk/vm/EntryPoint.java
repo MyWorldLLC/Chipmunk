@@ -37,4 +37,12 @@ public class EntryPoint {
     public String getMethod() {
         return method;
     }
+
+    @Override
+    public String toString() {
+        return "EntryPoint{" +
+                "module='" + module + '\'' +
+                ", method='" + method + '\'' +
+                '}';
+    }
 }

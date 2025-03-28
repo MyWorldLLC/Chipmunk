@@ -23,8 +23,9 @@ package chipmunk.compiler.codegen;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.vm.tree.Node;
 
-public class ExpressionStatementVisitor implements AstVisitor {
+public class ExpressionStatementVisitor implements CodegenVisitor {
 
 	protected ChipmunkAssembler assembler;
 	protected Codegen codegen;
@@ -35,11 +36,11 @@ public class ExpressionStatementVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
-		//node.visit(new ExpressionVisitor(codegen));
+	public Node visit(AstNode node) {
 		// evaluate expression and ignore result
 		//assembler.pop();
 		//assembler.closeLine();
+		return new ExpressionVisitor(codegen).visit(node);
 	}
 
 }

@@ -47,13 +47,13 @@ public class ChipmunkProfiler {
 
 		var chipmunkPrograms = new HashMap<String, Callable<Object>>();
 		chipmunkPrograms.put("countToAMillion", profiler.load("countToAMillion", "CountToAMillion.chp"));
-		chipmunkPrograms.put("countingForLoop", profiler.load("countingForLoop", "CountingForLoop.chp"));
-		chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
-		chipmunkPrograms.put("mandelbrot", profiler.load("mandelbrot", "Mandelbrot.chp"));
-		chipmunkPrograms.put("mathBench", profiler.load("mathBench", "MathBench.chp"));
+		//chipmunkPrograms.put("countingForLoop", profiler.load("countingForLoop", "CountingForLoop.chp"));
+		//chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
+		//chipmunkPrograms.put("mandelbrot", profiler.load("mandelbrot", "Mandelbrot.chp"));
+		//chipmunkPrograms.put("mathBench", profiler.load("mathBench", "MathBench.chp"));
 
-		chipmunkPrograms.put("polymorphism", profiler.load("polymorphism", "PolymorphicCalling.chp"));
-		chipmunkPrograms.put("nonpolymorphism", profiler.load("nonpolymorphism", "NonpolymorphicCalling.chp"));
+		//chipmunkPrograms.put("polymorphism", profiler.load("polymorphism", "PolymorphicCalling.chp"));
+		//chipmunkPrograms.put("nonpolymorphism", profiler.load("nonpolymorphism", "NonpolymorphicCalling.chp"));
 
 		var javaPrograms = new HashMap<String, Callable<Object>>();
 		javaPrograms.put("countToAMillion", TestPrograms.countOneMillion());
@@ -74,6 +74,7 @@ public class ChipmunkProfiler {
 			long startTime = System.nanoTime();
 			value = selected.call();
 			long endTime = System.nanoTime();
+			Thread.sleep(20);
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}

@@ -63,7 +63,7 @@ public class ChipmunkScript {
     protected final EntryPoint entryPoint;
 
     public ChipmunkScript(ChipmunkVM vm){
-        this(vm, new EntryPoint("default", "main"));
+        this(vm, new EntryPoint("main", "main"));
     }
 
     public ChipmunkScript(ChipmunkVM vm, EntryPoint entryPoint){

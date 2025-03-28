@@ -21,21 +21,39 @@
 package chipmunk.vm.tree.nodes;
 
 import chipmunk.runtime.Fiber;
+import chipmunk.runtime.Suspend;
 import chipmunk.vm.tree.Node;
 
+import java.util.Arrays;
+
 public class Block implements Node {
-    public Node[] body;
+    protected final Node[] body;
+
+    public Block(Node... body){
+        this.body = body;
+        System.out.println(Arrays.toString(body));
+    }
 
     @Override
     public Object execute(Fiber ctx) {
-        long result = 0;
-        for (int i = 0; i < body.length; i++) {
+        Object result = null;
+        for (int i = 0; i < body.length && !ctx.checkInterrupt(); i++) {
             try {
-                result = (Long)body[i].execute(ctx);
-            } catch (Exception e) {
+                // TODO - suspension
+                result = body[i].execute(ctx);
+            } catch (Suspend e) {
                 throw e;
             }
         }
         return result;
+    }
+
+    @Override
+    public void debug(DebugPrinter debug){
+        debug.enterNode("block");
+        for(var node : body){
+            node.debug(debug);
+        }
+        debug.exitNode();
     }
 }

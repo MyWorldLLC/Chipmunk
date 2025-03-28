@@ -72,6 +72,7 @@ public class CallAtNode implements Node {
             // TODO - method caching
 
             var method = cObj.cls.getMethod(cObj, targetName, args.length + 1);
+
             ctx.preCall(locals);
             var result = method.code.execute(ctx);
             ctx.postCall();

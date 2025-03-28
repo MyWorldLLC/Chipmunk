@@ -60,7 +60,7 @@ public class TryCatchVisitor implements AstVisitor {
 		
 			// Assemble try body
 			codegen.enterScope(node.getSymbolTable());
-			node.visitChildren(codegen);
+			//node.visitChildren(codegen);
 			codegen.exitScope();
 
 			codegen.getAssembler()._goto(labels.getSuccessTarget());
@@ -79,7 +79,7 @@ public class TryCatchVisitor implements AstVisitor {
 			catchLabels.exceptionLocalIndex = node.getSymbolTable().getLocalIndex(node.getChild().getSymbol());
 			//codegen.getAssembler().setLocal(catchLabels.exceptionLocalIndex);
 			
-			node.visitChildren(codegen);
+			//node.visitChildren(codegen);
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(catchLabels.getEndLabel());
@@ -95,7 +95,7 @@ public class TryCatchVisitor implements AstVisitor {
 			
 			// Assemble finally body
 			codegen.enterScope((node).getSymbolTable());
-			node.visitChildren(codegen);
+			//node.visitChildren(codegen);
 			codegen.exitScope();
 			
 			codegen.getAssembler().setLabelTarget(finallyLabels.getEndLabel());

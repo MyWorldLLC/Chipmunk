@@ -103,14 +103,14 @@ public class MethodVisitor implements AstVisitor {
 
 			codegen.setVisitorForNode(OPERATOR, expStatVisitor);
 			codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
-			codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, assembler.getConstantPool(), module));
+			//codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, assembler.getConstantPool(), module));
 			//codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
-			codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
-			codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
+			//codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
+			//codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
 			codegen.setVisitorForNode(WHILE, new WhileVisitor(codegen));
-			codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
-			codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
-			codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
+			//codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
+			//codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
+			//codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
 			
 			// The VM sets the locals for arguments for us - we only need to handle default arguments
 			// that aren't supplied in the call.
@@ -132,7 +132,7 @@ public class MethodVisitor implements AstVisitor {
 				assembler._return();
 			}else {
 				// regular methods
-				Methods.visitBody(methodNode, codegen);
+				//Methods.visitBody(methodNode, codegen);
 			}
 			codegen.exitScope();
 			

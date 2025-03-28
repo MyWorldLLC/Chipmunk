@@ -1,4 +1,4 @@
-module profiling
+module main
 
 def countToAMillion(){
 	var x = 0
@@ -9,5 +9,10 @@ def countToAMillion(){
 }
 
 def main(){
-	return countToAMillion()
+	#return countToAMillion()
+	var x = 0
+    while(x < 1000000){
+    	x = x + 1
+    }
+    return x
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2025 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,15 +18,31 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.codegen;
+package chipmunk.vm.tree.nodes;
 
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.vm.tree.Node;
+public class DebugPrinter {
 
-public class NoOpVisitor implements CodegenVisitor {
-    @Override
-    public Node visit(AstNode node) {
-        return null;
+    protected final StringBuilder builder = new StringBuilder();
+    private String indent = "";
+
+    public DebugPrinter enterNode(String name){
+        builder.append("(");
+        builder.append(name);
+        builder.append("\n");
+        indent = indent + "  ";
+        builder.append(indent);
+        return this;
     }
+
+    public DebugPrinter exitNode(){
+        builder.append(indent);
+        builder.append(")\n");
+        indent = indent.substring(0, indent.length() - 2);
+        return this;
+    }
+
+    public String toString(){
+        return builder.toString();
+    }
+
 }

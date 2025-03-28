@@ -21,7 +21,12 @@
 package chipmunk.vm.tree;
 
 import chipmunk.runtime.Fiber;
+import chipmunk.vm.tree.nodes.DebugPrinter;
 
 public interface Node {
     Object execute(Fiber ctx);
+    default void debug(DebugPrinter debug){
+        debug.enterNode(getClass().getName());
+        debug.exitNode();
+    }
 }

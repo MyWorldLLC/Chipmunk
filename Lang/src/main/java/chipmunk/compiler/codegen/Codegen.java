@@ -28,14 +28,12 @@ import java.util.List;
 import java.util.Map;
 
 import chipmunk.binary.ExceptionBlock;
-import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.runtime.CModule;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.GetUpvalue;
@@ -43,9 +41,9 @@ import chipmunk.vm.tree.nodes.GetVar;
 import chipmunk.vm.tree.nodes.SetUpvalue;
 import chipmunk.vm.tree.nodes.SetVar;
 
-public class Codegen implements AstVisitor {
+public class Codegen implements CodegenVisitor {
 
-	protected Map<NodeType, AstVisitor> visitors;
+	protected Map<NodeType, CodegenVisitor> visitors;
 	protected ChipmunkAssembler assembler;
 	protected SymbolTable symbols;
 	
@@ -56,6 +54,8 @@ public class Codegen implements AstVisitor {
 	protected List<TryCatchLabels> tryCatchStack;
 	
 	protected List<ExceptionBlock> exceptions;
+
+	protected final ArrayDeque<List<Node>> blocks;
 	
 	
 	public Codegen(CModule module){
@@ -67,6 +67,7 @@ public class Codegen implements AstVisitor {
 		assembler = new ChipmunkAssembler();
 		symbols = new SymbolTable();
 		this.module = module;
+		blocks = new ArrayDeque<>();
 	}
 	
 	public Codegen(ChipmunkAssembler assembler, SymbolTable symbols, CModule module){
@@ -78,28 +79,41 @@ public class Codegen implements AstVisitor {
 		this.assembler = assembler;
 		this.symbols = symbols;
 		this.module = module;
+		blocks = new ArrayDeque<>();
 	}
 	
 	public CModule getModule() {
 		return module;
 	}
 	
-	public void setVisitorForNode(NodeType type, AstVisitor visitor){
+	public void setVisitorForNode(NodeType type, CodegenVisitor visitor){
 		visitors.put(type, visitor);
 	}
 	
-	public void visit(AstNode node){
-		AstVisitor visitor = visitors.get(node.getNodeType());
+	public Node visit(AstNode node){
+		var visitor = visitors.get(node.getNodeType());
 		
 		if(visitor == null){
 			throw new IllegalArgumentException("Unknown node type %s at %s %d:%d ".formatted(node.getNodeType(), module.getFileName(), Token.lineOrNone(node.getToken()), Token.columnOrNone(node.getToken())));
 		}
 		
-		node.visit(visitor);
+		return visitor.visit(node);
 	}
 	
 	public ChipmunkAssembler getAssembler(){
 		return assembler;
+	}
+
+	public void enterBlock(){
+		blocks.push(new ArrayList<>());
+	}
+
+	public void appendToBlock(Node n){
+		blocks.peek().add(n);
+	}
+
+	public List<Node> exitBlock(){
+		return blocks.pop();
 	}
 
 	public void enterScope(SymbolTable symbols){

@@ -24,50 +24,71 @@ import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.NodeType;
+import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.nodes.Block;
+import chipmunk.vm.tree.nodes.FunctionNode;
+import chipmunk.vm.tree.nodes.While;
 
-public class WhileVisitor implements AstVisitor {
+import java.util.Arrays;
 
-	private ChipmunkAssembler assembler;
+public class WhileVisitor implements CodegenVisitor {
+
 	private Codegen codegen;
 	
 	public WhileVisitor(Codegen codegen){
 		this.codegen = codegen;
-		assembler = codegen.getAssembler();
 	}
 	
 	@Override
-	public void visit(AstNode node) {
+	public Node visit(AstNode node) {
 		if(node.getNodeType() == NodeType.WHILE){
 			
-			LoopLabels labels = codegen.pushLoop();
+			//LoopLabels labels = codegen.pushLoop();
 
 			// Jump past the body, enter the guard
-			assembler._goto(labels.getGuardLabel());
+			//assembler._goto(labels.getGuardLabel());
 
 			// Mark the start of the body
-			assembler.setLabelTarget(labels.getStartLabel());
+			//assembler.setLabelTarget(labels.getStartLabel());
 
 			codegen.enterScope(node.getSymbolTable());
 			// Generate body
-			node.visitChildren(codegen, 1);
+
+			var test = new ExpressionVisitor(codegen).visit(node.getChild(0));
+
+			var body = new Node[node.childCount() - 1];
+			for(int i = 1; i < node.childCount(); i++){
+				body[i - 1] = codegen.visit(node.getChild(i));
+			}
+
+			var whileNode = new While();
+			whileNode.test = test;
+			whileNode.body = new Block(body);
+			//node.visitChildren(codegen, 1);
 			codegen.exitScope();
 
+			System.out.println(node.childCount());
+			System.out.println(Arrays.toString(body));
+			System.out.println("made while node with body size " + body.length);
+			return whileNode;
+
 			// Mark and generate the guard
-			assembler.setLabelTarget(labels.getGuardLabel());
+			//assembler.setLabelTarget(labels.getGuardLabel());
 			//node.getChild().visit(new ExpressionVisitor(codegen));
-			assembler.closeLine();
+			//assembler.closeLine();
 			
 			// If guard evaluates false, jump to end
-			assembler._if(labels.getEndLabel());
+			//assembler._if(labels.getEndLabel());
 			
 			// Jump back to start if guard evaluates true
-			assembler._goto(labels.getStartLabel());
+			//assembler._goto(labels.getStartLabel());
 			
 			// set end label target
-			assembler.setLabelTarget(labels.getEndLabel());
+			//assembler.setLabelTarget(labels.getEndLabel());
 			
-			codegen.exitLoop();
+			//codegen.exitLoop();
 		}
+		return null;
 	}
 
 }

@@ -28,8 +28,12 @@ public class ReturnNode implements Node {
 
     @Override
     public Object execute(Fiber ctx) {
-        var v = e.execute(ctx);
+        if(e != null){
+            var v = e.execute(ctx);
+            ctx._return = true;
+            return v;
+        }
         ctx._return = true;
-        return v;
+        return null;
     }
 }

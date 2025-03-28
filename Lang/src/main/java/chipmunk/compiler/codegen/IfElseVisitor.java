@@ -52,7 +52,7 @@ public class IfElseVisitor implements AstVisitor {
 			
 			// generate code for the children, skipping the guard statement
 			codegen.enterScope(node.getSymbolTable());
-			node.visitChildren(codegen, 1);
+			//node.visitChildren(codegen, 1);
 			
 			// go to the end of the entire if/else if body executes
 			assembler._goto(codegen.peekClosestIfElse().getEndLabel());
@@ -61,7 +61,7 @@ public class IfElseVisitor implements AstVisitor {
 			
 		}else if(node.is(NodeType.ELSE)){
 			// else branch
-			node.visitChildren(codegen);
+			//node.visitChildren(codegen);
 		}
 	}
 

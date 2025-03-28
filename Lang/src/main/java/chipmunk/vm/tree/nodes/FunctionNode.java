@@ -42,4 +42,13 @@ public class FunctionNode implements Node {
         }
         return nodes[nodes.length - 1].execute(ctx);
     }
+
+    @Override
+    public void debug(DebugPrinter debug){
+        debug.enterNode("method");
+        for(var node : nodes){
+            node.debug(debug);
+        }
+        debug.exitNode();
+    }
 }

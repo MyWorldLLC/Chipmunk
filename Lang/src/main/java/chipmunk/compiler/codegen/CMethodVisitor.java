@@ -28,13 +28,14 @@ import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
+import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.nodes.Block;
 import chipmunk.vm.tree.nodes.FunctionNode;
 
 import java.util.Comparator;
 import java.util.List;
 
 import static chipmunk.compiler.ast.NodeType.*;
-import static chipmunk.compiler.ast.NodeType.TRY_CATCH;
 
 public class CMethodVisitor  implements AstVisitor {
 
@@ -93,14 +94,14 @@ public class CMethodVisitor  implements AstVisitor {
 
             codegen.setVisitorForNode(OPERATOR, expStatVisitor);
             codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
-            codegen.setVisitorForNode(METHOD, CMethodVisitor.innerMethodVisitor(codegen, module));
+            //codegen.setVisitorForNode(METHOD, CMethodVisitor.innerMethodVisitor(codegen, module));
             //codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
-            //codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
-            codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
+            codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
+            //codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
             codegen.setVisitorForNode(WHILE, new WhileVisitor(codegen));
-            codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
+            //codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
             codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
-            codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
+            //codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
 
             codegen.enterScope(symbols, Methods.getParamCount(node));
             if(Methods.getBodyNodeCount(methodNode) == 1
@@ -112,7 +113,15 @@ public class CMethodVisitor  implements AstVisitor {
                 method.code = new FunctionNode(code);
             }else {
                 // regular methods
-                Methods.visitBody(methodNode, codegen);
+                codegen.enterBlock();
+                var paramOffset = Methods.getParamCount(methodNode) == 0 ? 0 : 1;
+                //var body = new Node[methodNode.childCount() - paramOffset];
+                for(int i = 1; i < methodNode.childCount(); i++){
+                    //body[i - 1] = codegen.visit(methodNode.getChild(i));
+                    codegen.appendToBlock(codegen.visit(methodNode.getChild(i)));
+                }
+
+                method.code = new FunctionNode(new Block(codegen.exitBlock().toArray(Node[]::new)));
             }
             codegen.exitScope();
 
