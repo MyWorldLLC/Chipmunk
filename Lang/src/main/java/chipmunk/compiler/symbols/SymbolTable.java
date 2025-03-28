@@ -208,6 +208,10 @@ public class SymbolTable {
 
 		return localStartIndex;
 	}
+
+	public int getLocalEndIndex(){
+		return getLocalStartIndex() + getSymbolCount();
+	}
 	
 	public boolean isInnerLocal(){
 		if(parent != null && (parent.scope == Scope.LOCAL || parent.scope == Scope.METHOD)){

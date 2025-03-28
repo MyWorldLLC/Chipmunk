@@ -25,6 +25,9 @@ import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.ChipmunkLibrary;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class NativeTypeLib implements ChipmunkLibrary {
@@ -48,6 +51,38 @@ public class NativeTypeLib implements ChipmunkLibrary {
                 throw new IllegalArgumentException("Cannot cast integer to " + type.getName());
             }
         }
+    }
+
+    public static BigDecimal plus(BigDecimal a, BigDecimal b){
+        return a.add(b);
+    }
+
+    public static BigDecimal pos(BigDecimal a){
+        return a.abs();
+    }
+
+    public static BigDecimal neg(BigDecimal a){
+        return a.negate();
+    }
+
+    public static BigDecimal mul(BigDecimal a, BigDecimal b){
+        return a.multiply(b);
+    }
+
+    public static BigDecimal div(BigDecimal a, BigDecimal b){
+        return a.divide(b, MathContext.DECIMAL64);
+    }
+
+    public static BigDecimal fdiv(BigDecimal a, BigDecimal b){
+        return a.divideToIntegralValue(b, MathContext.DECIMAL64);
+    }
+
+    public static BigDecimal mod(BigDecimal a, BigDecimal b){
+        return a.remainder(b, MathContext.DECIMAL64);
+    }
+
+    public static BigDecimal pow(BigDecimal a, BigDecimal b){
+        return a.pow(b.intValue());
     }
 
     public static Integer plus(Integer a, Integer b){

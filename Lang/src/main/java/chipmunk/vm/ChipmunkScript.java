@@ -25,15 +25,13 @@ import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.JvmCompiler;
-import chipmunk.vm.jvm.JvmCompilerConfig;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ChipmunkScript {
+public class ChipmunkScript {
 
     private static final ThreadLocal<ChipmunkScript> currentScript;
     static {
@@ -48,32 +46,27 @@ public abstract class ChipmunkScript {
         return currentScript.get();
     }
 
-    public static void trap(Object payload){
-        var handler = getCurrentScript().getTrapHandler();
-        if(handler != null){
-            handler.runtimeTrap(payload);
-        }
-    }
-
     protected long id;
     private volatile boolean yieldFlag;
 
     protected final List<Object> tags;
     protected final Map<String, ChipmunkModule> modules;
 
-    protected volatile ChipmunkVM vm;
+    protected final ChipmunkVM vm;
     protected volatile ModuleLoader loader;
-    protected volatile TrapHandler trapHandler;
     protected volatile ChipmunkLibraries libs;
     protected volatile LinkingPolicy linkPolicy;
     protected volatile JvmCompiler jvmCompiler;
 
-    public ChipmunkScript(){
-        this(null);
+    protected final EntryPoint entryPoint;
+
+    public ChipmunkScript(ChipmunkVM vm){
+        this(vm, new EntryPoint("main", "main"));
     }
 
-    public ChipmunkScript(TrapHandler trapHandler){
-        this.trapHandler = trapHandler;
+    public ChipmunkScript(ChipmunkVM vm, EntryPoint entryPoint){
+        this.vm = vm;
+        this.entryPoint = entryPoint;
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
 
@@ -82,10 +75,6 @@ public abstract class ChipmunkScript {
 
     public ChipmunkVM getVM() {
         return vm;
-    }
-
-    protected void setVM(ChipmunkVM vm) {
-        this.vm = vm;
     }
 
     public JvmCompiler getJvmCompiler() {
@@ -134,14 +123,6 @@ public abstract class ChipmunkScript {
         this.id = id;
     }
 
-    public void setTrapHandler(TrapHandler trapHandler){
-        this.trapHandler = trapHandler;
-    }
-
-    public TrapHandler getTrapHandler(){
-        return trapHandler != null ? trapHandler : vm.getDefaultTrapHandler();
-    }
-
     public void setModuleLoader(ModuleLoader loader){
         this.loader = loader;
     }
@@ -150,26 +131,23 @@ public abstract class ChipmunkScript {
         return loader;
     }
 
-    public Map<String, ChipmunkModule> getModulesUnmodifiable() {
-        return Collections.unmodifiableMap(modules);
-    }
-
-    public void addModule(ChipmunkModule module){
-        if(modules.containsKey(module.getName())){
-            throw new IllegalStateException(String.format("Module %s is already loaded", module.getName()));
-        }
-
-        modules.put(module.getName(), module);
-    }
-
     public boolean isLoaded(String moduleName){
         return modules.containsKey(moduleName);
     }
 
-    public abstract Object run(Object[] args);
+    public Object run(Object[] args){
+        try {
+            // TODO
+            var module = loader.load(entryPoint.getModule());
+            return vm.invoke(module, entryPoint.getMethod(), args);
+            // TODO
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Object run(){
-        return run(null);
+        return run(new Object[]{});
     }
 
     public void yield(){

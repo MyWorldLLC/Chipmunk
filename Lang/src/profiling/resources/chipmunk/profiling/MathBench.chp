@@ -1,0 +1,13 @@
+module profiling
+
+def mathBench(){
+    var x = 1.0
+    for(var i in 0..<99999999){
+        x = (i+i+2*i+1-0.379) / x
+    }
+    return x
+}
+
+def main(){
+	return mathBench()
+}

@@ -22,10 +22,8 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkObject;
-import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -158,11 +156,11 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         // Library methods should override type methods, so check them first
         Class<?> expectedReturnType = callType.returnType();
         ChipmunkLibraries libs = getLibrariesForThread();
-        MethodHandle callTarget = libs != null ? libs.getMethod(lookup, expectedReturnType, methodName, pTypes) : null;
+        MethodHandle callTarget = libs != null ? libs.getMethodHandle(lookup, expectedReturnType, methodName, pTypes) : null;
 
         // TODO - need to be able to adapt the call type for variadic targets
         if (callTarget == null) {
-            callTarget = getMethod(receiver, expectedReturnType, methodName, params, pTypes, enforceLinkagePolicy);
+            callTarget = getMethodHandle(receiver, expectedReturnType, methodName, params, pTypes, enforceLinkagePolicy);
         }
 
         if (callTarget != null) {
@@ -255,7 +253,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         });
     }
 
-    public MethodHandle getMethod(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException {
+    public MethodHandle getMethodHandle(Object receiver, Class<?> expectedReturnType, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException {
 
         Class<?> receiverType;
         if(receiver == null){
@@ -293,7 +291,6 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                     Class<?> callPType = pTypes[i + 1];
                     Class<?> candidatePType = candidatePTypes[i];
 
-                    //isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class);
                     if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
                         if(candidatePType.isInterface()){
                             interfaceParamMask |= (1L << i);
@@ -311,22 +308,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                         throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
                     }
                     m.setAccessible(true);
-                    var handle = isStatic
-                            ? MethodHandles.dropArguments(lookup.unreflect(m), 0, Object.class)
-                            : lookup.unreflect(m);
-                    while(interfaceParamMask != 0){
-                        for(int i = candidatePTypes.length - 1; i >= 0; i--){
-                            var paramIndex = isStatic ? i : i + 1;
-                            if((interfaceParamMask & 1) != 0){
-                                handle = MethodHandles.filterArguments(handle, paramIndex, ProxyFilter.filterFor(lookup, candidatePTypes[i]).asType(MethodType.methodType(candidatePTypes[i], Object.class)));
-                            }
-                            interfaceParamMask >>>= 1; // Do unsigned right shift so that a 1 in the leading bit isn't propagated
-                        }
-                    }
-                    if(m.isVarArgs()){
-                        handle = handle.asVarargsCollector(Object[].class);
-                    }
-                    return handle;
+
                 }
 
             }
@@ -561,7 +543,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         return override != null ? override.value() : m.getName();
     }
 
-    public String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){
+    public static String formatMethodSignature(Object receiver, String methodName, Class<?>[] pTypes){
         String receiverName;
         if(receiver == null){
             receiverName = "null";

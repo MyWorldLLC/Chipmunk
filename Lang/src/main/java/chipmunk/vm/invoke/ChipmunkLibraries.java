@@ -27,6 +27,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChipmunkLibraries {
@@ -52,7 +53,60 @@ public class ChipmunkLibraries {
         return methods != null ? methods : Collections.emptyList();
     }
 
-    public MethodHandle getMethod(MethodHandles.Lookup lookup, Class<?> returnType, String name, Class<?>[] argTypes) throws Exception {
+    public Method getMethod(Class<?> returnType, String name, Class<?>[] argTypes){
+        Class<?> receiverType = argTypes[0];
+        if(receiverType == null){
+            receiverType = Object.class;
+        }
+
+        List<LibraryMethod> candidates = libraries.get(receiverType);
+
+        if(candidates == null){
+            return null;
+        }
+
+        for(LibraryMethod lm : candidates) {
+            Method m = lm.m;
+            ChipmunkLibrary lib = lm.lib;
+
+            Class<?>[] candidatePTypes = m.getParameterTypes();
+
+            if (candidatePTypes.length != argTypes.length) {
+                continue;
+            }
+
+            if (!m.getName().equals(name)) {
+                continue;
+            }
+
+            Class<?> retType = m.getReturnType();
+            if (retType.equals(void.class) || ChipmunkLinker.isCallTypeCompatible(returnType, retType)) {
+
+                boolean matches = true;
+                for (int i = 0; i < candidatePTypes.length; i++) {
+
+                    Class<?> callPType = argTypes[i];
+                    Class<?> candidatePType = candidatePTypes[i];
+
+                    if(callPType == null){
+                        continue;
+                    }
+
+                    if (!ChipmunkLinker.isCallTypeCompatible(candidatePType, callPType)) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if(matches){
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+
+    public MethodHandle getMethodHandle(MethodHandles.Lookup lookup, Class<?> returnType, String name, Class<?>[] argTypes) throws Exception {
 
         Class<?> receiverType = argTypes[0];
         if(receiverType == null){
