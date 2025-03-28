@@ -63,6 +63,7 @@ public class ChipmunkProfiler {
 		javaPrograms.put("mathBench", TestPrograms.mathBench());
 		javaPrograms.put("callJavaMethod", TestPrograms.callJavaMethod());
 		javaPrograms.put("javaCountBigDecimal", TestPrograms.javaCountBigDecimal());
+		javaPrograms.put("bytecodeCount", TestPrograms.bytecodeCount());
 
 		profiler.programs.put("chipmunk", chipmunkPrograms);
 		profiler.programs.put("java", javaPrograms);
@@ -74,7 +75,7 @@ public class ChipmunkProfiler {
 			long startTime = System.nanoTime();
 			value = selected.call();
 			long endTime = System.nanoTime();
-			Thread.sleep(20);
+			Thread.sleep(1000);
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}

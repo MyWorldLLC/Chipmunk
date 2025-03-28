@@ -23,10 +23,14 @@ package chipmunk.profiling;
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.Fiber;
+import chipmunk.vm.invoke.CInvoker;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.concurrent.Callable;
 
 public class TestPrograms {
@@ -296,6 +300,97 @@ public class TestPrograms {
             }
             return x;
         };
+    }
+
+    public static Callable<Object> bytecodeCount(){
+
+        var fiber = new Fiber();
+
+        var stack = new ArrayDeque<>();
+        Object[] locals = new Object[1];
+
+        // Instructions
+        // 0x00 - set x
+        // 0x01 - push 1000000
+        // 0x02 - get x
+        // 0x03 - less than
+        // 0x04 - push 1
+        // 0x05 - add
+        // 0x06 - goto test start
+
+        var program = new byte[]{
+                0x04, // 1
+                0x00, // x = 1
+                0x01, // 1000000
+                0x02, // x, 1000000
+                0x03, // x < 1000000
+                0x04, // 1
+                0x02, // x, 1
+                0x05, // x + 1
+                0x00, // x = x + 1
+                0x06  // goto ip 2
+        };
+
+        var cache = new Method[]{
+                resolveMethod(fiber, BigDecimal.class, "plus", new Object[]{new BigDecimal(0), new BigDecimal(0)})
+        };
+
+        return () -> {
+            var breakLoop = false;
+            var ip = 0;
+            while(!breakLoop){
+                switch (program[ip]){
+                    case 0x00 -> {
+                        locals[0] = stack.pop();
+                        ip++;
+                    }
+                    case 0x01 -> {
+                        stack.push(new BigDecimal(1000000));
+                        ip++;
+                    }
+                    case 0x02 -> {
+                        stack.push(locals[0]);
+                        ip++;
+                    }
+                    case 0x03 -> {
+                        if(((Comparable) stack.pop()).compareTo(stack.pop()) >= 0){
+                            breakLoop = true;
+                        }
+                        ip++;
+                    }
+                    case 0x04 -> {
+                        stack.push(new BigDecimal(1));
+                        ip++;
+                    }
+                    case 0x05 -> {
+                        stack.push(cache[0].invoke(null, stack.pop(), stack.pop()));
+                        ip++;
+                    }
+                    case 0x06 -> {
+                        ip = 2;
+                    }
+                }
+                if(ip >= program.length){
+                    break;
+                }
+            }
+            return locals[0];
+        };
+
+    }
+
+    private static Method resolveMethod(Fiber fiber, Class<?> targetType, String targetName, Object[] args){
+        var argTypes = new Class[args.length];
+        for(int i = 0; i < args.length; i++){
+            argTypes[i] = args[i] != null ? args[i].getClass() : null;
+        }
+        try {
+            return fiber.vm.getDefaultLinker().getMethod(targetType, targetName, args, argTypes, true);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
