@@ -24,7 +24,6 @@ import chipmunk.vm.invoke.security.LinkingPolicy;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 
 import static chipmunk.vm.invoke.ChipmunkLinker.formatMethodSignature;
 import static chipmunk.vm.invoke.ChipmunkLinker.isCallTypeCompatible;

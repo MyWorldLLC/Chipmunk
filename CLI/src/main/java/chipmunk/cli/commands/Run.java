@@ -33,6 +33,7 @@ import chipmunk.modules.imports.JvmImportModule;
 import chipmunk.modules.math.MathModule;
 import chipmunk.modules.system.SystemModule;
 import chipmunk.pkg.Entrypoint;
+import chipmunk.runtime.CModule;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
@@ -148,9 +149,9 @@ public class Run implements Callable<Integer> {
 
             ChipmunkCompiler compiler = new ChipmunkCompiler(loader);
             compiler.setModuleLoader(loader);
-            BinaryModule[] modules  = compiler.compile(compilation);
+            CModule[] modules  = compiler.compile(compilation);
 
-            loader.addToLoaded(Arrays.asList(modules));
+            //loader.addToLoaded(Arrays.asList(modules));
 
             CompilationUnit unit = new CompilationUnit();
             unit.setModuleLoader(loader);
@@ -164,15 +165,15 @@ public class Run implements Callable<Integer> {
             }else{
                 // Verify default entrypoint is findable, search compiled modules for
                 // main module if not
-                BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
+                /*CModule mainModule = loader.loadBinary(unit.getEntryModule());
                 if(mainModule == null || !(mainModule.getNamespace().has("main") && mainModule.getNamespace().getEntry("main").getType() == FieldType.METHOD)){
-                    for(BinaryModule module : modules){
+                    for(CModule module : modules){
                         BinaryNamespace.Entry entry = module.getNamespace().getEntry("main");
                         if(entry != null && entry.getType() == FieldType.METHOD){
                             unit.setEntryModule(module.getName());
                         }
                     }
-                }
+                }*/
             }
 
             ChipmunkScript script = vm.compileScript(unit);

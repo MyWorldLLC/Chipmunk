@@ -18,17 +18,19 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree;
+package chipmunk.runtime;
 
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.SecurityMode;
-import chipmunk.vm.tree.nodes.FunctionNode;
+import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.NodePartial;
+import chipmunk.vm.tree.StatelessNodePartial;
+import chipmunk.vm.tree.Suspension;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static chipmunk.vm.tree.Conversions.toInt;

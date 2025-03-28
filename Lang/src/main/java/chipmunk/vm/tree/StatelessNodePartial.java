@@ -20,6 +20,8 @@
 
 package chipmunk.vm.tree;
 
+import chipmunk.runtime.Fiber;
+
 public interface StatelessNodePartial extends NodePartial {
 
     Object execute(Fiber ctx);

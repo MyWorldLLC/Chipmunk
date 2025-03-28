@@ -28,4 +28,19 @@ public class CMethod {
     public int argCount;
     public FunctionNode code;
 
+    public Object hostCall(Fiber ctx, Object... args){
+        if(args.length != argCount){
+            throw new IllegalArgumentException("Argument count mismatch: expected %d got %d".formatted(argCount, args.length));
+        }
+        ctx.preCall(0);
+        for(int i = 0; i < args.length; i++){
+            ctx.setLocal(i, args[i]);
+        }
+        try{
+            return code.execute(ctx);
+        }finally {
+            ctx.postCall();
+        }
+    }
+
 }

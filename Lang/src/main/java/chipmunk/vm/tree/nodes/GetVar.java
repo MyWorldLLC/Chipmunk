@@ -20,10 +20,8 @@
 
 package chipmunk.vm.tree.nodes;
 
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.tree.Node;
-
-import static chipmunk.vm.tree.Conversions.toFloat;
 
 public class GetVar implements Node {
     int v;

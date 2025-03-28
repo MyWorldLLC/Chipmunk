@@ -51,6 +51,7 @@ public class MethodVisitor implements AstVisitor {
 	
 	public MethodVisitor(ChipmunkAssembler assembler, BinaryModule module){
 		this.assembler = assembler;
+		codegen = new Codegen(null);
 		defaultReturn = true;
 		isInner = false;
 		this.module = module;

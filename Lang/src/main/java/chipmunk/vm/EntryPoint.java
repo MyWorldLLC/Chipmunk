@@ -18,29 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.tree.nodes;
+package chipmunk.vm;
 
-import chipmunk.runtime.CList;
-import chipmunk.runtime.Fiber;
-import chipmunk.vm.tree.Node;
+public class EntryPoint {
 
-public class ListNode implements Node {
+    protected final String module;
+    protected final String method;
 
-    protected final Node[] elements;
-
-    public ListNode(Node... elements){
-        this.elements = elements;
+    public EntryPoint(String module, String method) {
+        this.module = module;
+        this.method = method;
     }
 
-    @Override
-    public Object execute(Fiber ctx) {
-        // TODO - suspension & memory tracing
-        var list = new CList(elements.length);
+    public String getModule() {
+        return module;
+    }
 
-        for(var e : elements){
-            list.add(e.execute(ctx));
-        }
-
-        return list;
+    public String getMethod() {
+        return method;
     }
 }

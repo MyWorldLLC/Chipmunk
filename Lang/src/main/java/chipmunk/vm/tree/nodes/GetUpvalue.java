@@ -21,7 +21,7 @@
 package chipmunk.vm.tree.nodes;
 
 import chipmunk.runtime.Upvalue;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 
 public class GetUpvalue extends GetVar {
 

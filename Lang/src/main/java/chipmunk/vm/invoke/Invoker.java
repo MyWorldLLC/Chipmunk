@@ -20,7 +20,7 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 
 public interface Invoker {
 

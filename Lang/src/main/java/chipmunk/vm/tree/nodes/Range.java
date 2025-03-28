@@ -21,7 +21,7 @@
 package chipmunk.vm.tree.nodes;
 
 import chipmunk.runtime.BigDecimalRange;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.tree.Node;
 
 import java.math.BigDecimal;

@@ -22,7 +22,7 @@ package chipmunk.profiling;
 
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CMethod;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.tree.Node;
 import chipmunk.vm.tree.nodes.*;
 

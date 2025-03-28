@@ -21,7 +21,7 @@
 package chipmunk.vm.tree.nodes;
 
 import chipmunk.runtime.CMap;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.tree.Node;
 
 public class MapNode implements Node {

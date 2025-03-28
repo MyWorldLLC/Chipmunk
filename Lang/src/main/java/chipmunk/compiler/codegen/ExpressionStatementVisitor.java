@@ -38,8 +38,8 @@ public class ExpressionStatementVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		//node.visit(new ExpressionVisitor(codegen));
 		// evaluate expression and ignore result
-		assembler.pop();
-		assembler.closeLine();
+		//assembler.pop();
+		//assembler.closeLine();
 	}
 
 }

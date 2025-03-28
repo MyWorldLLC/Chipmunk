@@ -52,8 +52,8 @@ public class BinaryImportResolver implements ImportResolver {
     @Override
     public Symbol resolve(String moduleName, String name) {
 
-        try {
-            BinaryModule module = loader.loadBinary(moduleName);
+        /*try {
+            BinaryModule module = loader.loadChipmunk(moduleName);
             if(module == null){
                 return null;
             }
@@ -64,15 +64,15 @@ public class BinaryImportResolver implements ImportResolver {
             }
         } catch (IOException | BinaryFormatException e) {
             throw new RuntimeException(e);
-        }
+        }*/
 
         return null;
     }
 
     @Override
     public List<Symbol> resolveSymbols(String moduleName) {
-        try {
-            BinaryModule module = loader.loadBinary(moduleName);
+        /*try {
+            BinaryModule module = loader.loadChipmunk(moduleName);
             if(module == null){
                 return null;
             }
@@ -84,7 +84,8 @@ public class BinaryImportResolver implements ImportResolver {
                     .collect(Collectors.toList());
         } catch (IOException | BinaryFormatException e) {
             throw new RuntimeException(e);
-        }
+        }*/
+        return null;
     }
 
     protected Symbol makeSymbol(BinaryNamespace.Entry e){

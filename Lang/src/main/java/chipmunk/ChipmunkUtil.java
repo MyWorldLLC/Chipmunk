@@ -22,6 +22,7 @@ package chipmunk;
 
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.runtime.CModule;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -32,13 +33,13 @@ import java.util.List;
 
 public class ChipmunkUtil {
 
-    public static List<BinaryModule> compileResources(String... resourcePaths) {
-        List<BinaryModule> modules = new ArrayList<>();
+    public static List<CModule> compileResources(String... resourcePaths) {
+        List<CModule> modules = new ArrayList<>();
 
         ChipmunkCompiler compiler = new ChipmunkCompiler();
         for(String path : resourcePaths){
             InputStream is = ChipmunkUtil.class.getResourceAsStream(path);
-            BinaryModule[] compiled = compiler.compile(is, Paths.get(path).getFileName().toString());
+            CModule[] compiled = compiler.compile(is, Paths.get(path).getFileName().toString());
             modules.addAll(Arrays.asList(compiled));
         }
 

@@ -23,6 +23,7 @@ package chipmunk.compiler.codegen
 import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.runtime.CModule
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
@@ -287,7 +288,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -398,7 +399,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a) a
 				return v1(1)
 			}
-			""", "")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -412,16 +413,16 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
-			""", "")
+			""")
 			
 		then:
 		result instanceof Integer
 		result == 3
 	}
 	
-	def parseAndCall(String methodBody, String test = ""){
+	def parseAndCall(String methodBody){
 
-		BinaryModule binary = compiler.compileMethod(methodBody)
+		CModule binary = compiler.compileMethod(methodBody)
 
 		CompilationUnit unit = new CompilationUnit()
 		unit.setEntryModule("exp")
@@ -432,14 +433,6 @@ class MethodVisitorSpecification extends Specification {
 		unit.setModuleLoader(loader)
 
 		ChipmunkScript script = vm.compileScript(unit)
-		
-		if(test != ""){
-			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
-			println()
-			println("============= ${test} =============")
-			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
-		}
 		
 		return vm.runAsync(script).get()
 	}

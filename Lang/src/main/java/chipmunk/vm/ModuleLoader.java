@@ -23,9 +23,10 @@ package chipmunk.vm;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
+import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.modules.lang.LangModule;
+import chipmunk.runtime.CModule;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
-import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class ModuleLoader {
 
 	protected volatile ModuleLoader delegate;
 	protected final List<ModuleLocator> locators;
-	protected final Map<String, BinaryModule> loadedModules;
+	protected final Map<String, CModule> loadedModules;
 	protected final Map<String, NativeModuleFactory> nativeFactories;
 	protected final ChipmunkClassLoader classLoader;
 
@@ -59,11 +60,11 @@ public class ModuleLoader {
 		setDelegate(delegate);
 	}
 
-	public ModuleLoader(Collection<BinaryModule> modules){
+	public ModuleLoader(Collection<CModule> modules){
 		this(null, modules);
 	}
 
-	public ModuleLoader(ModuleLoader delegate, Collection<BinaryModule> modules){
+	public ModuleLoader(ModuleLoader delegate, Collection<CModule> modules){
 		this(delegate);
 		addToLoaded(modules);
 	}
@@ -110,7 +111,7 @@ public class ModuleLoader {
 		return null;
 	}
 
-	public BinaryModule loadBinary(String moduleName) throws IOException, BinaryFormatException {
+	public CModule loadChipmunk(String moduleName) throws IOException {
 
 		if(loadedModules.containsKey(moduleName)){
 			return loadedModules.get(moduleName);
@@ -119,17 +120,20 @@ public class ModuleLoader {
 		InputStream is = locate(moduleName);
 		if(is == null){
 			if(delegate != null){
-				return delegate.loadBinary(moduleName);
+				return delegate.loadChipmunk(moduleName);
 			}
 			return null;
 		}
 
-		BinaryReader reader = new BinaryReader();
-		BinaryModule module = reader.readModule(is);
+		var compiler = new ChipmunkCompiler();
+		compiler.setModuleLoader(this);
+		var modules = compiler.compile(is, moduleName);
 
-		loadedModules.put(moduleName, module);
+		for(var module : modules){
+			loadedModules.put(module.getName(), module);
+		}
 
-		return module;
+		return loadedModules.get(moduleName);
 	}
 
 	public ChipmunkModule loadNative(String moduleName){
@@ -143,26 +147,26 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
-		BinaryModule binMod = loadBinary(moduleName);
+	public ChipmunkModule load(String moduleName) throws IOException {
+		CModule module = loadChipmunk(moduleName);
 
-		if(binMod != null){
-			return compiler.compileModule(binMod);
+		if(module != null){
+			return module;
 		}
 
 		return loadNative(moduleName);
 	}
 
-	public Map<String, BinaryModule> getLoadedModules(){
+	public Map<String, CModule> getLoadedModules(){
 		return loadedModules;
 	}
 
-	public void addToLoaded(BinaryModule module){
+	public void addToLoaded(CModule module){
 		loadedModules.putIfAbsent(module.getName(), module);
 	}
 
-	public void addToLoaded(Collection<BinaryModule> modules){
-		for(BinaryModule module : modules){
+	public void addToLoaded(Collection<CModule> modules){
+		for(var module : modules){
 			loadedModules.putIfAbsent(module.getName(), module);
 		}
 	}

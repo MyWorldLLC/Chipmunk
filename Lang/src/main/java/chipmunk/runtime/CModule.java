@@ -20,7 +20,9 @@
 
 package chipmunk.runtime;
 
-public class CModule extends CObject {
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+
+public class CModule extends CObject implements ChipmunkModule {
 
     protected final String name;
     protected String fileName;
@@ -29,6 +31,8 @@ public class CModule extends CObject {
         this.name = name;
     }
 
+    @Override
+    @AllowChipmunkLinkage
     public String getName(){
         return name;
     }

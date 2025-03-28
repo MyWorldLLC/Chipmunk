@@ -26,8 +26,6 @@ import chipmunk.binary.BinaryMethod;
 import chipmunk.binary.BinaryModule;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class CompilationUnit {
 
@@ -61,10 +59,10 @@ public class CompilationUnit {
         this.entryMethod = entryMethod;
     }
 
-    public BinaryMethod getEntryMethod() throws IOException, BinaryFormatException {
-        BinaryModule mainModule = loader.loadBinary(entryModule);
+    /*public BinaryMethod getEntryMethod() throws IOException, BinaryFormatException {
+        BinaryModule mainModule = loader.loadChipmunk(entryModule);
         return (BinaryMethod) mainModule.getNamespace().get(entryMethod);
-    }
+    }*/
 
     public JvmCompilerConfig getJvmCompilerConfig() {
         return jvmCompilerConfig;

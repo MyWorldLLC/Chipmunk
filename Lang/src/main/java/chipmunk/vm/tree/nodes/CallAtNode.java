@@ -23,6 +23,7 @@ package chipmunk.vm.tree.nodes;
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CObject;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.tree.*;
 
@@ -70,7 +71,7 @@ public class CallAtNode implements Node {
 
             // TODO - method caching
 
-            var method = cObj.cls.getMethod(cObj, targetName, args.length);
+            var method = cObj.cls.getMethod(cObj, targetName, args.length + 1);
             ctx.preCall(locals);
             var result = method.code.execute(ctx);
             ctx.postCall();
@@ -115,6 +116,7 @@ public class CallAtNode implements Node {
 
     private Method resolveMethod(ChipmunkVM vm, Class<?> targetType, Object[] args, Class<?>[] argTypes){
         try {
+            // TODO - we actually want the linker for the currently running script
             return vm.getDefaultLinker().getMethod(targetType, targetName, args, argTypes, true);
         } catch (NoSuchMethodException e) {
             return null;

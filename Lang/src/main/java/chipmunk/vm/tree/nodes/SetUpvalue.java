@@ -22,7 +22,7 @@ package chipmunk.vm.tree.nodes;
 
 import chipmunk.runtime.Suspend;
 import chipmunk.runtime.Upvalue;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 
 public class SetUpvalue extends SetVar {
 

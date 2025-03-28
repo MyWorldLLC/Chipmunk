@@ -22,7 +22,7 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CObject;
-import chipmunk.vm.tree.Fiber;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.tree.Signature;
 
 public class CInvoker implements Invoker {

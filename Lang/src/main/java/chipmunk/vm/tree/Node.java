@@ -20,6 +20,8 @@
 
 package chipmunk.vm.tree;
 
+import chipmunk.runtime.Fiber;
+
 public interface Node {
     Object execute(Fiber ctx);
 }

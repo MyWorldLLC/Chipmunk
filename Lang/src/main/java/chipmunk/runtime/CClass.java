@@ -77,6 +77,15 @@ public class CClass {
         return instanceMethods[index];
     }
 
+    public CMethod getInstanceMethod(String name){
+        for(var method : instanceMethods){
+            if(method.name.equals(name)){
+                return method;
+            }
+        }
+        return null;
+    }
+
     public void defineInstanceMethod(int i, CMethod method){
         instanceMethods[i] = method;
     }

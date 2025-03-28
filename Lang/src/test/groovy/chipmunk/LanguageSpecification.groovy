@@ -27,6 +27,7 @@ import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
 import chipmunk.modules.TestModule
 import chipmunk.modules.imports.JvmImportModule
+import chipmunk.runtime.CModule
 import chipmunk.runtime.UnimplementedMethodException
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
@@ -59,7 +60,7 @@ class LanguageSpecification extends Specification {
 		Compilation compilation = new Compilation()
 		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
 
-		BinaryModule[] modules = compiler.compile(compilation)
+		CModule[] modules = compiler.compile(compilation)
 
 		loader.addToLoaded(Arrays.asList(modules))
 
@@ -91,7 +92,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run ShorthandMethods.chp"(){
 		when:
-		def result = compileAndRun("ShorthandMethods.chp", true)
+		def result = compileAndRun("ShorthandMethods.chp")
 
 		then:
 		result == 7
@@ -99,7 +100,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run ModuleWithInitializer.chp"(){
 		when:
-		def result = compileAndRun("ModuleWithInitializer.chp", true)
+		def result = compileAndRun("ModuleWithInitializer.chp")
 		
 		then:
 		result == 5
@@ -243,7 +244,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run Fibonacci.chp"(){
 		when:
-		def result = compileAndRun("Fibonacci.chp", true)
+		def result = compileAndRun("Fibonacci.chp")
 		
 		then:
 		result == 8
@@ -251,7 +252,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run IfElseExpressions.chp"(){
 		when:
-		def result = compileAndRun("IfElseExpressions.chp", true)
+		def result = compileAndRun("IfElseExpressions.chp")
 
 		then:
 		result == [2, 5]
@@ -259,7 +260,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run Mandelbrot.chp"(){
 		when:
-		def result = compileAndRun("Mandelbrot.chp", true)
+		def result = compileAndRun("Mandelbrot.chp")
 		
 		then:
 		noExceptionThrown()
@@ -268,7 +269,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run NestedRangeLoops.chp"(){
 		when:
-		def result = compileAndRun("NestedRangeLoops.chp", true)
+		def result = compileAndRun("NestedRangeLoops.chp")
 		
 		then:
 		result == 9
@@ -284,7 +285,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run StateMachines.chp"(){
 		when:
-		def result = compileAndRun("StateMachines.chp", true)
+		def result = compileAndRun("StateMachines.chp")
 
 		then:
 		result == 5
@@ -292,7 +293,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run ShortcircuitOperators.chp"(){
 		when:
-		def result = compileAndRun("ShortcircuitOperators.chp", true)
+		def result = compileAndRun("ShortcircuitOperators.chp")
 
 		then:
 		result == true
@@ -376,7 +377,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run SimpleMethod.chp"(){
 		when:
-		def result = compileAndRun("SimpleMethod.chp", true)
+		def result = compileAndRun("SimpleMethod.chp")
 
 		then:
 		result == 18
@@ -384,7 +385,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run BoundMethodArgs.chp"(){
 		when:
-		def result = compileAndRun("BoundMethodArgs.chp", true)
+		def result = compileAndRun("BoundMethodArgs.chp")
 
 		then:
 		result == [11, 10, 14, 11, 11]
@@ -400,14 +401,14 @@ class LanguageSpecification extends Specification {
 
 	def "Run Upvalues.chp"(){
 		when:
-		def result = compileAndRun("Upvalues.chp", true)
+		def result = compileAndRun("Upvalues.chp")
 
 		then: result == [5, 3, 3, 15, 3]
 	}
 
 	def "Proxy SamProxy interface"(){
 		when:
-		def methodBinding = compileAndRun("ProxySam.chp", true)
+		def methodBinding = compileAndRun("ProxySam.chp")
 		def proxy = vm.proxy(SamProxy.class, methodBinding)
 		def result = proxy.getFoo()
 
@@ -418,7 +419,7 @@ class LanguageSpecification extends Specification {
 
 	def "Proxy DemoProxy interface"(){
 		when:
-		def methodBinding = compileAndRun("ProxyDemo.chp", true)
+		def methodBinding = compileAndRun("ProxyDemo.chp")
 		def proxy = vm.proxy(DemoProxy.class, methodBinding)
 		proxy.acceptFoo("Hello, Proxy!")
 		def result = proxy.appendFoo("abcd")
@@ -450,7 +451,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run VariableShadowing.chp"(){
 		when:
-		def result = compileAndRun("VariableShadowing.chp", true)
+		def result = compileAndRun("VariableShadowing.chp")
 
 		then:
 		result ==  20
@@ -458,7 +459,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run TypeAnnotations.chp"(){
 		when:
-		def result = compileAndRun("TypeAnnotations.chp", true)
+		def result = compileAndRun("TypeAnnotations.chp")
 
 		then:
 		result ==  [5, 3, 3, 15, 3]

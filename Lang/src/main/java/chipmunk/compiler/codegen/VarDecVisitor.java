@@ -24,8 +24,10 @@ import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.vm.tree.Node;
+import chipmunk.vm.tree.nodes.Value;
 
-public class VarDecVisitor implements AstVisitor {
+public class VarDecVisitor implements CodegenVisitor {
 
 	protected Codegen codegen;
 	
@@ -34,21 +36,22 @@ public class VarDecVisitor implements AstVisitor {
 	}
 	
 	@Override
-	public void visit(AstNode node) {
-		
-		ChipmunkAssembler assembler = codegen.getAssembler();
+	public Node visit(AstNode node) {
+
 		Symbol symbol = codegen.getActiveSymbols().getSymbol(node.getChild().getToken().text());
-		
-		if(node.childCount() > 1){
-			//node.getChild(1).visit(new ExpressionVisitor(codegen));
-		}else{
-			assembler.pushNull();
-		}
+
 		if(symbol == null) {
 			throw new NullPointerException("Null symbol: " + node.getChild().getToken().text() + "\n" + codegen.getActiveSymbols().toString());
 		}
-		codegen.emitLocalAssignment(symbol.getName());
-		codegen.getAssembler().pop();
+
+		var setNode = codegen.emitLocalAssignment(symbol.getName());
+		if(node.childCount() > 1){
+			var visitor = new ExpressionVisitor(codegen);
+			setNode.value = visitor.visit(node.getChild(1));
+		}else{
+			setNode.value = new Value(null);
+		}
+		return setNode;
 	}
 
 }

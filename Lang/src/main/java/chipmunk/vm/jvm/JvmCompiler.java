@@ -57,10 +57,10 @@ public class JvmCompiler {
 
     public ChipmunkScript compile(CompilationUnit sources) throws IOException, BinaryFormatException {
 
-        BinaryModule mainBin = sources.getModuleLoader().loadBinary(sources.getEntryModule());
-        if(mainBin == null){
-            throw new ModuleNotFoundException("Could not find main module " + sources.getEntryModule());
-        }
+        BinaryModule mainBin = null; // sources.getModuleLoader().loadChipmunk(sources.getEntryModule());
+        //if(mainBin == null){
+        //    throw new ModuleNotFoundException("Could not find main module " + sources.getEntryModule());
+        //}
 
         Type scriptType = Type.getType(ChipmunkScript.class);
 
