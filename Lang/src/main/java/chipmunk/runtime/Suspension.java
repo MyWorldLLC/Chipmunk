@@ -18,12 +18,6 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.invoke;
+package chipmunk.runtime;
 
-import chipmunk.vm.Fiber;
-
-public interface Invoker {
-
-    Object invoke(Fiber fiber, Object target, int argCount, Object... args) throws Throwable;
-
-}
+public record Suspension(CMethod method, int ip) {}

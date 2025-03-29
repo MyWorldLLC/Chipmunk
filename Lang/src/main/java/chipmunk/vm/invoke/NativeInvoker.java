@@ -20,7 +20,7 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.runtime.Fiber;
+import chipmunk.vm.Fiber;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

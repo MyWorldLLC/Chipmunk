@@ -24,6 +24,7 @@ import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
 import chipmunk.modules.lang.LangModule;
+import chipmunk.runtime.CModule;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
 import chipmunk.runtime.ChipmunkModule;
 
@@ -142,14 +143,17 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName) throws IOException, BinaryFormatException {
-		BinaryModule binMod = loadBinary(moduleName);
+	public ChipmunkModule load(String moduleName) throws ModuleLoadException {
+        try {
+            var binMod = loadBinary(moduleName);
+			if(binMod != null){
+				return null; // TODO - load CModule
+			}
 
-		if(binMod != null){
-			return null; // TODO - load CModule
-		}
-
-		return loadNative(moduleName);
+			return loadNative(moduleName);
+        } catch (IOException | BinaryFormatException e) {
+            throw new ModuleLoadException("Could not load module " + moduleName, e);
+        }
 	}
 
 	public Map<String, BinaryModule> getLoadedModules(){
@@ -184,6 +188,11 @@ public class ModuleLoader {
 
 	public Map<String, NativeModuleFactory> getNativeFactories(){
 		return nativeFactories;
+	}
+
+	public static CModule loadBinary(BinaryModule module){
+
+		return null;
 	}
 
 }

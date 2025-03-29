@@ -20,33 +20,11 @@
 
 package chipmunk.cli;
 
-import chipmunk.binary.BinaryModule;
-import chipmunk.binary.BinaryNamespace;
-import chipmunk.binary.FieldType;
 import chipmunk.cli.commands.Run;
 import chipmunk.cli.commands.Test;
-import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.compiler.ChipmunkSource;
-import chipmunk.compiler.Compilation;
-import chipmunk.modules.buffer.BufferModule;
-import chipmunk.modules.imports.JvmImportModule;
-import chipmunk.modules.math.MathModule;
-import chipmunk.modules.system.SystemModule;
-import chipmunk.pkg.Entrypoint;
-import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
-import chipmunk.vm.ModuleLoader;
-import chipmunk.vm.jvm.CompilationUnit;
-import chipmunk.vm.locators.FileModuleLocator;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
 import java.util.concurrent.Callable;
 
 @Command(name = "chipmunk",

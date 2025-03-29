@@ -37,7 +37,7 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.util.*;
 
-import static chipmunk.compiler.assembler.Opcodes.*;
+import static chipmunk.vm.Opcodes.*;
 
 public class JvmCompiler {
 

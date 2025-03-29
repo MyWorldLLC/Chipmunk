@@ -20,6 +20,8 @@
 
 package chipmunk.pkg;
 
+import chipmunk.vm.EntryPoint;
+
 import java.util.Properties;
 
 public class PackageProperties {
@@ -50,16 +52,16 @@ public class PackageProperties {
         this.properties = properties;
     }
 
-    public Entrypoint getEntrypoint(){
+    public EntryPoint getEntrypoint(){
         String entrypoint = properties.getProperty(ENTRYPOINT_KEY);
         if(entrypoint == null){
             return null;
         }
 
-        return Entrypoint.fromString(entrypoint);
+        return EntryPoint.fromString(entrypoint);
     }
 
-    public void setEntrypoint(Entrypoint entrypoint){
+    public void setEntrypoint(EntryPoint entrypoint){
         properties.setProperty(ENTRYPOINT_KEY, entrypoint.toString());
     }
 

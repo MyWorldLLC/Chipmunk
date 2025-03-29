@@ -22,10 +22,27 @@ package chipmunk.vm;
 
 public class EntryPoint {
 
-    protected final String module;
-    protected final String method;
+    protected String module;
+    protected String method;
 
-    public EntryPoint(String module, String method) {
+    public EntryPoint(){
+        this("main", "main");
+    }
+
+    public EntryPoint(String module){
+        this(module, "main");
+    }
+
+    public EntryPoint(String module, String method){
+
+        if(module == null || module.isEmpty()){
+            throw new IllegalArgumentException("module must be specified");
+        }
+
+        if(method == null || method.isEmpty()){
+            throw new IllegalArgumentException("method must be specified");
+        }
+
         this.module = module;
         this.method = method;
     }
@@ -34,15 +51,54 @@ public class EntryPoint {
         return module;
     }
 
+    public void setModule(String module) {
+        this.module = module;
+    }
+
     public String getMethod() {
         return method;
     }
 
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
     @Override
-    public String toString() {
-        return "EntryPoint{" +
-                "module='" + module + '\'' +
-                ", method='" + method + '\'' +
-                '}';
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(module);
+        sb.append("::");
+        sb.append(method);
+
+        return sb.toString();
+    }
+
+    public static EntryPoint fromString(String entrypoint) throws IllegalArgumentException {
+
+        entrypoint = entrypoint.trim();
+        if(entrypoint.isEmpty()){
+            throw new IllegalArgumentException("entrypoint is empty");
+        }
+
+        int splitIndex = entrypoint.indexOf("::");
+
+        if(splitIndex == 0){
+            throw new IllegalArgumentException("module is empty");
+        }
+
+        if(splitIndex + 2 >= entrypoint.length() - 1){
+            throw new IllegalArgumentException("method is empty");
+        }
+
+        if(splitIndex == -1){
+            // No method is specified
+            return new EntryPoint(entrypoint, "main");
+        }
+
+        String module = entrypoint.substring(0, splitIndex);
+        String method = entrypoint.substring(splitIndex + 2);
+
+        return new EntryPoint(module, method);
     }
 }

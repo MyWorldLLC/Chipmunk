@@ -20,10 +20,13 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.Fiber;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
-public interface Invoker {
+public record CachedNativeCall(Class<?> targetType, String name, Class<?>[] argTypes, Method method) {
 
-    Object invoke(Fiber fiber, Object target, int argCount, Object... args) throws Throwable;
+    public boolean matches(Class<?> t, String n, Class<?>[] types){
+        return t.equals(targetType) && n.equals(name) && Arrays.equals(types, argTypes);
+    }
 
 }

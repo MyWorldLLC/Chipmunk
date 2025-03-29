@@ -20,10 +20,14 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.Fiber;
+import chipmunk.runtime.CClass;
+import chipmunk.runtime.CMethod;
 
-public interface Invoker {
+public record CachedChipmunkCall(CClass targetType, String name, int args, CMethod method) {
 
-    Object invoke(Fiber fiber, Object target, int argCount, Object... args) throws Throwable;
+    // Note: Can't rely on this alone due to traits
+    public boolean matches(CClass t, String n, int a){
+        return targetType == t && name.equals(n) && a == args;
+    }
 
 }

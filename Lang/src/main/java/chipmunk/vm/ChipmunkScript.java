@@ -20,16 +20,23 @@
 
 package chipmunk.vm;
 
+import chipmunk.binary.BinaryFormatException;
+import chipmunk.binary.BinaryModule;
+import chipmunk.binary.FieldType;
+import chipmunk.runtime.CClass;
+import chipmunk.runtime.CMethod;
+import chipmunk.runtime.CModule;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.JvmCompiler;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChipmunkScript {
 
@@ -47,18 +54,20 @@ public class ChipmunkScript {
     }
 
     protected long id;
-    private volatile boolean yieldFlag;
 
     protected final List<Object> tags;
     protected final Map<String, ChipmunkModule> modules;
 
     protected final ChipmunkVM vm;
-    protected volatile ModuleLoader loader;
-    protected volatile ChipmunkLibraries libs;
-    protected volatile LinkingPolicy linkPolicy;
-    protected volatile JvmCompiler jvmCompiler;
+    protected final List<Fiber> fibers;
+    protected final AtomicReference<Fiber> currentFiber;
+    protected final Deque<Fiber> runQueue;
 
-    protected final EntryPoint entryPoint;
+    protected final ModuleLoader loader;
+    protected ChipmunkLibraries libs;
+    protected LinkingPolicy linkPolicy;
+
+    protected EntryPoint entryPoint;
 
     public ChipmunkScript(ChipmunkVM vm){
         this(vm, new EntryPoint("main", "main"));
@@ -67,8 +76,13 @@ public class ChipmunkScript {
     public ChipmunkScript(ChipmunkVM vm, EntryPoint entryPoint){
         this.vm = vm;
         this.entryPoint = entryPoint;
+        fibers = new ArrayList<>();
+        currentFiber = new AtomicReference<>();
+        runQueue = new ArrayDeque<>();
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
+
+        this.loader = new ModuleLoader();
 
         linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
     }
@@ -77,12 +91,12 @@ public class ChipmunkScript {
         return vm;
     }
 
-    public JvmCompiler getJvmCompiler() {
-        return jvmCompiler;
+    public EntryPoint getEntryPoint() {
+        return entryPoint;
     }
 
-    public void setJvmCompiler(JvmCompiler jvmCompiler) {
-        this.jvmCompiler = jvmCompiler;
+    public void setEntryPoint(EntryPoint entryPoint){
+        this.entryPoint = entryPoint;
     }
 
     public void tag(Object tag){
@@ -123,43 +137,105 @@ public class ChipmunkScript {
         this.id = id;
     }
 
-    public void setModuleLoader(ModuleLoader loader){
-        this.loader = loader;
-    }
-
     public ModuleLoader getModuleLoader(){
         return loader;
     }
 
-    public boolean isLoaded(String moduleName){
-        return modules.containsKey(moduleName);
+    public Fiber getCurrentFiber(){
+        return currentFiber.get();
     }
 
-    public Object run(Object[] args){
-        try {
-            // TODO
-            var module = loader.load(entryPoint.getModule());
-            return vm.invoke(module, entryPoint.getMethod(), args);
-            // TODO
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+    public CMethod getEntryMethod(){
+        return getMethod(entryPoint.getModule(), entryPoint.getMethod());
+    }
+
+    public CMethod getMethod(String moduleName, String method){
+        var module = getCModule(moduleName);
+        return module.cls.getInstanceMethod(method);
+    }
+
+    public CModule getCModule(String name) throws ModuleLoadException {
+
+        if(modules.containsValue(name)){
+            return (CModule) modules.get(name);
         }
+
+        BinaryModule binary;
+        try {
+            binary = loader.loadBinary(name);
+        } catch (IOException | BinaryFormatException e) {
+            throw new ModuleLoadException(e);
+        }
+
+        var module = new CModule(name);
+        module.constants = binary.getConstantPool();
+        module.setFileName(binary.getFileName());
+
+        var builder = CClass.builder(name);
+        for(var entry : binary.getNamespace()){
+            if(entry.getType() == FieldType.METHOD){
+                // TODO - API is horrible and we need to add things like the exception and debug tables
+                var bm = entry.getBinaryMethod();
+                var cm = new CMethod(module, entry.getName(), bm.getArgCount());
+                cm.localCount = bm.getLocalCount();
+                cm.code = bm.getCode();
+
+                builder.withInstanceMethod(cm);
+            }// TODO - all the other things
+        }
+
+        module.cls = builder.build();
+        modules.put(module.getName(), module);
+
+        return module;
+    }
+
+    public void createEntryFiber(Object... args){
+        var module = getCModule(entryPoint.getModule());
+        var fiber = newFiber();
+        fiber.initialize(module.cls.getInstanceMethod(entryPoint.getMethod()), args);
+    }
+
+    // TODO - run from suspended state
+
+    public Object run(Object[] args){
+
+        try {
+            getCModule(entryPoint.getModule());
+
+            var fiber = newFiber();
+            setCurrentFiber(fiber);
+            fiber.initialize(getEntryMethod(), args);
+            BytecodeInterpreter.run(fiber);
+            return fiber.pop();
+
+        } catch (Throwable e) {
+            throw e;
+        }
+
+    }
+
+    public Fiber newFiber(){
+        var fiber = new Fiber(this);
+        fibers.add(fiber);
+        return fiber;
+    }
+
+    public void setCurrentFiber(Fiber f){
+        currentFiber.set(f);
     }
 
     public Object run(){
         return run(new Object[]{});
     }
 
-    public void yield(){
-        yieldFlag = true;
-    }
-
-    public boolean isYielded(){
-        return yieldFlag;
-    }
-
-    public void resume(){
-        yieldFlag = false;
+    public void interrupt(){
+        currentFiber.getAndUpdate(f -> {
+            if(f != null){
+                f.interrupt();
+            }
+            return f;
+        });
     }
 
     public void setLibs(ChipmunkLibraries libs){

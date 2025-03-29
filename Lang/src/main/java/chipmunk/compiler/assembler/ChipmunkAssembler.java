@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.binary.DebugEntry;
+import chipmunk.vm.Opcodes;
 
 public class ChipmunkAssembler {
 	
@@ -81,11 +82,8 @@ public class ChipmunkAssembler {
 					
 					int targetIndex = labelTarget.getCodeIndex();
 					int labelIndex = label.getCodeIndex();
-					
-					codeBytes[labelIndex] = (byte) (targetIndex >> 24);
-					codeBytes[labelIndex + 1] = (byte) (targetIndex >> 16);
-					codeBytes[labelIndex + 2] = (byte) (targetIndex >> 8);
-					codeBytes[labelIndex + 3] = (byte) targetIndex;
+
+					Opcodes.setInt(codeBytes, labelIndex, targetIndex);
 					
 					resolved = true;
 				}

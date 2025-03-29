@@ -21,10 +21,42 @@
 package chipmunk.runtime;
 
 
+import java.util.Objects;
+
 public class CMethod {
 
+    public CModule module;
     public String name;
     public int argCount;
     public byte[] code;
+    public int localCount;
 
+    // We use a stored hash so that this is fast when computing fiber caches
+    private final int hash;
+
+    public CMethod(CModule module, String name, int argCount){
+        this.module = module;
+        this.name = name;
+        this.argCount = argCount;
+        hash = Objects.hash(module.name, name, argCount);
+    }
+
+    public CMethod(CModule module, String name, int argCount, byte[] code){
+        this.module = module;
+        this.name = name;
+        this.argCount = argCount;
+        this.code = code;
+        hash = Objects.hash(module.name, name, argCount);
+    }
+
+    @Override
+    public int hashCode(){
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof CMethod cMethod)) return false;
+        return argCount == cMethod.argCount && Objects.equals(name, cMethod.name) && Objects.equals(module, cMethod.module);
+    }
 }

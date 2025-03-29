@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2025 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk.vm;
 
 public class Opcodes {
 	
@@ -89,5 +89,23 @@ public class Opcodes {
 
 	// Method bindings
 	public static final byte BIND = 0x39;
-	
+
+	public static byte fetchByte(byte[] instructions, int ip){
+		return instructions[ip];
+	}
+
+	public static int fetchInt(byte[] instructions, int ip) {
+		int b1 = instructions[ip] & 0xFF;
+		int b2 = instructions[ip + 1] & 0xFF;
+		int b3 = instructions[ip + 2] & 0xFF;
+		int b4 = instructions[ip + 3] & 0xFF;
+		return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+	}
+
+	public static void setInt(byte[] instructions, int ip, int value){
+		instructions[ip] = (byte) (value >> 24);
+		instructions[ip + 1] = (byte) (value >> 16);
+		instructions[ip + 2] = (byte) (value >> 8);
+		instructions[ip + 3] = (byte) value;
+	}
 }

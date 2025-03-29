@@ -22,7 +22,7 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CObject;
-import chipmunk.runtime.Fiber;
+import chipmunk.vm.Fiber;
 import chipmunk.runtime.Signature;
 
 public class CInvoker implements Invoker {
@@ -59,7 +59,7 @@ public class CInvoker implements Invoker {
 
         var m = cTarget.cls.getInstanceMethod(method);
 
-        fiber.preCall(frameLocals);
+        fiber.prepareCall(frameLocals, 0);
         try{
             // TODO
             //return m.code.execute(fiber);

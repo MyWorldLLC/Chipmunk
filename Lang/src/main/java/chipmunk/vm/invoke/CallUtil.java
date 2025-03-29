@@ -20,10 +20,15 @@
 
 package chipmunk.vm.invoke;
 
-import chipmunk.vm.Fiber;
+public class CallUtil {
 
-public interface Invoker {
-
-    Object invoke(Fiber fiber, Object target, int argCount, Object... args) throws Throwable;
+    public static Class<?>[] types(Object[] objs){
+        Class<?>[] types = new Class<?>[objs.length];
+        for(int i = 0; i < objs.length; i++){
+            Object arg = objs[i];
+            types[i] = arg == null ? null : arg.getClass();
+        }
+        return types;
+    }
 
 }

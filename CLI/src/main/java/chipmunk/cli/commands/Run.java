@@ -32,7 +32,7 @@ import chipmunk.modules.buffer.BufferModule;
 import chipmunk.modules.imports.JvmImportModule;
 import chipmunk.modules.math.MathModule;
 import chipmunk.modules.system.SystemModule;
-import chipmunk.pkg.Entrypoint;
+import chipmunk.vm.EntryPoint;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
@@ -158,9 +158,9 @@ public class Run implements Callable<Integer> {
             unit.setEntryMethodName("main");
 
             if(entryPoint != null){
-                Entrypoint newEntrypoint = Entrypoint.fromString(entryPoint);
-                unit.setEntryModule(newEntrypoint.getModule());
-                unit.setEntryMethodName(newEntrypoint.getMethod());
+                EntryPoint newEntryPoint = EntryPoint.fromString(entryPoint);
+                unit.setEntryModule(newEntryPoint.getModule());
+                unit.setEntryMethodName(newEntryPoint.getMethod());
             }else{
                 // Verify default entrypoint is findable, search compiled modules for
                 // main module if not

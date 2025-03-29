@@ -27,6 +27,8 @@ public class CModule extends CObject implements ChipmunkModule {
     protected final String name;
     protected String fileName;
 
+    public Object[] constants;
+
     public CModule(String name) {
         this.name = name;
     }

@@ -23,7 +23,7 @@ package chipmunk.compiler;
 import chipmunk.binary.*;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 
-import static chipmunk.compiler.assembler.Opcodes.*;
+import static chipmunk.vm.Opcodes.*;
 
 public class ChipmunkDisassembler {
 
@@ -479,14 +479,6 @@ public class ChipmunkDisassembler {
 		}
 		
 		return builder.toString();
-	}
-
-	private static int fetchInt(byte[] instructions, int ip) {
-		int b1 = instructions[ip] & 0xFF;
-		int b2 = instructions[ip + 1] & 0xFF;
-		int b3 = instructions[ip + 2] & 0xFF;
-		int b4 = instructions[ip + 3] & 0xFF;
-		return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
 	}
 
 	private static byte fetchByte(byte[] instructions, int ip) {

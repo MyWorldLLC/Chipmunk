@@ -24,19 +24,14 @@ import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompileChipmunk;
-import chipmunk.runtime.CModule;
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.runtime.MethodBinding;
-import chipmunk.runtime.NativeTypeLib;
+import chipmunk.runtime.*;
 import chipmunk.vm.invoke.CLinker;
 import chipmunk.vm.invoke.ChipmunkLibraries;
-import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.*;
 import chipmunk.vm.scheduler.Scheduler;
-import chipmunk.runtime.Fiber;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,14 +40,11 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 public class ChipmunkVM {
 
-	protected volatile LinkingPolicy defaultLinkPolicy;
-	protected volatile ChipmunkLibraries defaultLibraries;
-	protected volatile JvmCompilerConfig defaultJvmCompilerConfig;
-	protected volatile TrapHandler defaultTrapHandler;
+	protected final LinkingPolicy defaultLinkPolicy;
+	protected final ChipmunkLibraries defaultLibraries;
 
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
 	protected final AtomicLong scriptIds;
@@ -74,41 +66,14 @@ public class ChipmunkVM {
 		scriptExecutor = Executors.newVirtualThreadPerTaskExecutor();
 		scheduler = new Scheduler();
 
-		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy, new TrapConfig());
-
-		defaultTrapHandler = new TrapHandler() {};
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){
 		return defaultLinkPolicy;
 	}
 
-	public void setDefaultLinkPolicy(LinkingPolicy policy){
-		defaultLinkPolicy = policy;
-	}
-
-	public void setDefaultLibraries(ChipmunkLibraries libraries){
-		defaultLibraries = libraries;
-	}
-
 	public ChipmunkLibraries getDefaultLibraries(){
 		return defaultLibraries;
-	}
-
-	public JvmCompilerConfig getDefaultJvmCompilerConfig() {
-		return defaultJvmCompilerConfig;
-	}
-
-	public void setDefaultJvmCompilerConfig(JvmCompilerConfig defaultJvmCompilerConfig) {
-		this.defaultJvmCompilerConfig = defaultJvmCompilerConfig;
-	}
-
-	public TrapHandler getDefaultTrapHandler(){
-		return defaultTrapHandler;
-	}
-
-	public void setDefaultTrapHandler(TrapHandler handler){
-		defaultTrapHandler = handler;
 	}
 
 	public void start() {
@@ -122,17 +87,6 @@ public class ChipmunkVM {
 
 	public Scheduler getScheduler(){
 		return scheduler;
-	}
-
-	public JvmCompiler createDefaultJvmCompiler(){
-		return createJvmCompiler(defaultJvmCompilerConfig);
-	}
-
-	public JvmCompiler createJvmCompiler(JvmCompilerConfig config){
-		if(config == null){
-			config = defaultJvmCompilerConfig;
-		}
-		return new JvmCompiler(config);
 	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
@@ -166,7 +120,7 @@ public class ChipmunkVM {
 	public ChipmunkScript compileScript(CompilationUnit unit) {
 
 		ChipmunkScript script = new ChipmunkScript(this);
-		script.setModuleLoader(unit.getModuleLoader());
+		script.getModuleLoader().setDelegate(unit.getModuleLoader());
 		script.setId(scriptIds.incrementAndGet());
 		script.setLinkPolicy(defaultLinkPolicy);
 		script.setLibs(defaultLibraries);
@@ -176,10 +130,13 @@ public class ChipmunkVM {
 
 	public Object eval(String exp) {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		// TODO - load module
-		//CModule expModule = compiler.compileExpression(exp);
-		//return invoke(expModule, "evaluate");
-		return null;
+
+		var binMod = compiler.compileExpression(exp);
+		var script = new ChipmunkScript(this, new EntryPoint(binMod.getName(), "evaluate"));
+		script.getModuleLoader().addToLoaded(binMod);
+
+		// TODO - sandboxing
+		return script.run();
 	}
 
 	@AllowChipmunkLinkage
@@ -212,35 +169,30 @@ public class ChipmunkVM {
 		return script.modules.containsKey(moduleName);
 	}
 
-	/*public static Object hostInvoke(Fiber fiber, Object target, String name, Object... args){
-		var node = new CallAtNode(0, new Value(target), name, Arrays.stream(args).map(Value::new).toArray(Node[]::new));
-		return node.execute(fiber);
-	}*/
-
-	public Object invoke(Object target, String methodName, Object... params) {
-		// TODO - set up fiber properly
-		/*var fiber = new Fiber(this);
-		var node = new CallAtNode(0, new Value(target), methodName, Arrays.stream(params).map(Value::new).toArray(Node[]::new));
-		return node.execute(fiber);*/
-		return null; // TODO
+	public Object invoke(ChipmunkScript script, Object target, String methodName, Object... params) {
+		return script.getCurrentFiber().hostInvoke(target, methodName, params);
 	}
 
 	public Object invoke(ChipmunkScript script, Object target, String methodName){
 		return invoke(script, target, methodName, null);
 	}
 
-	public Object invoke(ChipmunkScript script, Object target, String methodName, Object[] params){
+/*	public Object invoke(ChipmunkScript script, Object target, String methodName, Object[] params){
 		runningScripts.put(script.getId(), script);
 
 		ChipmunkScript.setCurrentScript(script);
 
-		ChipmunkLibraries scriptLibs = script.getLibs();
-		ChipmunkLinker.setLibrariesForThread(scriptLibs != null ? scriptLibs : defaultLibraries);
+		//ChipmunkLibraries scriptLibs = script.getLibs();
+		//ChipmunkLinker.setLibrariesForThread(scriptLibs != null ? scriptLibs : defaultLibraries);
 
 		scheduler.notifyInvocationBegan(script);
 
 		try{
-			return invoke(target, methodName, params);
+			var fiber = script.newFiber();
+			script.setCurrentFiber(fiber);
+			fiber.initialize(script.getEntryMethod(), params);
+			BytecodeInterpreter.run(fiber);
+			return fiber.pop();
 		}catch (Throwable t){
 			throw new RuntimeException(t);
 		}finally{
@@ -248,20 +200,19 @@ public class ChipmunkVM {
 			//ChipmunkScript.setCurrentScript(null);
 			scheduler.notifyInvocationEnded(script);
 		}
-	}
+	}*/
 
-	public CLinker getDefaultLinker(){
-		var libs = new ChipmunkLibraries();
-		libs.registerLibrary(new NativeTypeLib());
-		return new CLinker(null, libs);
+	public CLinker createLinker(){
+		return new CLinker(defaultLinkPolicy, defaultLibraries);
 	}
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script) {
-		return invokeAsync(script, script, "run");
+		return invokeAsync(script, script, "main");
 	}
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script, Object[] params) {
-		return invokeAsync(script, script, "run", params);
+		var entryPoint = script.getEntryPoint();
+		return invokeAsync(script, script, "main", params);
 	}
 
 	public CompletableFuture<Object> invokeAsync(ChipmunkScript script, Object target, String methodName){
@@ -325,7 +276,8 @@ public class ChipmunkVM {
 		try {
 			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().bindingFor(script.getModuleLoader().getClassLoader(), bindingName, targetType, method);
+			throw new RuntimeException(e); // TODO
+			//return script.getJvmCompiler().bindingFor(script.getModuleLoader().getClassLoader(), bindingName, targetType, method);
 		}
 	}
 
@@ -336,7 +288,8 @@ public class ChipmunkVM {
 		try {
 			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().argBindingFor(script.getModuleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
+			throw new RuntimeException(e); // TODO
+			//return script.getJvmCompiler().argBindingFor(script.getModuleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
 		}
 	}
 
@@ -361,8 +314,9 @@ public class ChipmunkVM {
 		try {
 			proxyType = (Class<T>) classloader.loadClass(proxyName);
 		} catch (ClassNotFoundException e) {
-			proxyType = script.getJvmCompiler()
-					.makeProxyInterfaceImpl(script.getModuleLoader().getClassLoader(), proxyName, interfaceType, isSamType);
+			throw new RuntimeException(e); // TODO
+			//proxyType = script.getJvmCompiler()
+			//		.makeProxyInterfaceImpl(script.getModuleLoader().getClassLoader(), proxyName, interfaceType, isSamType);
 		}
 
 		return proxyType.getConstructor(ChipmunkScript.class, Object.class).newInstance(script, target);
@@ -376,40 +330,6 @@ public class ChipmunkVM {
 			}
 		}
 		return nonDefaults == 1;
-	}
-
-	private static void handleTrap(Consumer<TrapHandler> h){
-		var script = ChipmunkScript.getCurrentScript();
-		if(script != null){
-			//var handler = script.getTrapHandler();
-			//if(handler != null){
-			//	h.accept(handler);
-			//}
-		}
-	}
-
-	public static void trap(Object payload){
-		handleTrap(handler -> handler.runtimeTrap(payload));
-	}
-
-	public static void backJump(TrapSite site){
-		handleTrap(handler -> handler.backJump(site));
-	}
-
-	public static void trapObjectAlloc(TrapSite site, Class<?> objectType){
-		handleTrap(hander -> hander.objectAlloc(site, objectType));
-	}
-
-	public static void trapArrayAlloc(TrapSite site, Class<?> arrayType, int dimensions, int capacity){
-		handleTrap(handler -> handler.arrayAlloc(site, arrayType, dimensions, capacity));
-	}
-
-	public static void trapMethodCall(TrapSite site, MethodIdentifier method){
-		handleTrap(handler -> handler.methodCall(site, method));
-	}
-
-	public static void trapObjectInit(TrapSite site, Object object){
-		handleTrap(handler -> handler.postObjectInit(site, object));
 	}
 
 }

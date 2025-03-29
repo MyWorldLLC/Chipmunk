@@ -40,15 +40,15 @@ public class CLinker {
 
     public Method getMethod(Object receiver, String methodName, Object[] params, Class<?>[] pTypes, boolean enforceLinkagePolicy) throws IllegalAccessException, NoSuchMethodException{
         Class<?> receiverType;
-        if(receiver == null){
+        if (receiver == null) {
             receiverType = Object.class;
-        }else if(receiver instanceof Class){
+        } else if (receiver instanceof Class) {
             receiverType = (Class<?>) receiver;
-        }else{
+        } else {
             receiverType = receiver.getClass();
         }
-        var libMethod = libraries.getMethod(receiverType, methodName, pTypes);
-        if(libMethod != null){
+        var libMethod = libraries.getMethod(Object.class, methodName, pTypes);
+        if (libMethod != null) {
             return libMethod;
         }
 
@@ -65,37 +65,32 @@ public class CLinker {
                 continue;
             }
 
-            Class<?> retType = m.getReturnType();
+            boolean paramsMatch = true;
+            long interfaceParamMask = 0;
+            boolean isStatic = Modifier.isStatic(m.getModifiers());
+            for (int i = 0; i < candidatePTypes.length; i++) {
 
-            //if (retType.equals(void.class) || isCallTypeCompatible(expectedReturnType, retType)) {
+                Class<?> callPType = pTypes[i];
+                Class<?> candidatePType = candidatePTypes[i];
 
-                boolean paramsMatch = true;
-                long interfaceParamMask = 0;
-                boolean isStatic = Modifier.isStatic(m.getModifiers());
-                for (int i = 0; i < candidatePTypes.length; i++) {
-
-                    Class<?> callPType = pTypes[i];
-                    Class<?> candidatePType = candidatePTypes[i];
-
-                    if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
-                        if (candidatePType.isInterface()) {
-                            interfaceParamMask |= (1L << i);
-                            continue;
-                        }
-                        paramsMatch = false;
-                        break;
+                if (!isCallTypeCompatible(candidatePType, callPType != null ? callPType : Object.class)) {
+                    if (candidatePType.isInterface()) {
+                        interfaceParamMask |= (1L << i);
+                        continue;
                     }
+                    paramsMatch = false;
+                    break;
                 }
+            }
 
-                if (paramsMatch || m.isVarArgs()) {
-                    // We have a match!
-                    if (linkingPolicy != null && enforceLinkagePolicy && !linkingPolicy.allowMethodCall(receiver, m, params)) {
-                        throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
-                    }
-                    m.setAccessible(true);
-                    return m;
+            if (paramsMatch || m.isVarArgs()) {
+                // We have a match!
+                if (linkingPolicy != null && enforceLinkagePolicy && !linkingPolicy.allowMethodCall(receiver, m, params)) {
+                    throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
                 }
-            //}
+                m.setAccessible(true);
+                return m;
+            }
         }
         return null;
     }

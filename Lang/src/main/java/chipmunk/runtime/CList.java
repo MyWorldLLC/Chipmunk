@@ -48,38 +48,38 @@ public class CList implements Iterable<Object> {
     }
 
     @AllowChipmunkLinkage
-    public void add(BigDecimal i, Object e){
-        backing.add(i.intValueExact(), e);
+    public void add(Integer i, Object e){
+        backing.add(i, e);
     }
 
     @AllowChipmunkLinkage
-    public Object set(BigDecimal i, Object e){
+    public Object set(Integer i, Object e){
         return setAt(i, e);
     }
 
     @AllowChipmunkLinkage
-    public Object get(BigDecimal i){
+    public Object get(Integer i){
         return getAt(i);
     }
 
     @AllowChipmunkLinkage
-    public Object setAt(BigDecimal i, Object e){
-        return backing.set(i.intValueExact(), e);
+    public Object setAt(Integer i, Object e){
+        return backing.set(i, e);
     }
 
     @AllowChipmunkLinkage
-    public Object getAt(BigDecimal i){
-        return backing.get(i.intValueExact());
+    public Object getAt(Integer i){
+        return backing.get(i);
     }
 
     @AllowChipmunkLinkage
-    public BigDecimal size(){
-        return new BigDecimal(backing.size());
+    public Integer size(){
+        return backing.size();
     }
 
     @AllowChipmunkLinkage
-    public Object removeAt(BigDecimal i){
-        return backing.remove(i.intValueExact());
+    public Object removeAt(Integer i){
+        return backing.remove(i);
     }
 
     @AllowChipmunkLinkage
