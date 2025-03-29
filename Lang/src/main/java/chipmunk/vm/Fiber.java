@@ -128,6 +128,7 @@ public final class Fiber {
             count++; // + 1 for self
 
             // TODO - caching
+            //System.out.println("CObject call " + name);
 
             var callTarget = cObj.cls.getMethod(cObj, name, count + 1);
 
@@ -145,6 +146,8 @@ public final class Fiber {
                 for (int i = args.length - 1; i >= 0; i--) {
                     args[i] = pop();
                 }
+
+                //System.out.println("Native call " + name);
 
                 // TODO - throw a Chipmunk-specific NPE with a Chipmunk stack trace
                 var targetType = target.getClass();
@@ -164,6 +167,10 @@ public final class Fiber {
                     setCache(method, ip, cached);
                 }
 
+                // TODO - catch suspension and throw a fatal exception if the native method is not annotated
+                // as supporting suspension.
+                //var callResult = cached.method().invoke(target, args);
+                //System.out.println("Result: " + callResult);
                 push(cached.method().invoke(target, args));
             } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
