@@ -146,6 +146,7 @@ public final class Fiber {
                     args[i] = pop();
                 }
 
+                // TODO - throw a Chipmunk-specific NPE with a Chipmunk stack trace
                 var targetType = target.getClass();
                 var argTypes = CallUtil.types(args);
 

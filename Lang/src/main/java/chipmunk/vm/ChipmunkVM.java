@@ -121,6 +121,7 @@ public class ChipmunkVM {
 
 		ChipmunkScript script = new ChipmunkScript(this);
 		script.getModuleLoader().setDelegate(unit.getModuleLoader());
+		script.setEntryPoint(new EntryPoint(unit.getEntryModule(), unit.getEntryMethodName()));
 		script.setId(scriptIds.incrementAndGet());
 		script.setLinkPolicy(defaultLinkPolicy);
 		script.setLibs(defaultLibraries);
@@ -207,7 +208,7 @@ public class ChipmunkVM {
 	}
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script) {
-		return invokeAsync(script, script, "main");
+		return runInScriptPool(script, () -> script.run());
 	}
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script, Object[] params) {

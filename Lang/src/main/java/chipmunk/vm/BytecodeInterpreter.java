@@ -97,6 +97,12 @@ public final class BytecodeInterpreter {
                             fiber.push(method.module.constants[fetchInt(code, ip + 1)]);
                             ip += 5;
                         }
+                        case EQ -> {
+                            var t = (Boolean) fiber.invokeValue(method, ip, "equals", 1, true);
+                            fiber.push(t);
+                            ip++;
+                            //ip = testJump(v.intValue() < 0, fiber, ip, fetchInt(code, ip + 1), 5);
+                        }
                         case LT -> {
                             var v = (Number) fiber.invokeValue(method, ip, "compare", 1, true);
                             fiber.push(v.intValue() < 0);
@@ -121,6 +127,11 @@ public final class BytecodeInterpreter {
                             ip += 6;
                             fiber.invoke(method, ip - 6, name, pCount, false);
                         }
+                        case RANGE -> {
+                            fiber.push(fetchByte(code, ip + 1) != 0);
+                            fiber.push(fiber.invokeValue(method, ip, "range", 2, true));
+                            ip += 2;
+                        }
                         case LIST -> {
                             fiber.push(new CList(fetchInt(code, ip + 1)));
                             ip += 5;
@@ -128,6 +139,10 @@ public final class BytecodeInterpreter {
                         case MAP -> {
                             fiber.push(new CMap(fetchInt(code, ip + 1)));
                             ip += 5;
+                        }
+                        case ITER -> {
+                            fiber.invoke(method, ip, "iterator", 0, false);
+                            ip++;
                         }
                         case GETAT -> {
                             fiber.invoke(method, ip, "getAt", 1, false);

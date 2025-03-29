@@ -54,6 +54,10 @@ public class ChipmunkLibraries {
     }
 
     public Method getMethod(Class<?> returnType, String name, Class<?>[] argTypes){
+        // TODO - ideally we'd be able to link against zero-argument library overrides
+        if(argTypes.length == 0){
+            return null;
+        }
         Class<?> receiverType = argTypes[0];
         if(receiverType == null){
             receiverType = Object.class;

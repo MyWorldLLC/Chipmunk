@@ -30,7 +30,6 @@ import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
-import chipmunk.vm.jvm.JvmCompiler;
 
 import java.io.IOException;
 import java.util.*;
@@ -190,15 +189,16 @@ public class ChipmunkScript {
         return module;
     }
 
-    public void createEntryFiber(Object... args){
+    public void initEntryFiber(Object... args){
         var module = getCModule(entryPoint.getModule());
         var fiber = newFiber();
         fiber.initialize(module.cls.getInstanceMethod(entryPoint.getMethod()), args);
+        setCurrentFiber(fiber);
     }
 
     // TODO - run from suspended state
 
-    public Object run(Object[] args){
+    public Object run(Object... args){
 
         try {
             getCModule(entryPoint.getModule());
@@ -223,10 +223,6 @@ public class ChipmunkScript {
 
     public void setCurrentFiber(Fiber f){
         currentFiber.set(f);
-    }
-
-    public Object run(){
-        return run(new Object[]{});
     }
 
     public void interrupt(){
