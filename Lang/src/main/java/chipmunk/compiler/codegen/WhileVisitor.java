@@ -56,10 +56,7 @@ public class WhileVisitor implements CodegenVisitor {
 
 			var test = new ExpressionVisitor(codegen).visit(node.getChild(0));
 
-			var body = new Node[node.childCount() - 1];
-			for(int i = 1; i < node.childCount(); i++){
-				body[i - 1] = codegen.visit(node.getChild(i));
-			}
+			var body = codegen.visitChildren(node, 1);
 
 			var whileNode = new While();
 			whileNode.test = test;
@@ -67,9 +64,6 @@ public class WhileVisitor implements CodegenVisitor {
 			//node.visitChildren(codegen, 1);
 			codegen.exitScope();
 
-			System.out.println(node.childCount());
-			System.out.println(Arrays.toString(body));
-			System.out.println("made while node with body size " + body.length);
 			return whileNode;
 
 			// Mark and generate the guard

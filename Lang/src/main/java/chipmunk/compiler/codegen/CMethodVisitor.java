@@ -97,7 +97,7 @@ public class CMethodVisitor  implements AstVisitor {
             //codegen.setVisitorForNode(METHOD, CMethodVisitor.innerMethodVisitor(codegen, module));
             //codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
             codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
-            //codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
+            codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
             codegen.setVisitorForNode(WHILE, new WhileVisitor(codegen));
             //codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
             codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));

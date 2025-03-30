@@ -48,7 +48,7 @@ public class ChipmunkProfiler {
 		var chipmunkPrograms = new HashMap<String, Callable<Object>>();
 		chipmunkPrograms.put("countToAMillion", profiler.load("countToAMillion", "CountToAMillion.chp"));
 		//chipmunkPrograms.put("countingForLoop", profiler.load("countingForLoop", "CountingForLoop.chp"));
-		//chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
+		chipmunkPrograms.put("fibonacci", profiler.load("fibonacci", "Fibonacci.chp"));
 		//chipmunkPrograms.put("mandelbrot", profiler.load("mandelbrot", "Mandelbrot.chp"));
 		//chipmunkPrograms.put("mathBench", profiler.load("mathBench", "MathBench.chp"));
 

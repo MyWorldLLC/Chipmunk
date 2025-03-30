@@ -22,8 +22,9 @@ package chipmunk.compiler.codegen;
 
 import chipmunk.compiler.assembler.ChipmunkAssembler;
 import chipmunk.compiler.ast.*;
+import chipmunk.vm.tree.Node;
 
-public class IfElseVisitor implements AstVisitor {
+public class IfElseVisitor implements CodegenVisitor {
 	
 	private ChipmunkAssembler assembler;
 	private Codegen codegen;
@@ -34,35 +35,45 @@ public class IfElseVisitor implements AstVisitor {
 	}
 
 	@Override
-	public void visit(AstNode node) {
+	public Node visit(AstNode node) {
 		if(node.is(NodeType.IF_ELSE)){
-			IfElseLabels endLabels = codegen.pushIfElse();
-			
-			node.visitChildren(this);
+			//IfElseLabels endLabels = codegen.pushIfElse();
+
+			this.visitChildren(node);
+			codegen.enterBlock();
+			//node.visitChildren(this);
+			this.visitChildren(node);
+			codegen.exitBlock();
 			
 			// label the end of the if/else
-			assembler.setLabelTarget(endLabels.getEndLabel());
-			codegen.exitIfElse();
+			//assembler.setLabelTarget(endLabels.getEndLabel());
+			//codegen.exitIfElse();
 		}else if(node.is(NodeType.IF)){
+			codegen.appendToBlock(new ExpressionVisitor(codegen).visit(node.getLeft()));
 			//node.getLeft().visit(new ExpressionVisitor(codegen));
 			
-			String endOfIf = assembler.nextLabelName();
+			//String endOfIf = assembler.nextLabelName();
 			// go to end of this node's body if the if does not evaluate true
-			assembler._if(endOfIf);
+			//assembler._if(endOfIf);
 			
 			// generate code for the children, skipping the guard statement
 			codegen.enterScope(node.getSymbolTable());
 			//node.visitChildren(codegen, 1);
+			codegen.visitChildren(node, 1);
+
+			codegen.exitScope();
 			
 			// go to the end of the entire if/else if body executes
-			assembler._goto(codegen.peekClosestIfElse().getEndLabel());
+			//assembler._goto(codegen.peekClosestIfElse().getEndLabel());
 			// mark end of the if block
-			assembler.setLabelTarget(endOfIf);
+			//assembler.setLabelTarget(endOfIf);
 			
 		}else if(node.is(NodeType.ELSE)){
 			// else branch
 			//node.visitChildren(codegen);
+			codegen.visitChildren(node);
 		}
+		return null;
 	}
 
 }

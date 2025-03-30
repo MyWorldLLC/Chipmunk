@@ -27,9 +27,15 @@ public interface CodegenVisitor {
 
     Node visit(AstNode node);
 
-    default void visitChildren(AstNode node){
-        for(var child : node.getChildren()){
-            visit(child);
-        }
+    default Node[] visitChildren(AstNode node){
+        return visitChildren(node, 0);
+    }
+
+    default Node[] visitChildren(AstNode node, int startAt){
+        return node.getChildren()
+                .stream()
+                .skip(startAt)
+                .map(this::visit)
+                .toArray(Node[]::new);
     }
 }
