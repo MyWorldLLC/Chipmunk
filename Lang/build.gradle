@@ -80,7 +80,7 @@ task luauTest(type: Exec){
 	if(getOs() == 'windows'){
 		exe += '.exe'
 	}
-	commandLine exe, 'src/test/resources/lua/test.lua'
+	commandLine exe, 'src/test/resources/lua/test_harness.lua'
 }
 
 test {
