@@ -11,7 +11,7 @@ for suiteName, suite in suites do
     local module = require(suite)
     for testName, testFn in module do
         local result = testFn()
-        if result then
+        if result.failed then
             print(suiteName .. '.' .. testName .. ': ' .. result.message)
             failures = true
         end
