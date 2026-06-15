@@ -67,6 +67,48 @@ public class MethodVisitor implements AstVisitor {
 
 	@Override
 	public void visit(AstNode node) {
+
+		switch (node.getNodeType()){
+			case METHOD -> {
+				methodNode = node;
+				symbols = methodNode.getSymbolTable();
+				symbols.sortSymbols(Comparator.comparingInt(s -> {
+					if(s.getName().equals("self")){
+						return Integer.MIN_VALUE; // self is always the target of a bound method, and will never be an upvalue
+					}else if(s.isUpvalueRef()){
+						return 1; // sort upvalue refs to the tail of the parameter list
+					}else{
+						return -1; // normal parameters go between self & the upvalue refs
+					}
+				}));
+				symbols.setDebugSymbol(node.getSymbol().getName());
+
+				ExpressionStatementVisitor expStatVisitor = new ExpressionStatementVisitor(codegen);
+
+				codegen.setVisitorForNode(OPERATOR, expStatVisitor);
+				codegen.setVisitorForNode(ID, new NoOpVisitor()); // Handle id nodes that are on their own lines
+				codegen.setVisitorForNode(METHOD, new MethodVisitor(codegen, module));
+				//codegen.setVisitorForNode(ClassNode.class, new ClassVisitor(assembler.getConstantPool(), module, assembler));
+				codegen.setVisitorForNode(VAR_DEC, new VarDecVisitor(codegen));
+				codegen.setVisitorForNode(IF_ELSE, new IfElseVisitor(codegen));
+				codegen.setVisitorForNode(WHILE, new WhileVisitor(codegen));
+				codegen.setVisitorForNode(FOR, new ForVisitor(codegen));
+				codegen.setVisitorForNode(FLOW_CONTROL, new FlowControlVisitor(codegen));
+				codegen.setVisitorForNode(TRY_CATCH, new TryCatchVisitor(codegen));
+
+				codegen.enterScope(symbols, Methods.getParamCount(node));
+				if(Methods.getBodyNodeCount(methodNode) == 1
+						&& ExpressionVisitor.isExpressionNode(methodNode.getChild(methodNode.childCount() - 1))) {
+					// this supports "lambda" methods - single expression methods that automatically return without the "return" keyword
+					ExpressionVisitor visitor = new ExpressionVisitor(codegen);
+					Methods.visitBody(methodNode, visitor);
+				}else {
+					// regular methods
+					Methods.visitBody(methodNode, codegen);
+				}
+				codegen.exitScope();
+			}
+		}
 		
 		method = new BinaryMethod();
 		
