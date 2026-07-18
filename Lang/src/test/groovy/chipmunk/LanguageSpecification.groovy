@@ -246,7 +246,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("Fibonacci.chp", true)
 		
 		then:
-		result == 8
+		result == 832040
 	}
 
 	def "Run IfElseExpressions.chp"(){
