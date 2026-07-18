@@ -28,5 +28,5 @@ def fib(f){
 }
 
 def main(){
-	return fib(6)
+	return fib(30)
 }
