@@ -22,27 +22,38 @@ package chipmunk.compiler.types;
 
 import java.util.List;
 
-public record ObjectType(String name, boolean isPrimitive, boolean isType, List<ObjectType> superTypes) {
+public abstract class ObjectType {
 
-    public static final ObjectType ANY = new ObjectType("Any", false, true);
+    protected final String name;
 
-    public ObjectType(String name, boolean isPrimitive, boolean isType){
-        this(name, isPrimitive, isType, List.of());
+    public ObjectType(String name){
+        this.name = name;
     }
 
-    public ObjectType typeOf(){
-        return classOf(name, superTypes);
+    public String name(){
+        return name;
+    }
+
+    public boolean canPromoteTo(ObjectType other){
+        return switch (other){
+            case AnyType any -> true;
+            default -> false;
+        };
     }
 
     public static ObjectType primitive(String name){
-        return new ObjectType(name, true, false, List.of());
+        return new ObjectType(name, true, false, List.of(), List.of());
+    }
+
+    public static ObjectType primitive(String name, ObjectType... promotions){
+        return new ObjectType(name, true, false, List.of(promotions), List.of());
     }
 
     public static ObjectType classBased(String name){
-        return new ObjectType(name, false, false, List.of());
+        return new ObjectType(name, false, false, List.of(), List.of());
     }
 
     public static ObjectType classOf(String name, List<ObjectType> superTypes){
-        return new ObjectType(name, false, true, List.copyOf(superTypes));
+        return new ObjectType(name, false, true, List.of(), List.copyOf(superTypes));
     }
 }

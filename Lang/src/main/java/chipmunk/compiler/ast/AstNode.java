@@ -23,6 +23,7 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
+import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.ObjectType;
 
 import java.util.*;
@@ -56,7 +57,7 @@ public class AstNode {
 		}else{
 			symbols = null;
 		}
-		resultType = ObjectType.ANY;
+		resultType = BuiltinTypes.ANY;
 	}
 	
 	public AstNode(NodeType type, Token token, AstNode... children){

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,20 +20,21 @@
 
 package chipmunk.compiler.types;
 
-public class BuiltinTypes {
+public class CollectionType extends ObjectType {
 
-    public static final ObjectType ANY = AnyType.INSTANCE;
+    public static CollectionType MAP = new CollectionType("Map");
+    public static CollectionType LIST = new CollectionType("List");
 
-    public static final ObjectType BOOLEAN = BooleanType.INSTANCE;
-    public static final ObjectType STRING = StringType.INSTANCE;
-    public static final ObjectType FLOAT = FloatType.FLOAT;
-    public static final ObjectType DOUBLE = FloatType.DOUBLE;
+    private CollectionType(String name) {
+        super(name);
+    }
 
-    public static final ObjectType BYTE = IntegerType.BYTE;
-    public static final ObjectType SHORT = IntegerType.SHORT;
-    public static final ObjectType INTEGER = IntegerType.INT;
-    public static final ObjectType LONG = IntegerType.LONG;
-
-    public static final ObjectType MAP = CollectionType.MAP;
-    public static final ObjectType LIST = CollectionType.LIST;
+    @Override
+    public boolean canPromoteTo(ObjectType other) {
+        return switch (other){
+            case BooleanType b -> true;
+            case StringType s -> true;
+            default -> super.canPromoteTo(other);
+        };
+    }
 }

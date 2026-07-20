@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,20 +20,29 @@
 
 package chipmunk.compiler.types;
 
-public class BuiltinTypes {
+import java.util.Arrays;
+import java.util.List;
 
-    public static final ObjectType ANY = AnyType.INSTANCE;
+public class MethodType extends ObjectType {
 
-    public static final ObjectType BOOLEAN = BooleanType.INSTANCE;
-    public static final ObjectType STRING = StringType.INSTANCE;
-    public static final ObjectType FLOAT = FloatType.FLOAT;
-    public static final ObjectType DOUBLE = FloatType.DOUBLE;
+    private final ObjectType rType;
+    private final List<ObjectType> pTypes;
 
-    public static final ObjectType BYTE = IntegerType.BYTE;
-    public static final ObjectType SHORT = IntegerType.SHORT;
-    public static final ObjectType INTEGER = IntegerType.INT;
-    public static final ObjectType LONG = IntegerType.LONG;
+    public MethodType(ObjectType rType, List<ObjectType> pTypes) {
+        super("Method");
+        this.rType = rType;
+        this.pTypes = List.copyOf(pTypes);
+    }
 
-    public static final ObjectType MAP = CollectionType.MAP;
-    public static final ObjectType LIST = CollectionType.LIST;
+    public MethodType(ObjectType rType, ObjectType... pTypes){
+        this(rType, Arrays.asList(pTypes));
+    }
+
+    public ObjectType rType() {
+        return rType;
+    }
+
+    public List<ObjectType> pTypes() {
+        return pTypes;
+    }
 }
