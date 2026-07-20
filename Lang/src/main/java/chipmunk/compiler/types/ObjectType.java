@@ -41,19 +41,4 @@ public abstract class ObjectType {
         };
     }
 
-    public static ObjectType primitive(String name){
-        return new ObjectType(name, true, false, List.of(), List.of());
-    }
-
-    public static ObjectType primitive(String name, ObjectType... promotions){
-        return new ObjectType(name, true, false, List.of(promotions), List.of());
-    }
-
-    public static ObjectType classBased(String name){
-        return new ObjectType(name, false, false, List.of(), List.of());
-    }
-
-    public static ObjectType classOf(String name, List<ObjectType> superTypes){
-        return new ObjectType(name, false, true, List.of(), List.copyOf(superTypes));
-    }
 }
