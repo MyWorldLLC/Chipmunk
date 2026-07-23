@@ -20,6 +20,9 @@
 
 package chipmunk.compiler.symbols;
 
+import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.types.ObjectType;
+
 public class Symbol {
 
 	public static class Import {
@@ -62,6 +65,7 @@ public class Symbol {
 	protected SymbolType type;
 	protected SymbolTable table;
 	protected Symbol upvalueRef;
+	protected AstNode referent;
 	
 	public Symbol(){
 		this("", false, false, false, false);
@@ -185,6 +189,18 @@ public class Symbol {
 
 	public void setType(SymbolType type){
 		this.type = type;
+	}
+
+	public AstNode getReferent(){
+		return referent;
+	}
+
+	public ObjectType getReferentType() {
+		return referent != null ? referent.getResultType() : null;
+	}
+
+	public void setReferent(AstNode referent) {
+		this.referent = referent;
 	}
 
 	public Symbol clone(){

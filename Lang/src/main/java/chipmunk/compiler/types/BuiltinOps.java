@@ -56,8 +56,8 @@ public class BuiltinOps {
     public static final String RSHIFT = ">>";
     public static final String URSHIFT = ">>>";
 
-    protected final Map<String, List<Operation>> builtinOps;
-    public BuiltinOps() {
+    protected static final Map<String, List<Operation>> builtinOps;
+    static {
         var ops = new HashMap<String, List<Operation>>();
 
         var BIN_NUMERIC = List.of(
@@ -191,7 +191,7 @@ public class BuiltinOps {
         builtinOps = Collections.unmodifiableMap(ops);
     }
 
-    public Optional<Operation> getOperation(String symbol, ObjectType... operands){
+    public static Optional<Operation> getOperation(String symbol, ObjectType... operands){
         var overloads = builtinOps.get(symbol);
         if(overloads == null) return Optional.empty();
 

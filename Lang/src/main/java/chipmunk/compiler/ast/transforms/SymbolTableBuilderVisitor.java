@@ -46,6 +46,8 @@ public class SymbolTableBuilderVisitor implements AstVisitor {
 				}
 			}
 
+			node.getSymbol().setReferent(node);
+
 			if(node.getNodeType() == NodeType.CLASS){
 				node.getSymbol().setType(SymbolType.CLASS);
 			}else if(node.getNodeType() == NodeType.METHOD){

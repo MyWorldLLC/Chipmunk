@@ -45,4 +45,23 @@ public class MethodType extends ObjectType {
     public List<ObjectType> pTypes() {
         return pTypes;
     }
+
+    @Override
+    public boolean isAssignableTo(ObjectType other){
+        if(other instanceof MethodType mt){
+            if(rType.isAssignableTo(mt.rType) && pTypes.size() == mt.pTypes.size()){
+                for(int i = 0; i < pTypes.size(); ++i){
+                    if(!pTypes.get(i).isAssignableTo(mt.pTypes.get(i))){
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean argsMatch(ObjectType... args){
+        return isAssignableTo(new MethodType(AnyType.INSTANCE, args));
+    }
 }

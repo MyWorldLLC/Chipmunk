@@ -20,8 +20,6 @@
 
 package chipmunk.compiler.types;
 
-import java.util.List;
-
 public abstract class ObjectType {
 
     protected final String name;
@@ -39,6 +37,10 @@ public abstract class ObjectType {
             case AnyType any -> true;
             default -> false;
         };
+    }
+
+    public boolean isAssignableTo(ObjectType other){
+        return this.equals(other);
     }
 
 }
