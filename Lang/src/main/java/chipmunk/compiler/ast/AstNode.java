@@ -165,9 +165,6 @@ public class AstNode {
 	}
 
 	public void addChild(int index, AstNode child){
-		/*if(child.hasParent()){
-			throw new IllegalStateException("Node already has parent");
-		}*/
 		child.setParent(this);
 		children.add(index, child);
 	}
@@ -178,17 +175,11 @@ public class AstNode {
 	}
 
 	public void replaceChild(int index, AstNode child){
-		// Note: it is possible that a node might be replaced by itself during rewrite (a NOP), so be
-		// careful with order here
-		var previous = children.get(index);
-		if(previous != child){
-			previous.setParent(null);
-			/*if(child.hasParent()){
-				throw new IllegalStateException("Node already has parent");
-			}*/
-			child.setParent(this);
-			children.set(index, child);
-		}
+		// Note: it is possible that a node might be replaced by itself during rewrite (a NOP).
+		// Note: don't modify the parent on a child that's being detached, since it may have already
+		// been set elsewhere
+		child.setParent(this);
+		children.set(index, child);
 	}
 
 	public void removeChild(AstNode child){
@@ -213,9 +204,6 @@ public class AstNode {
 	}
 
 	protected void setParent(AstNode parent){
-		if(this.parent != null){
-			this.parent.removeChild(parent);
-		}
 		this.parent = parent;
 	}
 
