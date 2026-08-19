@@ -22,10 +22,7 @@ package chipmunk.vm;
 
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
-import chipmunk.compiler.ChipmunkCompiler;
-import chipmunk.compiler.ChipmunkSource;
-import chipmunk.compiler.Compilation;
-import chipmunk.compiler.CompileChipmunk;
+import chipmunk.compiler.*;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
@@ -203,11 +200,12 @@ public class ChipmunkVM {
 	}
 
 	public Object eval(String exp) throws Throwable {
-		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule expModule = compiler.compileExpression(exp);
+		var compiler = new CVMCompiler();
+		var loader = new ChipmunkClassLoader();
+		var mCls = loader.define("exp", compiler.compileExpression(exp));
+		var module = mCls.getConstructor().newInstance();
 
-		ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
-		return invoke(compiled, "evaluate");
+		return invoke(module, "evaluate");
 	}
 
 	@AllowChipmunkLinkage

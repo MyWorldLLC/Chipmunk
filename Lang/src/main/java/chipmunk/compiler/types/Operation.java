@@ -31,28 +31,12 @@ public record Operation(ObjectType rValue, ObjectType... pValues) {
         }
     }
 
-    public static Operation unary(ObjectType pType){
-        return new Operation(pType, pType);
-    }
-
-    public static Operation binOp(ObjectType pType){
-        return new Operation(pType, pType, pType);
-    }
-
-    public static Operation binOp(ObjectType rType, ObjectType pType){
-        return new Operation(rType, pType, pType);
-    }
-
-    public static Operation binOp(ObjectType rType, ObjectType p0, ObjectType p1){
-        return new Operation(rType, p0, p1);
-    }
-
     public boolean isExactMatch(ObjectType... operands) {
         if (pValues().length != operands.length) {
             return false;
         }
         for (int i = 0; i < operands.length; i++) {
-            if (!pValues()[i].equals(operands[i])) {
+            if (!operands[i].isAssignableTo(pValues[i])) {
                 return false;
             }
         }
@@ -64,7 +48,7 @@ public record Operation(ObjectType rValue, ObjectType... pValues) {
             return false;
         }
         for (int i = 0; i < operands.length; i++) {
-            if (!operands[i].canPromoteTo(pValues()[i])) {
+            if (!operands[i].isAssignableTo(pValues[i]) && !operands[i].canPromoteTo(pValues()[i])) {
                 return false;
             }
         }

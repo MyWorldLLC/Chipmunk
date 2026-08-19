@@ -72,7 +72,6 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             if (child.is(NodeType.ID) && !isQualified(node, child)) {
 
                 if (!isMethodBindTarget(node, i) && !isMethodParam(child)) {
-
                     child = rewriteQualified(child, shadow);
                     node.replaceChild(i, child);
 
@@ -165,6 +164,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
                 varDotNode = importDotNode;
             } else {
+                child.getParent().removeChild(child);
                 varDotNode.addChild(child);
             }
 

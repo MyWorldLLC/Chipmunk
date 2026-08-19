@@ -40,4 +40,8 @@ public class Modules {
         return node;
     }
 
+    public static Symbol getName(AstNode node){
+        return node.getSymbol();
+    }
+
 }

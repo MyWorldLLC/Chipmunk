@@ -57,7 +57,6 @@ public class AstNode {
 		}else{
 			symbols = null;
 		}
-		resultType = BuiltinTypes.ANY;
 	}
 	
 	public AstNode(NodeType type, Token token, AstNode... children){
@@ -77,6 +76,10 @@ public class AstNode {
 
 	public ObjectType getResultType(){
 		return resultType;
+	}
+
+	public boolean alreadyHasResultType(){
+		return resultType != null;
 	}
 
 	public void setResultType(ObjectType resultType){
@@ -162,8 +165,11 @@ public class AstNode {
 	}
 
 	public void addChild(int index, AstNode child){
-		children.add(index, child);
+		/*if(child.hasParent()){
+			throw new IllegalStateException("Node already has parent");
+		}*/
 		child.setParent(this);
+		children.add(index, child);
 	}
 
 	public AstNode withChild(AstNode child){
@@ -172,8 +178,17 @@ public class AstNode {
 	}
 
 	public void replaceChild(int index, AstNode child){
-		child.setParent(this);
-		children.set(index, child).setParent(null);
+		// Note: it is possible that a node might be replaced by itself during rewrite (a NOP), so be
+		// careful with order here
+		var previous = children.get(index);
+		if(previous != child){
+			previous.setParent(null);
+			/*if(child.hasParent()){
+				throw new IllegalStateException("Node already has parent");
+			}*/
+			child.setParent(this);
+			children.set(index, child);
+		}
 	}
 
 	public void removeChild(AstNode child){
@@ -198,6 +213,9 @@ public class AstNode {
 	}
 
 	protected void setParent(AstNode parent){
+		if(this.parent != null){
+			this.parent.removeChild(parent);
+		}
 		this.parent = parent;
 	}
 

@@ -20,9 +20,13 @@
 
 package chipmunk.compiler.ast.transforms;
 
+import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
+import chipmunk.compiler.ast.NodeType;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.symbols.SymbolType;
 import chipmunk.compiler.types.*;
 
@@ -46,11 +50,13 @@ import chipmunk.compiler.types.*;
 public class TypeInferenceVisitor implements AstVisitor {
     @Override
     public void visit(AstNode node) {
-        node.visitChildren(this); // TODO - this might be too aggressive, maybe we should selectively recurse based on what we find
+        if(!node.is(NodeType.IMPORT)){
+            node.visitChildren(this); // TODO - this might be too aggressive, maybe we should selectively recurse based on what we find
+        }
         switch (node.getNodeType()){
             // Note: Literal types are set by the LiteralParselet.
             case ID -> {
-                var symbol = node.getSymbolTable().getSymbol(node.getToken().text());
+                var symbol = findScope(node).getSymbol(node.getToken().text());
                 node.setResultType(symbol.getReferentType()); // TODO - what to do if the symbol's type hasn't been resolved yet?
             }
             case OPERATOR -> {
@@ -59,23 +65,52 @@ public class TypeInferenceVisitor implements AstVisitor {
                 // overload method signatures to resolve the type.
                 var operandTypes = node.getChildren().stream()
                         .map(AstNode::getResultType)
+                        .map(t -> t != null ? t : BuiltinTypes.ANY)
                         .toArray(ObjectType[]::new);
-                var operator = BuiltinOps.getOperation(node.getToken().text(), operandTypes);
+                var operator = Intrinsics.getEmitter(node.getToken().text(), operandTypes);
                 if(operator.isEmpty()){
                     // TODO - check LHS for a method with a matching signature
                 }
 
                 if(operator.isPresent()){
-                    node.setResultType(operator.get().rValue());
+                    node.setResultType(operator.get().op().rValue());
                 }else{
                     // TODO - emit warning
                     node.setResultType(AnyType.INSTANCE);
                 }
             }
+            case FLOW_CONTROL -> {
+                if(node.getToken().type() == TokenType.RETURN){
+                    node.setResultType(node.getChild(0).getResultType());
+                    var method = node.getParent();
+                    while(!method.is(NodeType.METHOD)){
+                        method = method.getParent();
+                    }
+                    if(!method.alreadyHasResultType()){
+                        method.setResultType(node.getResultType());
+                    }else{
+                        // TODO - verify compatibility
+                    }
+                }
+            }
             case METHOD -> {
                 // TODO - check return types for inference or against declared type constraints
             }
+            case LIST -> node.setResultType(BuiltinTypes.LIST);
+            case MAP -> node.setResultType(BuiltinTypes.MAP);
         }
+    }
+
+    protected SymbolTable findScope(AstNode node){
+        var table = node.getSymbolTable();
+        while(table == null && node.hasParent()){
+            node = node.getParent();
+            table = node.getSymbolTable();
+        }
+        if(table == null){
+            System.out.println(node + ":" + node.getParent());
+        }
+        return table;
     }
 
     protected Symbol findMethod(AstNode searchFrom, String name, ObjectType... args){

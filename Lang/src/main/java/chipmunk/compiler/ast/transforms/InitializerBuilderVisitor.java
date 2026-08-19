@@ -108,6 +108,8 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 assignExpression = new AstNode(NodeType.LITERAL, new Token("null", TokenType.NULL));
             }
 
+            VarDec.removeAssignment(node);
+
             AstNode owner = modulesAndClasses.peek();
 
             AstNode id = new AstNode(NodeType.ID, VarDec.getIdentifier(node).getToken());
@@ -115,8 +117,6 @@ public class InitializerBuilderVisitor implements AstVisitor {
             AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
             assignStatement.addChild(id);
             assignStatement.addChild(assignExpression);
-
-            VarDec.removeAssignment(node);
 
             if (owner.is(NodeType.MODULE)) {
                 var initializer = owner.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));

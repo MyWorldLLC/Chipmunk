@@ -25,14 +25,16 @@ public class BuiltinTypes {
     public static final ObjectType ANY = AnyType.INSTANCE;
 
     public static final ObjectType BOOLEAN = BooleanType.INSTANCE;
-    public static final ObjectType STRING = StringType.INSTANCE;
-    public static final ObjectType FLOAT = FloatType.FLOAT;
-    public static final ObjectType DOUBLE = FloatType.DOUBLE;
 
     public static final ObjectType BYTE = IntegerType.BYTE;
     public static final ObjectType SHORT = IntegerType.SHORT;
-    public static final ObjectType INTEGER = IntegerType.INT;
+    public static final ObjectType INT = IntegerType.INT;
     public static final ObjectType LONG = IntegerType.LONG;
+
+    public static final ObjectType FLOAT = FloatType.FLOAT;
+    public static final ObjectType DOUBLE = FloatType.DOUBLE;
+
+    public static final ObjectType STRING = StringType.INSTANCE;
 
     public static final ObjectType MAP = CollectionType.MAP;
     public static final ObjectType LIST = CollectionType.LIST;

@@ -60,7 +60,7 @@ public class VarDec {
     }
 
     public static void removeAssignment(AstNode node){
-        if(getAssignment(node) != null){
+        if(hasAssignment(node)){
             node.removeChild(1);
         }
     }

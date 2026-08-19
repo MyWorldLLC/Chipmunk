@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,34 +18,16 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.types;
+package chipmunk.compiler;
 
-public abstract class ObjectType {
+import chipmunk.compiler.types.ObjectType;
 
-    protected final String name;
+import java.lang.classfile.CodeBuilder;
+import java.util.function.Consumer;
 
-    public ObjectType(String name){
-        this.name = name;
+public record ConversionEmitter(ObjectType to, ObjectType from, Consumer<CodeBuilder> emitter) {
+
+    public static ConversionEmitter conversion(ObjectType to, ObjectType from, Consumer<CodeBuilder> emitter){
+        return new ConversionEmitter(to, from, emitter);
     }
-
-    public String name(){
-        return name;
-    }
-
-    public boolean canPromoteTo(ObjectType other){
-        return switch (other){
-            case AnyType _ -> true;
-            default -> false;
-        };
-    }
-
-    public boolean isAssignableTo(ObjectType other){
-        return this.equals(other);
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-
 }
