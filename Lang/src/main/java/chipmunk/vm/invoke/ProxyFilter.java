@@ -47,7 +47,7 @@ public class ProxyFilter {
     }
 
     public static MethodHandle filterFor(MethodHandles.Lookup lookup, Class<?> target) throws NoSuchMethodException, IllegalAccessException{
-        return filterFor(lookup, ChipmunkScript.getCurrentScript().getVM(), target);
+        return filterFor(lookup, ChipmunkScript.getCurrentScript().vm(), target);
     }
 
     public static MethodHandle filterFor(MethodHandles.Lookup lookup, ChipmunkVM vm, Class<?> target) throws NoSuchMethodException, IllegalAccessException {

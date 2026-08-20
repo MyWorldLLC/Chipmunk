@@ -47,9 +47,6 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessFlag;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
-
-import static chipmunk.compiler.lexer.TokenType.EQUALS;
 import static java.lang.constant.ConstantDescs.*;
 
 public class CVMCompiler {
@@ -76,6 +73,7 @@ public class CVMCompiler {
 
     protected Map<Pass, List<AstVisitor>> passes;
     protected ModuleLoader moduleLoader;
+    protected final CompilerConfig config;
 
     protected final AstImportResolver astResolver;
     protected final BinaryImportResolver binaryResolver;
@@ -84,10 +82,10 @@ public class CVMCompiler {
     private final Map<ObjectType, ClassDesc> typeMapping;
 
     public CVMCompiler(){
-        this(new ModuleLoader());
+        this(CompilerConfig.DEFAULT, new ModuleLoader());
     }
 
-    public CVMCompiler(ModuleLoader loader){
+    public CVMCompiler(CompilerConfig config, ModuleLoader loader){
         astResolver = new AstImportResolver();
         binaryResolver = new BinaryImportResolver(loader);
         nativeResolver = new NativeImportResolver(loader);
@@ -95,6 +93,7 @@ public class CVMCompiler {
         typeMapping = new IdentityHashMap<>();
         initBuiltinTypes();
 
+        this.config = config;
         loader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 
         passes = new HashMap<>();
@@ -112,10 +111,9 @@ public class CVMCompiler {
         );
 
         passes.put(Pass.PRE_ASSEMBLY, Arrays.asList(
-                //new UpvalueMarkerVisitor(),
                 new SymbolAccessRewriteVisitor(),
                 new InnerMethodRewriteVisitor(),
-                new TypeInferenceVisitor())); // TODO - type checking inferred/annotated types against returns, assignments, & parameters
+                new TypeInferenceVisitor())); // TODO - type checking
     }
 
     protected ClassDesc descriptorFor(Class<?> cls){

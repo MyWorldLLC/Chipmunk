@@ -57,13 +57,12 @@ public class JvmImportModule extends ImportModule {
 
         ChipmunkScript script = ChipmunkScript.getCurrentScript();
         if(script != null){
-            LinkingPolicy policy = script.getLinkPolicy();
+            LinkingPolicy policy = script.linkPolicy();
             if(policy != null){
-                boolean allowed = policy.allowInstantiation(cls, constructorArgs);
                 if(!policy.allowInstantiation(cls, constructorArgs)){
                     throw new IllegalAccessException(
                             String.format("Script %d forbidden from instantiating %s(%s)",
-                                    script.getId(),
+                                    script.id(),
                                     cls.getName(),
                                     Arrays.asList(constructorArgs)));
                 }

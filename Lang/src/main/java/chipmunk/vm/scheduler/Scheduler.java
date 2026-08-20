@@ -43,11 +43,11 @@ public class Scheduler {
     }
 
     public void notifyQueuedForInvocation(ChipmunkScript script){
-        invocations.putIfAbsent(script.getId(), new ScriptInvocation(script));
+        invocations.putIfAbsent(script.id(), new ScriptInvocation(script));
     }
 
     public void notifyInvocationBegan(ChipmunkScript script){
-        invocations.compute(script.getId(), (k, invocation) -> {
+        invocations.compute(script.id(), (k, invocation) -> {
             if(invocation == null){
                 invocation = new ScriptInvocation(script);
             }
@@ -57,7 +57,7 @@ public class Scheduler {
     }
 
     public void notifyInvocationEnded(ChipmunkScript script){
-        invocations.remove(script.getId());
+        invocations.remove(script.id());
     }
 
     private void schedule(){

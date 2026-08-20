@@ -21,11 +21,11 @@
 package chipmunk.vm;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.Fiber;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.JvmCompiler;
-import chipmunk.vm.jvm.JvmCompilerConfig;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ChipmunkScript {
+public class ChipmunkScript {
 
     private static final ThreadLocal<ChipmunkScript> currentScript;
     static {
@@ -48,52 +48,39 @@ public abstract class ChipmunkScript {
         return currentScript.get();
     }
 
-    public static void trap(Object payload){
-        var handler = getCurrentScript().getTrapHandler();
-        if(handler != null){
-            handler.runtimeTrap(payload);
-        }
-    }
-
-    protected long id;
+    protected final long id;
     private volatile boolean yieldFlag;
 
     protected final List<Object> tags;
     protected final Map<String, ChipmunkModule> modules;
+    protected final Fiber fiber;
 
     protected volatile ChipmunkVM vm;
     protected volatile ModuleLoader loader;
-    protected volatile TrapHandler trapHandler;
     protected volatile ChipmunkLibraries libs;
     protected volatile LinkingPolicy linkPolicy;
     protected volatile JvmCompiler jvmCompiler;
 
-    public ChipmunkScript(){
-        this(null);
-    }
-
-    public ChipmunkScript(TrapHandler trapHandler){
-        this.trapHandler = trapHandler;
+    public ChipmunkScript(ChipmunkVM vm, long id){
+        this.vm = vm;
+        this.id = id;
         tags = new CopyOnWriteArrayList<>();
         modules = new ConcurrentHashMap<>();
 
         linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
+        fiber = new Fiber();
     }
 
-    public ChipmunkVM getVM() {
+    public ChipmunkVM vm() {
         return vm;
     }
 
-    protected void setVM(ChipmunkVM vm) {
-        this.vm = vm;
+    public Fiber fiber() {
+        return fiber;
     }
 
     public JvmCompiler getJvmCompiler() {
         return jvmCompiler;
-    }
-
-    public void setJvmCompiler(JvmCompiler jvmCompiler) {
-        this.jvmCompiler = jvmCompiler;
     }
 
     public void tag(Object tag){
@@ -114,39 +101,28 @@ public abstract class ChipmunkScript {
         return null;
     }
 
-    public List<Object> getTags(){
+    public List<Object> tags(){
         return tags;
     }
 
-    public LinkingPolicy getLinkPolicy(){
+    public LinkingPolicy linkPolicy(){
         return linkPolicy;
     }
 
-    public void setLinkPolicy(LinkingPolicy policy){
+    public void linkPolicy(LinkingPolicy policy){
         linkPolicy = policy;
     }
 
-    public long getId(){
+    public long id(){
         return id;
     }
 
-    protected void setId(long id){
-        this.id = id;
-    }
 
-    public void setTrapHandler(TrapHandler trapHandler){
-        this.trapHandler = trapHandler;
-    }
-
-    public TrapHandler getTrapHandler(){
-        return trapHandler != null ? trapHandler : vm.getDefaultTrapHandler();
-    }
-
-    public void setModuleLoader(ModuleLoader loader){
+    public void moduleLoader(ModuleLoader loader){
         this.loader = loader;
     }
 
-    public ModuleLoader getModuleLoader(){
+    public ModuleLoader moduleLoader(){
         return loader;
     }
 
@@ -166,7 +142,9 @@ public abstract class ChipmunkScript {
         return modules.containsKey(moduleName);
     }
 
-    public abstract Object run(Object[] args);
+    public Object run(Object[] args){
+        return null; // TODO - formerly abstract
+    }
 
     public Object run(){
         return run(null);
@@ -184,11 +162,11 @@ public abstract class ChipmunkScript {
         yieldFlag = false;
     }
 
-    public void setLibs(ChipmunkLibraries libs){
+    public void libs(ChipmunkLibraries libs){
         this.libs = libs;
     }
 
-    public ChipmunkLibraries getLibs(){
+    public ChipmunkLibraries libs(){
         return libs;
     }
 

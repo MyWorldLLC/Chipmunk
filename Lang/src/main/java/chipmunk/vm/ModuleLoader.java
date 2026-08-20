@@ -143,18 +143,14 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
+	public ChipmunkModule load(String moduleName, ChipmunkScript script) throws IOException, BinaryFormatException {
 		BinaryModule binMod = loadBinary(moduleName);
 
 		if(binMod != null){
-			return compiler.compileModule(binMod);
+			return script.vm().createDefaultJvmCompiler().compileModule(binMod);
 		}
 
 		return loadNative(moduleName);
-	}
-
-	public Map<String, BinaryModule> getLoadedModules(){
-		return loadedModules;
 	}
 
 	public void addToLoaded(BinaryModule module){

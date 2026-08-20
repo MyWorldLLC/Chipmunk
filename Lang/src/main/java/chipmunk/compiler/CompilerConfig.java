@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,25 +18,10 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules.imports;
+package chipmunk.compiler;
 
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
+public class CompilerConfig {
 
-public class ImportModule implements ChipmunkModule {
-
-    public static final String IMPORT_MODULE_NAME = "chipmunk.imports";
-
-    public ChipmunkModule importModule(String moduleName) throws Throwable {
-        ChipmunkScript script = ChipmunkScript.getCurrentScript();
-        ChipmunkVM vm = script.vm();
-        return vm.getModule(script, moduleName);
-    }
-
-    @Override
-    public String getName(){
-        return IMPORT_MODULE_NAME;
-    }
+    public static final CompilerConfig DEFAULT = new CompilerConfig();
 
 }

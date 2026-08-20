@@ -22,10 +22,8 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkObject;
-import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -520,7 +518,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
             return null;
         }
 
-        return script.getLinkPolicy();
+        return script.linkPolicy();
     }
 
     protected TraitField[] getTraitFields(Object target){

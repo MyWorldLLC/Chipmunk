@@ -81,7 +81,7 @@ public class LangModule implements ChipmunkModule {
 
     @AllowChipmunkLinkage
     public MethodBinding bindArgs(MethodBinding binding, Integer index, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return ChipmunkScript.getCurrentScript().getVM().bindArgs(binding, index, args.toArray());
+        return ChipmunkScript.getCurrentScript().vm().bindArgs(binding, index, args.toArray());
     }
 
     @Override

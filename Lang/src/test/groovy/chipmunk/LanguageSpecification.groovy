@@ -64,7 +64,7 @@ class LanguageSpecification extends Specification {
 		loader.addToLoaded(Arrays.asList(modules))
 
 		ChipmunkScript script = vm.compileScript(modules)
-		script.setModuleLoader(loader)
+		script.moduleLoader(loader)
 		ChipmunkScript.setCurrentScript(script)
 
 		def argArray = args != null ? args.toArray() : null

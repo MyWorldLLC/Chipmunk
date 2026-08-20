@@ -56,7 +56,7 @@ public abstract class MethodBinding {
 
     @AllowChipmunkLinkage
     public MethodBinding bindArgs(Integer pos, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return ChipmunkScript.getCurrentScript().getVM().bindArgs(this, pos, args.toArray());
+        return ChipmunkScript.getCurrentScript().vm().bindArgs(this, pos, args.toArray());
     }
 
 }
