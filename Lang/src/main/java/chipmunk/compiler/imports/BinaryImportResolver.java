@@ -33,9 +33,9 @@ public class BinaryImportResolver implements ImportResolver {
 
     protected ModuleLoader loader;
 
-    public BinaryImportResolver(){
+    /*public BinaryImportResolver(){
         this(new ModuleLoader());
-    }
+    }*/
 
     public BinaryImportResolver(ModuleLoader loader){
         this.loader = loader;
@@ -52,8 +52,8 @@ public class BinaryImportResolver implements ImportResolver {
     @Override
     public Symbol resolve(String moduleName, String name) {
 
-        try {
-            BinaryModule module = loader.loadBinary(moduleName);
+        //try {
+            BinaryModule module = null; // loader.loadBinary(moduleName);
             if(module == null){
                 return null;
             }
@@ -62,17 +62,17 @@ public class BinaryImportResolver implements ImportResolver {
                 BinaryNamespace.Entry e = module.getNamespace().getEntry(name);
                 return makeSymbol(e);
             }
-        } catch (IOException | BinaryFormatException e) {
+        /*} catch (IOException | BinaryFormatException e) {
             throw new RuntimeException(e);
-        }
+        }*/
 
         return null;
     }
 
     @Override
     public List<Symbol> resolveSymbols(String moduleName) {
-        try {
-            BinaryModule module = loader.loadBinary(moduleName);
+        //try {
+            BinaryModule module = null; // loader.loadBinary(moduleName);
             if(module == null){
                 return null;
             }
@@ -82,9 +82,9 @@ public class BinaryImportResolver implements ImportResolver {
                     .stream()
                     .map(this::makeSymbol)
                     .collect(Collectors.toList());
-        } catch (IOException | BinaryFormatException e) {
+        /*} catch (IOException | BinaryFormatException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     protected Symbol makeSymbol(BinaryNamespace.Entry e){

@@ -62,7 +62,7 @@ public class CompilationUnit {
     }
 
     public BinaryMethod getEntryMethod() throws IOException, BinaryFormatException {
-        BinaryModule mainModule = loader.loadBinary(entryModule);
+        BinaryModule mainModule = null; // loader.loadBinary(entryModule);
         return (BinaryMethod) mainModule.getNamespace().get(entryMethod);
     }
 

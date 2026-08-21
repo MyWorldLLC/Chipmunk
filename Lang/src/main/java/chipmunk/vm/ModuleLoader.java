@@ -20,17 +20,17 @@
 
 package chipmunk.vm;
 
-import chipmunk.binary.BinaryFormatException;
-import chipmunk.binary.BinaryModule;
-import chipmunk.binary.BinaryReader;
+import chipmunk.ChipmunkRuntimeException;
+import chipmunk.compiler.CompileChipmunk;
+import chipmunk.compiler.ModuleClasses;
 import chipmunk.modules.lang.LangModule;
+import chipmunk.runtime.CompiledModule;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
-import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +39,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ModuleLoader {
 
-	protected volatile ModuleLoader delegate;
+	protected final ModuleLoader delegate;
 	protected final List<ModuleLocator> locators;
-	protected final Map<String, BinaryModule> loadedModules;
+	protected final Map<String, CompiledModule> loadedModules;
 	protected final Map<String, NativeModuleFactory> nativeFactories;
 	protected final ChipmunkClassLoader classLoader;
 
 	public ModuleLoader(){
+		this(null);
+	}
+
+	public ModuleLoader(ModuleLoader delegate){
+		this.delegate = delegate;
 		locators = new CopyOnWriteArrayList<>();
 		loadedModules = new ConcurrentHashMap<>();
 		nativeFactories = new ConcurrentHashMap<>();
@@ -54,29 +59,11 @@ public class ModuleLoader {
 		registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 	}
 
-	public ModuleLoader(ModuleLoader delegate){
-		this();
-		setDelegate(delegate);
-	}
-
-	public ModuleLoader(Collection<BinaryModule> modules){
-		this(null, modules);
-	}
-
-	public ModuleLoader(ModuleLoader delegate, Collection<BinaryModule> modules){
-		this(delegate);
-		addToLoaded(modules);
-	}
-
-	public ModuleLoader getDelegate(){
+	public ModuleLoader delegate(){
 		return delegate;
 	}
 
-	public void setDelegate(ModuleLoader delegate){
-		this.delegate = delegate;
-	}
-
-	public ChipmunkClassLoader getClassLoader(){
+	public ChipmunkClassLoader classLoader(){
 		return classLoader;
 	}
 
@@ -110,26 +97,27 @@ public class ModuleLoader {
 		return null;
 	}
 
-	public BinaryModule loadBinary(String moduleName) throws IOException, BinaryFormatException {
+	private boolean loadModule(ChipmunkScript script, String moduleName) throws IOException, CompileChipmunk {
 
 		if(loadedModules.containsKey(moduleName)){
-			return loadedModules.get(moduleName);
+			throw new IllegalArgumentException("Module already loaded: " + moduleName);
 		}
 
 		InputStream is = locate(moduleName);
 		if(is == null){
 			if(delegate != null){
-				return delegate.loadBinary(moduleName);
+				return delegate.loadModule(script, moduleName);
 			}
-			return null;
+			return false;
 		}
 
-		BinaryReader reader = new BinaryReader();
-		BinaryModule module = reader.readModule(is);
+		var compiler = script.vm().compilerFor(script);
+		var modules = compiler.compile(is, moduleName);
+		modules.forEach(this::define);
 
-		loadedModules.put(moduleName, module);
+		loadedModules.put(moduleName, new CompiledModule(moduleName, "TODO", 0));
 
-		return module;
+		return true;
 	}
 
 	public ChipmunkModule loadNative(String moduleName){
@@ -143,40 +131,51 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName, ChipmunkScript script) throws IOException, BinaryFormatException {
-		BinaryModule binMod = loadBinary(moduleName);
+	public ChipmunkModule load(String moduleName, ChipmunkScript script) throws CompileChipmunk {
+		if(loadedModules.containsKey(moduleName)){
+			return instance(moduleName);
+        }
 
-		if(binMod != null){
-			return script.vm().createDefaultJvmCompiler().compileModule(binMod);
+        try {
+            var loaded = loadModule(script, moduleName);
+			if(!loaded) {
+				return loadNative(moduleName);
+			}
+
+			return instance(moduleName);
+        } catch (IOException e) {
+            throw new ChipmunkRuntimeException(e);
+        }
+
+	}
+
+	protected ChipmunkModule instance(String moduleName){
+		try {
+			return (ChipmunkModule) classLoader.loadClass(loadedModules.get(moduleName).className()).getConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+		         NoSuchMethodException | ClassNotFoundException e) {
+			throw new ChipmunkRuntimeException(e);
 		}
-
-		return loadNative(moduleName);
 	}
 
-	public void addToLoaded(BinaryModule module){
-		loadedModules.putIfAbsent(module.getName(), module);
-	}
-
-	public void addToLoaded(Collection<BinaryModule> modules){
-		for(BinaryModule module : modules){
-			loadedModules.putIfAbsent(module.getName(), module);
+	public void define(ModuleClasses classes){
+		var module = classes.compiledModule();
+		if(!loadedModules.containsKey(module.name())){
+			loadedModules.put(module.name(), module);
+			classes.classes().forEach(classLoader::define);
 		}
 	}
 
-	public void removeFromLoaded(String moduleName){
-		loadedModules.remove(moduleName);
+	public void removeDefined(String name){
+		loadedModules.remove(name);
 	}
 
-	public void removeFromLoaded(BinaryModule module){
-		loadedModules.remove(module.getName());
+	public void registerNativeFactory(String name, NativeModuleFactory factory){
+		nativeFactories.put(name, factory);
 	}
 
-	public void registerNativeFactory(String moduleName, NativeModuleFactory factory){
-		nativeFactories.put(moduleName, factory);
-	}
-
-	public void unregisterNativeFactory(String moduleName){
-		nativeFactories.remove(moduleName);
+	public void unregisterNativeFactory(String name){
+		nativeFactories.remove(name);
 	}
 
 	public Map<String, NativeModuleFactory> getNativeFactories(){

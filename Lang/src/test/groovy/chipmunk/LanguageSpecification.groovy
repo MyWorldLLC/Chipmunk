@@ -61,7 +61,7 @@ class LanguageSpecification extends Specification {
 
 		BinaryModule[] modules = compiler.compile(compilation)
 
-		loader.addToLoaded(Arrays.asList(modules))
+		//loader.define(Arrays.asList(modules))
 
 		ChipmunkScript script = vm.compileScript(modules)
 		script.moduleLoader(loader)

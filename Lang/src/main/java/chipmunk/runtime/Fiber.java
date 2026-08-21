@@ -32,11 +32,13 @@ public class Fiber {
     public static class Frame {
 
         public final String method;
+        public final int suspensionPoint;
         public final Object[] stack;
         public final Object[] locals;
 
-        public Frame(String method, int stackSize, int localsSize) {
+        public Frame(String method, int suspensionPoint, int stackSize, int localsSize) {
             this.method = method;
+            this.suspensionPoint = suspensionPoint;
             this.stack = new Object[stackSize];
             this.locals = new Object[localsSize];
         }

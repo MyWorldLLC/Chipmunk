@@ -310,8 +310,8 @@ public class CRuntime {
         return a;
     }
 
-    public static Fiber.Frame frame(String method, int stackSize, int localsSize) {
-        return new Fiber.Frame(method, stackSize, localsSize);
+    public static Fiber.Frame frame(String method, int suspensionPoint, int stackSize, int localsSize) {
+        return new Fiber.Frame(method, suspensionPoint, stackSize, localsSize);
     }
 
 }

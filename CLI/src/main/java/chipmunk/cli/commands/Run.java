@@ -90,8 +90,8 @@ public class Run implements Callable<Integer> {
 
             ChipmunkVM vm = new ChipmunkVM();
 
-            ModuleLoader loader = new ModuleLoader();
-            registerBuiltins(loader);
+            //ModuleLoader loader = new ModuleLoader();
+            //registerBuiltins(loader);
 
             List<Path> sourcePaths = new ArrayList<>();
             List<ChipmunkSource> sources = new ArrayList<>();
@@ -125,7 +125,7 @@ public class Run implements Callable<Integer> {
             }
 
             FileModuleLocator locator = new FileModuleLocator();
-            loader.addLocator(locator);
+            //loader.addLocator(locator);
             if(!binDirs.equals("")){
                 for(String s : binDirs.split(",")){
                     Path path = Paths.get(s);
@@ -146,14 +146,14 @@ public class Run implements Callable<Integer> {
             Compilation compilation = new Compilation();
             compilation.getSources().addAll(sources);
 
-            ChipmunkCompiler compiler = new ChipmunkCompiler(loader);
+            /*ChipmunkCompiler compiler = new ChipmunkCompiler(loader);
             compiler.setModuleLoader(loader);
-            BinaryModule[] modules  = compiler.compile(compilation);
+            BinaryModule[] modules  = compiler.compile(compilation);*/
 
-            loader.addToLoaded(Arrays.asList(modules));
+            //loader.define(Arrays.asList(modules));
 
             CompilationUnit unit = new CompilationUnit();
-            unit.setModuleLoader(loader);
+            //unit.setModuleLoader(loader);
             unit.setEntryModule("main");
             unit.setEntryMethodName("main");
 
@@ -164,14 +164,14 @@ public class Run implements Callable<Integer> {
             }else{
                 // Verify default entrypoint is findable, search compiled modules for
                 // main module if not
-                BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
+                BinaryModule mainModule = null; // loader.loadBinary(unit.getEntryModule());
                 if(mainModule == null || !(mainModule.getNamespace().has("main") && mainModule.getNamespace().getEntry("main").getType() == FieldType.METHOD)){
-                    for(BinaryModule module : modules){
+                    /*for(BinaryModule module : modules){
                         BinaryNamespace.Entry entry = module.getNamespace().getEntry("main");
                         if(entry != null && entry.getType() == FieldType.METHOD){
                             unit.setEntryModule(module.getName());
                         }
-                    }
+                    }*/
                 }
             }
 

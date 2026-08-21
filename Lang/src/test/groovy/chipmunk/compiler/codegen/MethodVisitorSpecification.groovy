@@ -21,19 +21,16 @@
 package chipmunk.compiler.codegen
 
 import chipmunk.binary.BinaryMethod
-import chipmunk.binary.BinaryModule
-import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.compiler.CVMCompiler
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.vm.ModuleLoader
 import chipmunk.vm.jvm.CompilationUnit
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
 
-	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	ChipmunkVM vm = new ChipmunkVM()
 	
 	def "Parse, generate, and run empty method def"(){
@@ -47,6 +44,7 @@ class MethodVisitorSpecification extends Specification {
 			def method(){
 				return 1 + 2
 			}
+			method()
 		""")
 		
 		then:
@@ -421,14 +419,15 @@ class MethodVisitorSpecification extends Specification {
 	
 	def parseAndCall(String methodBody, String test = ""){
 
-		BinaryModule binary = compiler.compileMethod(methodBody)
+		def compiler = new CVMCompiler()
+		def compiled = compiler.compileMethod(methodBody)
 
 		CompilationUnit unit = new CompilationUnit()
 		unit.setEntryModule("exp")
 		unit.setEntryMethodName("method")
 
 		ModuleLoader loader = new ModuleLoader()
-		loader.addToLoaded(binary)
+		loader.define(binary)
 		unit.setModuleLoader(loader)
 
 		ChipmunkScript script = vm.compileScript(unit)

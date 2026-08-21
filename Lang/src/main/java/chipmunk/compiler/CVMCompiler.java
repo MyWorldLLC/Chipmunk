@@ -191,13 +191,13 @@ public class CVMCompiler {
         });
     }
 
-    public Map<String, byte[]> compile(InputStream src, String fileName) throws CompileChipmunk {
+    public List<ModuleClasses> compile(InputStream src, String fileName) throws CompileChipmunk {
         Compilation compilation = new Compilation();
         compilation.addSource(new ChipmunkSource(src, fileName));
         return compile(compilation);
     }
 
-    public Map<String, byte[]> compile(Compilation compilation) throws CompileChipmunk {
+    public List<ModuleClasses> compile(Compilation compilation) throws CompileChipmunk {
         var asts = new ArrayList<ParsedModule>();
 
         for(ChipmunkSource source : compilation.getSources()){
@@ -208,15 +208,15 @@ public class CVMCompiler {
         return compile(asts);
     }
 
-    public Map<String, byte[]> compile(AstNode... asts) throws CompileChipmunk {
+    public List<ModuleClasses> compile(AstNode... asts) throws CompileChipmunk {
         return compile(Arrays.stream(asts).map(a -> new ParsedModule("<memory>", a)).toList());
     }
 
-    public Map<String, byte[]> compile(ParsedModule... modules) throws CompileChipmunk {
+    public List<ModuleClasses> compile(ParsedModule... modules) throws CompileChipmunk {
         return compile(Arrays.asList(modules));
     }
 
-    public Map<String, byte[]> compile(List<ParsedModule> parsedModules) throws CompileChipmunk {
+    public List<ModuleClasses> compile(List<ParsedModule> parsedModules) throws CompileChipmunk {
         astResolver.setModules(parsedModules.stream().map(ParsedModule::ast).toList());
 
         parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.POST_PARSE)));
@@ -224,11 +224,13 @@ public class CVMCompiler {
         parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.IMPORT_RESOLUTION)));
         parsedModules.forEach(p -> visitAst(p.ast(), passes.get(Pass.PRE_ASSEMBLY)));
 
-        Map<String, byte[]> modules = new HashMap<>();
+        var modules = new ArrayList<ModuleClasses>();
         for(int i = 0; i < parsedModules.size(); i++){
             var parsed = parsedModules.get(i);
             var ast = parsed.ast();
-            modules.put(Modules.getName(ast).getName(), generateCode(parsed));
+            var name = Modules.getName(ast).getName();
+            // TODO - package-prefixed module class name?
+            modules.add(new ModuleClasses(name, name, generateCode(parsed)));
         }
 
         return modules;
@@ -249,7 +251,7 @@ public class CVMCompiler {
 
         module.addChild(method);
 
-        return compile(new ParsedModule("runtimeExpression", module)).get("exp");
+        return compile(new ParsedModule("runtimeExpression", module)).getFirst().classes().get("exp");
     }
 
     public byte[] compileMethod(String methodDef) throws CompileChipmunk {
@@ -262,11 +264,11 @@ public class CVMCompiler {
 
         module.addChild(method);
 
-        return compile(module).get("exp");
+        return compile(new ParsedModule("runtimeMethod", module)).getFirst().classes().get("exp");
     }
 
-    protected byte[] generateCode(ParsedModule module) throws CompileChipmunk {
-        return genClass(Modules.getName(module.ast()),
+    protected Map<String, byte[]> generateCode(ParsedModule module) throws CompileChipmunk {
+        return Map.of(Modules.getName(module.ast()).getName(), genClass(Modules.getName(module.ast()),
                 cls -> {
                     cls.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
                     var ast = module.ast();
@@ -279,7 +281,7 @@ public class CVMCompiler {
                             }
                         }
                     }
-        });
+        }));
     }
 
     private byte[] genClass(Symbol symbol, Consumer<ClassBuilder> builder){

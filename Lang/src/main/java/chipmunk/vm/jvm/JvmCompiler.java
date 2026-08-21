@@ -57,7 +57,7 @@ public class JvmCompiler {
 
     public ChipmunkScript compile(CompilationUnit sources) throws IOException, BinaryFormatException {
 
-        BinaryModule mainBin = sources.getModuleLoader().loadBinary(sources.getEntryModule());
+        BinaryModule mainBin = null; // sources.getModuleLoader().loadBinary(sources.getEntryModule());
         if(mainBin == null){
             throw new ModuleNotFoundException("Could not find main module " + sources.getEntryModule());
         }
@@ -131,12 +131,9 @@ public class JvmCompiler {
         run.visitEnd();
 
         sw.visitEnd();
-        return (ChipmunkScript) instantiate(sources.getModuleLoader().getClassLoader().define("ChipmunkScriptImpl", sw.toByteArray()));
+        return (ChipmunkScript) instantiate(sources.getModuleLoader().classLoader().define("ChipmunkScriptImpl", sw.toByteArray()));
     }
 
-    public ChipmunkModule compileModule(BinaryModule module){
-        return compileModule(new JvmCompilation(module, new ModuleLoader(), config));
-    }
 
     public ChipmunkModule compileModule(JvmCompilation compilation){
 
@@ -210,7 +207,7 @@ public class JvmCompiler {
 
         byte[] bytes = moduleWriter.toByteArray();
 
-        return (ChipmunkModule) instantiate(loadClass(compilation.getLoader().getClassLoader(), compilation.getPrefixedModuleName(), bytes));
+        return (ChipmunkModule) instantiate(loadClass(compilation.getLoader().classLoader(), compilation.getPrefixedModuleName(), bytes));
     }
 
     protected Class<?> loadClass(ChipmunkClassLoader loader, String name, byte[] bytes){
@@ -440,8 +437,8 @@ public class JvmCompiler {
 
         cInsWriter.visitEnd();
 
-        Class<?> cClass = loadClass(compilation.getLoader().getClassLoader(), qualifiedCClassName, cClassWriter.toByteArray());
-        loadClass(compilation.getLoader().getClassLoader(), qualifiedInsName, cInsWriter.toByteArray());
+        Class<?> cClass = loadClass(compilation.getLoader().classLoader(), qualifiedCClassName, cClassWriter.toByteArray());
+        loadClass(compilation.getLoader().classLoader(), qualifiedInsName, cInsWriter.toByteArray());
 
         return cClass;
     }

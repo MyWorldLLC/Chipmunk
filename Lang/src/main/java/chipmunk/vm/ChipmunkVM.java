@@ -103,14 +103,23 @@ public class ChipmunkVM {
 		return new JvmCompiler(config);
 	}
 
-	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
-		return compileScript(createJvmCompiler(defaultJvmCompilerConfig), compilation);
+	public CVMCompiler compilerFor(ChipmunkScript script){
+		return new CVMCompiler();
 	}
 
-	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
-		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(compilation);
-		return compileScript(jvmCompiler, modules);
+	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk {
+		var compiler = new CVMCompiler();
+		var modules = compiler.compile(compilation);
+
+		var script = pool.newScript(this);
+
+		modules.forEach((classes) -> script.moduleLoader().define(classes));
+
+        return script;
+	}
+
+	public ChipmunkScript createScript(){
+		return pool.newScript(this);
 	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
@@ -134,7 +143,7 @@ public class ChipmunkVM {
 		}
 
 		CompilationUnit unit = new CompilationUnit();
-		unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
+		//unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
 		unit.setEntryModule(mainModule.getName());
 		unit.setEntryMethodName("main");
 
@@ -190,15 +199,6 @@ public class ChipmunkVM {
 		script.modules.put(moduleName, module);
 		module.initialize(this);
 		return module;
-	}
-
-	public ChipmunkModule load(BinaryModule module) {
-		return load(createDefaultJvmCompiler(), module);
-	}
-
-	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
-		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultJvmCompilerConfig);
-		return jvmCompiler.compileModule(compilation);
 	}
 
 	private Object invoke(Object target, String methodName) throws Throwable {
@@ -274,9 +274,9 @@ public class ChipmunkVM {
 
 		var script = ChipmunkScript.getCurrentScript();
 		try {
-			return script.moduleLoader().getClassLoader().loadClass(bindingName);
+			return script.moduleLoader().classLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().bindingFor(script.moduleLoader().getClassLoader(), bindingName, targetType, method);
+			return script.getJvmCompiler().bindingFor(script.moduleLoader().classLoader(), bindingName, targetType, method);
 		}
 	}
 
@@ -285,9 +285,9 @@ public class ChipmunkVM {
 
 		var script = ChipmunkScript.getCurrentScript();
 		try {
-			return script.moduleLoader().getClassLoader().loadClass(bindingName);
+			return script.moduleLoader().classLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().argBindingFor(script.moduleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
+			return script.getJvmCompiler().argBindingFor(script.moduleLoader().classLoader(), bindingName, delegateType, pos, argCount);
 		}
 	}
 
@@ -306,14 +306,14 @@ public class ChipmunkVM {
 		var proxyName = "chipmunk.proxy." + interfaceType.getName() + "$Proxy$" + target.getClass().getName().replace('.', '$');
 
 		var script = ChipmunkScript.getCurrentScript();
-		var classloader = script.moduleLoader().getClassLoader();
+		var classloader = script.moduleLoader().classLoader();
 
 		Class<T> proxyType;
 		try {
 			proxyType = (Class<T>) classloader.loadClass(proxyName);
 		} catch (ClassNotFoundException e) {
 			proxyType = script.getJvmCompiler()
-					.makeProxyInterfaceImpl(script.moduleLoader().getClassLoader(), proxyName, interfaceType, isSamType);
+					.makeProxyInterfaceImpl(script.moduleLoader().classLoader(), proxyName, interfaceType, isSamType);
 		}
 
 		return proxyType.getConstructor(ChipmunkScript.class, Object.class).newInstance(script, target);
