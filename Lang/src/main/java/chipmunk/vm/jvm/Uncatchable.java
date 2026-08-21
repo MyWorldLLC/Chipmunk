@@ -20,5 +20,4 @@
 
 package chipmunk.vm.jvm;
 
-public class Uncatchable extends Throwable {
-}
+public class Uncatchable extends RuntimeException {}

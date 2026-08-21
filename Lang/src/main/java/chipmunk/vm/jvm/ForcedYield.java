@@ -20,5 +20,4 @@
 
 package chipmunk.vm.jvm;
 
-public class ForcedYieldThrowable extends Uncatchable {
-}
+public class ForcedYield extends Uncatchable {}

@@ -50,6 +50,7 @@ public class ScriptPool {
 
     public ChipmunkScript newScript(ChipmunkVM vm){
         var script = new ChipmunkScript(vm, scriptIds.incrementAndGet());
+        script.moduleLoader(new ModuleLoader());
         activeScripts.put(script.id(), script);
         return script;
     }

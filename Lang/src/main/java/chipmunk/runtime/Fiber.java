@@ -52,6 +52,7 @@ public class Fiber {
 
     protected volatile Status status;
     protected volatile boolean yieldRequested;
+    private boolean isRewinding;
 
     public void yield(){
         yieldRequested = true;
@@ -74,7 +75,19 @@ public class Fiber {
     }
 
     public Frame rewind(){
-        return frames.pop();
+        var frame = frames.pop();
+        if(frames.isEmpty()){
+            isRewinding = false;
+        }
+        return frame;
+    }
+
+    public void startRewinding(){
+        isRewinding = true;
+    }
+
+    public boolean isRewinding(){
+        return isRewinding;
     }
 
     public Deque<Frame> frames(){

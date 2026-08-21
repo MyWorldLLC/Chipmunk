@@ -25,6 +25,7 @@ import chipmunk.runtime.Fiber;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.jvm.ForcedYield;
 import chipmunk.vm.jvm.JvmCompiler;
 
 import java.util.Collections;
@@ -48,8 +49,12 @@ public class ChipmunkScript {
         return currentScript.get();
     }
 
+    public record EntryPoint(String module, String method){}
+
     protected final long id;
     private volatile boolean yieldFlag;
+
+    protected EntryPoint entryPoint;
 
     protected final List<Object> tags;
     protected final Map<String, ChipmunkModule> modules;
@@ -73,6 +78,18 @@ public class ChipmunkScript {
 
     public ChipmunkVM vm() {
         return vm;
+    }
+
+    public void entryPoint(EntryPoint entryPoint){
+        this.entryPoint = entryPoint;
+    }
+
+    public void entryPoint(String module, String method){
+        entryPoint(new EntryPoint(module, method));
+    }
+
+    public EntryPoint entryPoint(){
+        return entryPoint;
     }
 
     public Fiber fiber() {
@@ -143,7 +160,39 @@ public class ChipmunkScript {
     }
 
     public Object run(Object[] args){
-        return null; // TODO - formerly abstract
+        if(entryPoint == null){
+            entryPoint = new EntryPoint("main", "main");
+        }
+
+        ChipmunkModule module = null;
+
+        int state = 0;
+        if(fiber.isRewinding()){
+            var frame = fiber.rewind();
+            state = frame.suspensionPoint;
+            module = (ChipmunkModule) frame.locals[0];
+            args = (Object[]) frame.locals[1];
+        }
+        try{
+            switch(state){
+                case 0:
+                    module = loader.instance(entryPoint.module());
+                    state = 1;
+                case 1:
+                    module.initialize(vm);
+                    state = 2;
+                case 2:
+                    return vm.invoke(this, module, entryPoint().method(), args);
+            }
+
+        }catch(ForcedYield t){
+            var frame = new Fiber.Frame("run", state, 0, 2);
+            frame.locals[0] = module;
+            frame.locals[1] = args;
+            fiber.unwind(frame);
+            throw t;
+        }
+        return null;
     }
 
     public Object run(){

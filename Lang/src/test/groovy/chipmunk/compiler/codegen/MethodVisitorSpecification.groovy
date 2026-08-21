@@ -20,13 +20,9 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.binary.BinaryMethod
 import chipmunk.compiler.CVMCompiler
-import chipmunk.vm.ChipmunkScript
+import chipmunk.compiler.ModuleClasses
 import chipmunk.vm.ChipmunkVM
-import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.vm.ModuleLoader
-import chipmunk.vm.jvm.CompilationUnit
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -422,15 +418,18 @@ class MethodVisitorSpecification extends Specification {
 		def compiler = new CVMCompiler()
 		def compiled = compiler.compileMethod(methodBody)
 
-		CompilationUnit unit = new CompilationUnit()
+		def script = vm.createScript()
+		script.moduleLoader().define(new ModuleClasses("exp", "exp", Map.of("exp", compiled)))
+		script.entryPoint("exp", "method")
+		return script.run()
+
+		/*CompilationUnit unit = new CompilationUnit()
 		unit.setEntryModule("exp")
 		unit.setEntryMethodName("method")
 
 		ModuleLoader loader = new ModuleLoader()
 		loader.define(binary)
 		unit.setModuleLoader(loader)
-
-		ChipmunkScript script = vm.compileScript(unit)
 		
 		if(test != ""){
 			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
@@ -440,7 +439,7 @@ class MethodVisitorSpecification extends Specification {
 			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
 		}
 		
-		return vm.runAsync(script).get()
+		return vm.runAsync(script).get()*/
 	}
 
 }

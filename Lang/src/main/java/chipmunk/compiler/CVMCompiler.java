@@ -31,8 +31,8 @@ import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
 import chipmunk.compiler.symbols.Symbol;
-import chipmunk.compiler.types.BuiltinTypes;
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.symbols.SymbolTable;
+import chipmunk.compiler.types.*;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.ModuleLoader;
@@ -268,20 +268,33 @@ public class CVMCompiler {
     }
 
     protected Map<String, byte[]> generateCode(ParsedModule module) throws CompileChipmunk {
-        return Map.of(Modules.getName(module.ast()).getName(), genClass(Modules.getName(module.ast()),
+        var classes = new HashMap<String, byte[]>();
+        classes.put(Modules.getName(module.ast()).getName(), genClass(Modules.getName(module.ast()),
                 cls -> {
                     cls.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
                     var ast = module.ast();
+
+                    var state = new CompilerState();
+                    state.enterScope(ast.getSymbolTable());
+
+                    // TODO - initializer & helper fields
+
                     for(var element : ast.getChildren()){
                         switch (element.getNodeType()){
-                            case VAR_DEC -> genVarDec(cls, ast, element);
-                            case METHOD -> genMethod(cls, element);
+                            case VAR_DEC -> genVarDec(cls, state, element);
+                            case METHOD -> genMethod(cls, state, element);
                             case CLASS -> {
+                                var clsName = element.getSymbol();
+                                classes.put(clsName.getName(), genClass(clsName, (clsBuilder) -> {
+
+                                }));
                                 // TODO
                             }
                         }
                     }
-        }));
+                    state.exitScope();
+                }));
+        return classes;
     }
 
     private byte[] genClass(Symbol symbol, Consumer<ClassBuilder> builder){
@@ -300,7 +313,7 @@ public class CVMCompiler {
                 });
     }
 
-    private void genMethod(ClassBuilder cls, AstNode method){
+    private void genMethod(ClassBuilder cls, CompilerState state, AstNode method){
         var rType = descriptorFor(method.getResultType());
 
         var pList = new ArrayList<ClassDesc>();
@@ -310,7 +323,7 @@ public class CVMCompiler {
 
         cls.withMethodBody(Methods.getName(method).getName(), MethodTypeDesc.of(rType, pList), ClassFile.ACC_PUBLIC, code -> {
 
-            Methods.visitBody(method, node -> genStatement(code, node));
+            Methods.visitBody(method, node -> genStatement(code, state, node));
 
             // Fallback return
             code.aconst_null();
@@ -318,18 +331,18 @@ public class CVMCompiler {
         });
     }
 
-    private void genStatement(CodeBuilder code, AstNode statement){
+    private void genStatement(CodeBuilder code, CompilerState state, AstNode statement){
         switch (statement.getNodeType()){
-            case FLOW_CONTROL -> genFlowControl(code, statement);
-            case WHILE -> genWhileLoop(code, statement);
+            case FLOW_CONTROL -> genFlowControl(code, state, statement);
+            case WHILE -> genWhileLoop(code, state, statement);
         }
     }
 
-    private void genVarDec(ClassBuilder cls, AstNode declaring, AstNode varDec){
+    private void genVarDec(ClassBuilder cls, CompilerState state, AstNode varDec){
         var name = VarDec.getVarName(varDec);
         cls.withField(name, ClassDesc.of(Object.class.getName()),
                 field -> {
-                    var symbol = declaring.getSymbolTable().getSymbol(name);
+                    var symbol = state.scope().getSymbol(name);
                     var flags = name.startsWith("$") ? ClassFile.ACC_PRIVATE : ClassFile.ACC_PUBLIC;
                     if(symbol.isFinal()){
                         flags += ClassFile.ACC_FINAL;
@@ -341,7 +354,7 @@ public class CVMCompiler {
                 });
     }
 
-    private void genExpression(CodeBuilder code, AstNode exp){
+    private void genExpression(CodeBuilder code, CompilerState state, AstNode exp){
         markLineNumber(code, exp);
         switch(exp.getNodeType()){
             case LITERAL -> {
@@ -371,7 +384,7 @@ public class CVMCompiler {
                 var CD_list = ClassDesc.of(ArrayList.class.getName());
                 exp.getChildren().forEach(child -> {
                     code.dup();
-                    genExpression(code, child);
+                    genExpression(code, state, child);
                     if(!child.getResultType().isAssignableTo(BuiltinTypes.ANY)){
                         // Promote primitives
                         genConversion(code, BuiltinTypes.ANY, child.getResultType());
@@ -388,11 +401,11 @@ public class CVMCompiler {
                     var key = child.getLeft();
                     var value = child.getRight();
 
-                    genExpression(code, key);
+                    genExpression(code, state, key);
                     // Promote primitives
                     genConversion(code, BuiltinTypes.ANY, key.getResultType());
 
-                    genExpression(code, value);
+                    genExpression(code, state, value);
                     // Promote primitives
                     genConversion(code, BuiltinTypes.ANY, value.getResultType());
 
@@ -432,9 +445,10 @@ public class CVMCompiler {
                             }
                         }else if(lhs.is(NodeType.ID)){
                             // Local assignment
-                            /*assembler.onLine(lhs.getLineNumber());
-                            op.getRight().visit(this);
-                            codegen.emitLocalAssignment(lhs.getToken().text());*/
+                            exp.getRight().visit(node -> genExpression(code, state, node));
+                            // TODO - determine when we're reading a method binding
+                            emitLocalReference(code, state, lhs.getToken().text(), exp.getRight().getResultType(), true, false);
+                            return;
                         }
                     }
                 }
@@ -451,7 +465,7 @@ public class CVMCompiler {
 
                             for(int i = 0; i < operands.size(); i++){
                                 var operand = operands.get(i);
-                                genExpression(code, operand);
+                                genExpression(code, state, operand);
                                 // Since this is an intrinsic we know the types are convertible
                                 genConversion(code, emitter.op().pValues()[i], operandTypes[i]);
                             }
@@ -461,7 +475,7 @@ public class CVMCompiler {
 
                             for(int i = 0; i < operands.size(); i++){
                                 var operand = operands.get(i);
-                                genExpression(code, operand);
+                                genExpression(code, state, operand);
                                 // This is a dynamic call, so box any primitives
                                 genConversion(code, BuiltinTypes.ANY, operandTypes[i]);
                             }
@@ -506,26 +520,30 @@ public class CVMCompiler {
         }
     }
 
-    private void genFlowControl(CodeBuilder code, AstNode f){
+    private void genFlowControl(CodeBuilder code, CompilerState state, AstNode f){
+        state.enterScope(f.getSymbolTable());
         switch (f.getToken().type()) {
-            case RETURN -> genReturn(code, f);
+            case RETURN -> genReturn(code, state, f);
             // TODO - throw/break/continue
         }
+        state.exitScope();
     }
 
-    private void genWhileLoop(CodeBuilder code, AstNode loop){
+    private void genWhileLoop(CodeBuilder code, CompilerState state, AstNode loop){
         // TODO - suspension support
+        state.enterScope(loop.getSymbolTable());
         code.block(block -> {
             var guard = loop.getChild(0);
-            genExpression(code, guard);
+            genExpression(code, state, guard);
             // TODO - handle boxing/conversion to boolean if needed
             code.ifeq(block.breakLabel());
-            loop.visitChildren(node -> genStatement(code, node), 1);
+            loop.visitChildren(node -> genStatement(code, state, node), 1);
             code.goto_(block.startLabel());
         });
+        state.exitScope();
     }
 
-    private void genForLoop(CodeBuilder code, AstNode loop){
+    private void genForLoop(CodeBuilder code, CompilerState state, AstNode loop){
         // TODO - suspension support
         // Get the iterator
         var symbols = loop.getSymbolTable();
@@ -538,7 +556,7 @@ public class CVMCompiler {
         var idLocal = symbols.getLocalIndex(idName);
 
         // Create and store the iterator before entering the loop
-        genExpression(code, iter.getRight());
+        genExpression(code, state, iter.getRight());
         code.storeLocal(TypeKind.REFERENCE, iterLocal);
 
         code.block(block -> {
@@ -553,16 +571,16 @@ public class CVMCompiler {
             code.invokevirtual(descriptorFor(Iterator.class), "next", MethodTypeDesc.of(CD_Object)); // TODO - actual type
             code.storeLocal(TypeKind.REFERENCE, idLocal);
 
-            loop.visitChildren(node -> genStatement(code, node), 1);
+            loop.visitChildren(node -> genStatement(code, state, node), 1);
 
             code.goto_(block.startLabel());
         });
     }
 
-    private void genReturn(CodeBuilder code, AstNode rNode){
+    private void genReturn(CodeBuilder code, CompilerState state, AstNode rNode){
 
         if(rNode.hasChildren()){
-            genExpression(code, rNode.getChild());
+            genExpression(code, state, rNode.getChild());
         }else{
             code.aconst_null();
         }
@@ -586,11 +604,6 @@ public class CVMCompiler {
         var converter = Intrinsics.getConversion(expected, actual)
                 .orElseThrow(() -> new IllegalArgumentException("Cannot convert from " + expected.name() + " to " + actual.name() + ". This is a compiler bug."));
         converter.emitter().accept(code);
-        /*if(BuiltinTypes.ANY == expected && BuiltinTypes.INTEGER == actual){
-            code.invokestatic(ConstantDescs.CD_Integer, "valueOf", MethodTypeDesc.of(CD_Integer, CD_int));
-        }else if(BuiltinTypes.ANY == expected && BuiltinTypes.BOOLEAN == actual){
-            code.invokestatic(CD_Boolean, "valueOf", MethodTypeDesc.of(CD_Boolean, CD_boolean));
-        }*/
     }
 
     protected ObjectType getExpectedReturnType(AstNode rNode){
@@ -600,6 +613,60 @@ public class CVMCompiler {
         }
         var rType = parent.getResultType();
         return rType != null ? rType : BuiltinTypes.ANY;
+    }
+
+    private void emitLocalReference(CodeBuilder code, CompilerState state, String name, ObjectType localType, boolean assign, boolean bindingRead){
+
+        Deque<SymbolTable> trace = state.getSymbolTrace(name);
+
+        if(trace == null){
+            throw new IllegalStateException(name + " not found");
+        }
+
+        SymbolTable table = trace.getLast();
+        var symbol = table.getSymbol(name);
+        var localIndex = table.getLocalIndex(symbol);
+
+        if(localIndex == -1){
+            throw new IllegalStateException(name + " is not a local. This is a compiler bug.");
+        }
+
+        if(assign){
+            code.dup();
+            if(symbol.isUpvalueRef() || symbol.isUpvalue()){
+                //assembler.setUpvalue(localIndex);
+            }else{
+                code.storeLocal(typeKind(localType), localIndex);
+            }
+        }else{
+            if(symbol.isUpvalueRef() || (symbol.isUpvalue() && !bindingRead)){
+                //assembler.getUpvalue(localIndex);
+            }else{
+                //assembler.getLocal(localIndex);
+            }
+        }
+
+    }
+
+    private TypeKind typeKind(ObjectType t){
+        return switch (t){
+            case BooleanType _ -> TypeKind.BOOLEAN;
+            case IntegerType i ->
+                    switch (i.bitSize()){
+                        case 8 -> TypeKind.BYTE;
+                        case 16 -> TypeKind.SHORT;
+                        case 32 -> TypeKind.INT;
+                        case 64 -> TypeKind.LONG;
+                        default -> TypeKind.LONG;
+                    };
+            case FloatType f ->
+                    switch (f.bitSize()){
+                        case 32 -> TypeKind.FLOAT;
+                        case 64 -> TypeKind.DOUBLE;
+                        default -> TypeKind.DOUBLE;
+                    };
+            default -> TypeKind.REFERENCE;
+        };
     }
 
     private void markLineNumber(CodeBuilder code, AstNode n){
