@@ -56,6 +56,17 @@ public class Methods {
         return node.is(NodeType.METHOD) && node.getSymbol().isNamed(name);
     }
 
+    public static boolean withinClassMethod(AstNode node){
+        if(!node.is(NodeType.METHOD)){
+            return false;
+        }
+        while(node != null && !node.is(NodeType.CLASS)){
+            node = node.getParent();
+        }
+
+        return node == null || !node.is(NodeType.CLASS);
+    }
+
     public static void addParam(AstNode node, AstNode param){
         ensureMethod(node);
         node.getChild(0).addChild(param);

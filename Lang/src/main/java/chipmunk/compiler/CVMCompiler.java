@@ -38,6 +38,7 @@ import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.classfile.*;
 import java.lang.constant.*;
@@ -45,6 +46,8 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessFlag;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import static java.lang.constant.ConstantDescs.*;
@@ -208,8 +211,15 @@ public class CVMCompiler {
         for(int i = 0; i < parsedModules.size(); i++){
             var parsed = parsedModules.get(i);
             var ast = parsed.ast();
+            CompilerUtil.dumpTree(ast);
             var name = Modules.getName(ast).getName();
             // TODO - package-prefixed module class name?
+            var code = generateCode(parsed);
+            try {
+                Files.write(Path.of("./" + name + ".class"), code.get(name));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             modules.add(new ModuleClasses(name, name, generateCode(parsed)));
         }
 
@@ -450,11 +460,48 @@ public class CVMCompiler {
                             return;
                         }
                     }
+                    case LPAREN -> {
+                        // This is of the form a.b() - do a callAt
+                        if(exp.getLeft().is(NodeType.OPERATOR)
+                                && exp.getLeft().getToken().type() == TokenType.DOT
+                                && exp.getLeft().getRight().is(NodeType.ID)){
+
+                            var dotOp = exp.getLeft();
+                            // this is a dot access, so issue a callAt opcode
+                            var callID = dotOp.getRight();
+
+                            // Evaluate a
+                            dotOp.getLeft().visit(node -> genExpression(code, state, node));
+                            // Evaluate args
+                            exp.visitChildren(node -> genExpression(code, state, node), 1);
+
+                            int argCount = exp.childCount() - 1;
+                            markLineNumber(code, exp);
+
+                            var methodName = callID.getToken().text();
+                            // Try to statically resolve the call. If we can't, emit a dynamic call.
+                            // TODO - static call resolution
+
+                            System.out.println("Generating dynamic invocation for " + exp);
+                            genDynamicInvocation(code, methodName, argCount + 1);
+                            //assembler.callAt(callID.getToken().text(), (byte)argCount);
+
+                        }else{
+                            int argCount = exp.childCount() - 1;
+                            exp.visitChildren(node -> genExpression(code, state, node));
+                            markLineNumber(code, exp);
+                            // Emit a()
+                            // TODO
+                            //assembler.call((byte) argCount);
+                        }
+                        return;
+                    }
                     case DOT -> {
                         markLineNumber(code, exp.getLeft());
                         genExpression(code, state, exp.getLeft());
                         var attr = exp.getRight().getToken().text();
                         markLineNumber(code, exp);
+                        System.out.println("Generating dynamic field access for " + exp);
                         generateDynamicFieldAccess(code, attr, false);
                         /*assembler.onLine(op.getLeft().getLineNumber());
                         op.getLeft().visit(this);
@@ -513,6 +560,7 @@ public class CVMCompiler {
         var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
+        System.out.println("Warning - emitting dynamic call to " + op + "(" + argc + ")");
 
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
@@ -534,6 +582,8 @@ public class CVMCompiler {
         var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
+
+        System.out.println("Warning - emitting dynamic field access to " + field + "(" + set + ")");
 
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,

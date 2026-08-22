@@ -1,4 +1,4 @@
-module profiling
+module main
 
 def countToAMillion(){
 	var x = 0

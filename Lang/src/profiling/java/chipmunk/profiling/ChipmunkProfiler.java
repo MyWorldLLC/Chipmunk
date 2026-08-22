@@ -28,16 +28,19 @@ import java.util.HashMap;
 public class ChipmunkProfiler {
 
 	
-	public static void main(String[] args) throws Throwable {
+	static void main(String[] args) throws Throwable {
 
-		ChipmunkVM vm = new ChipmunkVM();
+		// Note: The entire purpose of this is to get samples of what javac produces for comparison
+		var counter = new Counter();
+
+		var vm = new ChipmunkVM();
 		var programs = new HashMap<String, ChipmunkScript>();
 		programs.put("countToAMillion", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion"));
-		programs.put("countingForLoop", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop"));
+		/*programs.put("countingForLoop", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop"));
 		programs.put("fibonacci", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci"));
 		programs.put("mandelbrot", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot"));
 		programs.put("polymorphism", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("PolymorphicCalling.chp"), "polymorphism"));
-		programs.put("nonpolymorphism", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism"));
+		programs.put("nonpolymorphism", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism"));*/
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 

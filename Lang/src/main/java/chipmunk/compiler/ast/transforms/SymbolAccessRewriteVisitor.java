@@ -108,6 +108,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             throw new UnresolvedSymbolException(scope.getDebugSymbol(), symbolName);
         }
 
+        // Locals - either standard or upvalues (outer locals)
         if (symbol.getTable().isMethodScope()) {
 
             // rewrite outer local symbols as parameters to the nested method, marking outer upvalues
@@ -127,7 +128,10 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         }
 
         // If the symbol is found in the module scope call getModule() & emit access at module level
-        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE && !Methods.isNameOfMethodNode(scope.getNode(), child.getToken().text())) {
+        // but only if this is a class method - module methods should just use an instance ref
+        if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE
+                && !Methods.isNameOfMethodNode(scope.getNode(), child.getToken().text())
+                && Methods.withinClassMethod(child)) {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol
@@ -167,11 +171,13 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             }
 
             return varDotNode;
-        } else if (symbol.getDeclaringScope() == SymbolTable.Scope.CLASS) {
+        } else if (symbol.getDeclaringScope() == SymbolTable.Scope.CLASS
+                && symbol.isShared()
+                && !scope.isSharedMethodScope()) {
 
             // Symbol is defined in the class - emit a shared or instance fetch
 
-            if (symbol.isShared() && !scope.isSharedMethodScope()) {
+            //if (symbol.isShared() && !scope.isSharedMethodScope()) {
                 // Symbol is a shared field AND we are not accessing it from a shared method
                 // Rewrite to self.getChipmunkClass().symbol
 
@@ -193,7 +199,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
                 return varDotNode;
             } else {
-                // Symbol is an instance field
+                // Symbol is an instance field (class or module level)
                 // Rewrite to self.symbol
 
                 AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
@@ -205,8 +211,8 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 return selfDotNode;
             }
 
-        }
-        return child;
+        //}
+        //return child;
     }
 
     protected boolean isMethodBindTarget(AstNode node, int index){
