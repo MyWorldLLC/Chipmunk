@@ -25,6 +25,10 @@ import chipmunk.compiler.lexer.TokenType;
 
 public class Literals {
 
+    public static AstNode make(String l){
+        return new AstNode(NodeType.LITERAL, new Token(l, TokenType.typeFor(l)));
+    }
+
     public static AstNode makeInt(int value){
         return new AstNode(NodeType.LITERAL, new Token(Integer.toString(value), TokenType.INTLITERAL));
     }

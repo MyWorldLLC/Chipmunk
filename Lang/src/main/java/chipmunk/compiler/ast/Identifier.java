@@ -22,6 +22,7 @@ package chipmunk.compiler.ast;
 
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.symbols.Symbol;
 
 public class Identifier {
 
@@ -38,7 +39,9 @@ public class Identifier {
     }
 
     public static AstNode makeBinding(String id, int line){
-        return new AstNode(NodeType.BINDING, new Token(id, TokenType.IDENTIFIER, Token.UNKNOWN, line));
+        var node = new AstNode(NodeType.BINDING, new Token(id, TokenType.IDENTIFIER, Token.UNKNOWN, line));
+        node.setSymbol(new Symbol(id));
+        return node;
     }
 
     public static boolean isIdentifierNamed(AstNode node, String name){

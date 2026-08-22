@@ -100,6 +100,7 @@ public class AstNode {
 
 	public void setSymbol(Symbol symbol){
 		this.symbol = symbol;
+		symbol.setReferent(this);
 	}
 
 	public SymbolTable getSymbolTable(){
@@ -274,7 +275,12 @@ public class AstNode {
 	
 	@Override
 	public String toString(){
+		return toString("");
+	}
+
+	protected String toString(String indent){
 		StringBuilder builder = new StringBuilder();
+		builder.append(indent);
 		builder.append('(');
 
 		String debugSymbol = getDebugName();
@@ -290,17 +296,26 @@ public class AstNode {
 			builder.append(token.text());
 		}
 
+		builder.append(" <");
+		builder.append(resultType != null ? resultType.toString() : "null");
+		builder.append("> ");
+
 		if(!children.isEmpty()){
 			builder.append(' ');
 		}
 
 		builder.append(
 				children.stream()
-						.map(AstNode::toString)
+						.map(node -> "\n" + node.toString(indent + "  "))
 						.collect(Collectors.joining(" "))
 		);
-		
-		builder.append(')');
+
+		if(children.isEmpty()){
+			builder.append(')');
+		}else{
+			builder.append("\n" + indent + ")");
+		}
+
 		return builder.toString();
 	}
 

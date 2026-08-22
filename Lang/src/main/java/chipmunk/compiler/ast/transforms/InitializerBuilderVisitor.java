@@ -21,6 +21,7 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.CompilerUtil;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.TokenType;
@@ -33,16 +34,16 @@ public class InitializerBuilderVisitor implements AstVisitor {
     protected Deque<AstNode> modulesAndClasses = new ArrayDeque<>();
 
     @Override
-    public void visit(AstNode node) {
+    public void visit(AstNode module) {
 
-        if(node.is(NodeType.MODULE)){
+        if(module.is(NodeType.MODULE)){
 
             AstNode initializer = Methods.make("$module_init$");
-            Methods.addParam(initializer, VarDec.makeImplicit("vm"));
-            node.addChild(0, initializer);
+            Methods.addParam(initializer, Identifier.make("vm"));
+            module.addChild(0, initializer);
 
             // Create imported module fields & generate vm calls to initialize them
-            List<AstNode> imports = node.getChildren()
+            List<AstNode> imports = module.getChildren()
                     .stream()
                     .filter(n -> n.is(NodeType.IMPORT))
                     .toList();
@@ -60,85 +61,38 @@ public class InitializerBuilderVisitor implements AstVisitor {
                 }
 
                 // Create a module field named $imported_module_name & assign it to the retrieved module
-                AstNode dec = VarDec.makeImplicit(ChipmunkCompiler.importedModuleName(moduleName));
+                var importName = CompilerUtil.importedModuleName(moduleName);
+                AstNode dec = VarDec.makeImplicit(importName);
 
-                var getModuleCallNode = Methods.makeInvocation(Identifier.make("vm"), "getModule", line, Literals.makeString("\"" + moduleName + "\""));
-
-                /*AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
-                AstNode vmDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
-                vmDotNode.addChild(Identifier.make("vm"));
-                vmDotNode.addChild(Identifier.make("getModule"));
-
-                getModuleCallNode.addChild(vmDotNode);
-                getModuleCallNode.addChild(new AstNode(NodeType.LITERAL, new Token("\"" + moduleName + "\"", TokenType.STRINGLITERAL)));
-*/
-                VarDec.setAssignment(dec, getModuleCallNode);
-
-                node.addChild(0, dec);
+                module.addChild(0, dec);
+                initializer.addChild(Operators.make("=",
+                        Identifier.make("vm"),
+                        Methods.makeInvocation(Identifier.make("vm"), "getModule", line, Literals.makeString("\"" + moduleName + "\""))));
 
                 alreadyImported.add(moduleName);
             }
 
-            modulesAndClasses.push(node);
+            modulesAndClasses.push(module);
 
-            node.visitChildren(this);
+            module.visitChildren(this);
 
             modulesAndClasses.pop();
 
-        }else if(node.is(NodeType.CLASS)){
+        }else if(module.is(NodeType.CLASS)){
 
             AstNode sharedInitializer = Methods.make("$class_init$");
             sharedInitializer.getSymbol().setShared(true);
-            node.addChild(0, sharedInitializer);
+            module.addChild(0, sharedInitializer);
 
             AstNode instanceInitializer = Methods.make("$instance_init$");
-            node.addChild(1, instanceInitializer);
+            module.addChild(1, instanceInitializer);
 
-            modulesAndClasses.push(node);
+            modulesAndClasses.push(module);
 
-            node.visitChildren(this);
+            module.visitChildren(this);
 
             modulesAndClasses.pop();
-        }else if(node.is(NodeType.VAR_DEC)){
-
-            AstNode assignExpression = VarDec.getAssignment(node);
-
-            // Rewrite empty assign expression to null assignment
-            if(assignExpression == null){
-                assignExpression = new AstNode(NodeType.LITERAL, new Token("null", TokenType.NULL));
-            }
-
-            VarDec.removeAssignment(node);
-
-            AstNode owner = modulesAndClasses.peek();
-
-            AstNode id = new AstNode(NodeType.ID, VarDec.getIdentifier(node).getToken());
-
-            AstNode assignStatement = new AstNode(NodeType.OPERATOR, new Token("=", TokenType.EQUALS));
-            assignStatement.addChild(id);
-            assignStatement.addChild(assignExpression);
-
-            if (owner.is(NodeType.MODULE)) {
-                var initializer = owner.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));
-                // Sort assignments to '$' fields (imported modules) to the front of the initializer,
-                // so that the writes happen before any potential reads of those fields in the initializer.
-                if(VarDec.getVarName(node).startsWith("$")){
-                    Methods.addToBody(initializer,0, assignStatement);
-                }else{
-                    Methods.addToBody(initializer, assignStatement);
-                }
-            } else if (owner.is(NodeType.CLASS)) {
-                if (node.getSymbol().isShared()) {
-                    Methods.addToBody(owner.getChild(0), assignStatement);
-                } else {
-                    Methods.addToBody(owner.getChild(1), assignStatement);
-                }
-            }
-
-
         }
-
-
     }
 
 }

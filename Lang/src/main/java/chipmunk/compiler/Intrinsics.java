@@ -55,6 +55,7 @@ public class Intrinsics {
     public static final String LESS_THAN_OR_EQUAL = "<=";
     public static final String GREATER_THAN_OR_EQUAL = ">=";
     public static final String DOUBLE_EQUALS = "==";
+    public static final String EXCLAMATION_EQUALS = "!=";
 
     public static final String LBRACKET = "[";
 
@@ -308,10 +309,23 @@ public class Intrinsics {
                 binOp(BOOLEAN, LONG, c -> c.invokestatic(CD_Runtime, "leq", MT_lCmpOp)),
                 binOp(BOOLEAN, FLOAT, c -> c.invokestatic(CD_Runtime, "feq", MT_fCmpOp)),
                 binOp(BOOLEAN, DOUBLE, c -> c.invokestatic(CD_Runtime, "deq", MT_dCmpOp)),
-                binOp(BOOLEAN, STRING, c -> c.invokestatic(CD_Runtime, "seq", MT_sCmpOp)),
+                binOp(BOOLEAN, STRING, c -> c.invokestatic(CD_Runtime, "objEq", MT_sCmpOp)),
                 binOp(BOOLEAN, MAP, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
                 binOp(BOOLEAN, LIST, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
                 binOp(BOOLEAN, ANY, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object)))
+        ));
+        ops.put(EXCLAMATION_EQUALS, List.of(
+                binOp(BOOLEAN, BOOLEAN, c -> c.invokestatic(CD_Runtime, "bneq", MethodTypeDesc.of(CD_boolean, CD_boolean, CD_boolean))),
+                binOp(BOOLEAN, BYTE, c -> c.invokestatic(CD_Runtime, "ineq", MT_iCmpOp)),
+                binOp(BOOLEAN, SHORT, c -> c.invokestatic(CD_Runtime, "ineq", MT_iCmpOp)),
+                binOp(BOOLEAN, INT, c -> c.invokestatic(CD_Runtime, "ineq", MT_iCmpOp)),
+                binOp(BOOLEAN, LONG, c -> c.invokestatic(CD_Runtime, "lneq", MT_lCmpOp)),
+                binOp(BOOLEAN, FLOAT, c -> c.invokestatic(CD_Runtime, "fneq", MT_fCmpOp)),
+                binOp(BOOLEAN, DOUBLE, c -> c.invokestatic(CD_Runtime, "dneq", MT_dCmpOp)),
+                binOp(BOOLEAN, STRING, c -> c.invokestatic(CD_Runtime, "objNeq", MT_sCmpOp)),
+                binOp(BOOLEAN, MAP, c -> c.invokestatic(CD_Runtime, "objNeq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
+                binOp(BOOLEAN, LIST, c -> c.invokestatic(CD_Runtime, "objNeq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
+                binOp(BOOLEAN, ANY, c -> c.invokestatic(CD_Runtime, "objNeq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object)))
         ));
 
         ops.put(LBRACKET, List.of(

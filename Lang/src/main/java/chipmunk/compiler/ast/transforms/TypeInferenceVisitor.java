@@ -20,10 +20,12 @@
 
 package chipmunk.compiler.ast.transforms;
 
+import chipmunk.compiler.CompilerUtil;
 import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.ast.AstNode;
 import chipmunk.compiler.ast.AstVisitor;
 import chipmunk.compiler.ast.NodeType;
+import chipmunk.compiler.ast.VarDec;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
@@ -57,7 +59,21 @@ public class TypeInferenceVisitor implements AstVisitor {
             // Note: Literal types are set by the LiteralParselet.
             case ID -> {
                 var symbol = findScope(node).getSymbol(node.getToken().text());
-                node.setResultType(symbol.getReferentType()); // TODO - what to do if the symbol's type hasn't been resolved yet?
+                node.setResultType(symbol.getReferentType());
+                // TODO - what to do if the symbol's type hasn't been resolved yet?
+                // We can handle these cases with a multi-pass system: first pass infers everything it can, and enqueues
+                // nodes that can't be resolved for later. On each pass through the queue, we infer anything we can, and re-enqueue
+                // what we can't. When we can't infer the type, (for example, circular dependency), we should be able to detect
+                // the cycle by inspecting the queue and either error or infer type Any.
+            }
+            case VAR_DEC -> {
+                if(VarDec.hasAssignment(node)){
+                    var type = node.getRight().getResultType();
+                    node.getLeft().setResultType(type);
+                    // Note that the symbol table will refer to the var dec node, not its nested id, so we
+                    // need to set the result type on the var dec itself as well.
+                    node.setResultType(type);
+                }
             }
             case OPERATOR -> {
                 // Check for built-in operations first. If the operator's types do not resolve
@@ -71,6 +87,14 @@ public class TypeInferenceVisitor implements AstVisitor {
                 if(operator.isEmpty()){
                     // TODO - check LHS for a method with a matching signature
                 }
+
+                var resolvedType = operator.map(op -> op.op().rValue())
+                        .orElseGet(() -> {
+                            // TODO - emit warning
+                            return BuiltinTypes.ANY;
+                        });
+
+                node.setResultType(resolvedType);
 
                 if(operator.isPresent()){
                     node.setResultType(operator.get().op().rValue());
@@ -99,6 +123,10 @@ public class TypeInferenceVisitor implements AstVisitor {
             case LIST -> node.setResultType(BuiltinTypes.LIST);
             case MAP -> node.setResultType(BuiltinTypes.MAP);
         }
+        // If we can't infer it, set to Any
+        if(node.getResultType() == null){
+            node.setResultType(BuiltinTypes.ANY);
+        }
     }
 
     protected SymbolTable findScope(AstNode node){
@@ -106,9 +134,6 @@ public class TypeInferenceVisitor implements AstVisitor {
         while(table == null && node.hasParent()){
             node = node.getParent();
             table = node.getSymbolTable();
-        }
-        if(table == null){
-            System.out.println(node + ":" + node.getParent());
         }
         return table;
     }

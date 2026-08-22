@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,24 +18,20 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ast;
+package chipmunk.compiler;
 
-import chipmunk.compiler.lexer.Token;
-import chipmunk.compiler.lexer.TokenType;
+import chipmunk.compiler.ast.AstNode;
 
-import java.util.Arrays;
+public class CompilerUtil {
 
-public class Operators {
-
-    public static AstNode make(String op, AstNode... operands){
-        return make(op, TokenType.typeFor(op), operands);
+    public static void dumpTree(AstNode node){
+        while(node.hasParent()){
+            node = node.getParent();
+        }
+        System.out.println(node);
     }
 
-    public static AstNode make(String op, TokenType type, AstNode... operands){
-        return make(op, type, Token.UNKNOWN, operands);
-    }
-
-    public static AstNode make(String op, TokenType type, int line, AstNode... operands){
-        return new AstNode(NodeType.OPERATOR, new Token(op, type, line), operands);
+    public static String importedModuleName(String moduleName){
+        return "$" + moduleName.replace('.', '_');
     }
 }

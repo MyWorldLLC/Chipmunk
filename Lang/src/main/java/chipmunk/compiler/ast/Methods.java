@@ -59,6 +59,9 @@ public class Methods {
     public static void addParam(AstNode node, AstNode param){
         ensureMethod(node);
         node.getChild(0).addChild(param);
+        if(param.getSymbol() == null){
+            param.setSymbol(new Symbol(param.getToken().text()));
+        }
     }
 
     public static int getParamCount(AstNode node){
@@ -115,7 +118,7 @@ public class Methods {
 
     public static void visitParams(AstNode node, AstVisitor visitor){
         ensureMethod(node);
-        node.getChild(0).visit(visitor);
+        node.getChild(0).visitChildren(visitor);
     }
 
     public static void visitBody(AstNode node, AstVisitor visitor){

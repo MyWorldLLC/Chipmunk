@@ -23,10 +23,15 @@ package chipmunk.compiler;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
+import java.lang.classfile.Label;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class CompilerState {
+
+    public record LoopLabels(Label continueLabel, Label breakLabel) {}
+
+    protected final Deque<LoopLabels> loopLabels = new ArrayDeque<>();
 
     protected SymbolTable scope;
 
@@ -86,5 +91,21 @@ public class CompilerState {
             }
         }
         return trace;
+    }
+
+    public void enterLoop(Label continueLabel, Label breakLabel){
+        loopLabels.push(new LoopLabels(continueLabel, breakLabel));
+    }
+
+    public Label continueLabel(){
+        return loopLabels.peek().continueLabel();
+    }
+
+    public Label breakLabel(){
+        return loopLabels.peek().breakLabel();
+    }
+
+    public void exitLoop(){
+        loopLabels.pop();
     }
 }

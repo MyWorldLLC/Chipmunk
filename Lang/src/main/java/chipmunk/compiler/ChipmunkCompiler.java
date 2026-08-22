@@ -198,8 +198,4 @@ public class ChipmunkCompiler {
 		return compile(module)[0];
 	}
 
-	public static String importedModuleName(String moduleName){
-		return "$" + moduleName.replace('.', '_');
-	}
-
 }

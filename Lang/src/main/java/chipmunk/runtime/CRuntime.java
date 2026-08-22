@@ -242,6 +242,30 @@ public class CRuntime {
         return Objects.equals(a, b);
     }
 
+    public static boolean bneq(boolean a, boolean b){
+        return a == b;
+    }
+
+    public static boolean ineq(int a, int b){
+        return a != b;
+    }
+
+    public static boolean lneq(long a, long b){
+        return a != b;
+    }
+
+    public static boolean fneq(float a, float b){
+        return a != b;
+    }
+
+    public static boolean dneq(double a, double b){
+        return a != b;
+    }
+
+    public static boolean objNeq(Object a, Object b){
+        return !Objects.equals(a, b);
+    }
+
     public static int b2i(boolean a){
         return a ? 1 : 0;
     }

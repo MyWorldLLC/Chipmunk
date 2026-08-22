@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.lexer;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -149,6 +150,13 @@ public enum TokenType {
 
     public boolean isLiteral() {
         return literal;
+    }
+
+    public static TokenType typeFor(String token){
+        return Arrays.stream(TokenType.values())
+                .filter(t -> t.getPattern().matcher(token).matches())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token: " + token));
     }
 
 }

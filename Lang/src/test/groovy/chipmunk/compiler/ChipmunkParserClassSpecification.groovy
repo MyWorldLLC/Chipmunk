@@ -37,7 +37,7 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar)"
+		node.toString() == "(class Foobar <null> )"
 	}
 	
 	def "parse class with a variable declaration"(){
@@ -50,7 +50,11 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar (var_dec a (id a)))"
+		node.toString() == """(class Foobar <null>  
+						  	  |  (var_dec a <null>  
+   					          |    (id a <null> )
+						  	  |  )
+						      |)""".stripMargin()
 	}
 	
 	def "parse class with two variable declarations"(){
@@ -70,7 +74,14 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar (var_dec a (id a)) (var_dec b (id b)))"
+		node.toString() == """(class Foobar <null>  
+						  	  |  (var_dec a <null>  
+   					          |    (id a <null> )
+						  	  |  ) 
+						  	  |  (var_dec b <null>  
+   					          |    (id b <null> )
+						  	  |  )
+						      |)""".stripMargin()
 	}
 	
 	def "parse class with shared and final variable declarations"(){
@@ -91,7 +102,17 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar (var_dec a (id a)) (var_dec b (id b)) (var_dec c (id c)))"
+		node.toString() == """(class Foobar <null>  
+  							  |  (var_dec a <null>  
+                              |    (id a <null> )
+                              |  ) 
+                              |  (var_dec b <null>  
+                              |    (id b <null> )
+                              |  ) 
+                              |  (var_dec c <null>  
+                              |    (id c <null> )
+                              |  )
+                              |)""".stripMargin()
 	}
 	
 	def "parse class with variable initializations"(){
@@ -111,7 +132,19 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar (var_dec a (id a) (literal 1)) (var_dec b (id b) (operator + (literal 2) (literal 3))))"
+		node.toString() == """(class Foobar <null>  
+  							  |  (var_dec a <null>  
+    						  |    (id a <null> ) 
+    						  |    (literal 1 <Int> )
+  							  |  ) 
+  							  |  (var_dec b <null>  
+    						  |    (id b <null> ) 
+    						  |    (operator + <null>  
+      						  |      (literal 2 <Int> ) 
+      						  |      (literal 3 <Int> )
+                              |    )
+                              |  )
+							  |)""".stripMargin()
 	}
 	
 	def "parse class with shared and final variable initialization"(){
@@ -132,6 +165,22 @@ class ChipmunkParserClassSpecification extends Specification {
 		AstNode node = parser.parseClassDef()
 		
 		then:
-		node.toString() == "(class Foobar (var_dec a (id a) (literal 0)) (var_dec b (id b) (literal 1)) (var_dec c (id c) (operator + (literal 1) (literal 2))))"
+		node.toString() == """(class Foobar <null>  
+  							  |  (var_dec a <null>  
+    						  |    (id a <null> ) 
+    						  |    (literal 0 <Int> )
+  							  |  ) 
+  							  |  (var_dec b <null>  
+    						  |    (id b <null> ) 
+    						  |    (literal 1 <Int> )
+    						  |  ) 
+    						  |  (var_dec c <null>  
+    						  |    (id c <null> ) 
+    						  |    (operator + <null>  
+      						  |      (literal 1 <Int> ) 
+      						  |      (literal 2 <Int> )
+                              |    )
+                              |  )
+							  |)""".stripMargin()
 	}
 }

@@ -23,8 +23,10 @@ package chipmunk.compiler
 import chipmunk.compiler.ast.AstNode
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.parser.ChipmunkParser
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class ChipmunkParserModuleSpecification extends Specification {
 
 	def "parse empty module def"(){

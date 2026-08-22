@@ -234,11 +234,11 @@ public class ChipmunkVM {
 				try {
 					return invoke(target, methodName, params);
 				} catch (Throwable e) {
-					throw new ChipmunkRuntimeException(e);
+					throw new RuntimeException(e);
 				}
 			}).get();
 		} catch (InterruptedException | ExecutionException e) {
-			throw new ChipmunkRuntimeException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

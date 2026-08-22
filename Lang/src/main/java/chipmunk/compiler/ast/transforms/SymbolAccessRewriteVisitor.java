@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.CompilerUtil;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
@@ -105,7 +105,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         final int column = child.getToken().column();
 
         if (symbol == null) {
-            throw new UnresolvedSymbolException(scope.getModuleScope().getDebugSymbol(), symbolName);
+            throw new UnresolvedSymbolException(scope.getDebugSymbol(), symbolName);
         }
 
         if (symbol.getTable().isMethodScope()) {
@@ -150,7 +150,7 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 // self.getModule().$module_field_name.symbol
                 AstNode importDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
-                final String moduleFieldName = ChipmunkCompiler.importedModuleName(symbol.getImport().getModule());
+                final String moduleFieldName = CompilerUtil.importedModuleName(symbol.getImport().getModule());
                 AstNode importedModuleName = new AstNode(NodeType.ID, new Token(moduleFieldName, TokenType.IDENTIFIER, index, line, column));
 
                 if (symbol.getImport().isAliased()) {
