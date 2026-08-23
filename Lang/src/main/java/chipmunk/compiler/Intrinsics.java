@@ -438,14 +438,58 @@ public class Intrinsics {
                 branch(DOUBLE_EQUALS, BOOLEAN, CodeBuilder::if_icmpne),
                 branch(DOUBLE_EQUALS, BYTE, CodeBuilder::if_icmpne),
                 branch(DOUBLE_EQUALS, SHORT, CodeBuilder::if_icmpne),
-                branch(DOUBLE_EQUALS, INT, CodeBuilder::if_icmpne)
-                // TODO - non-integral types
+                branch(DOUBLE_EQUALS, INT, CodeBuilder::if_icmpne),
+                branch(DOUBLE_EQUALS, LONG, (c, l) -> c.lcmp().ifne(l)),
+                branch(DOUBLE_EQUALS, FLOAT, (c, l) -> c.fcmpg().ifne(l)),
+                branch(DOUBLE_EQUALS, DOUBLE, (c, l) -> c.dcmpg().ifne(l)),
+                branch(DOUBLE_EQUALS, ANY, CodeBuilder::if_acmpne)
+        ));
+
+        branches.put(EXCLAMATION_EQUALS, List.of(
+                branch(EXCLAMATION_EQUALS, BOOLEAN, CodeBuilder::if_icmpeq),
+                branch(EXCLAMATION_EQUALS, BYTE, CodeBuilder::if_icmpeq),
+                branch(EXCLAMATION_EQUALS, SHORT, CodeBuilder::if_icmpeq),
+                branch(EXCLAMATION_EQUALS, INT, CodeBuilder::if_icmpeq),
+                branch(EXCLAMATION_EQUALS, LONG, (c, l) -> c.lcmp().ifeq(l)),
+                branch(EXCLAMATION_EQUALS, FLOAT, (c, l) -> c.fcmpg().ifeq(l)),
+                branch(EXCLAMATION_EQUALS, DOUBLE, (c, l) -> c.dcmpg().ifeq(l)),
+                branch(EXCLAMATION_EQUALS, ANY, CodeBuilder::if_acmpeq)
         ));
 
         branches.put(LESS_THAN, List.of(
                 branch(LESS_THAN, BYTE, CodeBuilder::if_icmpge),
                 branch(LESS_THAN, SHORT, CodeBuilder::if_icmpge),
-                branch(LESS_THAN, INT, CodeBuilder::if_icmpge)
+                branch(LESS_THAN, INT, CodeBuilder::if_icmpge),
+                branch(LESS_THAN, LONG, (c, l) -> c.lcmp().ifge(l)),
+                branch(LESS_THAN, FLOAT, (c, l) -> c.fcmpg().ifge(l)),
+                branch(LESS_THAN, DOUBLE, (c, l) -> c.dcmpg().ifge(l))
+        ));
+
+        branches.put(LESS_THAN_OR_EQUAL, List.of(
+                branch(LESS_THAN_OR_EQUAL, BYTE, CodeBuilder::if_icmpgt),
+                branch(LESS_THAN_OR_EQUAL, SHORT, CodeBuilder::if_icmpgt),
+                branch(LESS_THAN_OR_EQUAL, INT, CodeBuilder::if_icmpgt),
+                branch(LESS_THAN_OR_EQUAL, LONG, (c, l) -> c.lcmp().ifgt(l)),
+                branch(LESS_THAN_OR_EQUAL, FLOAT, (c, l) -> c.fcmpg().ifgt(l)),
+                branch(LESS_THAN_OR_EQUAL, DOUBLE, (c, l) -> c.dcmpg().ifgt(l))
+        ));
+
+        branches.put(GREATER_THAN, List.of(
+                branch(GREATER_THAN, BYTE, CodeBuilder::if_icmple),
+                branch(GREATER_THAN, SHORT, CodeBuilder::if_icmple),
+                branch(GREATER_THAN, INT, CodeBuilder::if_icmple),
+                branch(GREATER_THAN, LONG, (c, l) -> c.lcmp().ifle(l)),
+                branch(GREATER_THAN, FLOAT, (c, l) -> c.fcmpg().ifle(l)),
+                branch(GREATER_THAN, DOUBLE, (c, l) -> c.dcmpg().ifle(l))
+        ));
+
+        branches.put(GREATER_THAN_OR_EQUAL, List.of(
+                branch(GREATER_THAN_OR_EQUAL, BYTE, CodeBuilder::if_icmplt),
+                branch(GREATER_THAN_OR_EQUAL, SHORT, CodeBuilder::if_icmplt),
+                branch(GREATER_THAN_OR_EQUAL, INT, CodeBuilder::if_icmplt),
+                branch(GREATER_THAN_OR_EQUAL, LONG, (c, l) -> c.lcmp().iflt(l)),
+                branch(GREATER_THAN_OR_EQUAL, FLOAT, (c, l) -> c.fcmpg().iflt(l)),
+                branch(GREATER_THAN_OR_EQUAL, DOUBLE, (c, l) -> c.dcmpg().iflt(l))
         ));
 
         branchIntrinsics = Collections.unmodifiableMap(branches);
