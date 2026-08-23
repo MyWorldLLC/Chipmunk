@@ -20,6 +20,7 @@
 
 package chipmunk.compiler;
 
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.types.ObjectType;
 import chipmunk.compiler.types.Operation;
 import chipmunk.runtime.CRuntime;
@@ -29,6 +30,7 @@ import java.lang.constant.ClassDesc;
 import java.lang.constant.MethodTypeDesc;
 import java.util.*;
 
+import static chipmunk.compiler.BranchEmitter.branch;
 import static chipmunk.compiler.ConversionEmitter.conversion;
 import static chipmunk.compiler.OpEmitter.*;
 import static chipmunk.compiler.types.BuiltinTypes.*;
@@ -71,6 +73,7 @@ public class Intrinsics {
 
     protected static final Map<String, List<OpEmitter>> builtinOps;
     protected static final Map<ObjectType, List<ConversionEmitter>> typeConversions;
+    protected static final Map<String, List<BranchEmitter>> branchIntrinsics;
 
     static {
         final var CD_Runtime = ClassDesc.of(CRuntime.class.getName());
@@ -428,6 +431,24 @@ public class Intrinsics {
         ));
 
         typeConversions = Collections.unmodifiableMap(conversions);
+
+        var branches = new HashMap<String, List<BranchEmitter>>();
+
+        branches.put(DOUBLE_EQUALS, List.of(
+                branch(DOUBLE_EQUALS, BOOLEAN, CodeBuilder::if_icmpne),
+                branch(DOUBLE_EQUALS, BYTE, CodeBuilder::if_icmpne),
+                branch(DOUBLE_EQUALS, SHORT, CodeBuilder::if_icmpne),
+                branch(DOUBLE_EQUALS, INT, CodeBuilder::if_icmpne)
+                // TODO - non-integral types
+        ));
+
+        branches.put(LESS_THAN, List.of(
+                branch(LESS_THAN, BYTE, CodeBuilder::if_icmpge),
+                branch(LESS_THAN, SHORT, CodeBuilder::if_icmpge),
+                branch(LESS_THAN, INT, CodeBuilder::if_icmpge)
+        ));
+
+        branchIntrinsics = Collections.unmodifiableMap(branches);
     }
 
     public static Optional<Operation> getOperation(String symbol, ObjectType... operands){
@@ -458,6 +479,17 @@ public class Intrinsics {
 
         for(var emitter : conversions){
             if(from.isAssignableTo(emitter.from()) && to.isAssignableTo(emitter.to())) return Optional.of(emitter);
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<BranchEmitter> getBranch(String operator, ObjectType operandType){
+        var emitters = branchIntrinsics.get(operator);
+        if(emitters == null) return Optional.empty();
+
+        for(var emitter : emitters){
+            if(operandType.isAssignableTo(emitter.operandType())) return Optional.of(emitter);
         }
 
         return Optional.empty();

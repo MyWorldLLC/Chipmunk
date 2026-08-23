@@ -54,6 +54,8 @@ public class ChipmunkProfiler {
 			long startTime = System.nanoTime();
 			value = vm.runAsync(program).get();
 			long endTime = System.nanoTime();
+
+			Thread.sleep(250);
 			
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 		}

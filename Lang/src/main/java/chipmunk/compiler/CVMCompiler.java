@@ -338,7 +338,7 @@ public class CVMCompiler {
             case IF_ELSE -> genIfElse(code, state, statement);
             default -> {
                 genExpression(code, state, statement);
-                code.pop();
+                //code.pop();
             }
         }
     }
@@ -364,7 +364,7 @@ public class CVMCompiler {
         switch(exp.getNodeType()){
             case ID -> {
                 var symbol = state.scope().getSymbol(exp.getToken().text());
-                emitLocalReference(code, state, symbol.getName(), symbol.getReferentType(), false, false);
+                emitLocalReference(code, state, symbol.getName(), symbol.getReferentType(), LocalAccess.LOAD, false);
             }
             case LITERAL -> {
                 // TODO - double/byte/short/long literals
@@ -456,7 +456,12 @@ public class CVMCompiler {
                             // Local assignment
                             exp.getRight().visit(node -> genExpression(code, state, node));
                             // TODO - determine when we're reading a method binding
-                            emitLocalReference(code, state, lhs.getToken().text(), exp.getRight().getResultType(), true, false);
+                            // TODO - if the parent is a block, do a "statement assignment" where we skip the dup() & pop() pair
+                            // that would be otherwise necessary to support assignment as both an expression and statement. Unnecessary
+                            // dup()/pop() can heavily impact performance, probably by causing the JIT's optimizer to miss otherwise
+                            // available optimizations.
+                            var assignType = exp.getParent().getNodeType().isBlock() ? LocalAccess.ASSIGN : LocalAccess.DUP_ASSIGN;
+                            emitLocalReference(code, state, lhs.getToken().text(), exp.getRight().getResultType(), assignType, false);
                             return;
                         }
                     }
@@ -482,7 +487,13 @@ public class CVMCompiler {
                             // Try to statically resolve the call. If we can't, emit a dynamic call.
                             // TODO - static call resolution
 
-                            System.out.println("Generating dynamic invocation for " + exp);
+                            // TODO - this is temporary
+                            /*code.aload(0);
+                            var callType = MethodTypeDesc.of(CD_int, ClassDesc.of("main"));
+                            code.invokevirtual(ClassDesc.of("main"), methodName, callType);
+                            genConversion(code, BuiltinTypes.ANY, BuiltinTypes.INT);*/
+
+                            System.out.println("Generating invocation for " + exp);
                             genDynamicInvocation(code, methodName, argCount + 1);
                             //assembler.callAt(callID.getToken().text(), (byte)argCount);
 
@@ -616,7 +627,7 @@ public class CVMCompiler {
         }else{
             code.aconst_null();
         }
-        emitLocalReference(code, state, dec.getSymbol().getName(), type, true, false);
+        emitLocalReference(code, state, dec.getSymbol().getName(), type, LocalAccess.ASSIGN, false);
     }
 
     private void genFlowControl(CodeBuilder code, CompilerState state, AstNode f){
@@ -628,15 +639,35 @@ public class CVMCompiler {
         }
     }
 
+    private void genBranch(CodeBuilder code, CompilerState state, AstNode guard, Label escape){
+        if(guard.is(NodeType.OPERATOR)){
+            // TODO - support unary branch intrinsics
+            // TODO - support appropriate conversions for mixed types
+            var lType = guard.getLeft().getResultType();
+            var rType = guard.getRight().getResultType();
+            if(rType.isAssignableTo(lType)){
+                var emitter = Intrinsics.getBranch(guard.getToken().text(), lType);
+                if(emitter.isPresent()){
+                    genExpression(code, state, guard.getLeft());
+                    genExpression(code, state, guard.getRight());
+                    emitter.get().emitter().accept(code, escape);
+                    return;
+                }
+            }
+            // Fallback to generic branch
+            genExpression(code, state, guard);
+            genConversion(code, BuiltinTypes.BOOLEAN, guard.getResultType());
+            code.ifeq(escape);
+        }
+    }
+
     private void genWhileLoop(CodeBuilder code, CompilerState state, AstNode loop){
         // TODO - suspension support
         state.enterScope(loop.getSymbolTable());
         code.block(block -> {
             state.enterLoop(block.startLabel(), block.breakLabel());
             var guard = loop.getChild(0);
-            genExpression(code, state, guard);
-            genConversion(code, BuiltinTypes.BOOLEAN, guard.getResultType());
-            code.ifeq(block.breakLabel());
+            genBranch(code, state, guard, block.breakLabel());
             loop.visitChildren(node -> genStatement(code, state, node), 1);
             code.goto_(block.startLabel());
             state.exitLoop();
@@ -655,15 +686,13 @@ public class CVMCompiler {
     private void genIfBranches(CodeBuilder code, CompilerState state, List<AstNode> branches, int i){
         var branch = branches.get(i);
         if(branch.is(NodeType.IF)){
-            genExpression(code, state, branch.getLeft());
-            if(!branch.getLeft().getResultType().isAssignableTo(BuiltinTypes.BOOLEAN)){
-                genConversion(code, BuiltinTypes.BOOLEAN, branch.getLeft().getResultType());
-            }
+            code.block(block -> {
+                genBranch(code, state, branch.getLeft(), block.breakLabel());
+                branch.visitChildren(node -> genStatement(block, state, node), 1);
+            });
             if(i < branches.size() - 1){
-                code.ifThenElse(block -> branch.visitChildren(node -> genStatement(block, state, node)),
-                        block -> genIfBranches(block, state, branches, i + 1));
-            }else{
-                code.ifThen(block -> branch.visitChildren(node -> genStatement(block, state, node)));
+                code.block(
+                    block -> genIfBranches(block, state, branches, i + 1));
             }
         }else{
             // Generating an else block
@@ -745,7 +774,7 @@ public class CVMCompiler {
         return rType != null ? rType : BuiltinTypes.ANY;
     }
 
-    private void emitLocalReference(CodeBuilder code, CompilerState state, String name, ObjectType localType, boolean assign, boolean bindingRead){
+    private void emitLocalReference(CodeBuilder code, CompilerState state, String name, ObjectType localType, LocalAccess assign, boolean bindingRead){
         // TODO - we shouldn't allow undefined types at program emit time.
         if(localType == null){
             localType = BuiltinTypes.ANY;
@@ -765,8 +794,16 @@ public class CVMCompiler {
             throw new IllegalStateException(name + " is not a local. This is a compiler bug.");
         }
 
-        if(assign){
-            code.dup();
+        if(assign == LocalAccess.LOAD){
+            if(symbol.isUpvalueRef() || (symbol.isUpvalue() && !bindingRead)){
+                //assembler.getUpvalue(localIndex);
+            }else{
+                code.loadLocal(typeKind(localType), localIndex);
+            }
+        }else{
+            if(assign == LocalAccess.DUP_ASSIGN){
+                code.dup();
+            }
             if(symbol.isUpvalueRef() || symbol.isUpvalue()){
                 //assembler.setUpvalue(localIndex);
             }else{
@@ -775,12 +812,6 @@ public class CVMCompiler {
                     genConversion(code, storageType, localType);
                 }
                 code.storeLocal(typeKind(storageType), localIndex);
-            }
-        }else{
-            if(symbol.isUpvalueRef() || (symbol.isUpvalue() && !bindingRead)){
-                //assembler.getUpvalue(localIndex);
-            }else{
-                code.loadLocal(typeKind(localType), localIndex);
             }
         }
     }
