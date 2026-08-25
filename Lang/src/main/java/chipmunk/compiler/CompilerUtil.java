@@ -22,13 +22,29 @@ package chipmunk.compiler;
 
 import chipmunk.compiler.ast.AstNode;
 
+import java.io.ByteArrayInputStream;
+
 public class CompilerUtil {
 
-    public static void dumpTree(AstNode node){
+    public String dumpTree(AstNode node){
         while(node.hasParent()){
             node = node.getParent();
         }
-        System.out.println(node);
+        return node.toString();
+    }
+
+    public static ChipmunkSource toSource(String moduleName, String src){
+        return new ChipmunkSource(new ByteArrayInputStream(src.getBytes()), moduleName);
+    }
+
+    public static String dumpTree(String moduleName, String src){
+        var compiler = new CVMCompiler();
+        var compilation = new Compilation();
+        compilation.addSource(toSource(moduleName, src));
+
+        var parsed = compiler.parseModules(compilation);
+        compiler.prepareAsts(parsed);
+        return parsed.getFirst().toString();
     }
 
     public static String importedModuleName(String moduleName){

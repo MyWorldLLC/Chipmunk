@@ -25,7 +25,7 @@ import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import java.util.Iterator;
 
 @AllowChipmunkLinkage
-public class IntegerRange implements Range<Integer, Integer> {
+public class IntegerRange implements Range<Integer, Integer>, Iterable<Integer> {
 
 	private final int start;
 	private final int end;

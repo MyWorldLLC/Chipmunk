@@ -554,7 +554,7 @@ public class ChipmunkParser {
 		iter.addChild(expr);
 
 		node.addChild(iter);
-		iter.setSymbol(new Symbol(varID + "$it"));
+		iter.setSymbol(new Symbol(varID.text() + "$it"));
 
 		tokens.skipNewlines();
 		tokens.forceNext(TokenType.RPAREN);

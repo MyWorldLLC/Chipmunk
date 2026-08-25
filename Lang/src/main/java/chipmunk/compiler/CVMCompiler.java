@@ -34,22 +34,27 @@ import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.types.*;
 import chipmunk.modules.lang.LangModule;
+import chipmunk.runtime.CRuntime;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.jvm.ChipmunkClassLoader;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.classfile.*;
+import java.lang.classfile.attribute.RuntimeVisibleAnnotationsAttribute;
+import java.lang.classfile.attribute.SourceFileAttribute;
 import java.lang.constant.*;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessFlag;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import static java.lang.constant.ConstantDescs.*;
 
 public class CVMCompiler {
@@ -110,12 +115,26 @@ public class CVMCompiler {
     }
 
     protected ClassDesc descriptorFor(Class<?> cls){
+        if(cls.isPrimitive()){
+            var mapping = new HashMap<Class<?>, ClassDesc>();
+            mapping.put(boolean.class, CD_boolean);
+            mapping.put(byte.class, CD_byte);
+            mapping.put(short.class, CD_short);
+            mapping.put(int.class, CD_int);
+            mapping.put(long.class, CD_long);
+            mapping.put(float.class, CD_float);
+            mapping.put(double.class, CD_double);
+            return mapping.get(cls);
+        }
         return ClassDesc.of(cls.getName());
     }
 
     protected ClassDesc descriptorFor(ObjectType type){
         if(type == null){
             return descriptorFor(BuiltinTypes.ANY);
+        }
+        if(type instanceof chipmunk.compiler.types.MethodType){
+            return descriptorFor(MethodBinding.class);
         }
         var desc = typeMapping.get(type);
         if(desc == null){
@@ -183,15 +202,18 @@ public class CVMCompiler {
         return compile(compilation);
     }
 
-    public List<ModuleClasses> compile(Compilation compilation) throws CompileChipmunk {
+    public List<ParsedModule> parseModules(Compilation compilation){
         var asts = new ArrayList<ParsedModule>();
 
         for(ChipmunkSource source : compilation.getSources()){
             List<AstNode> parsed = parse(lex(source.readFully()), source.getFileName());
             parsed.forEach(n -> asts.add(new ParsedModule(source.getFileName(), n)));
         }
+        return asts;
+    }
 
-        return compile(asts);
+    public List<ModuleClasses> compile(Compilation compilation) throws CompileChipmunk {
+        return compile(parseModules(compilation));
     }
 
     public List<ModuleClasses> compile(AstNode... asts) throws CompileChipmunk {
@@ -203,58 +225,61 @@ public class CVMCompiler {
     }
 
     public List<ModuleClasses> compile(List<ParsedModule> parsedModules) throws CompileChipmunk {
-        astResolver.setModules(parsedModules.stream().map(ParsedModule::ast).toList());
-
-        parsedModules.forEach(p -> visitAst(p.ast(), passes));
+        prepareAsts(parsedModules);
 
         var modules = new ArrayList<ModuleClasses>();
         for(int i = 0; i < parsedModules.size(); i++){
             var parsed = parsedModules.get(i);
             var ast = parsed.ast();
-            CompilerUtil.dumpTree(ast);
             var name = Modules.getName(ast).getName();
             // TODO - package-prefixed module class name?
-            var code = generateCode(parsed);
-            try {
-                Files.write(Path.of("./" + name + ".class"), code.get(name));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
             modules.add(new ModuleClasses(name, name, generateCode(parsed)));
         }
 
         return modules;
     }
 
-    public byte[] compileExpression(String exp) throws CompileChipmunk {
-        AstNode module = Modules.make("exp");
+    public void prepareAsts(List<ParsedModule> parsedModules) throws CompileChipmunk {
+        astResolver.setModules(parsedModules.stream().map(ParsedModule::ast).toList());
+        parsedModules.forEach(p -> visitAst(p.ast(), passes));
+    }
 
-        AstNode method = Methods.make("evaluate");
-        AstNode ret = new AstNode(NodeType.FLOW_CONTROL, new Token("return", TokenType.RETURN));
+    public AstNode expressionEvalModule(String exp){
+        var module = Modules.make("exp");
 
-        TokenStream tokens = lex(exp);
-        ChipmunkParser parser = new ChipmunkParser(tokens);
+        var method = Methods.make("evaluate");
+        var ret = new AstNode(NodeType.FLOW_CONTROL, new Token("return", TokenType.RETURN));
+
+        var tokens = lex(exp);
+        var parser = new ChipmunkParser(tokens);
 
         ret.addChild(parser.parseExpression());
 
         Methods.addToBody(method, ret);
 
         module.addChild(method);
-
-        return compile(new ParsedModule("runtimeExpression", module)).getFirst().classes().get("exp");
+        return module;
     }
 
-    public byte[] compileMethod(String methodDef) throws CompileChipmunk {
-        AstNode module = Modules.make("exp");
+    public byte[] compileExpression(String exp) throws CompileChipmunk {
+        return compile(new ParsedModule("runtimeExpression", expressionEvalModule(exp))).getFirst().classes().get("exp");
+    }
 
-        TokenStream tokens = lex(methodDef);
-        ChipmunkParser parser = new ChipmunkParser(tokens);
+    public AstNode methodEvalModule(String methodDef){
+        var module = Modules.make("exp");
 
-        AstNode method = parser.parseMethodDef();
+        var tokens = lex(methodDef);
+        var parser = new ChipmunkParser(tokens);
+
+        var method = parser.parseMethodDef();
 
         module.addChild(method);
 
-        return compile(new ParsedModule("runtimeMethod", module)).getFirst().classes().get("exp");
+        return module;
+    }
+
+    public byte[] compileMethod(String methodDef) throws CompileChipmunk {
+        return compile(new ParsedModule("runtimeMethod", methodEvalModule(methodDef))).getFirst().classes().get("exp");
     }
 
     protected Map<String, byte[]> generateCode(ParsedModule module) throws CompileChipmunk {
@@ -262,6 +287,7 @@ public class CVMCompiler {
         classes.put(Modules.getName(module.ast()).getName(), genClass(Modules.getName(module.ast()),
                 cls -> {
                     cls.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
+                    cls.with(SourceFileAttribute.of(module.fileName()));
                     var ast = module.ast();
 
                     var state = new CompilerState();
@@ -475,35 +501,35 @@ public class CVMCompiler {
                             // this is a dot access, so issue a callAt opcode
                             var callID = dotOp.getRight();
 
-                            // Evaluate a
-                            dotOp.getLeft().visit(node -> genExpression(code, state, node));
-                            // Evaluate args
-                            exp.visitChildren(node -> genExpression(code, state, node), 1);
 
-                            int argCount = exp.childCount() - 1;
+                            var dispatchTypes = new ArrayList<ObjectType>();
+                            // Evaluate a
+                            dotOp.getLeft().visit(node -> {
+                                genExpression(code, state, node);
+                                dispatchTypes.add(node.getResultType());
+                            });
+                            // Evaluate args
+                            exp.visitChildren(node -> {
+                                genExpression(code, state, node);
+                                dispatchTypes.add(node.getResultType());
+                            }, 1);
+
                             markLineNumber(code, exp);
 
                             var methodName = callID.getToken().text();
                             // Try to statically resolve the call. If we can't, emit a dynamic call.
                             // TODO - static call resolution
 
-                            // TODO - this is temporary
-                            /*code.aload(0);
-                            var callType = MethodTypeDesc.of(CD_int, ClassDesc.of("main"));
-                            code.invokevirtual(ClassDesc.of("main"), methodName, callType);
-                            genConversion(code, BuiltinTypes.ANY, BuiltinTypes.INT);*/
-
-                            System.out.println("Generating invocation for " + exp);
-                            genDynamicInvocation(code, methodName, argCount + 1);
-                            //assembler.callAt(callID.getToken().text(), (byte)argCount);
-
+                            genDynamicInvocation(code, methodName, dispatchTypes.toArray(ObjectType[]::new));
                         }else{
-                            int argCount = exp.childCount() - 1;
-                            exp.visitChildren(node -> genExpression(code, state, node));
+                            var dispatchTypes = new ArrayList<ObjectType>();
+                            exp.visitChildren(node -> {
+                                genExpression(code, state, node);
+                                dispatchTypes.add(node.getResultType());
+                            });
                             markLineNumber(code, exp);
                             // Emit a()
-                            // TODO
-                            //assembler.call((byte) argCount);
+                            genDynamicInvocation(code, "call", dispatchTypes.toArray(ObjectType[]::new));
                         }
                         return;
                     }
@@ -512,7 +538,7 @@ public class CVMCompiler {
                         genExpression(code, state, exp.getLeft());
                         var attr = exp.getRight().getToken().text();
                         markLineNumber(code, exp);
-                        System.out.println("Generating dynamic field access for " + exp);
+
                         generateDynamicFieldAccess(code, attr, false);
                         /*assembler.onLine(op.getLeft().getLineNumber());
                         op.getLeft().visit(this);
@@ -521,6 +547,38 @@ public class CVMCompiler {
                         String attr = op.getRight().getToken().text();
                         assembler.getattr(attr);*/
                         return;
+                    }
+                    case DOUBLEDOT -> {
+                        genExpression(code, state, exp.getLeft());
+                        genConversion(code, BuiltinTypes.ANY, exp.getLeft().getResultType());
+                        genExpression(code, state, exp.getRight());
+                        genConversion(code, BuiltinTypes.ANY, exp.getRight().getResultType());
+                        code.loadConstant(1);
+                        genConversion(code, BuiltinTypes.ANY, BuiltinTypes.BOOLEAN);
+                        genDynamicInvocation(code, "range", exp.getLeft().getResultType(), exp.getRight().getResultType(), BuiltinTypes.BOOLEAN);
+                        return;
+                    }
+                    case DOUBLEDOTLESS -> {
+                        genExpression(code, state, exp.getLeft());
+                        //genConversion(code, BuiltinTypes.ANY, exp.getLeft().getResultType());
+                        genExpression(code, state, exp.getRight());
+                        //genConversion(code, BuiltinTypes.ANY, exp.getRight().getResultType());
+                        code.loadConstant(0);
+                        //genConversion(code, BuiltinTypes.ANY, BuiltinTypes.BOOLEAN);
+                        genDynamicInvocation(code, "range", exp.getLeft().getResultType(), exp.getRight().getResultType(), BuiltinTypes.BOOLEAN);
+                        return;
+                    }
+                    case DOUBLECOLON -> {
+                        genExpression(code, state, exp.getLeft());
+                        if(exp.getRight().is(NodeType.ID)){
+                            markLineNumber(code, exp);
+                            code.loadConstant(exp.getRight().getToken().text());
+                            code.invokestatic(descriptorFor(CRuntime.class), "bind",
+                                    MethodTypeDesc.of(descriptorFor(MethodBinding.class), CD_Object, CD_String));
+                            return;
+                        }else{
+                            throw new SyntaxError("Binding node operator requires a compile-time static method name");
+                        }
                     }
                 }
 
@@ -548,34 +606,38 @@ public class CVMCompiler {
                                 var operand = operands.get(i);
                                 genExpression(code, state, operand);
                                 // This is a dynamic call, so box any primitives
-                                genConversion(code, BuiltinTypes.ANY, operandTypes[i]);
+                                //genConversion(code, BuiltinTypes.ANY, operandTypes[i]);
                             }
 
-                            genDynamicInvocation(code, emitOp, operands.size());
+                            genDynamicInvocation(code, emitOp, operandTypes);
                         });
             }
         }
     }
 
-    private void genDynamicInvocation(CodeBuilder code, String op, int argc){
+    private void genDynamicInvocation(CodeBuilder code, String op, ClassDesc... argTypes){
         var objType = ClassDesc.of(Object.class.getName());
-        ClassDesc[] pTypes = new ClassDesc[argc];
-        Arrays.fill(pTypes, objType);
 
         var dynamicOp = binaryOpNames(op);
 
-        var callType = MethodTypeDesc.of(objType, pTypes);
+        var callType = MethodTypeDesc.of(objType, argTypes);
 
         var CD_Binder = ClassDesc.of(Binder.class.getName());
         var CD_CallSite = ClassDesc.of(CallSite.class.getName());
         var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
-        System.out.println("Warning - emitting dynamic call to " + op + "(" + argc + ")");
 
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
                         Binder.INDY_BOOTSTRAP_METHOD, bootstrapDescriptor), dynamicOp, callType));
+    }
+
+    private void genDynamicInvocation(CodeBuilder code, String op, ObjectType... argTypes){
+        var pTypes = Arrays.stream(argTypes)
+                .map(this::descriptorFor)
+                .toArray(ClassDesc[]::new);
+        genDynamicInvocation(code, op, pTypes);
     }
 
     private void generateDynamicFieldAccess(CodeBuilder code, String field, boolean set) {
@@ -593,8 +655,6 @@ public class CVMCompiler {
         var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
-
-        System.out.println("Warning - emitting dynamic field access to " + field + "(" + set + ")");
 
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
@@ -635,7 +695,7 @@ public class CVMCompiler {
             case RETURN -> genReturn(code, state, f);
             case BREAK -> code.goto_(state.breakLabel());
             case CONTINUE -> code.goto_(state.continueLabel());
-            // TODO - throw/break/continue
+            // TODO - throw
         }
     }
 
@@ -656,13 +716,13 @@ public class CVMCompiler {
             }
             // Fallback to generic branch
             genExpression(code, state, guard);
+
             genConversion(code, BuiltinTypes.BOOLEAN, guard.getResultType());
             code.ifeq(escape);
         }
     }
 
     private void genWhileLoop(CodeBuilder code, CompilerState state, AstNode loop){
-        // TODO - suspension support
         state.enterScope(loop.getSymbolTable());
         code.block(block -> {
             state.enterLoop(block.startLabel(), block.breakLabel());
@@ -701,9 +761,9 @@ public class CVMCompiler {
     }
 
     private void genForLoop(CodeBuilder code, CompilerState state, AstNode loop){
-        // TODO - suspension support
         // Get the iterator
         var symbols = loop.getSymbolTable();
+        state.enterScope(symbols);
         var iter = loop.getChild();
         var iterName = iter.getSymbol();
         var iterLocal = symbols.getLocalIndex(iterName);
@@ -714,6 +774,8 @@ public class CVMCompiler {
 
         // Create and store the iterator before entering the loop
         genExpression(code, state, iter.getRight());
+        // TODO - dynamic invocation support
+        code.invokeinterface(descriptorFor(Iterable.class), "iterator", MethodTypeDesc.of(ClassDesc.of(Iterator.class.getName())));
         code.storeLocal(TypeKind.REFERENCE, iterLocal);
 
         code.block(block -> {
@@ -721,12 +783,13 @@ public class CVMCompiler {
             // 'hasNext' guards the loop
             state.enterLoop(block.startLabel(), block.breakLabel());
             code.loadLocal(TypeKind.REFERENCE, iterLocal);
-            code.invokevirtual(descriptorFor(Iterator.class), "hasNext", MethodTypeDesc.of(CD_boolean));
-            code.ifne(block.breakLabel());
+            code.invokeinterface(descriptorFor(Iterator.class), "hasNext", MethodTypeDesc.of(CD_boolean));
+            // TODO - support dynamic dispatch here
+            code.ifeq(block.breakLabel());
 
             // First task is calling the iterator and storing the result
             code.loadLocal(TypeKind.REFERENCE, iterLocal);
-            code.invokevirtual(descriptorFor(Iterator.class), "next", MethodTypeDesc.of(CD_Object)); // TODO - actual type
+            code.invokeinterface(descriptorFor(Iterator.class), "next", MethodTypeDesc.of(CD_Object)); // TODO - actual type
             code.storeLocal(TypeKind.REFERENCE, idLocal);
 
             loop.visitChildren(node -> genStatement(code, state, node), 1);
@@ -734,10 +797,10 @@ public class CVMCompiler {
             code.goto_(block.startLabel());
             state.exitLoop();
         });
+        state.exitScope();
     }
 
     private void genReturn(CodeBuilder code, CompilerState state, AstNode rNode){
-
         if(rNode.hasChildren()){
             genExpression(code, state, rNode.getChild());
         }else{
@@ -750,11 +813,15 @@ public class CVMCompiler {
         }
 
         var expectedType = getExpectedReturnType(rNode);
+        markLineNumber(code, rNode);
+
+        genReturn(code, expectedType, type);
+    }
+
+    private void genReturn(CodeBuilder code, ObjectType expectedType, ObjectType type){
         if(!type.isAssignableTo(expectedType)){
             promoteType(code, expectedType, type);
         }
-
-        markLineNumber(code, rNode);
         var generator = returnGenerators.get(type);
         generator.accept(code);
     }
@@ -865,6 +932,82 @@ public class CVMCompiler {
         if(n.getLineNumber() != -1){
             code.lineNumber(n.getLineNumber());
         }
+    }
+
+    public Class<?> bindingFor(ChipmunkClassLoader loader, String bindingName, Class<?> targetType, String methodName){
+
+        var bindingClassDesc = ClassDesc.of(bindingName);
+        var compiledClass = ClassFile.of().build(bindingClassDesc, cls -> {
+            cls.with(RuntimeVisibleAnnotationsAttribute.of(Annotation.of(descriptorFor(AllowChipmunkLinkage.class))));
+            cls.withSuperclass(descriptorFor(MethodBinding.class));
+
+            cls.withMethodBody("<init>", MethodTypeDesc.of(CD_void, CD_Object, CD_String), ClassFile.ACC_PUBLIC, init -> {
+                init.aload(0)
+                        .aload(1)
+                        .aload(2)
+                        .invokespecial(descriptorFor(MethodBinding.class), "<init>", MethodTypeDesc.of(CD_void, CD_Object, CD_String))
+                        .return_();
+            });
+
+            var methods = Arrays.stream(targetType.getMethods())
+                    .filter(m -> m.getName().equals(methodName))
+                    .toList();
+
+            for(var method : methods){
+                var pDescs = Arrays.stream(method.getParameterTypes())
+                        .map(this::descriptorFor)
+                        .toArray(ClassDesc[]::new);
+
+                var methodDesc = MethodTypeDesc.of(descriptorFor(method.getReturnType()), pDescs);
+
+                cls.withMethodBody("call", methodDesc, ClassFile.ACC_PUBLIC, code -> {
+                    code.aload(0)
+                            .getfield(bindingClassDesc, MethodBinding.TARGET_FIELD_NAME, CD_Object)
+                            .checkcast(ClassDesc.of(targetType.getName()));
+
+                    for(int i = 1; i <= method.getParameterCount(); i++){
+                        code.aload(i);
+                    }
+
+                    genDynamicInvocation(code, methodName, Stream.concat(Stream.of(descriptorFor(targetType)), Stream.of(pDescs)).toArray(ClassDesc[]::new));
+                    var rType = method.getReturnType();
+                    // TODO - support non-boxed primitive returns from target
+                    if(rType.equals(boolean.class)){
+                        code.checkcast(ClassDesc.of(Boolean.class.getName()));
+                        code.invokevirtual(ClassDesc.of(Boolean.class.getName()), "booleanValue", MethodTypeDesc.of(CD_boolean));
+                        code.ireturn();
+                    }else if(rType.equals(byte.class)){
+                        code.checkcast(ClassDesc.of(Byte.class.getName()));
+                        code.invokevirtual(ClassDesc.of(Byte.class.getName()), "byteValue", MethodTypeDesc.of(CD_byte));
+                        code.ireturn();
+                    }else if(rType.equals(short.class)){
+                        code.checkcast(ClassDesc.of(Short.class.getName()));
+                        code.invokevirtual(ClassDesc.of(Short.class.getName()), "shortValue", MethodTypeDesc.of(CD_short));
+                        code.ireturn();
+                    }else if(rType.equals(int.class)){
+                        code.checkcast(ClassDesc.of(Integer.class.getName()));
+                        code.invokevirtual(ClassDesc.of(Integer.class.getName()), "intValue", MethodTypeDesc.of(CD_int));
+                        code.ireturn();
+                    }else if(rType.equals(long.class)){
+                        code.checkcast(ClassDesc.of(Long.class.getName()));
+                        code.invokevirtual(ClassDesc.of(Long.class.getName()), "longValue", MethodTypeDesc.of(CD_long));
+                        code.lreturn();
+                    }else if(rType.equals(float.class)){
+                        code.freturn();
+                    }else if(rType.equals(double.class)){
+                        code.dreturn();
+                    }else{
+                        if(rType.equals(void.class)){
+                            code.aconst_null();
+                        }
+                        code.areturn();
+                    }
+                });
+            }
+
+        });
+
+        return loader.define(bindingName, compiledClass);
     }
 
 }

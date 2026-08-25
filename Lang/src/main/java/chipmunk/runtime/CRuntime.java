@@ -20,6 +20,10 @@
 
 package chipmunk.runtime;
 
+import chipmunk.compiler.ChipmunkSource;
+import chipmunk.vm.ChipmunkScript;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
 
@@ -336,6 +340,10 @@ public class CRuntime {
 
     public static Fiber.Frame frame(String method, int suspensionPoint, int stackSize, int localsSize) {
         return new Fiber.Frame(method, suspensionPoint, stackSize, localsSize);
+    }
+
+    public static MethodBinding bind(Object target, String method) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return ChipmunkScript.getCurrentScript().vm().bind(target, method);
     }
 
 }

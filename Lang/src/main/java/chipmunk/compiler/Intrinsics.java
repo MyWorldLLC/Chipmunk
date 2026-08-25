@@ -20,7 +20,6 @@
 
 package chipmunk.compiler;
 
-import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.types.ObjectType;
 import chipmunk.compiler.types.Operation;
 import chipmunk.runtime.CRuntime;
@@ -313,9 +312,9 @@ public class Intrinsics {
                 binOp(BOOLEAN, FLOAT, c -> c.invokestatic(CD_Runtime, "feq", MT_fCmpOp)),
                 binOp(BOOLEAN, DOUBLE, c -> c.invokestatic(CD_Runtime, "deq", MT_dCmpOp)),
                 binOp(BOOLEAN, STRING, c -> c.invokestatic(CD_Runtime, "objEq", MT_sCmpOp)),
-                binOp(BOOLEAN, MAP, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
-                binOp(BOOLEAN, LIST, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object))),
-                binOp(BOOLEAN, ANY, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object)))
+                binOp(BOOLEAN, MAP, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_boolean, CD_Object, CD_Object))),
+                binOp(BOOLEAN, LIST, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_boolean, CD_Object, CD_Object))),
+                binOp(BOOLEAN, ANY, c -> c.invokestatic(CD_Runtime, "objEq", MethodTypeDesc.of(CD_boolean, CD_Object, CD_Object)))
         ));
         ops.put(EXCLAMATION_EQUALS, List.of(
                 binOp(BOOLEAN, BOOLEAN, c -> c.invokestatic(CD_Runtime, "bneq", MethodTypeDesc.of(CD_boolean, CD_boolean, CD_boolean))),
@@ -409,7 +408,7 @@ public class Intrinsics {
                 conversion(BOOLEAN, FLOAT, c -> c.invokestatic(CD_Runtime, "f2b", MethodTypeDesc.of(CD_boolean, CD_float))),
                 conversion(BYTE,    FLOAT, c -> c.f2i().i2b()),
                 conversion(SHORT,   FLOAT, c -> c.f2i().i2s()),
-                conversion(INT, FLOAT, CodeBuilder::f2i),
+                conversion(INT,     FLOAT, CodeBuilder::f2i),
                 conversion(DOUBLE,  FLOAT, CodeBuilder::f2d),
                 conversion(STRING,  FLOAT, c -> c.invokestatic(CD_Runtime, "f2s", MethodTypeDesc.of(CD_String, CD_float))),
                 conversion(ANY,     FLOAT, c -> c.invokestatic(CD_Runtime, "f2a", MethodTypeDesc.of(CD_Object, CD_float)))
@@ -420,7 +419,7 @@ public class Intrinsics {
                 conversion(BOOLEAN, DOUBLE, c -> c.invokestatic(CD_Runtime, "f2b", MethodTypeDesc.of(CD_boolean, CD_float))),
                 conversion(BYTE,    DOUBLE, c -> c.d2i().i2b()),
                 conversion(SHORT,   DOUBLE, c -> c.d2i().i2s()),
-                conversion(INT, DOUBLE, CodeBuilder::d2i),
+                conversion(INT,     DOUBLE, CodeBuilder::d2i),
                 conversion(FLOAT,   DOUBLE, CodeBuilder::d2f),
                 conversion(STRING,  DOUBLE, c -> c.invokestatic(CD_Runtime, "d2s", MethodTypeDesc.of(CD_String, CD_float))),
                 conversion(ANY,     DOUBLE, c -> c.invokestatic(CD_Runtime, "d2a", MethodTypeDesc.of(CD_Object, CD_double)))

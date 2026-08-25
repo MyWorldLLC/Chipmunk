@@ -136,4 +136,8 @@ public class Methods {
         ensureMethod(node);
         node.visitChildren(visitor, 1);
     }
+
+    public static boolean isLambda(AstNode node){
+        return node.is(NodeType.METHOD) && !(node.getParent().is(NodeType.CLASS) || node.getParent().is(NodeType.MODULE));
+    }
 }

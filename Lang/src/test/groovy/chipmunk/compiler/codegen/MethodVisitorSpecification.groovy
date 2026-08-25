@@ -21,6 +21,7 @@
 package chipmunk.compiler.codegen
 
 import chipmunk.compiler.CVMCompiler
+import chipmunk.compiler.CompilerUtil
 import chipmunk.compiler.ModuleClasses
 import chipmunk.vm.ChipmunkVM
 import spock.lang.Specification
@@ -377,7 +378,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(){return 1}
 				return v1()
 			}
-			""")
+			""", "Lambda call")
 			
 		then:
 		result instanceof Integer
@@ -392,7 +393,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a) a
 				return v1(1)
 			}
-			""", "")
+			""", "Lambda call - one parameter")
 			
 		then:
 		result instanceof Integer
@@ -406,7 +407,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
-			""", "")
+			""", "Lambda call - two parameters")
 			
 		then:
 		result instanceof Integer
@@ -415,31 +416,19 @@ class MethodVisitorSpecification extends Specification {
 	
 	def parseAndCall(String methodBody, String test = ""){
 
+		if(test != ""){
+			println("==================== ${test} ====================")
+			println(CompilerUtil.dumpTree("exp", methodBody))
+		}
+
 		def compiler = new CVMCompiler()
 		def compiled = compiler.compileMethod(methodBody)
 
 		def script = vm.createScript()
 		script.moduleLoader().define(new ModuleClasses("exp", "exp", Map.of("exp", compiled)))
 		script.entryPoint("exp", "method")
+
 		return script.run()
-
-		/*CompilationUnit unit = new CompilationUnit()
-		unit.setEntryModule("exp")
-		unit.setEntryMethodName("method")
-
-		ModuleLoader loader = new ModuleLoader()
-		loader.define(binary)
-		unit.setModuleLoader(loader)
-		
-		if(test != ""){
-			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
-			println()
-			println("============= ${test} =============")
-			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
-		}
-		
-		return vm.runAsync(script).get()*/
 	}
 
 }

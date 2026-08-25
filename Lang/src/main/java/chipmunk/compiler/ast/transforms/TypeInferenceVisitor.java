@@ -22,10 +22,7 @@ package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.CompilerUtil;
 import chipmunk.compiler.Intrinsics;
-import chipmunk.compiler.ast.AstNode;
-import chipmunk.compiler.ast.AstVisitor;
-import chipmunk.compiler.ast.NodeType;
-import chipmunk.compiler.ast.VarDec;
+import chipmunk.compiler.ast.*;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
@@ -69,6 +66,10 @@ public class TypeInferenceVisitor implements AstVisitor {
             case VAR_DEC -> {
                 if(VarDec.hasAssignment(node)){
                     var type = node.getRight().getResultType();
+                    // For lambda methods
+                    if(node.getRight().is(NodeType.METHOD)){
+                        type = new MethodType(type);
+                    }
                     node.getLeft().setResultType(type);
                     // Note that the symbol table will refer to the var dec node, not its nested id, so we
                     // need to set the result type on the var dec itself as well.
@@ -119,6 +120,10 @@ public class TypeInferenceVisitor implements AstVisitor {
             }
             case METHOD -> {
                 // TODO - check return types for inference or against declared type constraints
+                /*if(Methods.isLambda(node)){
+                    var rType = node.getResultType(); // Type returned by this method
+                    node.setResultType(new MethodType(rType));
+                }*/
             }
             case LIST -> node.setResultType(BuiltinTypes.LIST);
             case MAP -> node.setResultType(BuiltinTypes.MAP);

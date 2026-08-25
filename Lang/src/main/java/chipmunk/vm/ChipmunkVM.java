@@ -218,6 +218,8 @@ public class ChipmunkVM {
 			System.arraycopy(params, 0, callParams, 1, pCount);
 		}
 
+		System.out.println("Dynamic call: " + Arrays.toString(callParams));
+
 		GuardedInvocation invoker = linker
 				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams, false);
 
@@ -234,7 +236,11 @@ public class ChipmunkVM {
 				try {
 					return invoke(target, methodName, params);
 				} catch (Throwable e) {
-					throw new RuntimeException(e);
+					if(e instanceof RuntimeException){
+						throw (RuntimeException) e;
+					}else{
+						throw new RuntimeException(e);
+					}
 				}
 			}).get();
 		} catch (InterruptedException | ExecutionException e) {
@@ -276,7 +282,8 @@ public class ChipmunkVM {
 		try {
 			return script.moduleLoader().classLoader().loadClass(bindingName);
 		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().bindingFor(script.moduleLoader().classLoader(), bindingName, targetType, method);
+			var compiler = new CVMCompiler();
+			return compiler.bindingFor(script.moduleLoader().classLoader(), bindingName, targetType, method);
 		}
 	}
 

@@ -90,6 +90,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
         MethodType callType = linkRequest.getCallSiteDescriptor().getMethodType();
 
         Object[] params = linkRequest.getArguments();
+        System.out.println("Resolving guarded invocation " + op.getName() + ": " + Arrays.toString(params));
 
         if(op.getBaseOperation().equals(StandardOperation.CALL)){
             // Bind method calls
@@ -266,6 +267,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
 
         var methods = receiverType.getMethods();
         linkOrder(methods);
+        System.out.println("Available methods for " + receiverType + ": " + Arrays.toString(methods));
         for (Method m : methods) {
             Class<?>[] candidatePTypes = m.getParameterTypes();
 
