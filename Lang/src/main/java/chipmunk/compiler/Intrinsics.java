@@ -69,6 +69,7 @@ public class Intrinsics {
     public static final String URSHIFT = ">>>";
 
     public static final String SET_AT = "setAt";
+    public static final String IS = "is";
 
     protected static final Map<String, List<OpEmitter>> builtinOps;
     protected static final Map<ObjectType, List<ConversionEmitter>> typeConversions;
@@ -340,6 +341,19 @@ public class Intrinsics {
                 tertiary(ANY, MAP, ANY, ANY, c -> c.invokeinterface(ClassDesc.of(Map.class.getName()), "put", MethodTypeDesc.of(CD_Object, CD_Object, CD_Object)))
         ));
 
+        ops.put(IS, List.of(
+                binOp(BOOLEAN, ANY, ANY, c -> {
+                    var end = c.newLabel();
+                    var ne = c.newLabel();
+                    c.if_acmpne(ne)
+                            .loadConstant(1)
+                            .goto_(end)
+                            .labelBinding(ne)
+                            .loadConstant(0)
+                            .labelBinding(end);
+                })
+        ));
+
         builtinOps = Collections.unmodifiableMap(ops);
 
         // ================== Automatic type conversions ==================
@@ -441,10 +455,6 @@ public class Intrinsics {
                 conversion(STRING,   ANY, c -> c.invokestatic(CD_Object, "toString", MethodTypeDesc.of(CD_String, CD_Object))),
                 conversion(LIST,     ANY, c -> c.checkcast(ClassDesc.of(List.class.getName()))),
                 conversion(MAP,      ANY, c -> c.checkcast(ClassDesc.of(Map.class.getName())))
-        ));
-
-        conversions.put(STRING, List.of(
-                conversion(ANY, STRING, CodeBuilder::nop)
         ));
 
         typeConversions = Collections.unmodifiableMap(conversions);

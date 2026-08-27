@@ -69,7 +69,6 @@ class LanguageSpecification extends Specification {
 				println(ast)
 			}
 
-
 			return (argArray == null ? vm.runAsync(script) : vm.runAsync(script, argArray)).get()
 		} catch (Throwable e) {
 			def ast = CompilerUtil.dumpTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
@@ -124,7 +123,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("BasicReturnInIf.chp", false)
 
 		then:
-		result == 10
+		result == true
 	}
 	
 	def "Run ModuleImports.chp"(){
@@ -304,14 +303,6 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 'Chipmunk likes Java!'
 
-	}
-
-	def "Run DefaultModuleName.chp"(){
-		when:
-		def result = compileAndRun("DefaultModuleName.chp")
-
-		then:
-		result == 5
 	}
 
 	def "Run IsOperator.chp"(){

@@ -36,4 +36,12 @@ public class StringType extends ObjectType {
         };
     }
 
+    @Override
+    public boolean isAssignableTo(ObjectType other) {
+        return switch (other){
+            case AnyType _  -> true;
+            default -> super.isAssignableTo(other);
+        };
+    }
+
 }
