@@ -30,6 +30,7 @@ import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
+import chipmunk.compiler.parser.parselets.LiteralParselet;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.types.*;
@@ -422,19 +423,27 @@ public class CVMCompiler {
                 emitLocalReference(code, state, symbol.getName(), symbol.getReferentType(), LocalAccess.LOAD, false);
             }
             case LITERAL -> {
-                // TODO - double/byte/short/long literals
                 switch (exp.getToken().type()) {
                     case BOOLLITERAL -> code.loadConstant(Boolean.parseBoolean(exp.getToken().text()) ? 1 : 0);
-                    case INTLITERAL ->
-                        code.loadConstant(Integer.parseInt(exp.getToken().text().replace("_", ""), 10));
-                    case HEXLITERAL ->
-                        code.loadConstant(Integer.parseInt(exp.getToken().text().replace("_", "").substring(2), 16));
-                    case OCTLITERAL ->
-                        code.loadConstant(Integer.parseInt(exp.getToken().text().replace("_", "").substring(2), 8));
-                    case BINARYLITERAL ->
-                        code.loadConstant(Integer.parseInt(exp.getToken().text().replace("_", "").substring(2), 2));
-                    case FLOATLITERAL ->
-                        code.loadConstant(Float.parseFloat(exp.getToken().text()));
+                    case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> {
+                        var literal = exp.getToken().text().replace("_", "");
+                        var radix = LiteralParselet.radix(literal);
+                        var type = LiteralParselet.intTypeOf(literal);
+                        literal = LiteralParselet.stripQualifier(LiteralParselet.stripRadixQualifier(literal));
+                        switch (type.bitSize()){
+                            case 8 ->  code.loadConstant(Byte.parseByte(literal, radix)).i2b();
+                            case 16 ->  code.loadConstant(Short.parseShort(literal, radix)).i2s();
+                            case 32 ->  code.loadConstant(Integer.parseInt(literal, radix));
+                            case 64 ->  code.loadConstant(Long.parseLong(literal, radix));
+                        }
+                    }
+                    case FLOATLITERAL -> {
+                        var stripped = LiteralParselet.stripQualifier(exp.getToken().text());
+                        switch (LiteralParselet.floatTypeOf(exp.getToken().text()).bitSize()){
+                            case 32 -> code.loadConstant(Float.parseFloat(stripped));
+                            case 64 -> code.loadConstant(Double.parseDouble(LiteralParselet.stripQualifier(exp.getToken().text())));
+                        }
+                    }
                     case STRINGLITERAL -> {
                         // strip quotes
                         String value = exp.getToken().text().substring(1, exp.getToken().text().length() - 1);

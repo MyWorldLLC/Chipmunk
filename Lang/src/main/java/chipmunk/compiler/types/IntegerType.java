@@ -32,8 +32,8 @@ public class IntegerType extends PrimitiveType {
     }
 
     @Override
-    public boolean canPromoteTo(ObjectType other){
-        return switch (other){
+    public boolean canPromoteTo(ObjectType other) {
+        return switch (other) {
             case IntegerType i -> i.bitSize() >= bitSize();
             case BooleanType b -> true;
             case FloatType f -> true;

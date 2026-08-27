@@ -23,8 +23,11 @@ package chipmunk.compiler.parser.parselets;
 import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ExpressionParser;
 import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.FloatType;
+import chipmunk.compiler.types.IntegerType;
 
 public class LiteralParselet implements PrefixParselet {
 
@@ -32,12 +35,71 @@ public class LiteralParselet implements PrefixParselet {
 	public AstNode parse(ExpressionParser parser, Token token) {
 		var node = new AstNode(NodeType.LITERAL, token);
 		switch (token.type()){
-			case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> node.setResultType(BuiltinTypes.INT);
-			case FLOATLITERAL -> node.setResultType(BuiltinTypes.FLOAT);
+			case BINARYLITERAL, OCTLITERAL, HEXLITERAL, INTLITERAL -> node.setResultType(intTypeOf(token.text()));
+			case FLOATLITERAL -> node.setResultType(floatTypeOf(token.text()));
 			case BOOLLITERAL -> node.setResultType(BuiltinTypes.BOOLEAN);
 			case STRINGLITERAL -> node.setResultType(BuiltinTypes.STRING);
 		}
 		return node;
+	}
+
+	public static IntegerType intTypeOf(String literal){
+		var ending = literal.charAt(literal.length() - 1);
+		if(!Character.isAlphabetic(ending)){
+			return IntegerType.INT;
+		}
+
+		return switch (Character.toLowerCase(ending)){
+			case 'b' -> IntegerType.BYTE;
+			case 's' -> IntegerType.SHORT;
+			case 'i' -> IntegerType.INT;
+			case 'l' -> IntegerType.LONG;
+			default -> throw new IllegalArgumentException("Invalid int qualifier: " + ending);
+		};
+	}
+
+	public static FloatType floatTypeOf(String literal){
+		var ending = literal.charAt(literal.length() - 1);
+		if(!Character.isAlphabetic(ending)){
+			return FloatType.FLOAT;
+		}
+
+		return switch (Character.toLowerCase(ending)){
+			case 'f' -> FloatType.FLOAT;
+			case 'd' -> FloatType.DOUBLE;
+			default -> throw new IllegalArgumentException("Invalid float qualifier: " + ending);
+		};
+	}
+
+	public static String stripQualifier(String literal){
+		var ending = literal.charAt(literal.length() - 1);
+		if(Character.isAlphabetic(ending)){
+			return literal.substring(0, literal.length() - 1);
+		}
+		return literal;
+	}
+
+	public static String stripRadixQualifier(String literal){
+		if(literal.length() < 2){
+			return literal;
+		}
+		var beginning = literal.substring(0, 2).toLowerCase();
+		return switch (beginning){
+			case "0b", "0o", "0x" -> literal.substring(2);
+			default -> literal;
+		};
+	}
+
+	public static int radix(String literal){
+		if(TokenType.BINARYLITERAL.getPattern().matcher(literal).matches()){
+			return 2;
+		}else if(TokenType.OCTLITERAL.getPattern().matcher(literal).matches()){
+			return 8;
+		}else if(TokenType.HEXLITERAL.getPattern().matcher(literal).matches()){
+			return 16;
+		}else{
+			return 10;
+		}
 	}
 
 }
