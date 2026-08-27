@@ -160,6 +160,7 @@ public class ChipmunkScript {
     }
 
     public Object run(Object[] args){
+        ChipmunkScript.setCurrentScript(this);
         if(entryPoint == null){
             entryPoint = new EntryPoint("main", "main");
         }

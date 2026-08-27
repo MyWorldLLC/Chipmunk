@@ -346,4 +346,12 @@ public class CRuntime {
         return ChipmunkScript.getCurrentScript().vm().bind(target, method);
     }
 
+    public static void print(String s){
+        System.out.println(s);
+    }
+
+    public static void print(Object o, String s){
+        System.out.println(s + ": " + o);
+    }
+
 }

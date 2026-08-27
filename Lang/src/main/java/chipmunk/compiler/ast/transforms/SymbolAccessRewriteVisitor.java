@@ -94,18 +94,26 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
         return false;
     }
 
-    protected AstNode rewriteQualified(AstNode child, Symbol shadow) {
+    protected AstNode rewriteQualified(AstNode node, Symbol shadow) {
 
         // Terminal id node - check & rewrite access if needed
-        String symbolName = child.getToken().text();
+        String symbolName = node.getToken().text();
         Symbol symbol = scope.getSymbol(symbolName, shadow);
 
-        final int index = child.getToken().index();
-        final int line = child.getToken().line();
-        final int column = child.getToken().column();
+        final int index = node.getToken().index();
+        final int line = node.getToken().line();
+        final int column = node.getToken().column();
 
         if (symbol == null) {
             throw new UnresolvedSymbolException(scope.getDebugSymbol(), symbolName);
+        }
+
+        // If imported, we rewrite to self.$module_field_name.symbol
+        if(symbol.isImported()){
+            node = Operators.make(".",
+                    Operators.make(".", Identifier.make("self"), Identifier.make(CompilerUtil.importedModuleName(symbol.getImport().getModule()))),
+                    Identifier.make(symbol.getImport().isAliased() ? symbol.getImport().getAliasedSymbol() : symbolName));
+            return node;
         }
 
         // Locals - either standard or upvalues (outer locals)
@@ -124,14 +132,14 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             }
 
             // No access rewrite needed because this is a local variable
-            return child;
+            return node;
         }
 
         // If the symbol is found in the module scope call getModule() & emit access at module level
         // but only if this is a class method - module methods should just use an instance ref
         if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE
-                && !Methods.isNameOfMethodNode(scope.getNode(), child.getToken().text())
-                && Methods.withinClassMethod(child)) {
+                && !Methods.isNameOfMethodNode(scope.getNode(), node.getToken().text())
+                && Methods.withinClassMethod(node)) {
 
             // Method reference to a module-level symbol
             // Rewrite to self.getModule().symbol
@@ -158,16 +166,16 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 AstNode importedModuleName = new AstNode(NodeType.ID, new Token(moduleFieldName, TokenType.IDENTIFIER, index, line, column));
 
                 if (symbol.getImport().isAliased()) {
-                    child = new AstNode(NodeType.ID, new Token(symbol.getImport().getAliasedSymbol(), TokenType.IDENTIFIER, index, line, column));
+                    node = new AstNode(NodeType.ID, new Token(symbol.getImport().getAliasedSymbol(), TokenType.IDENTIFIER, index, line, column));
                 }
 
                 varDotNode.addChild(importedModuleName);
                 importDotNode.addChild(varDotNode);
-                importDotNode.addChild(child);
+                importDotNode.addChild(node);
 
                 varDotNode = importDotNode;
             } else {
-                varDotNode.addChild(child);
+                varDotNode.addChild(node);
             }
 
             return varDotNode;
@@ -195,24 +203,21 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
                 getClassCallNode.addChild(selfDotNode);
 
                 varDotNode.addChild(getClassCallNode);
-                varDotNode.addChild(child);
+                varDotNode.addChild(node);
 
                 return varDotNode;
-            } else {
-                // Symbol is an instance field (class or module level)
-                // Rewrite to self.symbol
+        } else {
+            // Symbol is an instance field (class or module level)
+            // Rewrite to self.symbol
 
-                AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
+            AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
-                AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
-                selfDotNode.addChild(self);
-                selfDotNode.addChild(child);
+            AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
+            selfDotNode.addChild(self);
+            selfDotNode.addChild(node);
 
-                return selfDotNode;
-            }
-
-        //}
-        //return child;
+            return selfDotNode;
+        }
     }
 
     protected boolean isMethodBindTarget(AstNode node, int index){

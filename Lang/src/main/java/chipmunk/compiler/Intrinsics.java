@@ -425,6 +425,24 @@ public class Intrinsics {
                 conversion(ANY,     DOUBLE, c -> c.invokestatic(CD_Runtime, "d2a", MethodTypeDesc.of(CD_Object, CD_double)))
         ));
 
+        // Unboxing conversions
+        var CD_Number = ClassDesc.of(Number.class.getName());
+        conversions.put(ANY, List.of(
+                conversion(BOOLEAN, ANY, c -> c.checkcast(CD_Number)
+                        .invokevirtual(CD_Number, "intValue", MethodTypeDesc.of(CD_int))
+                        .invokestatic(CD_Runtime, "i2b",  MethodTypeDesc.of(CD_boolean, CD_int))
+                ),
+                conversion(BYTE,     ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "byteValue", MethodTypeDesc.of(CD_byte))),
+                conversion(SHORT,    ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "shortValue", MethodTypeDesc.of(CD_short))),
+                conversion(INT,      ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "intValue", MethodTypeDesc.of(CD_int))),
+                conversion(LONG,     ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "longValue", MethodTypeDesc.of(CD_long))),
+                conversion(FLOAT,    ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "floatValue", MethodTypeDesc.of(CD_float))),
+                conversion(DOUBLE,   ANY, c -> c.checkcast(CD_Number).invokevirtual(CD_Number, "doubleValue", MethodTypeDesc.of(CD_double))),
+                conversion(STRING,   ANY, c -> c.invokestatic(CD_Object, "toString", MethodTypeDesc.of(CD_String, CD_Object))),
+                conversion(LIST,     ANY, c -> c.checkcast(ClassDesc.of(List.class.getName()))),
+                conversion(MAP,      ANY, c -> c.checkcast(ClassDesc.of(Map.class.getName())))
+        ));
+
         conversions.put(STRING, List.of(
                 conversion(ANY, STRING, CodeBuilder::nop)
         ));

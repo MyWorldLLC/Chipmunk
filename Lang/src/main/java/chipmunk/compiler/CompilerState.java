@@ -26,6 +26,8 @@ import chipmunk.compiler.symbols.SymbolTable;
 import java.lang.classfile.Label;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CompilerState {
 
@@ -34,6 +36,8 @@ public class CompilerState {
     protected final Deque<LoopLabels> loopLabels = new ArrayDeque<>();
 
     protected SymbolTable scope;
+
+    protected final Map<String, byte[]> classes = new HashMap<>();
 
     public void enterScope(SymbolTable scope){
         enterScope(scope, 0);
@@ -107,5 +111,13 @@ public class CompilerState {
 
     public void exitLoop(){
         loopLabels.pop();
+    }
+
+    public void withClass(String name, byte[] code){
+        classes.put(name, code);
+    }
+
+    public Map<String, byte[]> classes(){
+        return classes;
     }
 }

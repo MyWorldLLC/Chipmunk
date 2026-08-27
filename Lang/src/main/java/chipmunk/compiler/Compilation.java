@@ -20,6 +20,8 @@
 
 package chipmunk.compiler;
 
+import chipmunk.vm.ModuleLoader;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,14 +29,20 @@ public class Compilation {
 
     protected final List<ChipmunkSource> sources;
     protected final CompilerConfig compilerConfig;
+    protected final ModuleLoader moduleLoader;
 
     public Compilation(){
-        this(CompilerConfig.DEFAULT);
+        this(CompilerConfig.DEFAULT, new ModuleLoader());
     }
 
     public Compilation(CompilerConfig compilerConfig){
+        this(compilerConfig, new ModuleLoader());
+    }
+
+    public Compilation(CompilerConfig compilerConfig, ModuleLoader moduleLoader){
         sources = new ArrayList<>();
         this.compilerConfig = compilerConfig;
+        this.moduleLoader = moduleLoader;
     }
 
     public List<ChipmunkSource> getSources(){
@@ -47,5 +55,9 @@ public class Compilation {
 
     public CompilerConfig getCompilerConfig() {
         return compilerConfig;
+    }
+
+    public ModuleLoader getModuleLoader() {
+        return moduleLoader;
     }
 }

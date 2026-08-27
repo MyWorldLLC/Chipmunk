@@ -20,15 +20,14 @@
 
 package chipmunk
 
-import chipmunk.binary.BinaryModule
-import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.compiler.ChipmunkDisassembler
+import chipmunk.compiler.CVMCompiler
 import chipmunk.compiler.ChipmunkSource
 import chipmunk.compiler.Compilation
+import chipmunk.compiler.CompilerConfig
+import chipmunk.compiler.CompilerUtil
 import chipmunk.modules.TestModule
 import chipmunk.modules.imports.JvmImportModule
 import chipmunk.runtime.UnimplementedMethodException
-import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
 import chipmunk.vm.jvm.Uncatchable
@@ -43,55 +42,46 @@ class StaticAccess {
 class LanguageSpecification extends Specification {
 	
 	ChipmunkVM vm = new ChipmunkVM()
-	ChipmunkCompiler compiler = new ChipmunkCompiler()
+	CVMCompiler compiler = new CVMCompiler()
 	
-	def compileAndRun(String scriptName, boolean disassembleOnException = false){
-		return compileAndRunWithArgs(scriptName, null, disassembleOnException)
+	def compileAndRun(String scriptName, boolean alwaysDisassemble = true){
+		return compileAndRunWithArgs(scriptName, null, alwaysDisassemble)
 	}
 
-	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = false){
-		ModuleLoader loader = new ModuleLoader()
-		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
-		loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })
+	def compileAndRunWithArgs(String scriptName, List args = null, boolean alwaysDisassemble = true) {
+		try {
+			def loader = new ModuleLoader()
+			loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule() })
+			loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })
 
-		compiler.setModuleLoader(loader)
+			compiler.setModuleLoader(loader)
 
-		Compilation compilation = new Compilation()
-		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
+			def compilation = new Compilation(CompilerConfig.DEFAULT, loader)
+			compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
 
-		BinaryModule[] modules = compiler.compile(compilation)
+			def script = vm.compileScript(compilation)
+			script.entryPoint("test", "main")
 
-		//loader.define(Arrays.asList(modules))
+			def argArray = args != null ? args.toArray() : null
 
-		ChipmunkScript script = vm.compileScript(modules)
-		script.moduleLoader(loader)
-		ChipmunkScript.setCurrentScript(script)
-
-		def argArray = args != null ? args.toArray() : null
-
-		if(!disassembleOnException){
-			return argArray == null ? script.run() : script.run(argArray)
-		}else{
-			try{
-				return argArray == null ? script.run() : script.run(argArray)
-			}catch(Throwable e){
-
-				for(def binaryModule : modules){
-					println(ChipmunkDisassembler.disassemble(binaryModule))
-				}
-
-				def sw = new StringWriter()
-				e.printStackTrace(new PrintWriter(sw))
-				println(sw.toString())
-
-				throw e
+			if (alwaysDisassemble) {
+				def ast = CompilerUtil.dumpTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
+				println(ast)
 			}
+
+
+			return (argArray == null ? vm.runAsync(script) : vm.runAsync(script, argArray)).get()
+		} catch (Throwable e) {
+			def ast = CompilerUtil.dumpTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
+			println(ast)
+
+			throw e
 		}
 	}
 
 	def "Run ShorthandMethods.chp"(){
 		when:
-		def result = compileAndRun("ShorthandMethods.chp", true)
+		def result = compileAndRun("ShorthandMethods.chp")
 
 		then:
 		result == 7
@@ -99,7 +89,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run ModuleWithInitializer.chp"(){
 		when:
-		def result = compileAndRun("ModuleWithInitializer.chp", true)
+		def result = compileAndRun("ModuleWithInitializer.chp")
 		
 		then:
 		result == 5
@@ -128,10 +118,18 @@ class LanguageSpecification extends Specification {
 		then:
 		result == 9
 	}
+
+	def "Run BasicReturnInIf.chp"(){
+		when:
+		def result = compileAndRun("BasicReturnInIf.chp", false)
+
+		then:
+		result == 10
+	}
 	
 	def "Run ModuleImports.chp"(){
 		when:
-		def result = compileAndRun("ModuleImports.chp")
+		def result = compileAndRun("ModuleImports.chp", false)
 		
 		then:
 		result == 10
@@ -243,7 +241,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run Fibonacci.chp"(){
 		when:
-		def result = compileAndRun("Fibonacci.chp", true)
+		def result = compileAndRun("Fibonacci.chp")
 		
 		then:
 		result == 832040
@@ -251,7 +249,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run IfElseExpressions.chp"(){
 		when:
-		def result = compileAndRun("IfElseExpressions.chp", true)
+		def result = compileAndRun("IfElseExpressions.chp")
 
 		then:
 		result == [2, 5]
@@ -259,7 +257,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run Mandelbrot.chp"(){
 		when:
-		def result = compileAndRun("Mandelbrot.chp", true)
+		def result = compileAndRun("Mandelbrot.chp")
 		
 		then:
 		noExceptionThrown()
@@ -268,7 +266,7 @@ class LanguageSpecification extends Specification {
 	
 	def "Run NestedRangeLoops.chp"(){
 		when:
-		def result = compileAndRun("NestedRangeLoops.chp", true)
+		def result = compileAndRun("NestedRangeLoops.chp")
 		
 		then:
 		result == 9
@@ -284,7 +282,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run StateMachines.chp"(){
 		when:
-		def result = compileAndRun("StateMachines.chp", true)
+		def result = compileAndRun("StateMachines.chp")
 
 		then:
 		result == 5
@@ -292,7 +290,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run ShortcircuitOperators.chp"(){
 		when:
-		def result = compileAndRun("ShortcircuitOperators.chp", true)
+		def result = compileAndRun("ShortcircuitOperators.chp")
 
 		then:
 		result == true
@@ -376,7 +374,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run SimpleMethod.chp"(){
 		when:
-		def result = compileAndRun("SimpleMethod.chp", true)
+		def result = compileAndRun("SimpleMethod.chp")
 
 		then:
 		result == 18
@@ -384,7 +382,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run BoundMethodArgs.chp"(){
 		when:
-		def result = compileAndRun("BoundMethodArgs.chp", true)
+		def result = compileAndRun("BoundMethodArgs.chp")
 
 		then:
 		result == [11, 10, 14, 11, 11]
@@ -400,14 +398,14 @@ class LanguageSpecification extends Specification {
 
 	def "Run Upvalues.chp"(){
 		when:
-		def result = compileAndRun("Upvalues.chp", true)
+		def result = compileAndRun("Upvalues.chp")
 
 		then: result == [5, 3, 3, 15, 3]
 	}
 
 	def "Proxy SamProxy interface"(){
 		when:
-		def methodBinding = compileAndRun("ProxySam.chp", true)
+		def methodBinding = compileAndRun("ProxySam.chp")
 		def proxy = vm.proxy(SamProxy.class, methodBinding)
 		def result = proxy.getFoo()
 
@@ -418,7 +416,7 @@ class LanguageSpecification extends Specification {
 
 	def "Proxy DemoProxy interface"(){
 		when:
-		def methodBinding = compileAndRun("ProxyDemo.chp", true)
+		def methodBinding = compileAndRun("ProxyDemo.chp")
 		def proxy = vm.proxy(DemoProxy.class, methodBinding)
 		proxy.acceptFoo("Hello, Proxy!")
 		def result = proxy.appendFoo("abcd")
@@ -434,7 +432,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run ProxyArguments.chp"(){
 		when:
-		def result = compileAndRunWithArgs("ProxyArguments.chp", [new SimpleDemoProxyReceiver()], true)
+		def result = compileAndRunWithArgs("ProxyArguments.chp", [new SimpleDemoProxyReceiver()])
 
 		then:
 		result == 7.0f
@@ -442,7 +440,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run MultilineExpressions.chp"(){
 		when:
-		def result = compileAndRun("MultilineExpressions.chp", true)
+		def result = compileAndRun("MultilineExpressions.chp")
 
 		then:
 		result ==  7
@@ -450,7 +448,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run VariableShadowing.chp"(){
 		when:
-		def result = compileAndRun("VariableShadowing.chp", true)
+		def result = compileAndRun("VariableShadowing.chp")
 
 		then:
 		result ==  20
@@ -458,7 +456,7 @@ class LanguageSpecification extends Specification {
 
 	def "Run TypeAnnotations.chp"(){
 		when:
-		def result = compileAndRun("TypeAnnotations.chp", true)
+		def result = compileAndRun("TypeAnnotations.chp")
 
 		then:
 		result ==  [5, 3, 3, 15, 3]

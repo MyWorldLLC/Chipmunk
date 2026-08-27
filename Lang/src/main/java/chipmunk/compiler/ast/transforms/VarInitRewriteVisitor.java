@@ -26,9 +26,13 @@ public class VarInitRewriteVisitor implements AstVisitor {
 
     @Override
     public void visit(AstNode node) {
-        if(node.is(NodeType.VAR_DEC)){
+        node.visitChildren(this);
+        if(node.is(NodeType.VAR_DEC) && node.getParent().is(NodeType.MODULE, NodeType.CLASS)) {
+            if(node.getToken().text().startsWith("$")){
+                return; // Skip import var dec fields, since those are already handled by the initializer builder
+            }
 
-            AstNode assignExpression = VarDec.getAssignment(node);
+            var assignExpression = VarDec.getAssignment(node);
 
             // Rewrite empty assign expression to null assignment
             if(assignExpression == null){
@@ -37,36 +41,27 @@ public class VarInitRewriteVisitor implements AstVisitor {
 
             VarDec.removeAssignment(node);
 
-            var owner = getOwner(node);
+            var parent = node.getParent();
 
             var id = Identifier.make(VarDec.getIdentifier(node).getToken());
+            id.setResultType(node.getResultType());
 
-            var assignStatement = Operators.make("=", id, assignExpression);
+            var dotAccess = Operators.make(".", Identifier.make("self"), id);
+            dotAccess.setResultType(node.getResultType());
 
-            if (owner.is(NodeType.MODULE)) {
-                var initializer = owner.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));
-                // Sort assignments to '$' fields (imported modules) to the front of the initializer,
-                // so that the writes happen before any potential reads of those fields in the initializer.
-                if(VarDec.getVarName(node).startsWith("$")){
-                    Methods.addToBody(initializer,0, assignStatement);
-                }else{
-                    Methods.addToBody(initializer, assignStatement);
-                }
-            } else if (owner.is(NodeType.CLASS)) {
+            var assignStatement = Operators.make("=", dotAccess, assignExpression);
+            assignStatement.setResultType(node.getResultType());
+
+            if (parent.is(NodeType.MODULE)) {
+                var initializer = parent.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));
+                Methods.addToBody(initializer, assignStatement);
+            } else if (parent.is(NodeType.CLASS)) {
                 if (node.getSymbol().isShared()) {
-                    Methods.addToBody(owner.getChild(0), assignStatement);
+                    Methods.addToBody(parent.getChild(0), assignStatement);
                 } else {
-                    Methods.addToBody(owner.getChild(1), assignStatement);
+                    Methods.addToBody(parent.getChild(1), assignStatement);
                 }
             }
         }
-    }
-
-    private AstNode getOwner(AstNode node) {
-        var owner = node.getParent();
-        while(owner != null && !owner.is(NodeType.MODULE, NodeType.CLASS)) {
-            owner = owner.getParent();
-        }
-        return owner;
     }
 }

@@ -35,8 +35,10 @@ import chipmunk.compiler.symbols.SymbolTable;
 import chipmunk.compiler.types.*;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.runtime.CRuntime;
+import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
+import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.invoke.Binder;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
@@ -105,9 +107,9 @@ public class CVMCompiler {
                 new LambdaReturnVisitor(),
                 new InitializerBuilderVisitor(),
                 new SymbolTableBuilderVisitor(),
-                new SymbolAccessRewriteVisitor(),
                 new ConstructorVisitor(),
                 new ImportResolverVisitor(Arrays.asList(astResolver, binaryResolver, nativeResolver)),
+                new SymbolAccessRewriteVisitor(),
                 new TypeInferenceVisitor(),
                 new VarInitRewriteVisitor(),
                 new InnerMethodRewriteVisitor()
@@ -283,14 +285,25 @@ public class CVMCompiler {
     }
 
     protected Map<String, byte[]> generateCode(ParsedModule module) throws CompileChipmunk {
-        var classes = new HashMap<String, byte[]>();
-        classes.put(Modules.getName(module.ast()).getName(), genClass(Modules.getName(module.ast()),
+        var state = new CompilerState();
+        var moduleName = Modules.getName(module.ast()).getName();
+        state.withClass(moduleName, bootstrapClass(Modules.getName(module.ast()),
                 cls -> {
                     cls.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
                     cls.with(SourceFileAttribute.of(module.fileName()));
                     var ast = module.ast();
 
-                    var state = new CompilerState();
+                    cls.withMethodBody("initialize", MethodTypeDesc.of(CD_void, ClassDesc.of(ChipmunkVM.class.getName())), ClassFile.ACC_PUBLIC, init ->
+                            init.aload(0)
+                                    .aload(1)
+                                    .loadConstant("Hello from initializer of " + moduleName)
+                                    .invokestatic(ClassDesc.of(CRuntime.class.getName()), "print", MethodTypeDesc.of(CD_void, CD_String))
+                            .invokevirtual(ClassDesc.of(moduleName), "$module_init$", MethodTypeDesc.of(CD_Object, CD_Object))
+                            .pop()
+                            .return_());
+
+                    // TODO - proper name nesting for classes
+
                     state.enterScope(ast.getSymbolTable());
 
                     for(var element : ast.getChildren()){
@@ -299,18 +312,37 @@ public class CVMCompiler {
                             case METHOD -> genMethod(cls, state, element);
                             case CLASS -> {
                                 var clsName = element.getSymbol();
-                                classes.put(clsName.getName(), genClass(clsName, (clsBuilder) -> {
-                                    // TODO
-                                }));
+                                state.withClass(clsName.getName(), genClass(clsName, state, module.fileName(), element));
                             }
                         }
                     }
                     state.exitScope();
                 }));
-        return classes;
+        return state.classes();
     }
 
-    private byte[] genClass(Symbol symbol, Consumer<ClassBuilder> builder){
+    private byte[] genClass(Symbol symbol, CompilerState state, String fileName, AstNode ast) {
+        return bootstrapClass(symbol, cls -> {
+            cls.withInterfaceSymbols(ClassDesc.of(ChipmunkClass.class.getName()));
+            cls.with(SourceFileAttribute.of(fileName));
+
+            state.enterScope(ast.getSymbolTable());
+
+            for(var element : ast.getChildren()){
+                switch (element.getNodeType()){
+                    case VAR_DEC -> genVarDec(cls, state, element);
+                    case METHOD -> genMethod(cls, state, element);
+                    case CLASS -> {
+                        var clsName = element.getSymbol();
+                        state.withClass(clsName.getName(), genClass(clsName, state, fileName, element));
+                    }
+                }
+            }
+            state.exitScope();
+        });
+    }
+
+    private byte[] bootstrapClass(Symbol symbol, Consumer<ClassBuilder> builder){
         return ClassFile.of().build(ClassDesc.of(symbol.getName()),
                 cls -> {
                     cls.withFlags(AccessFlag.PUBLIC)
@@ -362,10 +394,7 @@ public class CVMCompiler {
             case WHILE -> genWhileLoop(code, state, statement);
             case FOR -> genForLoop(code, state, statement);
             case IF_ELSE -> genIfElse(code, state, statement);
-            default -> {
-                genExpression(code, state, statement);
-                //code.pop();
-            }
+            default -> genExpression(code, state, statement);
         }
     }
 
@@ -374,7 +403,7 @@ public class CVMCompiler {
         cls.withField(name, ClassDesc.of(Object.class.getName()),
                 field -> {
                     var symbol = state.scope().getSymbol(name);
-                    var flags = name.startsWith("$") ? ClassFile.ACC_PRIVATE : ClassFile.ACC_PUBLIC;
+                    var flags = ClassFile.ACC_PUBLIC; //name.startsWith("$") ? ClassFile.ACC_PRIVATE : ClassFile.ACC_PUBLIC;
                     if(symbol.isFinal()){
                         flags += ClassFile.ACC_FINAL;
                     }
@@ -460,15 +489,17 @@ public class CVMCompiler {
                     case EQUALS -> {
                         if(lhs.is(NodeType.OPERATOR)){
                             if(lhs.getToken().type() == TokenType.DOT){
-                                /*assembler.onLine(lhs.getLineNumber());
-                                lhs.getLeft().visit(this);
+                                markLineNumber(code, lhs);
+                                genExpression(code, state, lhs.getLeft());
                                 String attr = lhs.getRight().getToken().text();
 
-                                assembler.onLine(op.getRight().getLineNumber());
-                                op.getRight().visit(this);
+                                genExpression(code, state, exp.getRight());
 
-                                assembler.onLine(lhs.getLineNumber());
-                                assembler.setattr(attr);*/
+                                // TODO - support statically resolved field access
+                                //debugPrintTOS(code, "Setting field " + attr);
+                                genConversion(code,  BuiltinTypes.ANY, exp.getRight().getResultType());
+                                generateDynamicFieldAccess(code, attr, true);
+                                return;
                             }else if(lhs.getToken().type() == TokenType.LBRACKET){
                                 tmpOperands = List.of(lhs.getLeft(), lhs.getRight(), exp.getRight());
                                 operation = Intrinsics.SET_AT;
@@ -482,7 +513,7 @@ public class CVMCompiler {
                             // Local assignment
                             exp.getRight().visit(node -> genExpression(code, state, node));
                             // TODO - determine when we're reading a method binding
-                            // TODO - if the parent is a block, do a "statement assignment" where we skip the dup() & pop() pair
+                            // If the parent is a block, do a "statement assignment" where we skip the dup() & pop() pair
                             // that would be otherwise necessary to support assignment as both an expression and statement. Unnecessary
                             // dup()/pop() can heavily impact performance, probably by causing the JIT's optimizer to miss otherwise
                             // available optimizations.
@@ -536,16 +567,12 @@ public class CVMCompiler {
                     case DOT -> {
                         markLineNumber(code, exp.getLeft());
                         genExpression(code, state, exp.getLeft());
-                        var attr = exp.getRight().getToken().text();
+
                         markLineNumber(code, exp);
+                        String attr = exp.getRight().getToken().text();
 
+                        // TODO - support statically resolved field access
                         generateDynamicFieldAccess(code, attr, false);
-                        /*assembler.onLine(op.getLeft().getLineNumber());
-                        op.getLeft().visit(this);
-                        assembler.onLine(op.getLineNumber());
-
-                        String attr = op.getRight().getToken().text();
-                        assembler.getattr(attr);*/
                         return;
                     }
                     case DOUBLEDOT -> {
@@ -606,6 +633,7 @@ public class CVMCompiler {
                                 var operand = operands.get(i);
                                 genExpression(code, state, operand);
                                 // This is a dynamic call, so box any primitives
+                                // TODO - dynamic calls with primitives
                                 //genConversion(code, BuiltinTypes.ANY, operandTypes[i]);
                             }
 
@@ -628,6 +656,7 @@ public class CVMCompiler {
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
 
+        System.out.println("Dynamic call to " + op + ": " + callType);
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
                         Binder.INDY_BOOTSTRAP_METHOD, bootstrapDescriptor), dynamicOp, callType));
@@ -656,6 +685,7 @@ public class CVMCompiler {
         var CD_MType = ClassDesc.of(MethodType.class.getName());
         var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
 
+        System.out.println("Dynamic field " + (set ? "set" : "get") + " to " + field);
         code.invokedynamic(DynamicCallSiteDesc.of(
                 MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
                         set ? Binder.INDY_BOOTSTRAP_SET : Binder.INDY_BOOTSTRAP_GET, bootstrapDescriptor), field, callType));
@@ -1008,6 +1038,16 @@ public class CVMCompiler {
         });
 
         return loader.define(bindingName, compiledClass);
+    }
+
+    private void debugPrint(CodeBuilder b, String msg){
+        b.loadConstant(msg)
+                .invokestatic(ClassDesc.of(CRuntime.class.getName()), "print", MethodTypeDesc.of(CD_void, CD_String));
+    }
+
+    private void debugPrintTOS(CodeBuilder b, String msg){
+        b.dup().loadConstant(msg)
+                .invokestatic(ClassDesc.of(CRuntime.class.getName()), "print", MethodTypeDesc.of(CD_void, CD_Object, CD_String));
     }
 
 }

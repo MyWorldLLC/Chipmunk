@@ -56,7 +56,9 @@ public class TypeInferenceVisitor implements AstVisitor {
             // Note: Literal types are set by the LiteralParselet.
             case ID -> {
                 var symbol = findScope(node).getSymbol(node.getToken().text());
-                node.setResultType(symbol.getReferentType());
+                // Note: symbol will be null in the local scope when it's a method/field on a native class.
+                // Need more to properly handle these.
+                node.setResultType(symbol != null ? symbol.getReferentType() : BuiltinTypes.ANY);
                 // TODO - what to do if the symbol's type hasn't been resolved yet?
                 // We can handle these cases with a multi-pass system: first pass infers everything it can, and enqueues
                 // nodes that can't be resolved for later. On each pass through the queue, we infer anything we can, and re-enqueue
@@ -86,7 +88,7 @@ public class TypeInferenceVisitor implements AstVisitor {
                         .toArray(ObjectType[]::new);
                 var operator = Intrinsics.getEmitter(node.getToken().text(), operandTypes);
                 if(operator.isEmpty()){
-                    // TODO - check LHS for a method with a matching signature
+                    // TODO - check LHS for a method with a matching signature. This lets us statically resolve operator overloads
                 }
 
                 var resolvedType = operator.map(op -> op.op().rValue())

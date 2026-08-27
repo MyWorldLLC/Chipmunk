@@ -20,18 +20,13 @@
 
 package chipmunk.compiler.ast.transforms;
 
-import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.CompilerUtil;
-import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.ast.*;
-import chipmunk.compiler.lexer.TokenType;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class InitializerBuilderVisitor implements AstVisitor {
 
-    protected Deque<AstNode> modulesAndClasses = new ArrayDeque<>();
 
     @Override
     public void visit(AstNode module) {
@@ -66,17 +61,13 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
                 module.addChild(0, dec);
                 initializer.addChild(Operators.make("=",
-                        Identifier.make("vm"),
+                        Identifier.make(importName),
                         Methods.makeInvocation(Identifier.make("vm"), "getModule", line, Literals.makeString("\"" + moduleName + "\""))));
 
                 alreadyImported.add(moduleName);
             }
 
-            modulesAndClasses.push(module);
-
             module.visitChildren(this);
-
-            modulesAndClasses.pop();
 
         }else if(module.is(NodeType.CLASS)){
 
@@ -87,11 +78,7 @@ public class InitializerBuilderVisitor implements AstVisitor {
             AstNode instanceInitializer = Methods.make("$instance_init$");
             module.addChild(1, instanceInitializer);
 
-            modulesAndClasses.push(module);
-
             module.visitChildren(this);
-
-            modulesAndClasses.pop();
         }
     }
 

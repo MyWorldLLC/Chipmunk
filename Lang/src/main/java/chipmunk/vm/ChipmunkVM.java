@@ -112,6 +112,7 @@ public class ChipmunkVM {
 		var modules = compiler.compile(compilation);
 
 		var script = pool.newScript(this);
+		script.moduleLoader(compilation.getModuleLoader());
 
 		modules.forEach((classes) -> script.moduleLoader().define(classes));
 
@@ -122,7 +123,7 @@ public class ChipmunkVM {
 		return pool.newScript(this);
 	}
 
-	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk {
 		Compilation compilation = new Compilation();
 		compilation.addSource(new ChipmunkSource(is, fileName));
 		return compileScript(compilation);
@@ -197,6 +198,7 @@ public class ChipmunkVM {
 		}
 
 		script.modules.put(moduleName, module);
+		System.out.println("Initializing module " + moduleName);
 		module.initialize(this);
 		return module;
 	}
@@ -217,8 +219,6 @@ public class ChipmunkVM {
 		if(pCount > 0) {
 			System.arraycopy(params, 0, callParams, 1, pCount);
 		}
-
-		System.out.println("Dynamic call: " + Arrays.toString(callParams));
 
 		GuardedInvocation invoker = linker
 				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams, false);
@@ -250,6 +250,10 @@ public class ChipmunkVM {
 
 	public CompletableFuture<Object> runAsync(ChipmunkScript script) {
 		return invokeAsync(script, script, "run");
+	}
+
+	public CompletableFuture<Object> runAsync(ChipmunkScript script, Object[] params) {
+		return invokeAsync(script, script, "run", params);
 	}
 
 	public CompletableFuture<Object> invokeAsync(ChipmunkScript script, Object target, String methodName){

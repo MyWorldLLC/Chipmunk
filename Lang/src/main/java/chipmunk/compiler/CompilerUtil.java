@@ -44,7 +44,7 @@ public class CompilerUtil {
 
         var parsed = compiler.parseModules(compilation);
         compiler.prepareAsts(parsed);
-        return parsed.getFirst().toString();
+        return parsed.toString();
     }
 
     public static String importedModuleName(String moduleName){
