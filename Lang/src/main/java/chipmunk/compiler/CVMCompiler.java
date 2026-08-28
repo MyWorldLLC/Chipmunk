@@ -404,7 +404,7 @@ public class CVMCompiler {
         cls.withField(name, ClassDesc.of(Object.class.getName()),
                 field -> {
                     var symbol = state.scope().getSymbol(name);
-                    var flags = ClassFile.ACC_PUBLIC; //name.startsWith("$") ? ClassFile.ACC_PRIVATE : ClassFile.ACC_PUBLIC;
+                    var flags = ClassFile.ACC_PUBLIC;
                     if(symbol.isFinal()){
                         flags += ClassFile.ACC_FINAL;
                     }

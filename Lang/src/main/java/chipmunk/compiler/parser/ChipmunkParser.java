@@ -328,13 +328,9 @@ public class ChipmunkParser {
 		// with an automatic return.
 		if(tokens.peek(TokenType.LBRACE)) {
 			parseBlockBody(node);
-		}else if(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword()){
-			// Call "chipmunk.lang.unimplementedMethod()"
-			// TODO - this should move to the code generator
-			AstNode unimplemented = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, node.getTokenIndex(), node.getLineNumber(), 0),
-					new AstNode(NodeType.ID, new Token("unimplementedMethod", TokenType.IDENTIFIER)));
-			Methods.addToBody(node, unimplemented);
-		}else{
+		}else if(!(tokens.peek(TokenType.RBRACE) || tokens.peek().type().isKeyword())){
+			// If there's an expression trailing the method def, parse it as a single-expression method,
+			// otherwise emit an empty-body method
 			AstNode expression = parseExpression();
 			Methods.addToBody(node, expression);
 		}

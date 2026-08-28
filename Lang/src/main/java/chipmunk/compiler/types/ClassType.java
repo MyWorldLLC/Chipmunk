@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,28 +20,21 @@
 
 package chipmunk.compiler.types;
 
-import chipmunk.compiler.Named;
+public class ClassType extends BaseClassType {
 
-public abstract class ObjectType extends Named {
+    protected final BaseClassType parent;
 
-    public ObjectType(String name){
+    public ClassType(String name, BaseClassType parent) {
         super(name);
+        this.parent = parent;
     }
 
-    public boolean canPromoteTo(ObjectType other){
-        return switch (other){
-            case AnyType _ -> true;
-            default -> false;
-        };
+    public BaseClassType parent() {
+        return parent;
     }
 
-    public boolean isAssignableTo(ObjectType other){
-        return this.equals(other);
-    }
-
-    @Override
-    public String toString() {
-        return name;
+    public boolean hasParent() {
+        return parent != null;
     }
 
 }

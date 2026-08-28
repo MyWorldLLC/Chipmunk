@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,28 +20,20 @@
 
 package chipmunk.compiler.types;
 
-import chipmunk.compiler.Named;
+import chipmunk.compiler.Import;
+import chipmunk.compiler.SymbolStorage;
 
-public abstract class ObjectType extends Named {
+public class ModuleType extends BaseClassType {
 
-    public ObjectType(String name){
+    protected final SymbolStorage<Import> imports;
+
+    public ModuleType(String name) {
         super(name);
+
+        imports = new SymbolStorage<>();
     }
 
-    public boolean canPromoteTo(ObjectType other){
-        return switch (other){
-            case AnyType _ -> true;
-            default -> false;
-        };
+    public SymbolStorage<Import> imports() {
+        return imports;
     }
-
-    public boolean isAssignableTo(ObjectType other){
-        return this.equals(other);
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-
 }

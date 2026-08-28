@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,30 +18,17 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.types;
+package chipmunk.compiler;
 
-import chipmunk.compiler.Named;
+public abstract class Named {
 
-public abstract class ObjectType extends Named {
+    protected final String name;
 
-    public ObjectType(String name){
-        super(name);
+    public Named(String name) {
+        this.name = name;
     }
 
-    public boolean canPromoteTo(ObjectType other){
-        return switch (other){
-            case AnyType _ -> true;
-            default -> false;
-        };
-    }
-
-    public boolean isAssignableTo(ObjectType other){
-        return this.equals(other);
-    }
-
-    @Override
-    public String toString() {
+    public String name(){
         return name;
     }
-
 }
