@@ -587,35 +587,29 @@ public class ChipmunkParser {
 		parseBlockBody(tryNode);
 
 		node.addChild(tryNode);
-		
-		// parse and add catch blocks
-		//while(true){
-			// TODO - support finally blocks and typed multi-catch
-		AstNode catchNode = new AstNode(NodeType.CATCH, tokens.getNext(TokenType.CATCH));
-		tokens.forceNext(TokenType.LPAREN);
-			
-		// if catch block has type of exception, include in node
-		// TODO - this is wrong
-		//if(tokens.peek(TokenType.IDENTIFIER, TokenType.IDENTIFIER)){
-			//catchNode.addChild(new IdNode(tokens.getNext(TokenType.IDENTIFIER)));
-		//}
 
-		var id = tokens.getNext(TokenType.IDENTIFIER);
-		var idNode = new AstNode(NodeType.ID, id);
-		idNode.setSymbol(new Symbol(id.text()));
+		if(tokens.peek(TokenType.CATCH)){
+			AstNode catchNode = new AstNode(NodeType.CATCH, tokens.getNext(TokenType.CATCH));
+			tokens.forceNext(TokenType.LPAREN);
 
-		var dec = new AstNode(NodeType.VAR_DEC, id).withChild(idNode);
-		catchNode.addChild(dec);
-		tokens.forceNext(TokenType.RPAREN);
-			
-		parseBlockBody(catchNode);
+			var id = tokens.getNext(TokenType.IDENTIFIER);
+			var idNode = new AstNode(NodeType.ID, id);
+			idNode.setSymbol(new Symbol(id.text()));
 
-		node.addChild(catchNode);
-			
-			//if(!peek(Token.Type.CATCH)){
-			//	break;
-			//}
-		//}
+			var dec = new AstNode(NodeType.VAR_DEC, id).withChild(idNode);
+			catchNode.addChild(dec);
+			tokens.forceNext(TokenType.RPAREN);
+
+			parseBlockBody(catchNode);
+
+			node.addChild(catchNode);
+		}
+
+		if(tokens.peek(TokenType.FINALLY)){
+			AstNode finallyNode = new AstNode(NodeType.FINALLY, tokens.getNext(TokenType.FINALLY));
+			parseBlockBody(finallyNode);
+			node.addChild(finallyNode);
+		}
 		return node;
 	}
 	

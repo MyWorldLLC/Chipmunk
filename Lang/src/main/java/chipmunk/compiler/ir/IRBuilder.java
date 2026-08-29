@@ -165,11 +165,41 @@ public class IRBuilder {
     }
 
     public IRNode buildIfElse(EvaluationEnvironment env, LocalBlockNode parent, AstNode ifElse){
-        return null; // TODO
+        var irNode = new IfElseNode(parent);
+        for(int i = 0; i < ifElse.childCount(); i++){
+            var branch = ifElse.getChild(i);
+            if(i < ifElse.childCount() - 1){
+                // If branches
+                var block = new IfNode(irNode);
+                block.addChild(buildExpression(env, block, branch.getChild()));
+                branch.visitChildren(statement -> appendStatementToBlockBody(env, block, statement), 1);
+                irNode.addChild(block);
+            }else{
+                // Else block
+                var block = new ElseNode(irNode);
+                branch.visit(statement -> appendStatementToBlockBody(env, block, statement));
+                irNode.addChild(block);
+            }
+        }
+        return irNode;
     }
 
     public IRNode buildTryCatch(EvaluationEnvironment env, LocalBlockNode parent, AstNode tryCatch){
-        return null; // TODO
+        var irNode = new TryCatchNode(parent);
+        var tryNode = new TryNode(irNode);
+        tryCatch.getChild().visitChildren(statement -> appendStatementToBlockBody(env, tryNode, statement));
+        if(tryCatch.childCount() > 1 && tryCatch.getChild(1).is(NodeType.CATCH)){
+            var catchAst = tryCatch.getChild(1);
+            var catchNode = new CatchNode(catchAst.getChild().getToken().text(), irNode);
+            catchAst.visitChildren(statement -> appendStatementToBlockBody(env, catchNode, statement), 1);
+            irNode.addChild(catchNode);
+        }
+        if(tryCatch.childCount() > 1 && tryCatch.getRight().is(NodeType.FINALLY)){
+            var finallyNode = new FinallyNode(irNode);
+            tryCatch.getRight().visitChildren(statement -> appendStatementToBlockBody(env, finallyNode, statement));
+            irNode.addChild(finallyNode);
+        }
+        return irNode;
     }
 
     public void appendStatementToBlockBody(EvaluationEnvironment env, LocalBlockNode parent, AstNode statement){
