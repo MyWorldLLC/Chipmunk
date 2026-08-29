@@ -18,32 +18,34 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir;
 
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.ir.expression.ExpressionNode;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 
-public class Import extends Typed<ObjectType> {
+public class VarDecNode extends ParentNode {
 
-    protected final String module;
-    protected final String aliasOf;
+    protected final String name;
 
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    public VarDecNode(String name, ParentNode parent) {
+        super(parent);
+        this.name = name;
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    public String name(){
+        return name;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
+    @Override
+    public boolean isAllowedChild(IRNode c){
+        return c instanceof ExpressionNode;
     }
 
-    public String aliasOf(){
-        return aliasOf;
+    @Override
+    public void checkSemantics(EvaluationEnvironment env){
+        if(children().size() > 1){
+            env.error(this, "Malformed variable declaraction for %s, cannot have more than one child", name);
+        }
     }
+
 }

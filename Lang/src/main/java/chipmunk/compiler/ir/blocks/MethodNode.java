@@ -18,32 +18,29 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.types.MethodType;
 
-public class Import extends Typed<ObjectType> {
+public class MethodNode extends LocalBlockNode {
 
-    protected final String module;
-    protected final String aliasOf;
+    protected final MethodType methodType;
 
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    public MethodNode(ParentNode parent, MethodType methodType) {
+        super(parent);
+        inferredType(methodType);
+        this.methodType = methodType;
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    public MethodNode(LocalBlockNode parent, MethodType methodType) {
+        super(parent);
+        inferredType(methodType);
+        this.methodType = methodType;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
+    public MethodType methodType() {
+        return methodType;
     }
 }

@@ -18,32 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.types;
 
-import chipmunk.compiler.types.ObjectType;
+public class VoidType extends ObjectType {
 
-public class Import extends Typed<ObjectType> {
+    public static final VoidType INSTANCE = new VoidType();
 
-    protected final String module;
-    protected final String aliasOf;
-
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    private VoidType() {
+        super("void");
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    @Override
+    public boolean isAssignableTo(ObjectType other) {
+        return false;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
+    @Override
+    public boolean canPromoteTo(ObjectType other) {
+        return false;
     }
 }

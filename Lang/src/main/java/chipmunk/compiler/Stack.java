@@ -22,28 +22,34 @@ package chipmunk.compiler;
 
 import chipmunk.compiler.types.ObjectType;
 
-public class Import extends Typed<ObjectType> {
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.stream.Stream;
 
-    protected final String module;
-    protected final String aliasOf;
+public class Stack {
 
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    protected final Deque<ObjectType> stack  = new ArrayDeque<>();
+
+    public Stack push(ObjectType type) {
+        stack.push(type);
+        return this;
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    public Stack dup(){
+        stack.push(stack.peek());
+        return this;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
+    public ObjectType pop(){
+        return stack.pop();
     }
 
-    public String aliasOf(){
-        return aliasOf;
+    public int depth(){
+        return stack.size();
     }
+
+    public Stream<ObjectType> stream(){
+        return stack.stream();
+    }
+
 }

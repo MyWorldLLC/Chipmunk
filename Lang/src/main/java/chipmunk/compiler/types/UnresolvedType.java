@@ -18,32 +18,19 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.types;
 
-import chipmunk.compiler.types.ObjectType;
+public class UnresolvedType extends ObjectType {
 
-public class Import extends Typed<ObjectType> {
-
-    protected final String module;
-    protected final String aliasOf;
-
-    public Import(String name, String module) {
+    public UnresolvedType(String name){
         super(name);
-        this.module = module;
-        this.aliasOf = null;
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    public boolean canPromoteTo(ObjectType other){
+        return false;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
+    public boolean isAssignableTo(ObjectType other){
+        return false;
     }
 }

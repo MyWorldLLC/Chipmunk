@@ -25,25 +25,39 @@ import java.util.List;
 
 public class MethodType extends ObjectType {
 
-    private final ObjectType rType;
+    private ObjectType rType;
     private final List<ObjectType> pTypes;
+    protected final List<String> pNames;
 
-    public MethodType(ObjectType rType, List<ObjectType> pTypes) {
+    public MethodType(ObjectType rType, List<ObjectType> pTypes, List<String> pNames) {
         super("Method");
         this.rType = rType;
         this.pTypes = List.copyOf(pTypes);
+        this.pNames = List.copyOf(pNames);
     }
 
     public MethodType(ObjectType rType, ObjectType... pTypes){
-        this(rType, Arrays.asList(pTypes));
+        this(rType, Arrays.asList(pTypes), List.of());
     }
 
     public ObjectType rType() {
         return rType;
     }
 
+    public void replaceRType(ObjectType rType) {
+        this.rType = rType;
+    }
+
+    public void replacePType(int index, ObjectType pType){
+        pTypes.set(index, pType);
+    }
+
     public List<ObjectType> pTypes() {
         return pTypes;
+    }
+
+    public List<String> pNames() {
+        return pNames;
     }
 
     @Override
@@ -62,6 +76,7 @@ public class MethodType extends ObjectType {
     }
 
     public boolean argsMatch(ObjectType... args){
+        // TODO - this won't work with void
         return isAssignableTo(new MethodType(AnyType.INSTANCE, args));
     }
 }

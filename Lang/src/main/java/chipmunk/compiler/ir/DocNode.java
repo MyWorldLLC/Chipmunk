@@ -18,32 +18,17 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir;
 
-import chipmunk.compiler.types.ObjectType;
+public class DocNode extends IRNode {
 
-public class Import extends Typed<ObjectType> {
+    protected final String comment;
 
-    protected final String module;
-    protected final String aliasOf;
-
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    public DocNode(String comment) {
+        this.comment = comment;
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
-    }
-
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
+    public String comment() {
+        return comment;
     }
 }

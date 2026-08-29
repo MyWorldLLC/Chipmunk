@@ -31,4 +31,9 @@ open module chipmunk.lang {
     exports chipmunk.vm.jvm;
     exports chipmunk.vm.locators;
     exports chipmunk.vm.scheduler;
+    exports chipmunk.compiler.ir;
+    exports chipmunk.compiler.ir.passes;
+    exports chipmunk.compiler.ir.flow;
+    exports chipmunk.compiler.ir.blocks;
+    exports chipmunk.compiler.ir.expression;
 }

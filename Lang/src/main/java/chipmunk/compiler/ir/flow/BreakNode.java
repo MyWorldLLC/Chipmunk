@@ -18,32 +18,18 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.flow;
 
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.ir.IRNode;
+import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.types.BuiltinTypes;
 
-public class Import extends Typed<ObjectType> {
+public class BreakNode extends IRNode implements FlowControlNode {
 
-    protected final String module;
-    protected final String aliasOf;
-
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    public BreakNode(ParentNode parent) {
+        super(parent);
+        inferredType(BuiltinTypes.VOID);
+        declaredType(BuiltinTypes.VOID);
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
-    }
-
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
-    }
 }

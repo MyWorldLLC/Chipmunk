@@ -86,8 +86,8 @@ public class AstNode {
 		this.resultType = resultType;
 	}
 
-	public Token getResultTypeName() {
-		return resultTypeName;
+	public String getResultTypeName() {
+		return resultTypeName != null ? resultTypeName.text() : null;
 	}
 
 	public void setResultTypeName(Token resultTypeName) {

@@ -49,7 +49,8 @@ public enum NodeType {
     CATCH(SymbolTable.Scope.LOCAL),
     FINALLY(SymbolTable.Scope.LOCAL),
     WHILE(SymbolTable.Scope.LOCAL),
-    FOR(SymbolTable.Scope.LOCAL);
+    FOR(SymbolTable.Scope.LOCAL),
+    COMMENT();
 
     private final SymbolTable.Scope scope;
 

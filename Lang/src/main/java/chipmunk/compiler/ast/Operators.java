@@ -38,4 +38,22 @@ public class Operators {
     public static AstNode make(String op, TokenType type, int line, AstNode... operands){
         return new AstNode(NodeType.OPERATOR, new Token(op, type, line), operands);
     }
+
+    public static boolean isDotCall(AstNode node){
+        return node.is(NodeType.OPERATOR) && node.token.type() == TokenType.LPAREN
+                && node.getLeft().getToken().type() == TokenType.DOT
+                && node.getLeft().getRight().is(NodeType.ID);
+    }
+
+    public static String getDotCallMethodName(AstNode node){
+        return node.getLeft().getRight().getToken().text();
+    }
+
+    public static AstNode getDotCallTarget(AstNode node){
+        return node.getLeft().getLeft();
+    }
+
+    public static void visitDotCallParams(AstNode node, AstVisitor visitor){
+        node.visitChildren(visitor, 1);
+    }
 }

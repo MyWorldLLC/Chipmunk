@@ -18,32 +18,24 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.expression;
 
+import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.types.ObjectType;
 
-public class Import extends Typed<ObjectType> {
+public class LiteralNode extends ExpressionNode {
 
-    protected final String module;
-    protected final String aliasOf;
+    private final Object value;
 
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
+    public LiteralNode(Object value, ObjectType type, ParentNode parent) {
+        super(parent);
+        this.value = value;
+        inferredType(type);
+        declaredType(type);
     }
 
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
+    public Object value(){
+        return value;
     }
 
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
-    }
 }

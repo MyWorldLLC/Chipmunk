@@ -23,6 +23,7 @@ package chipmunk.compiler.types;
 public class BuiltinTypes {
 
     public static final ObjectType ANY = AnyType.INSTANCE;
+    public static final ObjectType VOID = VoidType.INSTANCE;
 
     public static final ObjectType BOOLEAN = BooleanType.INSTANCE;
 

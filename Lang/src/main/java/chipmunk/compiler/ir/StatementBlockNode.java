@@ -18,32 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir;
 
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.types.BuiltinTypes;
 
-public class Import extends Typed<ObjectType> {
+public class StatementBlockNode extends LocalBlockNode {
 
-    protected final String module;
-    protected final String aliasOf;
-
-    public Import(String name, String module) {
-        super(name);
-        this.module = module;
-        this.aliasOf = null;
-    }
-
-    public Import(String name, String module, String aliasOf) {
-        super(name);
-        this.module = module;
-        this.aliasOf = aliasOf;
-    }
-
-    public boolean isAliased(){
-        return aliasOf != null;
-    }
-
-    public String aliasOf(){
-        return aliasOf;
+    public StatementBlockNode(LocalBlockNode parent) {
+        super(parent);
+        inferredType(BuiltinTypes.VOID);
+        declaredType(BuiltinTypes.VOID);
     }
 }
