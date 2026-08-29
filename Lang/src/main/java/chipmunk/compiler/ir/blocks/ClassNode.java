@@ -33,11 +33,12 @@ public class ClassNode extends ParentNode {
     protected final ClassType classType;
     protected final List<ClassType> traits;
 
-    public ClassNode(ClassType classType) {
-        this(classType, List.of());
+    public ClassNode(ClassType classType, ParentNode parent) {
+        this(classType, parent, List.of());
     }
 
-    public ClassNode(ClassType classType, List<ClassType> traits) {
+    public ClassNode(ClassType classType, ParentNode parent, List<ClassType> traits) {
+        super(parent);
         this.classType = classType;
         this.traits = List.copyOf(traits);
     }

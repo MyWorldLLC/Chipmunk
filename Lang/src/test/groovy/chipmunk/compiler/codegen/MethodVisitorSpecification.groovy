@@ -418,7 +418,7 @@ class MethodVisitorSpecification extends Specification {
 
 		if(test != ""){
 			println("==================== ${test} ====================")
-			println(CompilerUtil.dumpTree("exp", methodBody))
+			println(CompilerUtil.dumpAstTree("exp", methodBody))
 		}
 
 		def compiler = new CVMCompiler()

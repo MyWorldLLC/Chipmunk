@@ -85,4 +85,28 @@ public abstract class ParentNode extends IRNode {
         }
     }
 
+    @Override
+    public String toString(){
+        return toString("");
+    }
+
+    public String toString(String indent){
+        var base = super.toString(indent);
+        var builder = new StringBuilder();
+        builder.append(base);
+        builder.append("{");
+        indent += "  ";
+        for(int i =  0; i < children.size(); ++i){
+            builder.append("\n");
+            builder.append(indent);
+            builder.append(i);
+            builder.append(": \n");
+            builder.append(children.get(i).toString(indent));
+            builder.append("\n");
+        }
+        builder.append("}");
+
+        return builder.toString();
+    }
+
 }

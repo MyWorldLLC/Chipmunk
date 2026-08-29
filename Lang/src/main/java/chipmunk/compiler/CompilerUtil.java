@@ -21,14 +21,22 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.ast.AstNode;
+import chipmunk.compiler.ir.IRNode;
 
 import java.io.ByteArrayInputStream;
 
 public class CompilerUtil {
 
-    public String dumpTree(AstNode node){
+    public String dumpAstTree(AstNode node){
         while(node.hasParent()){
             node = node.getParent();
+        }
+        return node.toString();
+    }
+
+    public String dumpIRTree(IRNode node){
+        while(node.hasParent()){
+            node = node.parent();
         }
         return node.toString();
     }
@@ -37,7 +45,7 @@ public class CompilerUtil {
         return new ChipmunkSource(new ByteArrayInputStream(src.getBytes()), moduleName);
     }
 
-    public static String dumpTree(String moduleName, String src){
+    public static String dumpAstTree(String moduleName, String src){
         var compiler = new CVMCompiler();
         var compilation = new Compilation();
         compilation.addSource(toSource(moduleName, src));
@@ -45,6 +53,16 @@ public class CompilerUtil {
         var parsed = compiler.parseModules(compilation);
         compiler.prepareAsts(parsed);
         return parsed.toString();
+    }
+
+    public static String dumpIRTree(String moduleName, String src){
+        var compiler = new CVMCompiler();
+        var compilation = new Compilation();
+        compilation.addSource(toSource(moduleName, src));
+
+        var parsed = compiler.parseModules(compilation);
+        var compiled = compiler.compile(parsed);
+        return compiled.stream().map(classes -> classes.ir().toString()).toList().toString();
     }
 
     public static String importedModuleName(String moduleName){

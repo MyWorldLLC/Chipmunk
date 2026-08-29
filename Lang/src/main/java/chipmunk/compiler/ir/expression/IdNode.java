@@ -31,4 +31,13 @@ public class IdNode extends ExpressionNode {
         this.name = name;
     }
 
+    @Override
+    public String toString(){
+        return toString("");
+    }
+
+    public String toString(String indent){
+        return indent + "[" + getClass().getSimpleName() + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
+    }
+
 }

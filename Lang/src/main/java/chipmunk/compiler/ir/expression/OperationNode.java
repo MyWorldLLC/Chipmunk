@@ -45,4 +45,13 @@ public class OperationNode extends ExpressionNode {
         return operationName;
     }
 
+    @Override
+    public String toString(){
+        return toString("");
+    }
+
+    public String toString(String indent){
+        return indent + "[" + getClass().getSimpleName() + "(" + operationName + ") " + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + "]";
+    }
+
 }

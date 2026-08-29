@@ -65,14 +65,14 @@ class LanguageSpecification extends Specification {
 			def argArray = args != null ? args.toArray() : null
 
 			if (alwaysDisassemble) {
-				def ast = CompilerUtil.dumpTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
-				println(ast)
+				def ir = CompilerUtil.dumpIRTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
+				println(ir)
 			}
 
 			return (argArray == null ? vm.runAsync(script) : vm.runAsync(script, argArray)).get()
 		} catch (Throwable e) {
-			def ast = CompilerUtil.dumpTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
-			println(ast)
+			def ir = CompilerUtil.dumpIRTree("test", new String(getClass().getResourceAsStream(scriptName).readAllBytes()))
+			println(ir)
 
 			throw e
 		}

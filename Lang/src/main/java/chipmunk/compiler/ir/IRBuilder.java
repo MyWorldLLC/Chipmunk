@@ -93,7 +93,7 @@ public class IRBuilder {
 
     public ClassNode buildClass(EvaluationEnvironment env, ParentNode parent, BaseClassType parentType, AstNode cls){
         var type = new ClassType(cls.getSymbol().getName(), parentType);
-        var irNode = new ClassNode(type);
+        var irNode = new ClassNode(type, parent);
         populateDebug(irNode, cls);
 
         for(var element : cls.getChildren()) {
@@ -272,6 +272,12 @@ public class IRBuilder {
                 var it = new IteratorNode(name, parent);
                 it.addChild(buildExpression(env, it, exp.getRight()));
                 yield it;
+            }
+            case BINDING -> {
+                var irNode = new OperationNode("::", parent);
+                irNode.addChild(buildExpression(env, irNode, exp.getLeft()));
+                irNode.addChild(buildExpression(env, irNode, exp.getRight()));
+                yield irNode;
             }
             case OPERATOR -> {
                 // TODO - check for & handle forms that don't neatly resolve to simple unary/binary operators (a.b(), a[b] = c, etc)

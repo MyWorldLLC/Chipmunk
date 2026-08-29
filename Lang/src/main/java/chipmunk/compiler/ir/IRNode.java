@@ -65,6 +65,10 @@ public abstract class IRNode {
         return parent;
     }
 
+    public boolean hasParent(){
+        return parent != null;
+    }
+
     public void inferredType(ObjectType inferredType){
         Objects.requireNonNull(inferredType);
         this.inferredType = inferredType;
@@ -121,5 +125,14 @@ public abstract class IRNode {
             candidate = candidate.parent();
         }
         throw new IllegalStateException("This node is not attached to a module");
+    }
+
+    @Override
+    public String toString(){
+        return toString("");
+    }
+
+    public String toString(String indent){
+        return indent + "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + "]";
     }
 }

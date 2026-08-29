@@ -38,4 +38,12 @@ public class LiteralNode extends ExpressionNode {
         return value;
     }
 
+    @Override
+    public String toString(){
+        return toString("");
+    }
+
+    public String toString(String indent){
+        return indent + "[" + getClass().getSimpleName() + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Value: " + value + "]";
+    }
 }
