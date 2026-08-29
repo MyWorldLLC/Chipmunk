@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,9 +18,9 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler
+package chipmunk.compiler.parser
 
-
+import chipmunk.compiler.SyntaxError
 import chipmunk.compiler.lexer.ChipmunkLexer
 import chipmunk.compiler.lexer.TokenType
 import spock.lang.Specification

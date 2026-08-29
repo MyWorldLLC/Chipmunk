@@ -425,7 +425,7 @@ class MethodVisitorSpecification extends Specification {
 		def compiled = compiler.compileMethod(methodBody)
 
 		def script = vm.createScript()
-		script.moduleLoader().define(new ModuleClasses("exp", "exp", Map.of("exp", compiled)))
+		script.moduleLoader().define(new ModuleClasses("exp", "exp", null, Map.of("exp", compiled)))
 		script.entryPoint("exp", "method")
 
 		return script.run()

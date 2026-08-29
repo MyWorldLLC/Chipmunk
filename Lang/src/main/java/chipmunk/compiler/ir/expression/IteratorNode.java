@@ -18,16 +18,20 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.expression;
 
-import chipmunk.compiler.ir.IRNode;
-import chipmunk.runtime.CompiledModule;
+import chipmunk.compiler.ir.ParentNode;
 
-import java.util.Map;
+public class IteratorNode extends ExpressionNode {
 
-public record ModuleClasses(String name, String className, IRNode ir, Map<String, byte[]> classes) {
+    protected final String name;
 
-    public CompiledModule compiledModule(){
-        return new CompiledModule(name, className, classes.get(className).length);
+    public IteratorNode(String name, ParentNode parent){
+        super(parent);
+        this.name = name;
+    }
+
+    public String name(){
+        return name;
     }
 }

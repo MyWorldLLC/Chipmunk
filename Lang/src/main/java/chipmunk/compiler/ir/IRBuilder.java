@@ -267,6 +267,12 @@ public class IRBuilder {
                 });
                 yield map;
             }
+            case ITERATOR -> {
+                var name = exp.getLeft().getToken().text();
+                var it = new IteratorNode(name, parent);
+                it.addChild(buildExpression(env, it, exp.getRight()));
+                yield it;
+            }
             case OPERATOR -> {
                 // TODO - check for & handle forms that don't neatly resolve to simple unary/binary operators (a.b(), a[b] = c, etc)
                 var op = new OperationNode(exp.getToken().text(), parent);
