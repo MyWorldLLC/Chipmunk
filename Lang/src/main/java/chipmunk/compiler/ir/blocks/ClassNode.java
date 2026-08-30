@@ -20,15 +20,15 @@
 
 package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.ir.DocNode;
-import chipmunk.compiler.ir.IRNode;
-import chipmunk.compiler.ir.ParentNode;
-import chipmunk.compiler.ir.VarDecNode;
+import chipmunk.compiler.SymbolStorage;
+import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.*;
 import chipmunk.compiler.types.ClassType;
 
 import java.util.List;
+import java.util.Optional;
 
-public class ClassNode extends ParentNode {
+public class ClassNode extends ParentNode implements VariableScope {
 
     protected final ClassType classType;
     protected final List<ClassType> traits;
@@ -62,4 +62,18 @@ public class ClassNode extends ParentNode {
                 || c instanceof MethodNode
                 || c instanceof DocNode;
     }
+
+    @Override
+    public Optional<Variable> lookupVariable(String name){
+        if(classType.variables().has(name)){
+            return Optional.of(classType.variables().get(name));
+        }
+        return super.lookupVariable(name);
+    }
+
+    @Override
+    public SymbolStorage<Variable> variables() {
+        return classType.variables();
+    }
+
 }

@@ -20,6 +20,7 @@
 
 package chipmunk.compiler;
 
+import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.ObjectType;
 
@@ -30,15 +31,18 @@ public class Variable extends Named {
     public static final int TRAIT   =  0b100;
     public static final int SHARED  = 0b1000;
 
+    protected final ParentNode declarationSite;
     protected int flags;
     protected ObjectType type;
-    protected ObjectType constraint;
+    protected ObjectType declaredType;
 
-    public Variable(String name, int flags, ObjectType type, ObjectType constraint) {
+    public Variable(String name, ParentNode declarationSite) {
         super(name);
-        this.flags = flags;
-        this.type = type != null ? type : BuiltinTypes.ANY;
-        this.constraint = constraint != null ? constraint : BuiltinTypes.ANY;
+        this.declarationSite = declarationSite;
+    }
+
+    public ParentNode declarationSite() {
+        return declarationSite;
     }
 
     public int flags() {
@@ -81,11 +85,11 @@ public class Variable extends Named {
         this.type = type;
     }
 
-    public ObjectType constraint() {
-        return constraint;
+    public ObjectType declaredType() {
+        return declaredType;
     }
 
-    public void constraint(ObjectType constraint) {
-        this.constraint = constraint;
+    public void declaredType(ObjectType declaredType) {
+        this.declaredType = declaredType;
     }
 }

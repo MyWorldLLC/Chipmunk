@@ -20,17 +20,27 @@
 
 package chipmunk.compiler.ir;
 
+import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.blocks.ClassNode;
+import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.blocks.ModuleNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.types.UnresolvedType;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public abstract class IRNode {
 
     public static final int DEBUG_NONE = -1;
 
-    protected final IRNode parent;
+    protected final ParentNode parent;
 
     protected ObjectType inferredType;
     protected ObjectType declaredType;
@@ -42,7 +52,7 @@ public abstract class IRNode {
         this(null);
     }
 
-    public IRNode(IRNode parent) {
+    public IRNode(ParentNode parent) {
         this.parent = parent;
         line = DEBUG_NONE;
         column = DEBUG_NONE;
@@ -61,7 +71,7 @@ public abstract class IRNode {
         return column;
     }
 
-    public IRNode parent() {
+    public ParentNode parent() {
         return parent;
     }
 
@@ -100,7 +110,16 @@ public abstract class IRNode {
 
     public void markSymbols(EvaluationEnvironment env){}
 
-    public void resolveTypes(EvaluationEnvironment env){}
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){}
+
+    protected void handleUnresolvedType(EvaluationEnvironment env, TypeResolutionContext ctx, IRNode node, ObjectType type){
+        if(type instanceof UnresolvedType){
+            ctx.enqueueTask(() -> node.resolveTypes(env, ctx));
+        }else{
+            node.inferredType(type);
+        }
+
+    }
 
     public void checkSemantics(EvaluationEnvironment env){
         if(!hasInferredType()){
@@ -108,13 +127,43 @@ public abstract class IRNode {
             return;
         }
         if(hasDeclaredType()){
-            if(!inferredType.isAssignableTo(declaredType) && !inferredType.canPromoteTo(declaredType)){
+            if(!env.typeConflict(inferredType, declaredType)){
                 env.error(this, "Type error: %s cannot be assigned or promoted to %s", inferredType, declaredType);
             }
         }
     }
 
-    public void evaluate(EvaluationEnvironment env){}
+    public Optional<MethodNode> containingMethodNode(){
+        return nearestAncestor(MethodNode.class);
+    }
+
+    public Optional<ClassNode> containingClassNode(){
+        return nearestAncestor(ClassNode.class);
+    }
+
+    public Optional<ModuleNode> containingModuleNode(){
+        return nearestAncestor(ModuleNode.class);
+    }
+
+    public Optional<Variable> lookupVariable(String name){
+        if(hasParent()){
+            return parent().lookupVariable(name);
+        }
+        return Optional.empty();
+    }
+
+    protected <T> Optional<T> nearestAncestor(Class<T> type){
+        var node = this;
+        while(node.hasParent()){
+            node = node.parent();
+            if(type.isInstance(node)){
+                return Optional.of(type.cast(node));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){}
 
     public ModuleNode getModule(){
         var candidate = this;

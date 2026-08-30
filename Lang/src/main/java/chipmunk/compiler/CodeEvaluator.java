@@ -1,0 +1,336 @@
+/*
+ * Copyright (C) 2026 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package chipmunk.compiler;
+
+import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.ObjectType;
+import chipmunk.runtime.MethodBinding;
+import chipmunk.vm.invoke.Binder;
+
+import java.lang.classfile.CodeBuilder;
+import java.lang.constant.*;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandles;
+import java.util.*;
+
+import static java.lang.constant.ConstantDescs.*;
+import static java.lang.constant.ConstantDescs.CD_double;
+import static java.lang.constant.ConstantDescs.CD_float;
+import static java.lang.constant.ConstantDescs.CD_int;
+import static java.lang.constant.ConstantDescs.CD_long;
+import static java.lang.constant.ConstantDescs.CD_short;
+
+public class CodeEvaluator {
+
+    protected final Stack stack = new Stack();
+    protected final CodeBuilder code;
+    protected final CodegenEvalContext ctx;
+
+    protected LocalBlockNode localScope;
+
+    private final Map<ObjectType, ClassDesc> typeMapping;
+
+    public CodeEvaluator(CodegenEvalContext ctx, CodeBuilder code){
+        this.ctx = ctx;
+        this.code = code;
+        this.typeMapping = new IdentityHashMap<>();
+        initBuiltinTypes();
+    }
+
+    public void enterLocalScope(LocalBlockNode scope){
+        this.localScope = scope;
+    }
+
+    public LocalBlockNode localScope(){
+        return localScope;
+    }
+
+    public void exitLocalScope(){
+        var parent = localScope.parent();
+        if(parent instanceof LocalBlockNode l){
+            localScope = l;
+        }else{
+            localScope = null;
+        }
+    }
+
+    public CodeEvaluator add(ObjectType type){
+        stack.doOperation(() -> emitOp("+", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator sub(ObjectType type){
+        stack.doOperation(() -> emitOp("-", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator mul(ObjectType type){
+        stack.doOperation(() -> emitOp("*", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator power(ObjectType type){
+        stack.doOperation(() -> emitOp("**", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator div(ObjectType type){
+        stack.doOperation(() -> emitOp("/", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator fdiv(ObjectType type){
+        stack.doOperation(() -> emitOp("//", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator mod(ObjectType type){
+        stack.doOperation(() -> emitOp("%", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator inc(ObjectType type){
+        stack.doOperation(() -> emitOp("++", type), type);
+        return this;
+    }
+
+    public CodeEvaluator dec(ObjectType type){
+        stack.doOperation(() -> emitOp("--", type), type);
+        return this;
+    }
+
+    public CodeEvaluator bitNeg(ObjectType type){
+        stack.doOperation(() -> emitOp("~", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator bitAnd(ObjectType type){
+        stack.doOperation(() -> emitOp("&", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator bitOr(ObjectType type){
+        stack.doOperation(() -> emitOp("|", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator bitXor(ObjectType type){
+        stack.doOperation(() -> emitOp("^", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator lshift(ObjectType type){
+        stack.doOperation(() -> emitOp("<<", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator rshift(ObjectType type){
+        stack.doOperation(() -> emitOp(">>", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator urshift(ObjectType type){
+        stack.doOperation(() -> emitOp(">>>", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator boolAnd(ObjectType type){
+        stack.doOperation(() -> emitOp("&&", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator boolOr(ObjectType type){
+        stack.doOperation(() -> emitOp("||", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator boolNot(ObjectType type){
+        stack.doOperation(() -> emitOp("!", type), type);
+        return this;
+    }
+
+    public CodeEvaluator lt(ObjectType type){
+        stack.doOperation(() -> emitOp("<", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator lte(ObjectType type){
+        stack.doOperation(() -> emitOp("<=", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator gt(ObjectType type){
+        stack.doOperation(() -> emitOp(">", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator gte(ObjectType type){
+        stack.doOperation(() -> emitOp(">=", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator eq(ObjectType type){
+        stack.doOperation(() -> emitOp("==", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator neq(ObjectType type){
+        stack.doOperation(() -> emitOp("!=", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator is(ObjectType type){
+        stack.doOperation(() -> emitOp("is", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator getAt(ObjectType type){
+        stack.doOperation(() -> emitOp("getAt", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator setAt(ObjectType type){
+        stack.doOperation(() -> emitOp("setAt", type, type), type, type);
+        return this;
+    }
+
+    public CodeEvaluator instanceOf(ObjectType type, String clsName){
+        //stack.doOperation(() -> emitOp("<", type), type);
+        // TODO
+        return this;
+    }
+
+    protected ObjectType emitOp(String symbol, ObjectType... types){
+        var intrinsic = Intrinsics.getEmitter(symbol, types);
+        return intrinsic.map(emitter -> {
+            emitter.emitter().accept(code);
+            return emitter.op().rValue();
+        }).orElseGet(() -> {
+            genDynamicInvocation(code, symbol, types);
+            return BuiltinTypes.ANY;
+        });
+    }
+
+    public int emitSafepointStore(SymbolStorage<Variable> locals){
+        // TODO - get stack and local depth/types, init frame,
+        // emit code to save the stack/locals to the frame,
+        // and throw an uncatchable yield exception to further unwind the stack
+        return 0; // TODO - return the id of this safepoint
+    }
+
+    public CodeEvaluator emitSafepointRestore(int id){
+        // TODO - emit code to get stack from executing fiber,
+        // restore stack & locals, and jump to this safepoint's target label
+        return this;
+    }
+
+    private void genDynamicInvocation(CodeBuilder code, String op, ClassDesc... argTypes){
+        var objType = ClassDesc.of(Object.class.getName());
+
+        var dynamicOp = binaryOpNames(op);
+
+        var callType = MethodTypeDesc.of(objType, argTypes);
+
+        var CD_Binder = ClassDesc.of(Binder.class.getName());
+        var CD_CallSite = ClassDesc.of(CallSite.class.getName());
+        var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
+        var CD_MType = ClassDesc.of(java.lang.invoke.MethodType.class.getName());
+        var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
+
+        code.invokedynamic(DynamicCallSiteDesc.of(
+                MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
+                        Binder.INDY_BOOTSTRAP_METHOD, bootstrapDescriptor), dynamicOp, callType));
+    }
+
+    private void genDynamicInvocation(CodeBuilder code, String op, ObjectType... argTypes){
+        var pTypes = Arrays.stream(argTypes)
+                .map(this::descriptorFor)
+                .toArray(ClassDesc[]::new);
+        genDynamicInvocation(code, op, pTypes);
+    }
+
+    protected ClassDesc descriptorFor(ObjectType type){
+        if(type == null){
+            return descriptorFor(BuiltinTypes.ANY);
+        }
+        if(type instanceof chipmunk.compiler.types.MethodType){
+            return descriptorFor(MethodBinding.class);
+        }
+        var desc = typeMapping.get(type);
+        if(desc == null){
+            desc = ClassDesc.of(type.name()); // TODO - qualified names
+            typeMapping.put(type, desc);
+        }
+        return desc;
+    }
+
+    protected ClassDesc descriptorFor(Class<?> cls){
+        if(cls.isPrimitive()){
+            var mapping = new HashMap<Class<?>, ClassDesc>();
+            mapping.put(boolean.class, CD_boolean);
+            mapping.put(byte.class, CD_byte);
+            mapping.put(short.class, CD_short);
+            mapping.put(int.class, CD_int);
+            mapping.put(long.class, CD_long);
+            mapping.put(float.class, CD_float);
+            mapping.put(double.class, CD_double);
+            return mapping.get(cls);
+        }
+        return ClassDesc.of(cls.getName());
+    }
+
+    private void initBuiltinTypes(){
+        typeMapping.put(BuiltinTypes.ANY, CD_Object);
+        typeMapping.put(BuiltinTypes.BOOLEAN, CD_boolean);
+        typeMapping.put(BuiltinTypes.BYTE, CD_byte);
+        typeMapping.put(BuiltinTypes.SHORT, CD_short);
+        typeMapping.put(BuiltinTypes.INT, CD_int);
+        typeMapping.put(BuiltinTypes.LONG, CD_long);
+        typeMapping.put(BuiltinTypes.FLOAT, CD_float);
+        typeMapping.put(BuiltinTypes.DOUBLE, CD_double);
+        typeMapping.put(BuiltinTypes.STRING, CD_String);
+        typeMapping.put(BuiltinTypes.LIST, descriptorFor(Map.class));
+        typeMapping.put(BuiltinTypes.MAP, descriptorFor(List.class));
+    }
+
+    private String binaryOpNames(String op){
+        return switch(op){
+            case "+" -> "plus";
+            case "-" -> "minus";
+            case "*" -> "mul";
+            case "/" -> "div";
+            case "//" -> "fdiv";
+            case "%" -> "mod";
+            case "pow" -> "mul";
+            case "^" -> "binaryXor";
+            case "&" -> "binaryAnd";
+            case "|" -> "binaryOr";
+            case "<<" -> "lShift";
+            case ">>" -> "rShift";
+            case ">>>" -> "unsignedRShift";
+            case "==" -> "equals";
+            case "<", ">", "<=", ">=" -> "compare";
+            default -> op;
+        };
+    }
+
+}

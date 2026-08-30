@@ -20,10 +20,16 @@
 
 package chipmunk.compiler.ir.blocks;
 
+import chipmunk.compiler.SymbolStorage;
+import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.*;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.types.ModuleType;
 
-public class ModuleNode extends ParentNode {
+import java.util.Optional;
+
+public class ModuleNode extends ParentNode implements VariableScope {
 
     protected final ModuleType moduleType;
     protected String fileName;
@@ -54,5 +60,28 @@ public class ModuleNode extends ParentNode {
                 || c instanceof ClassNode
                 || c instanceof MethodNode
                 || c instanceof DocNode;
+    }
+
+    @Override
+    public Optional<Variable> lookupVariable(String name){
+        if(moduleType.variables().has(name)){
+            return Optional.of(moduleType.variables().get(name));
+        }
+        return super.lookupVariable(name);
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
+
+        // Initializer emit goes in the following order:
+        // 1. Init imports in import order
+        // 2. Init class fields
+        // 3. Init variables last. Variables may read class or imported fields.
+    }
+
+    @Override
+    public SymbolStorage<Variable> variables() {
+        return moduleType.variables();
     }
 }

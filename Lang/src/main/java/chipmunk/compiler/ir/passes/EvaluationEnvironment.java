@@ -20,22 +20,30 @@
 
 package chipmunk.compiler.ir.passes;
 
+import chipmunk.compiler.Compilation;
 import chipmunk.compiler.imports.ImportResolver;
 import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.symbols.Symbol;
+import chipmunk.compiler.types.ObjectType;
 
 import java.util.*;
 
 public class EvaluationEnvironment {
 
+    protected final Compilation compilation;
     protected final List<ImportResolver> importResolvers;
     protected final List<String> errors;
     protected final List<String> warnings;
 
-    public EvaluationEnvironment(){
+    public EvaluationEnvironment(Compilation compilation) {
+        this.compilation = compilation;
         importResolvers = new ArrayList<>();
         errors = new ArrayList<>();
         warnings = new ArrayList<>();
+    }
+
+    public Compilation compilation() {
+        return compilation;
     }
 
     public EvaluationEnvironment withResolvers(ImportResolver... resolvers){
@@ -85,5 +93,9 @@ public class EvaluationEnvironment {
 
     public List<String> warnings(){
         return Collections.unmodifiableList(warnings);
+    }
+
+    public boolean typeConflict(ObjectType actual, ObjectType expected) {
+        return !actual.isAssignableTo(expected) && !actual.canPromoteTo(expected);
     }
 }

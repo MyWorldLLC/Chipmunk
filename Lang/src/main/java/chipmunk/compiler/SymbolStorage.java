@@ -84,4 +84,8 @@ public class SymbolStorage<T extends Named> {
     public List<T> elements(){
         return Collections.unmodifiableList(elements);
     }
+
+    public SymbolStorage<T> parent(){
+        return parent;
+    }
 }

@@ -20,7 +20,14 @@
 
 package chipmunk.compiler.ir.expression;
 
+import chipmunk.compiler.Intrinsics;
+import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.types.Operation;
 
 /**
  * Note that this is not called 'OperatorNode' because the IR builder will translate
@@ -43,6 +50,14 @@ public class OperationNode extends ExpressionNode {
 
     public String operationName() {
         return operationName;
+    }
+
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        super.resolveTypes(env, ctx);
+        // TODO - if not intrinsically defined, fall back to searching for a method definition that will do this operation
+        var maybeOp = Intrinsics.getOperation(operationName, children.stream().map(IRNode::inferredType).toArray(ObjectType[]::new));
+        inferredType(maybeOp.map(Operation::rValue).orElse(BuiltinTypes.ANY));
     }
 
     @Override

@@ -21,25 +21,22 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.ast.*;
-import chipmunk.compiler.ast.transforms.*;
 import chipmunk.compiler.imports.AstImportResolver;
 import chipmunk.compiler.imports.BinaryImportResolver;
 import chipmunk.compiler.imports.NativeImportResolver;
 import chipmunk.compiler.ir.IRBuilder;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenStream;
 import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.ChipmunkParser;
-import chipmunk.compiler.types.*;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.jvm.ChipmunkClassLoader;
 
 import java.io.InputStream;
-import java.lang.classfile.*;
-import java.lang.constant.*;
 import java.util.*;
 
 public class CVMCompiler {
@@ -117,34 +114,44 @@ public class CVMCompiler {
     }
 
     public List<ModuleClasses> compile(Compilation compilation) throws CompileChipmunk {
-        return compile(parseModules(compilation));
+        return compile(compilation, parseModules(compilation));
     }
 
-    public List<ModuleClasses> compile(AstNode... asts) throws CompileChipmunk {
-        return compile(Arrays.stream(asts).map(a -> new ParsedModule("<memory>", a)).toList());
+    public List<ModuleClasses> compile(Compilation compilation, AstNode... asts) throws CompileChipmunk {
+        return compile(compilation, Arrays.stream(asts).map(a -> new ParsedModule("<memory>", a)).toList());
     }
 
-    public List<ModuleClasses> compile(ParsedModule... modules) throws CompileChipmunk {
-        return compile(Arrays.asList(modules));
+    public List<ModuleClasses> compile(Compilation compilation, ParsedModule... modules) throws CompileChipmunk {
+        return compile(compilation, Arrays.asList(modules));
     }
 
-    public List<ModuleClasses> compile(List<ParsedModule> parsedModules) throws CompileChipmunk {
+    public List<ModuleClasses> compile(Compilation compilation, List<ParsedModule> parsedModules) throws CompileChipmunk {
         prepareAsts(parsedModules);
 
         var codegen = new CVMCodegen(astResolver, binaryResolver, nativeResolver);
-        codegen.prepareAsts(parsedModules);
+        //codegen.prepareAsts(parsedModules);
 
-        var evalEnv = new EvaluationEnvironment();
+        var evalEnv = new EvaluationEnvironment(compilation);
         var irBuilder = new IRBuilder();
+
+        var moduleIr = parsedModules.stream().map(m -> irBuilder.buildModule(evalEnv, m.ast())).toList();
+        moduleIr.forEach(ir -> ir.markSymbols(evalEnv));
+        moduleIr.forEach(ir -> {
+            var ctx = new TypeResolutionContext();
+            ir.resolveTypes(evalEnv, ctx);
+            ctx.flushTasks();
+        });
+        moduleIr.forEach(ir -> ir.checkSemantics(evalEnv));
 
         var modules = new ArrayList<ModuleClasses>();
         for(int i = 0; i < parsedModules.size(); i++){
             var parsed = parsedModules.get(i);
             var ast = parsed.ast();
             var name = Modules.getName(ast).getName();
-            // TODO - package-prefixed module class name?
-            var ir = irBuilder.buildModule(evalEnv, ast);
-            modules.add(new ModuleClasses(name, name, ir, codegen.generateCode(parsed)));
+            var ir = moduleIr.get(i);
+            var ctx = new CodegenEvalContext(compilation, evalEnv);
+            ctx.evaluateModule(ir);
+            modules.add(new ModuleClasses(name, name, ir, ctx.getEmittedClasses()));
         }
 
         return modules;
@@ -172,7 +179,7 @@ public class CVMCompiler {
     }
 
     public byte[] compileExpression(String exp) throws CompileChipmunk {
-        return compile(new ParsedModule("runtimeExpression", expressionEvalModule(exp))).getFirst().classes().get("exp");
+        return compile(new Compilation(), new ParsedModule("runtimeExpression", expressionEvalModule(exp))).getFirst().classes().get("exp");
     }
 
     public AstNode methodEvalModule(String methodDef){
@@ -189,7 +196,7 @@ public class CVMCompiler {
     }
 
     public byte[] compileMethod(String methodDef) throws CompileChipmunk {
-        return compile(new ParsedModule("runtimeMethod", methodEvalModule(methodDef))).getFirst().classes().get("exp");
+        return compile(new Compilation(), new ParsedModule("runtimeMethod", methodEvalModule(methodDef))).getFirst().classes().get("exp");
     }
 
     public Class<?> bindingFor(ChipmunkClassLoader loader, String bindingName, Class<?> targetType, String methodName){

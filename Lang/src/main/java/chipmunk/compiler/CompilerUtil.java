@@ -61,7 +61,7 @@ public class CompilerUtil {
         compilation.addSource(toSource(moduleName, src));
 
         var parsed = compiler.parseModules(compilation);
-        var compiled = compiler.compile(parsed);
+        var compiled = compiler.compile(compilation, parsed);
         return compiled.stream().map(classes -> classes.ir().toString()).toList().toString();
     }
 

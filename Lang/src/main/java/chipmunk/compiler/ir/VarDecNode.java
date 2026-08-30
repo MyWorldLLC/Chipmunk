@@ -20,8 +20,10 @@
 
 package chipmunk.compiler.ir;
 
+import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.expression.ExpressionNode;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 
 public class VarDecNode extends ParentNode {
 
@@ -42,9 +44,39 @@ public class VarDecNode extends ParentNode {
     }
 
     @Override
+    public void markSymbols(EvaluationEnvironment env){
+        nearestAncestor(VariableScope.class)
+                .ifPresentOrElse(scope -> scope.variables().declare(new Variable(name, this)),
+                        () -> {
+                            throw new IllegalStateException("This variable declaration is not nested within a variable scope. This is a compiler bug.");
+                        });
+    }
+
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        super.resolveTypes(env, ctx);
+        lookupVariable(name).ifPresent(variable -> variable.type(children.getFirst().inferredType()));
+    }
+
+    @Override
     public void checkSemantics(EvaluationEnvironment env){
         if(children().size() > 1){
             env.error(this, "Malformed variable declaraction for %s, cannot have more than one child", name);
+        }
+
+        var maybeVariable = lookupVariable(name);
+        if(maybeVariable.isEmpty()){
+            env.error(this, "Variable %s cannot be found from within its declaration scope", name);
+        } else {
+            var variable = maybeVariable.get();
+
+            if(!(variable.declarationSite() instanceof VariableScope)){
+                env.error(this, "Variable %s was not declared within a variable scope node: %s", name, variable.declarationSite().getClass().getName());
+            }
+
+            if(variable.type() == null){
+                env.error(this, "Variable %s does not have a type assigned", name);
+            }
         }
     }
 

@@ -18,19 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.passes;
 
-public class CompilerConfig {
-
-    public static final CompilerConfig DEFAULT = new CompilerConfig();
-
-    protected String pkgPrefix;
-
-    public String packagePrefix() {
-        return pkgPrefix;
-    }
-
-    public void packagPrefix(String pkgPrefix) {
-        this.pkgPrefix = pkgPrefix;
-    }
+public interface EvaluationContext {
 }

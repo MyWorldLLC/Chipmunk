@@ -24,6 +24,7 @@ import chipmunk.compiler.types.ObjectType;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Stack {
@@ -46,6 +47,19 @@ public class Stack {
 
     public int depth(){
         return stack.size();
+    }
+
+    public void doOperation(Supplier<ObjectType> rType, ObjectType... pTypes){
+        // Operands are pushed in forward order, so to check types we have to
+        // go in reverse order
+        for(int i = pTypes.length - 1; i >= 0; i--){
+            var pType = pTypes[i];
+            var stackType = stack.pop();
+            if(!pType.isAssignableTo(stackType)){
+                throw new IllegalStateException("Operand type " + pType + " is not assignable to " + stackType);
+            }
+        }
+        stack.push(rType.get());
     }
 
     public Stream<ObjectType> stream(){

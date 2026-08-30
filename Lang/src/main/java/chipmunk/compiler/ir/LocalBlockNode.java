@@ -24,7 +24,9 @@ import chipmunk.compiler.SymbolStorage;
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.types.BuiltinTypes;
 
-public abstract class LocalBlockNode extends ParentNode {
+import java.util.Optional;
+
+public abstract class LocalBlockNode extends ParentNode implements VariableScope {
 
     protected final SymbolStorage<Variable> locals;
 
@@ -45,10 +47,19 @@ public abstract class LocalBlockNode extends ParentNode {
      */
     public LocalBlockNode(LocalBlockNode parent) {
         super(parent);
-        this.locals = new SymbolStorage<>(parent.locals());
+        this.locals = new SymbolStorage<>(parent.variables());
     }
 
-    public SymbolStorage<Variable> locals() {
+    @Override
+    public SymbolStorage<Variable> variables() {
         return locals;
+    }
+
+    @Override
+    public Optional<Variable> lookupVariable(String name){
+        if(locals.has(name)){
+            return Optional.of(locals.get(name));
+        }
+        return super.lookupVariable(name);
     }
 }

@@ -20,11 +20,15 @@
 
 package chipmunk.compiler.ir;
 
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public abstract class ParentNode extends IRNode {
 
@@ -65,9 +69,9 @@ public abstract class ParentNode extends IRNode {
     }
 
     @Override
-    public void resolveTypes(EvaluationEnvironment env){
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
         for(var child : children){
-            child.resolveTypes(env);
+            child.resolveTypes(env, ctx);
         }
     }
 
@@ -79,10 +83,20 @@ public abstract class ParentNode extends IRNode {
     }
 
     @Override
-    public void evaluate(EvaluationEnvironment env){
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         for(var child : children){
-            child.evaluate(env);
+            child.evaluate(env, ctx);
         }
+    }
+
+    public Stream<IRNode> findDescendants(Predicate<IRNode> filter){
+
+        var matching = children.stream()
+                .filter(filter);
+
+        var childMatches = children.stream().filter(c -> c instanceof ParentNode)
+                .flatMap(c -> ((ParentNode) c).findDescendants(filter));
+        return Stream.concat(matching, childMatches);
     }
 
     @Override

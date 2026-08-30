@@ -22,6 +22,10 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.ir.LocalBlockNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.flow.ReturnNode;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.MethodType;
 
 public class MethodNode extends LocalBlockNode {
@@ -42,5 +46,21 @@ public class MethodNode extends LocalBlockNode {
 
     public MethodType methodType() {
         return methodType;
+    }
+
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        super.resolveTypes(env, ctx);
+
+        // TODO - mark upvalues by finding any descendents that refer to variables in an outer local scope
+
+        // TODO - handle unresolved types
+        var returnTypes = findDescendants(node -> node instanceof ReturnNode)
+                .map(n -> (ReturnNode) n)
+                .map(n -> n.children().isEmpty() ? BuiltinTypes.ANY : n.inferredType())
+                .distinct()
+                .toList();
+
+        methodType.replaceRType(returnTypes.size() != 1 ? BuiltinTypes.ANY : returnTypes.getFirst());
     }
 }

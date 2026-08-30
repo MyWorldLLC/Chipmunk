@@ -18,19 +18,11 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir;
 
-public class CompilerConfig {
+import chipmunk.compiler.SymbolStorage;
+import chipmunk.compiler.Variable;
 
-    public static final CompilerConfig DEFAULT = new CompilerConfig();
-
-    protected String pkgPrefix;
-
-    public String packagePrefix() {
-        return pkgPrefix;
-    }
-
-    public void packagPrefix(String pkgPrefix) {
-        this.pkgPrefix = pkgPrefix;
-    }
+public interface VariableScope {
+    SymbolStorage<Variable> variables();
 }

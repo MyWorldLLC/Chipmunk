@@ -18,19 +18,24 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler;
+package chipmunk.compiler.ir.passes;
 
-public class CompilerConfig {
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-    public static final CompilerConfig DEFAULT = new CompilerConfig();
+public class TypeResolutionContext {
 
-    protected String pkgPrefix;
+    protected final Deque<Runnable> inferrenceTasks = new ArrayDeque<>();
 
-    public String packagePrefix() {
-        return pkgPrefix;
+    public void enqueueTask(Runnable task){
+        inferrenceTasks.add(task);
     }
 
-    public void packagPrefix(String pkgPrefix) {
-        this.pkgPrefix = pkgPrefix;
+    public void flushTasks(){
+        while(!inferrenceTasks.isEmpty()){
+            for(Runnable task : inferrenceTasks){
+                task.run();
+            }
+        }
     }
 }
