@@ -22,8 +22,9 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.ir.expression.ExpressionNode;
 import chipmunk.compiler.ir.IRNode;
-import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
 
 import java.util.List;
 
@@ -31,6 +32,8 @@ public class WhileNode extends LocalBlockNode {
 
     public WhileNode(LocalBlockNode parent) {
         super(parent);
+        inferredType(BuiltinTypes.VOID);
+        declaredType(BuiltinTypes.VOID);
     }
 
     public ExpressionNode condition(){
@@ -51,6 +54,18 @@ public class WhileNode extends LocalBlockNode {
         if(!(children.getFirst() instanceof ExpressionNode)){
             env.error(this, "While loop guard must be an expression node. This is a compiler bug.");
         }
+    }
+
+    @Override
+    public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+        code.makeBlock(block -> {
+            ctx.makeBranch(condition(), block.breakLabel());
+            for(var node : body()){
+                node.evaluate(env, ctx);
+            }
+            code._goto(block.startLabel());
+        });
     }
 
 }

@@ -20,21 +20,34 @@
 
 package chipmunk.compiler.ir.expression;
 
-import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 
-public abstract class ExpressionNode extends ParentNode {
+public class LocalSetNode extends AssignmentNode {
 
-    public ExpressionNode(){}
+    protected final String name;
 
-    public ExpressionNode(ParentNode parent){
-        super(parent);
+    public LocalSetNode(ParentNode parent, String name, AssignmentType assignmentType) {
+        super(parent, assignmentType);
+        this.name = name;
+    }
+
+    public String name() {
+        return name;
     }
 
     @Override
-    public boolean isAllowedChild(IRNode c){
-        return c instanceof ExpressionNode;
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        super.resolveTypes(env, ctx);
+        inferredType(children.getFirst().inferredType());
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        children.getFirst().evaluate(env, ctx);
+        ctx.storeLocal(this, name, children.getFirst().inferredType());
     }
 
 }

@@ -219,7 +219,7 @@ public class IRBuilder {
 
     public ExpressionNode buildExpression(EvaluationEnvironment env, ParentNode parent, AstNode exp){
         return switch (exp.getNodeType()){
-            case ID -> new IdNode(exp.getToken().text(), parent);
+            case ID -> new LocalGetNode(exp.getToken().text(), parent);
             case LITERAL -> {
                 yield switch(exp.getToken().type()){
                     case BOOLLITERAL -> new LiteralNode(Boolean.parseBoolean(exp.getToken().text()), BuiltinTypes.BOOLEAN, parent);
@@ -282,6 +282,33 @@ public class IRBuilder {
             }
             case OPERATOR -> {
                 // TODO - check for & handle forms that don't neatly resolve to simple unary/binary operators (a.b(), a[b] = c, etc)
+                var lhs = exp.getLeft();
+                if(Operators.isAssignment(exp)){
+                    if(Operators.isSetAt(exp)){
+                        var irNode = new SetAtNode(parent);
+                        irNode.addChild(buildExpression(env, irNode, lhs.getLeft()));
+                        irNode.addChild(buildExpression(env, irNode, lhs.getRight()));
+                        irNode.addChild(buildExpression(env, irNode, exp.getRight()));
+                        yield irNode;
+                    }else if(Operators.isSetAttr(exp)){
+
+                    }else{
+                        // Local assignment
+                        // TODO - determine when we're reading a method binding
+                        // If the parent is a block, do a "statement assignment" where we skip the dup() & pop() pair
+                        // that would be otherwise necessary to support assignment as both an expression and statement. Unnecessary
+                        // dup()/pop() can heavily impact performance, probably by causing the JIT's optimizer to miss otherwise
+                        // available optimizations.
+                        var irNode = new LocalSetNode(parent, exp.getLeft().getToken().text(), parent instanceof LocalBlockNode ? AssignmentType.ASSIGN : AssignmentType.DUP_ASSIGN);
+                        irNode.addChild(buildExpression(env, irNode, exp.getRight()));
+                        yield irNode;
+                    }
+                }
+                else if(Operators.isDotCall(exp)){
+                    // TODO
+                }else if(Operators.isRawCall(exp)){
+                    // TODO
+                }
                 var op = new OperationNode(exp.getToken().text(), parent);
                 exp.visitChildren(child -> op.addChild(buildExpression(env, op, child)));
                 yield op;

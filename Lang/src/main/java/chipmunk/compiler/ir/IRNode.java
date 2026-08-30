@@ -32,9 +32,6 @@ import chipmunk.compiler.types.UnresolvedType;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public abstract class IRNode {
 
@@ -150,6 +147,13 @@ public abstract class IRNode {
     public Optional<Variable> lookupVariable(String name){
         if(hasParent()){
             return parent().lookupVariable(name);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<VariableScope> lookupVariableScope(String name){
+        if(hasParent()){
+            return parent().lookupVariableScope(name);
         }
         return Optional.empty();
     }

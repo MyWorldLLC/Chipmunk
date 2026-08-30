@@ -20,7 +20,7 @@
 
 package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.flow.ReturnNode;
@@ -35,13 +35,20 @@ public class MethodNode extends LocalBlockNode {
     protected final String name;
     protected final MethodType methodType;
 
+    /**
+     * Constructor for standard methods
+     */
     public MethodNode(String name, ParentNode parent, MethodType methodType) {
         super(parent);
         this.name = name;
         inferredType(methodType);
         this.methodType = methodType;
+        variables().declare(new Variable("self", this));
     }
 
+    /**
+     * Constructor for lambda methods
+     */
     public MethodNode(String name, LocalBlockNode parent, MethodType methodType) {
         super(parent);
         this.name = name;
@@ -59,6 +66,11 @@ public class MethodNode extends LocalBlockNode {
 
     @Override
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        if(variables().has("self")){
+            var self = variables().get("self");
+            self.type(parent.inferredType());
+            self.declaredType(parent.declaredType());
+        }
         super.resolveTypes(env, ctx);
 
         // TODO - mark upvalues by finding any descendents that refer to variables in an outer local scope
@@ -70,17 +82,16 @@ public class MethodNode extends LocalBlockNode {
                 .distinct()
                 .toList();
 
-        methodType.replaceRType(returnTypes.size() != 1 ? BuiltinTypes.ANY : returnTypes.getFirst());
+        methodType.replaceRType(returnTypes.size() != 1 ? BuiltinTypes.VOID : returnTypes.getFirst());
     }
 
     @Override
-    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
-        for(var child : children){
-            switch (child){
-                case VarDecNode n -> ctx.evaluateVarDec(n);
-                // TODO
-                case ReturnNode n -> n.evaluate(env, ctx);
-                default -> {}
+    public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
+        if(children.isEmpty()){
+            ctx.codeEvaluator()._return(BuiltinTypes.VOID);
+        }else{
+            for(var child : children){
+                child.evaluate(env, ctx);
             }
         }
     }

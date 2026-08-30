@@ -18,12 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ir.blocks;
+package chipmunk.compiler.ir.expression;
 
-public class TryCatchNode extends LocalBlockNode {
 
-    public TryCatchNode(LocalBlockNode parent) {
-        super(parent);
+import chipmunk.compiler.Intrinsics;
+import chipmunk.compiler.ir.ParentNode;
+
+public class SetAtNode extends OperationNode {
+
+    public SetAtNode(ParentNode parent) {
+        super(Intrinsics.SET_AT, parent);
     }
-
 }

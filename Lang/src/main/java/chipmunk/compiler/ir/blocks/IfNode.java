@@ -20,8 +20,6 @@
 
 package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.ir.LocalBlockNode;
-
 /**
  * Used within `IfElseNode` to represent a single if-branch of a chain of if-else branches.
  */

@@ -72,7 +72,15 @@ public class ModuleNode extends ParentNode implements VariableScope {
         if(moduleType.variables().has(name)){
             return Optional.of(moduleType.variables().get(name));
         }
-        return super.lookupVariable(name);
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<VariableScope> lookupVariableScope(String name){
+        if(moduleType.variables().has(name)){
+            return Optional.of(this);
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -80,7 +88,7 @@ public class ModuleNode extends ParentNode implements VariableScope {
         // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
         for(var child : children){
             switch (child){
-                case VarDecNode n -> ctx.evaluateVarDec(n);
+                //case VarDecNode n -> ctx.evaluateVarDec(n);
                 case ClassNode n -> ctx.evaluateClass(n);
                 case MethodNode n -> ctx.evaluateMethod(n);
                 default -> {} // This should never be hit because we've already validated the IR

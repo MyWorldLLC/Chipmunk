@@ -18,10 +18,15 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ir;
+package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.SymbolStorage;
 import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.IRNode;
+import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.VariableScope;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.types.BuiltinTypes;
 
 import java.util.Optional;
@@ -62,4 +67,21 @@ public abstract class LocalBlockNode extends ParentNode implements VariableScope
         }
         return super.lookupVariable(name);
     }
+
+    @Override
+    public Optional<VariableScope> lookupVariableScope(String name){
+        if(locals.has(name)){
+            return Optional.of(this);
+        }
+        return super.lookupVariableScope(name);
+    }
+
+    @Override
+    public final void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        ctx.enterLocalScope(this);
+        evaluateBlock(env, ctx);
+        ctx.exitLocalScope();
+    }
+
+    protected void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){}
 }

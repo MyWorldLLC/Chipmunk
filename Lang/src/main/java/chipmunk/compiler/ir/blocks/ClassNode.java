@@ -72,6 +72,14 @@ public class ClassNode extends ParentNode implements VariableScope {
     }
 
     @Override
+    public Optional<VariableScope> lookupVariableScope(String name){
+        if(classType.variables().has(name)){
+            return Optional.of(this);
+        }
+        return super.lookupVariableScope(name);
+    }
+
+    @Override
     public SymbolStorage<Variable> variables() {
         return classType.variables();
     }

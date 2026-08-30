@@ -18,12 +18,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ir.blocks;
+package chipmunk.compiler.ir.expression;
 
-public class TryCatchNode extends LocalBlockNode {
-
-    public TryCatchNode(LocalBlockNode parent) {
-        super(parent);
-    }
-
+public enum AssignmentType {
+    ASSIGN, DUP_ASSIGN
 }

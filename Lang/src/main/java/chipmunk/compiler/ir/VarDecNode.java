@@ -22,8 +22,10 @@ package chipmunk.compiler.ir;
 
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.expression.ExpressionNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.BuiltinTypes;
 
 public class VarDecNode extends ParentNode {
 
@@ -55,7 +57,10 @@ public class VarDecNode extends ParentNode {
     @Override
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
         super.resolveTypes(env, ctx);
-        lookupVariable(name).ifPresent(variable -> variable.type(children.getFirst().inferredType()));
+        var type = children.isEmpty() ? BuiltinTypes.ANY : children.getFirst().inferredType();
+        inferredType(type);
+        System.out.println("Declared type of " + name + ": " + declaredType());
+        lookupVariable(name).ifPresent(variable -> variable.type(type));
     }
 
     @Override
@@ -78,6 +83,21 @@ public class VarDecNode extends ParentNode {
                 env.error(this, "Variable %s does not have a type assigned", name);
             }
         }
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        if(!children().isEmpty()){
+            children().getFirst().evaluate(env, ctx);
+        }else{
+            ctx.pushZeroValue(inferredType());
+        }
+
+        ctx.storeLocal(this, name, inferredType());
+    }
+
+    public Variable variable(){
+        return lookupVariable(name).get();
     }
 
 }

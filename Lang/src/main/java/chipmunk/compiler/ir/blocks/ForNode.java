@@ -20,8 +20,6 @@
 
 package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.ir.LocalBlockNode;
-
 public class ForNode extends LocalBlockNode {
 
     public ForNode(LocalBlockNode parent) {

@@ -22,22 +22,16 @@ package chipmunk.compiler.ir.expression;
 
 import chipmunk.compiler.ir.ParentNode;
 
-public class IdNode extends ExpressionNode {
+public abstract class AssignmentNode extends ExpressionNode {
 
-    protected final String name;
+    protected final AssignmentType assignmentType;
 
-    public IdNode(String name, ParentNode parent) {
+    public AssignmentNode(ParentNode parent, AssignmentType assignmentType) {
         super(parent);
-        this.name = name;
+        this.assignmentType = assignmentType;
     }
 
-    @Override
-    public String toString(){
-        return toString("");
+    public AssignmentType assignmentType() {
+        return assignmentType;
     }
-
-    public String toString(String indent){
-        return indent + "[" + getClass().getSimpleName() + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
-    }
-
 }

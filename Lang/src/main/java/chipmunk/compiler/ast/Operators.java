@@ -45,6 +45,24 @@ public class Operators {
                 && node.getLeft().getRight().is(NodeType.ID);
     }
 
+    public static boolean isRawCall(AstNode node){
+        return false; // TODO
+    }
+
+    public static boolean isAssignment(AstNode node){
+        return node.is(NodeType.OPERATOR)
+                && node.getToken().type() == TokenType.EQUALS;
+    }
+
+    public static boolean isSetAt(AstNode node){
+        return isAssignment(node)
+                && node.getLeft().getToken().type() == TokenType.LBRACKET;
+    }
+
+    public static boolean isSetAttr(AstNode node){
+        return false; // TODO
+    }
+
     public static String getDotCallMethodName(AstNode node){
         return node.getLeft().getRight().getToken().text();
     }

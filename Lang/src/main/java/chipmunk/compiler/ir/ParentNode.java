@@ -123,6 +123,7 @@ public abstract class ParentNode extends IRNode {
             builder.append(children.get(i).toString(indent));
             builder.append("\n");
         }
+        builder.append(indent);
         builder.append("}");
 
         return builder.toString();

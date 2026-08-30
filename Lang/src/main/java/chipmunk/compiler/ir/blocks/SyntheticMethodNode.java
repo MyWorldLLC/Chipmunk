@@ -20,7 +20,6 @@
 
 package chipmunk.compiler.ir.blocks;
 
-import chipmunk.compiler.ir.LocalBlockNode;
 import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 

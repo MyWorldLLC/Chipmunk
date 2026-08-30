@@ -20,17 +20,20 @@
 
 package chipmunk.compiler;
 
-import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ir.blocks.LocalBlockNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.types.*;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.invoke.Binder;
 
 import java.lang.classfile.CodeBuilder;
+import java.lang.classfile.Label;
+import java.lang.classfile.TypeKind;
 import java.lang.constant.*;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.lang.constant.ConstantDescs.*;
 import static java.lang.constant.ConstantDescs.CD_double;
@@ -275,6 +278,18 @@ public class CodeEvaluator {
         return this;
     }
 
+    public CodeEvaluator setLocal(int index, ObjectType type){
+        stack.pop();
+        code.storeLocal(typeKind(type), index);
+        return this;
+    }
+
+    public CodeEvaluator getLocal(int index, ObjectType type){
+        stack.push(type);
+        code.loadLocal(typeKind(type), index);
+        return this;
+    }
+
     public CodeEvaluator newInstance(ObjectType type, Class<?> cls, ObjectType... params){
         return newInstance(type, cls.getName(), params);
     }
@@ -342,6 +357,11 @@ public class CodeEvaluator {
         return this;
     }
 
+    public CodeEvaluator _goto(Label target){
+        code.goto_(target);
+        return this;
+    }
+
     public ObjectType operation(String op, ObjectType... types){
         return stack.doOperation(() -> emitOp(op, types), types);
     }
@@ -350,6 +370,19 @@ public class CodeEvaluator {
         stack.doOperation(to, from);
         conversion.emitter().accept(code);
         return this;
+    }
+
+    public CodeEvaluator ifeq(Label skipLabel){
+        code.ifeq(skipLabel);
+        return this;
+    }
+
+    public void makeBlock(Consumer<CodeBuilder.BlockCodeBuilder> builder){
+        code.block(builder);
+    }
+
+    public CodeBuilder builder(){
+        return code;
     }
 
     public Optional<OpEmitter> getOp(String symbol, ObjectType... types){
@@ -468,6 +501,27 @@ public class CodeEvaluator {
             case "==" -> "equals";
             case "<", ">", "<=", ">=" -> "compare";
             default -> op;
+        };
+    }
+
+    private TypeKind typeKind(ObjectType t){
+        return switch (t){
+            case BooleanType _ -> TypeKind.BOOLEAN;
+            case IntegerType i ->
+                    switch (i.bitSize()){
+                        case 8 -> TypeKind.BYTE;
+                        case 16 -> TypeKind.SHORT;
+                        case 32 -> TypeKind.INT;
+                        case 64 -> TypeKind.LONG;
+                        default -> TypeKind.LONG;
+                    };
+            case FloatType f ->
+                    switch (f.bitSize()){
+                        case 32 -> TypeKind.FLOAT;
+                        case 64 -> TypeKind.DOUBLE;
+                        default -> TypeKind.DOUBLE;
+                    };
+            default -> TypeKind.REFERENCE;
         };
     }
 

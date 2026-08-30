@@ -147,6 +147,7 @@ public class CVMCompiler {
             var ast = parsed.ast();
             var name = Modules.getName(ast).getName();
             var ir = moduleIr.get(i);
+            System.out.println(ir);
             var ctx = new EvaluationContext(compilation, evalEnv);
             ctx.evaluateModule(ir);
             modules.add(new ModuleClasses(name, name, ir, ctx.getEmittedClasses()));

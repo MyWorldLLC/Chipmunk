@@ -20,6 +20,7 @@
 
 package chipmunk.compiler.ir;
 
+import chipmunk.compiler.ir.blocks.LocalBlockNode;
 import chipmunk.compiler.types.BuiltinTypes;
 
 public class StatementBlockNode extends LocalBlockNode {

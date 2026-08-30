@@ -23,37 +23,29 @@ package chipmunk.compiler.ir.expression;
 import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 
-public class LiteralNode extends ExpressionNode {
+public class LocalGetNode extends ExpressionNode {
 
-    private final Object value;
+    protected final String name;
 
-    public LiteralNode(Object value, ObjectType type, ParentNode parent) {
+    public LocalGetNode(String name, ParentNode parent) {
         super(parent);
-        this.value = value;
-        inferredType(type);
-        declaredType(type);
+        this.name = name;
     }
 
-    public Object value(){
-        return value;
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        lookupVariable(name).ifPresent(variable -> inferredType(variable.type()));
     }
 
     @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
-        var code = ctx.codeEvaluator();
-        switch (value){
-            case null -> code.pushNull();
-            case Boolean b -> code.push(b);
-            case Byte b -> code.push(b);
-            case Short s -> code.push(s);
-            case Integer i  -> code.push(i);
-            case Float f -> code.push(f);
-            case Double d -> code.push(d);
-            case String s -> code.push(s);
-            default -> {}
-        }
+        /*var scope = lookupVariableScope(name).get();
+        var index = scope.variables().indexOf(name);
+        ctx.codeEvaluator().getLocal(index, inferredType());*/
+        System.out.println("Loading local " + name + " with inferred type " + inferredType());
+        ctx.loadLocal(this, name, inferredType());
     }
 
     @Override
@@ -62,6 +54,7 @@ public class LiteralNode extends ExpressionNode {
     }
 
     public String toString(String indent){
-        return indent + "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Value: " + value + "]";
+        return indent + "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
     }
+
 }

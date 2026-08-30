@@ -248,7 +248,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""")
+			""", "While loop - no iterations")
 			
 		then:
 		result instanceof Integer
@@ -418,7 +418,7 @@ class MethodVisitorSpecification extends Specification {
 
 		if(test != ""){
 			println("==================== ${test} ====================")
-			println(CompilerUtil.dumpAstTree("exp", methodBody))
+			println(CompilerUtil.dumpIRTree("exp", methodBody))
 		}
 
 		def compiler = new CVMCompiler()

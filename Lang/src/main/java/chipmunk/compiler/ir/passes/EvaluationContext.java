@@ -24,28 +24,29 @@ import chipmunk.compiler.CodeEvaluator;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.Variable;
-import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ast.NodeType;
+import chipmunk.compiler.ir.IRNode;
+import chipmunk.compiler.ir.blocks.LocalBlockNode;
 import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.blocks.ClassNode;
 import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.blocks.ModuleNode;
 import chipmunk.compiler.ir.blocks.SyntheticMethodNode;
-import chipmunk.compiler.types.BuiltinTypes;
-import chipmunk.compiler.types.MethodType;
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.ir.expression.ExpressionNode;
+import chipmunk.compiler.ir.expression.OperationNode;
+import chipmunk.compiler.types.*;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 
 import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
-import java.lang.classfile.constantpool.ClassEntry;
+import java.lang.classfile.Label;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.MethodTypeDesc;
 import java.lang.reflect.AccessFlag;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static java.lang.constant.ConstantDescs.*;
 import static java.lang.constant.ConstantDescs.CD_Object;
 import static java.lang.constant.ConstantDescs.CD_String;
 import static java.lang.constant.ConstantDescs.CD_boolean;
@@ -137,9 +138,7 @@ public class EvaluationContext {
         builder.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
         builder.withMethodBody(method.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
             evaluators.push(new CodeEvaluator(this, code));
-            enterLocalScope(method);
             method.evaluate(env, this);
-            exitMethod();
         });
     }
 
@@ -162,10 +161,73 @@ public class EvaluationContext {
                 });
     }
 
-    public void evaluateVarDec(VarDecNode varDec) {
-        // TODO
+    public void makeBranch(ExpressionNode condition, Label skipLabel){
+        if(condition instanceof OperationNode op && op.children().size() == 2){
+            // TODO - support unary branch intrinsics
+            var left = op.children().getFirst();
+            var right = op.children().getLast();
+
+            var lType = left.inferredType();
+            var rType = right.inferredType();
+
+            if(rType.isAssignableTo(lType)){
+                var emitter = Intrinsics.getBranch(op.operationName(), lType);
+                if(emitter.isPresent()){
+                    left.evaluate(env, this);
+                    right.evaluate(env, this);
+                    emitter.get().emitter().accept(codeEvaluator().builder(), skipLabel);
+                    return;
+                }
+            }
+        }
+
+        // Fallback to generic branch
+        condition.evaluate(env, this);
+        checkAndConvert(condition.inferredType(), BuiltinTypes.BOOLEAN);
+
+        codeEvaluator().ifeq(skipLabel);
     }
 
+    public void storeLocal(IRNode codeSite, String name, ObjectType type){
+        var scope = codeSite.lookupVariableScope(name).get();
+        var index = scope.variables().indexOf(name);
+        var variable = scope.variables().get(index);
+        checkAndConvert(type, variable.type());
+        codeEvaluator().setLocal(index, variable.type());
+    }
+
+    public void loadLocal(IRNode codeSite, String name, ObjectType type){
+        var scope = codeSite.lookupVariableScope(name).get();
+        var index = scope.variables().indexOf(name);
+        var variable = scope.variables().get(index);
+
+        var storedType = variable.type();
+        codeEvaluator().getLocal(index, storedType);
+        checkAndConvert(storedType, type);
+    }
+
+    public void pushZeroValue(ObjectType type){
+        var code = codeEvaluator();
+        switch (type){
+            case BooleanType _ -> code.push(0);
+            case IntegerType i -> {
+                switch (i.bitSize()){
+                    case 8 -> code.push((byte) 0);
+                    case 16 -> code.push((short) 0);
+                    case 32 -> code.push(0);
+                    case 64 -> code.push((long)0);
+                }
+            }
+            case FloatType f -> {
+                switch (f.bitSize()){
+                    case 32 -> code.push(0.0f);
+                    case 64 -> code.push(0.0d);
+                }
+            }
+            case VoidType _ -> throw new IllegalArgumentException("Cannot push void to stack. This is a compiler bug.");
+            default -> code.pushNull();
+        }
+    }
 
     public CodeEvaluator codeEvaluator() {
         return evaluators.peek();
@@ -204,6 +266,8 @@ public class EvaluationContext {
                                 () -> {
                                     throw new IllegalArgumentException("Cannot convert " + actual + " to " + expected);
                                 });
+            }else{
+                throw new IllegalArgumentException("Cannot convert " + actual + " to " + expected + ". This is a compiler bug.");
             }
         }
     }
