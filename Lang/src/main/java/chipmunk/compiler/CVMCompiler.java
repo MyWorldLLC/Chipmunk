@@ -128,13 +128,11 @@ public class CVMCompiler {
     public List<ModuleClasses> compile(Compilation compilation, List<ParsedModule> parsedModules) throws CompileChipmunk {
         prepareAsts(parsedModules);
 
-        var codegen = new CVMCodegen(astResolver, binaryResolver, nativeResolver);
-        //codegen.prepareAsts(parsedModules);
-
         var evalEnv = new EvaluationEnvironment(compilation);
         var irBuilder = new IRBuilder();
 
         var moduleIr = parsedModules.stream().map(m -> irBuilder.buildModule(evalEnv, m.ast())).toList();
+        moduleIr.forEach(ir -> ir.generateInitializers(evalEnv));
         moduleIr.forEach(ir -> ir.markSymbols(evalEnv));
         moduleIr.forEach(ir -> {
             var ctx = new TypeResolutionContext();

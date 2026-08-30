@@ -22,7 +22,9 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.ir.LocalBlockNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.flow.ReturnNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.BuiltinTypes;
@@ -30,18 +32,25 @@ import chipmunk.compiler.types.MethodType;
 
 public class MethodNode extends LocalBlockNode {
 
+    protected final String name;
     protected final MethodType methodType;
 
-    public MethodNode(ParentNode parent, MethodType methodType) {
+    public MethodNode(String name, ParentNode parent, MethodType methodType) {
         super(parent);
+        this.name = name;
         inferredType(methodType);
         this.methodType = methodType;
     }
 
-    public MethodNode(LocalBlockNode parent, MethodType methodType) {
+    public MethodNode(String name, LocalBlockNode parent, MethodType methodType) {
         super(parent);
+        this.name = name;
         inferredType(methodType);
         this.methodType = methodType;
+    }
+
+    public String name(){
+        return name;
     }
 
     public MethodType methodType() {
@@ -57,10 +66,26 @@ public class MethodNode extends LocalBlockNode {
         // TODO - handle unresolved types
         var returnTypes = findDescendants(node -> node instanceof ReturnNode)
                 .map(n -> (ReturnNode) n)
-                .map(n -> n.children().isEmpty() ? BuiltinTypes.ANY : n.inferredType())
+                .map(ReturnNode::inferredType)
+                //.map(n -> n.children().isEmpty() ? BuiltinTypes.ANY : n.inferredType())
                 .distinct()
                 .toList();
 
         methodType.replaceRType(returnTypes.size() != 1 ? BuiltinTypes.ANY : returnTypes.getFirst());
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        for(var child : children){
+            switch (child){
+                case VarDecNode n -> ctx.evaluateVarDec(n);
+                // TODO
+                case ReturnNode n -> {
+                    n.evaluate(env, ctx);
+                    ctx.codeEvaluator()._return(n.inferredType());
+                }
+                default -> {}
+            }
+        }
     }
 }

@@ -23,13 +23,18 @@ package chipmunk.compiler.ir.blocks;
 import chipmunk.compiler.SymbolStorage;
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.*;
+import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.MethodType;
 import chipmunk.compiler.types.ModuleType;
 
 import java.util.Optional;
 
 public class ModuleNode extends ParentNode implements VariableScope {
+
+    public static final String INITIALIZER_NAME = "$module_init$";
 
     protected final ModuleType moduleType;
     protected String fileName;
@@ -71,13 +76,32 @@ public class ModuleNode extends ParentNode implements VariableScope {
     }
 
     @Override
+    public void generateInitializers(EvaluationEnvironment env){
+        super.generateInitializers(env);
+        var init = new MethodNode(INITIALIZER_NAME, this, new MethodType(BuiltinTypes.VOID));
+        // TODO
+        init.addChild(new ReturnNode(init));
+        addChild(init);
+    }
+
+    @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
+
+        for(var child : children){
+            switch (child){
+                case VarDecNode n -> ctx.evaluateVarDec(n);
+                case ClassNode n -> ctx.evaluateClass(n);
+                case MethodNode n -> ctx.evaluateMethod(n);
+                default -> {} // This should never be hit because we've already validated the IR
+            }
+        }
 
         // Initializer emit goes in the following order:
         // 1. Init imports in import order
         // 2. Init class fields
-        // 3. Init variables last. Variables may read class or imported fields.
+        // 3. Run class shared initializers & init variables in declaration order. This allows
+        //    class shared variables & module variables to be initialized in an expected order.
     }
 
     @Override

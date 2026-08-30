@@ -21,6 +21,7 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.blocks.ClassNode;
 import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.blocks.ModuleNode;
@@ -35,6 +36,7 @@ import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.MethodTypeDesc;
+import java.lang.reflect.AccessFlag;
 import java.util.*;
 
 import static java.lang.constant.ConstantDescs.*;
@@ -82,10 +84,12 @@ public class CodegenEvalContext implements EvaluationContext {
 
     public void evaluateModule(ModuleNode module){
         var name = prefixedClassName(module.moduleType().name());
+        var descriptor = ClassDesc.of(name);
 
         var code = ClassFile.of()
-                .build(ClassDesc.of(name), builder -> {
+                .build(descriptor, builder -> {
                     classBuilders.push(builder);
+                    newClass(builder, name, ModuleNode.INITIALIZER_NAME);
                     module.evaluate(env, this);
                     exitModule(module);
                 });
@@ -115,16 +119,25 @@ public class CodegenEvalContext implements EvaluationContext {
 
     public void evaluateMethod(MethodNode method){
         if(classBuilders.isEmpty()){
-            throw new IllegalStateException("Not currently assembling a class. This is a compiler bug.");
         }
         var builder = classBuilders.peek();
         var methodType = method.methodType();
-        builder.withMethodBody(methodType.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
+        builder.withMethodBody(method.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
             evaluators.push(new CodeEvaluator(this, code));
             enterLocalScope(method);
             method.evaluate(env, this);
             exitMethod();
         });
+    }
+
+    @Override
+    public void evaluateVarDec(VarDecNode varDec) {
+        // TODO
+    }
+
+    @Override
+    public CodeEvaluator codeEvaluator() {
+        return evaluators.peek();
     }
 
     protected void exitMethod(){
@@ -147,7 +160,9 @@ public class CodegenEvalContext implements EvaluationContext {
     }
 
     public MethodTypeDesc methodDescriptorFor(MethodType methodType){
-        return MethodTypeDesc.of(descriptorFor(methodType.rType()), methodType.pTypes().stream().map(this::descriptorFor).toList());
+        // We have to skip 1 when generating the JVM descriptor to account for the fact that "self" is in the AST/IR
+        // but not in the JVM's descriptor.
+        return MethodTypeDesc.of(descriptorFor(methodType.rType()), methodType.pTypes().stream().skip(1).map(this::descriptorFor).toList());
     }
 
     protected String prefixedClassName(String name){
@@ -158,6 +173,7 @@ public class CodegenEvalContext implements EvaluationContext {
     }
 
     private void initBuiltinTypes(){
+        typeMapping.put(BuiltinTypes.VOID, CD_void);
         typeMapping.put(BuiltinTypes.ANY, CD_Object);
         typeMapping.put(BuiltinTypes.BOOLEAN, CD_boolean);
         typeMapping.put(BuiltinTypes.BYTE, CD_byte);
@@ -199,5 +215,23 @@ public class CodegenEvalContext implements EvaluationContext {
             typeMapping.put(type, desc);
         }
         return desc;
+    }
+
+    protected void newClass(ClassBuilder builder, String name, String... initMethods){
+        var descriptor = ClassDesc.of(name);
+        builder.withFlags(AccessFlag.PUBLIC)
+                .withMethodBody(INIT_NAME, MTD_void,
+                        ClassFile.ACC_PUBLIC,
+                        init -> {
+                            init.aload(0)
+                                    .invokespecial(CD_Object,
+                                            INIT_NAME, MTD_void);
+                            for(var initMethod : initMethods){
+                                init.aload(0)
+                                        .invokevirtual(descriptor, initMethod, MethodTypeDesc.of(CD_void));
+                            }
+
+                            init.return_();
+                        });
     }
 }

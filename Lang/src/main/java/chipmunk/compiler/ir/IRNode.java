@@ -108,6 +108,8 @@ public abstract class IRNode {
         return inferredType != null;
     }
 
+    public void generateInitializers(EvaluationEnvironment env){}
+
     public void markSymbols(EvaluationEnvironment env){}
 
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){}
@@ -132,6 +134,8 @@ public abstract class IRNode {
             }
         }
     }
+
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){}
 
     public Optional<MethodNode> containingMethodNode(){
         return nearestAncestor(MethodNode.class);
@@ -162,8 +166,6 @@ public abstract class IRNode {
         }
         return Optional.empty();
     }
-
-    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){}
 
     public ModuleNode getModule(){
         var candidate = this;

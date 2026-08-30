@@ -21,11 +21,24 @@
 package chipmunk.compiler.ir.flow;
 
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.BuiltinTypes;
 
 public class ReturnNode extends ParentNode implements FlowControlNode {
 
     public ReturnNode(ParentNode parent) {
         super(parent);
+    }
+
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        super.resolveTypes(env, ctx);
+        if(!children.isEmpty()){
+            inferredType(children.getFirst().inferredType());
+        }else{
+            inferredType(BuiltinTypes.VOID);
+        }
     }
 
 }

@@ -23,6 +23,7 @@ package chipmunk.compiler.ir.expression;
 import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.BuiltinTypes;
@@ -56,8 +57,16 @@ public class OperationNode extends ExpressionNode {
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
         super.resolveTypes(env, ctx);
         // TODO - if not intrinsically defined, fall back to searching for a method definition that will do this operation
-        var maybeOp = Intrinsics.getOperation(operationName, children.stream().map(IRNode::inferredType).toArray(ObjectType[]::new));
+        var maybeOp = Intrinsics.getOperation(operationName, childTypes());
         inferredType(maybeOp.map(Operation::rValue).orElse(BuiltinTypes.ANY));
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        for(var child : children){
+            child.evaluate(env, ctx);
+        }
+        ctx.codeEvaluator().operation(operationName, childTypes());
     }
 
     @Override

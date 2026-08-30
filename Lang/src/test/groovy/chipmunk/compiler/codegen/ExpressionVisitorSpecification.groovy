@@ -20,8 +20,6 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.compiler.ChipmunkCompiler
-import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.vm.ChipmunkVM
 import spock.lang.Specification
 
@@ -343,16 +341,7 @@ class ExpressionVisitorSpecification extends Specification {
 		result == 2
 	}
 	
-	def parseAndCall(String expression, String test = ""){
-		
-		if(test != ""){
-			def compiler = new ChipmunkCompiler()
-			compiler.compileExpression(expression)
-			println()
-			println("============= ${test} =============")
-			println(ChipmunkDisassembler.disassemble(compiler.compileExpression(expression)))
-		}
-
+	def parseAndCall(String expression){
 		return vm.eval(expression)
 	}
 }

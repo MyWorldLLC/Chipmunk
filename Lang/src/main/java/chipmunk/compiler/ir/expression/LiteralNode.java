@@ -21,6 +21,8 @@
 package chipmunk.compiler.ir.expression;
 
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.types.ObjectType;
 
 public class LiteralNode extends ExpressionNode {
@@ -36,6 +38,22 @@ public class LiteralNode extends ExpressionNode {
 
     public Object value(){
         return value;
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+        switch (value){
+            case null -> code.pushNull();
+            case Boolean b -> code.push(b);
+            case Byte b -> code.push(b);
+            case Short s -> code.push(s);
+            case Integer i  -> code.push(i);
+            case Float f -> code.push(f);
+            case Double d -> code.push(d);
+            case String s -> code.push(s);
+            default -> {}
+        }
     }
 
     @Override

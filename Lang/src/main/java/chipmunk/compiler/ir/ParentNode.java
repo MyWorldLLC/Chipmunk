@@ -23,6 +23,7 @@ package chipmunk.compiler.ir;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.ObjectType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,17 @@ public abstract class ParentNode extends IRNode {
 
     public List<IRNode> children() {
         return Collections.unmodifiableList(children);
+    }
+
+    public ObjectType[] childTypes(){
+        return children.stream().map(IRNode::inferredType).toArray(ObjectType[]::new);
+    }
+
+    @Override
+    public void generateInitializers(EvaluationEnvironment env){
+        for(var child : children){
+            child.generateInitializers(env);
+        }
     }
 
     @Override

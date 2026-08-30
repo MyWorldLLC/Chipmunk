@@ -29,6 +29,7 @@ import chipmunk.compiler.ir.flow.ContinueNode;
 import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.flow.ThrowNode;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.lexer.ChipmunkLexer;
 import chipmunk.compiler.parser.parselets.LiteralParselet;
 import chipmunk.compiler.types.*;
 
@@ -122,7 +123,7 @@ public class IRBuilder {
         var rType = getDeclaredType(method);
         var type = new MethodType(rType, pTypes, pNames);
 
-        var irNode = new MethodNode(parent, type);
+        var irNode = new MethodNode(Methods.getName(method).getName(), parent, type);
         populateDebug(irNode, method);
 
         Methods.visitBody(method, statement -> appendStatementToBlockBody(env, irNode, statement));
@@ -246,7 +247,7 @@ public class IRBuilder {
                     }
                     case STRINGLITERAL -> {
                         // strip quotes
-                        String value = exp.getToken().text().substring(1, exp.getToken().text().length() - 1);
+                        String value = ChipmunkLexer.unescapeString(exp.getToken().text().substring(1, exp.getToken().text().length() - 1));
                         yield new LiteralNode(value, BuiltinTypes.STRING, parent);
                     }
                     case NULL -> new LiteralNode(null, BuiltinTypes.ANY, parent);

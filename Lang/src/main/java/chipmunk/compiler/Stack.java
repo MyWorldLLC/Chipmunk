@@ -49,7 +49,7 @@ public class Stack {
         return stack.size();
     }
 
-    public void doOperation(Supplier<ObjectType> rType, ObjectType... pTypes){
+    public ObjectType doOperation(Supplier<ObjectType> rType, ObjectType... pTypes){
         // Operands are pushed in forward order, so to check types we have to
         // go in reverse order
         for(int i = pTypes.length - 1; i >= 0; i--){
@@ -59,7 +59,9 @@ public class Stack {
                 throw new IllegalStateException("Operand type " + pType + " is not assignable to " + stackType);
             }
         }
-        stack.push(rType.get());
+        var resultType = rType.get();
+        stack.push(resultType);
+        return resultType;
     }
 
     public Stream<ObjectType> stream(){

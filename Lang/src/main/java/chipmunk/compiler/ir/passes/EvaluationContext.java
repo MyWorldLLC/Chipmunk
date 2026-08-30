@@ -20,5 +20,22 @@
 
 package chipmunk.compiler.ir.passes;
 
+import chipmunk.compiler.CodeEvaluator;
+import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.VarDecNode;
+import chipmunk.compiler.ir.blocks.ClassNode;
+import chipmunk.compiler.ir.blocks.MethodNode;
+import chipmunk.compiler.ir.blocks.ModuleNode;
+
+import java.util.Optional;
+
 public interface EvaluationContext {
+
+    Optional<Variable> lookupVariable(String varName);
+    void evaluateModule(ModuleNode module);
+    void evaluateClass(ClassNode classNode);
+    void evaluateMethod(MethodNode method);
+    void evaluateVarDec(VarDecNode varDec);
+    CodeEvaluator codeEvaluator();
+
 }

@@ -21,8 +21,7 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.ir.LocalBlockNode;
-import chipmunk.compiler.types.BuiltinTypes;
-import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.types.*;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.invoke.Binder;
 
@@ -71,6 +70,60 @@ public class CodeEvaluator {
         }else{
             localScope = null;
         }
+    }
+
+    public CodeEvaluator push(boolean b){
+        stack.push(BuiltinTypes.BOOLEAN);
+        code.loadConstant(b ? 1 : 0);
+        return this;
+    }
+
+    public CodeEvaluator push(byte b){
+        stack.push(BuiltinTypes.BYTE);
+        code.loadConstant(b);
+        return this;
+    }
+
+    public CodeEvaluator push(short s){
+        stack.push(BuiltinTypes.SHORT);
+        code.loadConstant(s);
+        return this;
+    }
+
+    public CodeEvaluator push(int i){
+        stack.push(BuiltinTypes.INT);
+        code.loadConstant(i);
+        return this;
+    }
+
+    public CodeEvaluator push(long l){
+        stack.push(BuiltinTypes.LONG);
+        code.loadConstant(l);
+        return this;
+    }
+
+    public CodeEvaluator push(float f){
+        stack.push(BuiltinTypes.FLOAT);
+        code.loadConstant(f);
+        return this;
+    }
+
+    public CodeEvaluator push(double d){
+        stack.push(BuiltinTypes.DOUBLE);
+        code.loadConstant(d);
+        return this;
+    }
+
+    public CodeEvaluator push(String s){
+        stack.push(BuiltinTypes.STRING);
+        code.loadConstant(s);
+        return this;
+    }
+
+    public CodeEvaluator pushNull(){
+        stack.push(BuiltinTypes.ANY);
+        code.aconst_null();
+        return this;
     }
 
     public CodeEvaluator add(ObjectType type){
@@ -217,6 +270,31 @@ public class CodeEvaluator {
         //stack.doOperation(() -> emitOp("<", type), type);
         // TODO
         return this;
+    }
+
+    public CodeEvaluator _return(ObjectType type){
+        switch (type){
+            case VoidType v -> code.return_();
+            case BooleanType b -> code.ireturn();
+            case IntegerType i -> {
+                switch (i.bitSize()){
+                    case 8, 16, 32 -> code.ireturn();
+                    case 64 -> code.lreturn();
+                }
+            }
+            case FloatType f -> {
+                switch (f.bitSize()){
+                    case 32 -> code.freturn();
+                    case 64 -> code.dreturn();
+                }
+            }
+            default -> code.areturn();
+        }
+        return this;
+    }
+
+    public ObjectType operation(String op, ObjectType... types){
+        return stack.doOperation(() -> emitOp(op, types), types);
     }
 
     protected ObjectType emitOp(String symbol, ObjectType... types){
