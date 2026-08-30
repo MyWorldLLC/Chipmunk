@@ -54,7 +54,7 @@ public class LocalGetNode extends ExpressionNode {
     }
 
     public String toString(String indent){
-        return indent + "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
+        return "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
     }
 
 }

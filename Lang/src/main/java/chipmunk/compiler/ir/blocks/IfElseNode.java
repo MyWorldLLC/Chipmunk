@@ -20,6 +20,8 @@
 
 package chipmunk.compiler.ir.blocks;
 
+import chipmunk.compiler.types.BuiltinTypes;
+
 /**
  * Holds one or more `IfNode` and optionally an `ElseNode`, representing a chain of `IfElse` statements.
  */
@@ -27,6 +29,8 @@ public class IfElseNode extends LocalBlockNode {
 
     public IfElseNode(LocalBlockNode parent) {
         super(parent);
+        inferredType(BuiltinTypes.VOID);
+        declaredType(BuiltinTypes.VOID);
     }
 
 }

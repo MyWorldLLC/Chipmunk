@@ -22,6 +22,8 @@ package chipmunk.compiler.ir.flow;
 
 import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.types.BuiltinTypes;
 
 public class ContinueNode extends IRNode implements FlowControlNode {
@@ -30,6 +32,11 @@ public class ContinueNode extends IRNode implements FlowControlNode {
         super(parent);
         inferredType(BuiltinTypes.VOID);
         declaredType(BuiltinTypes.VOID);
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        ctx.codeEvaluator()._continue();
     }
 
 }

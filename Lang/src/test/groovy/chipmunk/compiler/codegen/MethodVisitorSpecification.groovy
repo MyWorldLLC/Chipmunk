@@ -357,7 +357,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = 0
 				while(v1 < 5){
 					if(v1 == 3){
-						v1 = v1 + 2
+						v1 = v1 + 3
 						continue
 					}
 					v1 = v1 + 1
@@ -368,7 +368,7 @@ class MethodVisitorSpecification extends Specification {
 			
 		then:
 		result instanceof Integer
-		result == 5
+		result == 6
 	}
 
 	def "Lambda call"(){

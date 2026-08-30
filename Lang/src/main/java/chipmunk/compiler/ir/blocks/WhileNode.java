@@ -59,7 +59,7 @@ public class WhileNode extends LocalBlockNode {
     @Override
     public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
         var code = ctx.codeEvaluator();
-        code.makeBlock(block -> {
+        code.makeLoop(block -> {
             ctx.makeBranch(condition(), block.breakLabel());
             for(var node : body()){
                 node.evaluate(env, ctx);

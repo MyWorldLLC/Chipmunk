@@ -20,6 +20,14 @@
 
 package chipmunk.compiler.ir.blocks;
 
+import chipmunk.compiler.ir.IRNode;
+import chipmunk.compiler.ir.expression.ExpressionNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
+
+import java.util.List;
+
 /**
  * Used within `IfElseNode` to represent a single if-branch of a chain of if-else branches.
  */
@@ -27,7 +35,26 @@ public class IfNode extends LocalBlockNode {
 
     public IfNode(LocalBlockNode parent) {
         super(parent);
+        inferredType(BuiltinTypes.VOID);
+        declaredType(BuiltinTypes.VOID);
     }
 
+    public ExpressionNode condition(){
+        return (ExpressionNode) children.getFirst();
+    }
 
+    public List<IRNode> body(){
+        return children.stream().skip(1).toList();
+    }
+
+    @Override
+    public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+        code.makeBlock(block -> {
+            ctx.makeBranch(condition(), block.breakLabel());
+            for(var node : body()){
+                node.evaluate(env, ctx);
+            }
+        });
+    }
 }

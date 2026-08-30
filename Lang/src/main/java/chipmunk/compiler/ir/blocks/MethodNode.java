@@ -29,6 +29,7 @@ import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.MethodType;
+import chipmunk.compiler.types.VoidType;
 
 public class MethodNode extends LocalBlockNode {
 
@@ -87,11 +88,16 @@ public class MethodNode extends LocalBlockNode {
 
     @Override
     public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
-        if(children.isEmpty()){
-            ctx.codeEvaluator()._return(BuiltinTypes.VOID);
-        }else{
-            for(var child : children){
-                child.evaluate(env, ctx);
+        for(var child : children){
+            child.evaluate(env, ctx);
+        }
+
+        // Generate default return
+        switch (methodType.rType()){
+            case VoidType _ -> ctx.codeEvaluator()._return(BuiltinTypes.VOID);
+            default -> {
+                ctx.pushZeroValue(methodType.rType());
+                ctx.codeEvaluator()._return(methodType.rType());
             }
         }
     }

@@ -169,17 +169,19 @@ public class IRBuilder {
         var irNode = new IfElseNode(parent);
         for(int i = 0; i < ifElse.childCount(); i++){
             var branch = ifElse.getChild(i);
-            if(i < ifElse.childCount() - 1){
+            if(branch.is(NodeType.IF)){
                 // If branches
                 var block = new IfNode(irNode);
                 block.addChild(buildExpression(env, block, branch.getChild()));
                 branch.visitChildren(statement -> appendStatementToBlockBody(env, block, statement), 1);
                 irNode.addChild(block);
-            }else{
+            }else if(branch.is(NodeType.ELSE)){
                 // Else block
                 var block = new ElseNode(irNode);
-                branch.visit(statement -> appendStatementToBlockBody(env, block, statement));
+                branch.visitChildren(statement -> appendStatementToBlockBody(env, block, statement));
                 irNode.addChild(block);
+            } else {
+                throw new IllegalArgumentException("Invalid if-else branch child: " + branch.getNodeType());
             }
         }
         return irNode;

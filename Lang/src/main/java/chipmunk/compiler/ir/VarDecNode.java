@@ -59,7 +59,6 @@ public class VarDecNode extends ParentNode {
         super.resolveTypes(env, ctx);
         var type = children.isEmpty() ? BuiltinTypes.ANY : children.getFirst().inferredType();
         inferredType(type);
-        System.out.println("Declared type of " + name + ": " + declaredType());
         lookupVariable(name).ifPresent(variable -> variable.type(type));
     }
 

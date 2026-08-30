@@ -83,5 +83,9 @@ public abstract class LocalBlockNode extends ParentNode implements VariableScope
         ctx.exitLocalScope();
     }
 
-    protected void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){}
+    protected void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
+        for(var child : children){
+            child.evaluate(env, ctx);
+        }
+    }
 }

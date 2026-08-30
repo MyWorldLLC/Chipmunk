@@ -62,6 +62,6 @@ public class LiteralNode extends ExpressionNode {
     }
 
     public String toString(String indent){
-        return indent + "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Value: " + value + "]";
+        return "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Value: " + value + "]";
     }
 }

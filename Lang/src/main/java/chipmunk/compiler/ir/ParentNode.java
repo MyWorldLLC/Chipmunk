@@ -113,19 +113,25 @@ public abstract class ParentNode extends IRNode {
         var base = super.toString(indent);
         var builder = new StringBuilder();
         builder.append(base);
+        builder.append(childrenToString(indent + "  "));
+        return builder.toString();
+    }
+
+    protected String childrenToString(String indent){
+        var builder = new StringBuilder();
+        builder.append("\n");
+        builder.append(indent);
         builder.append("{");
-        indent += "  ";
         for(int i =  0; i < children.size(); ++i){
             builder.append("\n");
-            builder.append(indent);
+            builder.append(indent + "  ");
             builder.append(i);
-            builder.append(": \n");
-            builder.append(children.get(i).toString(indent));
-            builder.append("\n");
+            builder.append(": ");
+            builder.append(children.get(i).toString(indent + "  "));
         }
+        builder.append("\n");
         builder.append(indent);
         builder.append("}");
-
         return builder.toString();
     }
 

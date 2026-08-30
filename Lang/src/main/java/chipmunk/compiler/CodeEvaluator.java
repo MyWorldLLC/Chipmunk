@@ -44,9 +44,13 @@ import static java.lang.constant.ConstantDescs.CD_short;
 
 public class CodeEvaluator {
 
+    public record BlockLabels(Label start, Label end, boolean isLoop) {}
+
     protected final Stack stack = new Stack();
     protected final CodeBuilder code;
     protected final EvaluationContext ctx;
+
+    protected final Deque<BlockLabels> blockLabels;
 
     protected LocalBlockNode localScope;
 
@@ -55,7 +59,8 @@ public class CodeEvaluator {
     public CodeEvaluator(EvaluationContext ctx, CodeBuilder code){
         this.ctx = ctx;
         this.code = code;
-        this.typeMapping = new IdentityHashMap<>();
+        typeMapping = new IdentityHashMap<>();
+        blockLabels = new ArrayDeque<>();
         initBuiltinTypes();
     }
 
@@ -377,8 +382,30 @@ public class CodeEvaluator {
         return this;
     }
 
+    public void makeLoop(Consumer<CodeBuilder.BlockCodeBuilder> builder){
+        makeBlock(true, builder);
+    }
+
     public void makeBlock(Consumer<CodeBuilder.BlockCodeBuilder> builder){
-        code.block(builder);
+        makeBlock(false, builder);
+    }
+
+    public void makeBlock(boolean isLoop, Consumer<CodeBuilder.BlockCodeBuilder> builder){
+        code.block(block -> {
+            blockLabels.push(new BlockLabels(block.startLabel(), block.endLabel(), isLoop));
+            builder.accept(block);
+            blockLabels.pop();
+        });
+    }
+
+    public CodeEvaluator _break(){
+        code.goto_(nearestLoop().end());
+        return this;
+    }
+
+    public CodeEvaluator _continue(){
+        code.goto_(nearestLoop().start());
+        return this;
     }
 
     public CodeBuilder builder(){
@@ -523,6 +550,15 @@ public class CodeEvaluator {
                     };
             default -> TypeKind.REFERENCE;
         };
+    }
+
+    protected BlockLabels nearestLoop(){
+        for(var block : blockLabels){
+            if(block.isLoop()){
+                return block;
+            }
+        }
+        return null;
     }
 
     protected MethodTypeDesc methodDescriptor(ObjectType rType, ObjectType... pTypes){

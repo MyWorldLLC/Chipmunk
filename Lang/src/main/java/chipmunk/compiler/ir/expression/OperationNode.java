@@ -87,7 +87,7 @@ public class OperationNode extends ExpressionNode {
     }
 
     public String toString(String indent){
-        return indent + "[" + getClass().getSimpleName() + "(" + operationName + ") " + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + "]";
+        return "[" + getClass().getSimpleName() + "(" + operationName + ") " + "Inferred Type: " + inferredType + " Declared Type: " + declaredType + "]" + childrenToString(indent + "  ");
     }
 
 }
