@@ -18,34 +18,19 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ir.flow;
+package chipmunk.compiler.ir.blocks;
 
+import chipmunk.compiler.ir.LocalBlockNode;
 import chipmunk.compiler.ir.ParentNode;
-import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
-import chipmunk.compiler.ir.passes.TypeResolutionContext;
-import chipmunk.compiler.types.BuiltinTypes;
 
-public class ReturnNode extends ParentNode implements FlowControlNode {
+public class SyntheticMethodNode extends LocalBlockNode {
 
-    public ReturnNode(ParentNode parent) {
-        super(parent);
+    public SyntheticMethodNode() {
+        super((ParentNode) null);
     }
 
-    @Override
-    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
-        super.resolveTypes(env, ctx);
-        if(!children.isEmpty()){
-            inferredType(children.getFirst().inferredType());
-        }else{
-            inferredType(BuiltinTypes.VOID);
-        }
+    public void markSymbols(EvaluationEnvironment env){
+        throw new IllegalStateException("Synthetic method nodes are only for use during code generation, and may not be attached to the IR tree. This is a compiler bug.");
     }
-
-    @Override
-    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
-        super.evaluate(env, ctx);
-        ctx.codeEvaluator()._return(inferredType());
-    }
-
 }

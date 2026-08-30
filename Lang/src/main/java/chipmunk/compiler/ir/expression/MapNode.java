@@ -21,11 +21,40 @@
 package chipmunk.compiler.ir.expression;
 
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapNode extends ExpressionNode {
 
     public MapNode(ParentNode parent) {
         super(parent);
+        inferredType(BuiltinTypes.MAP);
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+        code.newInstance(BuiltinTypes.MAP, HashMap.class);
+
+        for(int i = 0; i < children.size(); i += 2){
+            code.dup();
+            // Key
+            var key = children.get(i);
+            key.evaluate(env, ctx);
+            ctx.checkAndConvert(key.inferredType(), BuiltinTypes.ANY);
+
+            // Value
+            var value = children.get(i + 1);
+            value.evaluate(env, ctx);
+            ctx.checkAndConvert(value.inferredType(), BuiltinTypes.ANY);
+
+            code.invokeInterface(BuiltinTypes.ANY, Map.class, "put", BuiltinTypes.ANY, BuiltinTypes.ANY);
+            code.pop(); // Pop the object result of put()
+        }
     }
 
 }

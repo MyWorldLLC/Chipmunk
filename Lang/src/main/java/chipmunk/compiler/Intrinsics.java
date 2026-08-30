@@ -366,7 +366,7 @@ public class Intrinsics {
                 conversion(INT,     BOOLEAN, c -> c.invokestatic(CD_Runtime, "b2i", MethodTypeDesc.of(CD_int, CD_boolean))),
                 conversion(LONG,    BOOLEAN, c -> c.invokestatic(CD_Runtime, "b2i", MethodTypeDesc.of(CD_int, CD_boolean)).i2l()),
                 conversion(STRING,  BOOLEAN, c -> c.invokestatic(CD_Runtime, "b2s", MethodTypeDesc.of(CD_String, CD_boolean))),
-                conversion(ANY,     BOOLEAN, c -> c.invokestatic(CD_Runtime, "b2a", MethodTypeDesc.of(CD_Object, CD_boolean)))
+                conversion(ANY,     BOOLEAN, c -> c.invokestatic(CD_Runtime, "b2a", MethodTypeDesc.of(CD_Boolean, CD_boolean)))
         ));
 
         // Byte conversions
@@ -378,7 +378,7 @@ public class Intrinsics {
                 conversion(FLOAT,   BYTE, CodeBuilder::i2f),
                 conversion(DOUBLE,  BYTE, c -> c.i2f().i2d()),
                 conversion(STRING,  BYTE, c -> c.invokestatic(CD_Runtime, "i2s", MethodTypeDesc.of(CD_String, CD_int))),
-                conversion(ANY,     BYTE, c -> c.invokestatic(CD_Runtime, "b2a", MethodTypeDesc.of(CD_Object, CD_byte)))
+                conversion(ANY,     BYTE, c -> c.invokestatic(CD_Runtime, "b2a", MethodTypeDesc.of(CD_Byte, CD_byte)))
         ));
 
         // Short conversions
@@ -390,7 +390,7 @@ public class Intrinsics {
                 conversion(FLOAT,   SHORT, CodeBuilder::i2f),
                 conversion(DOUBLE,  SHORT, c -> c.i2f().i2d()),
                 conversion(STRING,  SHORT, c -> c.invokestatic(CD_Runtime, "i2s", MethodTypeDesc.of(CD_String, CD_int))),
-                conversion(ANY,     SHORT, c -> c.invokestatic(CD_Runtime, "s2a", MethodTypeDesc.of(CD_Object, CD_short)))
+                conversion(ANY,     SHORT, c -> c.invokestatic(CD_Runtime, "s2a", MethodTypeDesc.of(CD_Short, CD_short)))
         ));
 
         // Int conversions
@@ -402,7 +402,7 @@ public class Intrinsics {
                 conversion(FLOAT,   INT, CodeBuilder::i2f),
                 conversion(DOUBLE,  INT, CodeBuilder::i2d),
                 conversion(STRING,  INT, c -> c.invokestatic(CD_Runtime, "i2s", MethodTypeDesc.of(CD_String, CD_int))),
-                conversion(ANY,     INT, c -> c.invokestatic(CD_Runtime, "i2a", MethodTypeDesc.of(CD_Object, CD_int)))
+                conversion(ANY,     INT, c -> c.invokestatic(CD_Runtime, "i2a", MethodTypeDesc.of(CD_Integer, CD_int)))
         ));
 
         // Long conversions
@@ -414,7 +414,7 @@ public class Intrinsics {
                 conversion(FLOAT,   LONG, CodeBuilder::l2f),
                 conversion(DOUBLE,  LONG, CodeBuilder::l2d),
                 conversion(STRING,  LONG, c -> c.invokestatic(CD_Runtime, "l2s", MethodTypeDesc.of(CD_String, CD_long))),
-                conversion(ANY,     LONG, c -> c.invokestatic(CD_Runtime, "l2a", MethodTypeDesc.of(CD_Object, CD_long)))
+                conversion(ANY,     LONG, c -> c.invokestatic(CD_Runtime, "l2a", MethodTypeDesc.of(CD_Long, CD_long)))
         ));
 
         // Float conversions
@@ -425,7 +425,7 @@ public class Intrinsics {
                 conversion(INT,     FLOAT, CodeBuilder::f2i),
                 conversion(DOUBLE,  FLOAT, CodeBuilder::f2d),
                 conversion(STRING,  FLOAT, c -> c.invokestatic(CD_Runtime, "f2s", MethodTypeDesc.of(CD_String, CD_float))),
-                conversion(ANY,     FLOAT, c -> c.invokestatic(CD_Runtime, "f2a", MethodTypeDesc.of(CD_Object, CD_float)))
+                conversion(ANY,     FLOAT, c -> c.invokestatic(CD_Runtime, "f2a", MethodTypeDesc.of(CD_Float, CD_float)))
         ));
 
         // Double conversions
@@ -436,7 +436,7 @@ public class Intrinsics {
                 conversion(INT,     DOUBLE, CodeBuilder::d2i),
                 conversion(FLOAT,   DOUBLE, CodeBuilder::d2f),
                 conversion(STRING,  DOUBLE, c -> c.invokestatic(CD_Runtime, "d2s", MethodTypeDesc.of(CD_String, CD_float))),
-                conversion(ANY,     DOUBLE, c -> c.invokestatic(CD_Runtime, "d2a", MethodTypeDesc.of(CD_Object, CD_double)))
+                conversion(ANY,     DOUBLE, c -> c.invokestatic(CD_Runtime, "d2a", MethodTypeDesc.of(CD_Double, CD_double)))
         ));
 
         // Unboxing conversions

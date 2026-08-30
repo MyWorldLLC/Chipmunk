@@ -21,6 +21,7 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.ir.LocalBlockNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.types.*;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.invoke.Binder;
@@ -42,13 +43,13 @@ public class CodeEvaluator {
 
     protected final Stack stack = new Stack();
     protected final CodeBuilder code;
-    protected final CodegenEvalContext ctx;
+    protected final EvaluationContext ctx;
 
     protected LocalBlockNode localScope;
 
     private final Map<ObjectType, ClassDesc> typeMapping;
 
-    public CodeEvaluator(CodegenEvalContext ctx, CodeBuilder code){
+    public CodeEvaluator(EvaluationContext ctx, CodeBuilder code){
         this.ctx = ctx;
         this.code = code;
         this.typeMapping = new IdentityHashMap<>();
@@ -267,15 +268,63 @@ public class CodeEvaluator {
     }
 
     public CodeEvaluator instanceOf(ObjectType type, String clsName){
-        //stack.doOperation(() -> emitOp("<", type), type);
-        // TODO
+        // TODO - need to make sure this is only called for reference types or
+        // do something sensible for primitives (such as compile-time evaluation).
+        stack.pop();
+        code.instanceOf(ClassDesc.of(clsName));
+        return this;
+    }
+
+    public CodeEvaluator newInstance(ObjectType type, Class<?> cls, ObjectType... params){
+        return newInstance(type, cls.getName(), params);
+    }
+
+    public CodeEvaluator newInstance(ObjectType rType, String clsName, ObjectType... params){
+        stack.doOperation(rType, params);
+        var target = ClassDesc.of(clsName);
+        code.new_(target)
+                .dup()
+                .invokespecial(target, INIT_NAME, methodDescriptor(BuiltinTypes.VOID, params));
+        return this;
+    }
+
+    public CodeEvaluator invokeVirtual(ObjectType type, Class<?> cls, String method, ObjectType... params){
+        return invokeVirtual(type, cls.getName(), method, params);
+    }
+
+    public CodeEvaluator invokeVirtual(ObjectType rType, String clsName, String method, ObjectType... params){
+        stack.doOperation(rType, params);
+        var target = ClassDesc.of(clsName);
+        code.invokevirtual(target, method, methodDescriptor(rType, params));
+        return this;
+    }
+
+    public CodeEvaluator invokeInterface(ObjectType type, Class<?> cls, String method, ObjectType... params){
+        return invokeInterface(type, cls.getName(), method, params);
+    }
+
+    public CodeEvaluator invokeInterface(ObjectType rType, String clsName, String method, ObjectType... params){
+        stack.doOperation(rType, params);
+        code.invokeinterface(ClassDesc.of(clsName), method, methodDescriptor(rType, params));
+        return this;
+    }
+
+    public CodeEvaluator pop(){
+        stack.pop();
+        code.pop();
+        return this;
+    }
+
+    public CodeEvaluator dup(){
+        stack.dup();
+        code.dup();
         return this;
     }
 
     public CodeEvaluator _return(ObjectType type){
         switch (type){
-            case VoidType v -> code.return_();
-            case BooleanType b -> code.ireturn();
+            case VoidType _ -> code.return_();
+            case BooleanType _ -> code.ireturn();
             case IntegerType i -> {
                 switch (i.bitSize()){
                     case 8, 16, 32 -> code.ireturn();
@@ -297,8 +346,18 @@ public class CodeEvaluator {
         return stack.doOperation(() -> emitOp(op, types), types);
     }
 
+    public CodeEvaluator conversion(ObjectType from, ObjectType to, ConversionEmitter conversion){
+        stack.doOperation(to, from);
+        conversion.emitter().accept(code);
+        return this;
+    }
+
+    public Optional<OpEmitter> getOp(String symbol, ObjectType... types){
+        return Intrinsics.getEmitter(symbol, types);
+    }
+
     protected ObjectType emitOp(String symbol, ObjectType... types){
-        var intrinsic = Intrinsics.getEmitter(symbol, types);
+        var intrinsic = getOp(symbol, types);
         return intrinsic.map(emitter -> {
             emitter.emitter().accept(code);
             return emitter.op().rValue();
@@ -377,6 +436,7 @@ public class CodeEvaluator {
     }
 
     private void initBuiltinTypes(){
+        typeMapping.put(BuiltinTypes.VOID, CD_void);
         typeMapping.put(BuiltinTypes.ANY, CD_Object);
         typeMapping.put(BuiltinTypes.BOOLEAN, CD_boolean);
         typeMapping.put(BuiltinTypes.BYTE, CD_byte);
@@ -386,8 +446,8 @@ public class CodeEvaluator {
         typeMapping.put(BuiltinTypes.FLOAT, CD_float);
         typeMapping.put(BuiltinTypes.DOUBLE, CD_double);
         typeMapping.put(BuiltinTypes.STRING, CD_String);
-        typeMapping.put(BuiltinTypes.LIST, descriptorFor(Map.class));
-        typeMapping.put(BuiltinTypes.MAP, descriptorFor(List.class));
+        typeMapping.put(BuiltinTypes.LIST, descriptorFor(List.class));
+        typeMapping.put(BuiltinTypes.MAP, descriptorFor(Map.class));
     }
 
     private String binaryOpNames(String op){
@@ -409,6 +469,10 @@ public class CodeEvaluator {
             case "<", ">", "<=", ">=" -> "compare";
             default -> op;
         };
+    }
+
+    protected MethodTypeDesc methodDescriptor(ObjectType rType, ObjectType... pTypes){
+        return MethodTypeDesc.of(descriptorFor(rType), Arrays.stream(pTypes).map(this::descriptorFor).toArray(ClassDesc[]::new));
     }
 
 }

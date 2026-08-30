@@ -67,7 +67,6 @@ public class MethodNode extends LocalBlockNode {
         var returnTypes = findDescendants(node -> node instanceof ReturnNode)
                 .map(n -> (ReturnNode) n)
                 .map(ReturnNode::inferredType)
-                //.map(n -> n.children().isEmpty() ? BuiltinTypes.ANY : n.inferredType())
                 .distinct()
                 .toList();
 
@@ -80,10 +79,7 @@ public class MethodNode extends LocalBlockNode {
             switch (child){
                 case VarDecNode n -> ctx.evaluateVarDec(n);
                 // TODO
-                case ReturnNode n -> {
-                    n.evaluate(env, ctx);
-                    ctx.codeEvaluator()._return(n.inferredType());
-                }
+                case ReturnNode n -> n.evaluate(env, ctx);
                 default -> {}
             }
         }

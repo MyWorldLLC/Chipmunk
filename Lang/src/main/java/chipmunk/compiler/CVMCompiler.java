@@ -25,6 +25,7 @@ import chipmunk.compiler.imports.AstImportResolver;
 import chipmunk.compiler.imports.BinaryImportResolver;
 import chipmunk.compiler.imports.NativeImportResolver;
 import chipmunk.compiler.ir.IRBuilder;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.lexer.ChipmunkLexer;
@@ -132,7 +133,6 @@ public class CVMCompiler {
         var irBuilder = new IRBuilder();
 
         var moduleIr = parsedModules.stream().map(m -> irBuilder.buildModule(evalEnv, m.ast())).toList();
-        moduleIr.forEach(ir -> ir.generateInitializers(evalEnv));
         moduleIr.forEach(ir -> ir.markSymbols(evalEnv));
         moduleIr.forEach(ir -> {
             var ctx = new TypeResolutionContext();
@@ -147,7 +147,7 @@ public class CVMCompiler {
             var ast = parsed.ast();
             var name = Modules.getName(ast).getName();
             var ir = moduleIr.get(i);
-            var ctx = new CodegenEvalContext(compilation, evalEnv);
+            var ctx = new EvaluationContext(compilation, evalEnv);
             ctx.evaluateModule(ir);
             modules.add(new ModuleClasses(name, name, ir, ctx.getEmittedClasses()));
         }

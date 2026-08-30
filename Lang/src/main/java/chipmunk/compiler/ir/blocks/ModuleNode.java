@@ -76,18 +76,8 @@ public class ModuleNode extends ParentNode implements VariableScope {
     }
 
     @Override
-    public void generateInitializers(EvaluationEnvironment env){
-        super.generateInitializers(env);
-        var init = new MethodNode(INITIALIZER_NAME, this, new MethodType(BuiltinTypes.VOID));
-        // TODO
-        init.addChild(new ReturnNode(init));
-        addChild(init);
-    }
-
-    @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
-
         for(var child : children){
             switch (child){
                 case VarDecNode n -> ctx.evaluateVarDec(n);
@@ -97,11 +87,21 @@ public class ModuleNode extends ParentNode implements VariableScope {
             }
         }
 
+       // super.generateInitializers(env);
+        //var init = new MethodNode(INITIALIZER_NAME, this, new MethodType(BuiltinTypes.VOID));
         // Initializer emit goes in the following order:
         // 1. Init imports in import order
         // 2. Init class fields
         // 3. Run class shared initializers & init variables in declaration order. This allows
         //    class shared variables & module variables to be initialized in an expected order.
+        // TODO
+        //init.addChild(new ReturnNode(init));
+        //addChild(init);
+
+        ctx.writeSyntheticMethod(INITIALIZER_NAME, new MethodType(BuiltinTypes.VOID), code -> {
+            code._return(BuiltinTypes.VOID);
+        });
+
     }
 
     @Override

@@ -45,6 +45,12 @@ public class Stack {
         return stack.pop();
     }
 
+    public void pop(int count){
+        for(int i = 0; i < count; i++){
+            stack.pop();
+        }
+    }
+
     public int depth(){
         return stack.size();
     }
@@ -55,13 +61,17 @@ public class Stack {
         for(int i = pTypes.length - 1; i >= 0; i--){
             var pType = pTypes[i];
             var stackType = stack.pop();
-            if(!pType.isAssignableTo(stackType)){
-                throw new IllegalStateException("Operand type " + pType + " is not assignable to " + stackType);
+            if(!stackType.isAssignableTo(pType)){
+                throw new IllegalStateException("Operand type " + stackType + " is not assignable to " + pType + " @ " + i);
             }
         }
         var resultType = rType.get();
         stack.push(resultType);
         return resultType;
+    }
+
+    public ObjectType doOperation(ObjectType rType, ObjectType... pTypes){
+        return doOperation(() -> rType, pTypes);
     }
 
     public Stream<ObjectType> stream(){

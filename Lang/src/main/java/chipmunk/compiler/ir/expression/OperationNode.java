@@ -30,6 +30,8 @@ import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.ObjectType;
 import chipmunk.compiler.types.Operation;
 
+import java.util.Arrays;
+
 /**
  * Note that this is not called 'OperatorNode' because the IR builder will translate
  * multi-node syntaxes (such as a.b(), a[b] = c, etc) into their logical operations (callAt, setAt, etc).
@@ -63,10 +65,20 @@ public class OperationNode extends ExpressionNode {
 
     @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
-        for(var child : children){
+        var types = childTypes();
+        var opTypes = Intrinsics.getOperation(operationName, types).map(Operation::pValues).orElse(null);
+        for(int i = 0; i < children.size(); i++){
+            var child = children.get(i);
             child.evaluate(env, ctx);
+
+            var actualType = types[i];
+            var expected = opTypes != null ? opTypes[i] : BuiltinTypes.ANY;
+            if(!actualType.isAssignableTo(expected)){
+                ctx.checkAndConvert(actualType, expected);
+                types[i] = expected;
+            }
         }
-        ctx.codeEvaluator().operation(operationName, childTypes());
+        ctx.codeEvaluator().operation(operationName, types);
     }
 
     @Override

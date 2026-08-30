@@ -108,8 +108,6 @@ public abstract class IRNode {
         return inferredType != null;
     }
 
-    public void generateInitializers(EvaluationEnvironment env){}
-
     public void markSymbols(EvaluationEnvironment env){}
 
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){}

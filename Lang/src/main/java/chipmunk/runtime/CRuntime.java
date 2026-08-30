@@ -310,31 +310,31 @@ public class CRuntime {
         return Double.toString(a);
     }
 
-    public static Object b2a(boolean a){
+    public static Boolean b2a(boolean a){
         return a;
     }
 
-    public static Object b2a(byte a){
+    public static Byte b2a(byte a){
         return a;
     }
 
-    public static Object s2a(short a){
+    public static Short s2a(short a){
         return a;
     }
 
-    public static Object i2a(int a){
+    public static Integer i2a(int a){
         return a;
     }
 
-    public static Object l2a(long a){
+    public static Long l2a(long a){
         return a;
     }
 
-    public static Object f2a(float a){
+    public static Float f2a(float a){
         return a;
     }
 
-    public static Object d2a(double a){
+    public static Double d2a(double a){
         return a;
     }
 

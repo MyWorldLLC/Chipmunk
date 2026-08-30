@@ -21,11 +21,32 @@
 package chipmunk.compiler.ir.expression;
 
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ListNode extends ExpressionNode {
 
     public ListNode(ParentNode parent) {
         super(parent);
+        inferredType(BuiltinTypes.LIST);
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+        code.newInstance(BuiltinTypes.LIST, ArrayList.class);
+
+        for(var child : children){
+            code.dup();
+            child.evaluate(env, ctx);
+            ctx.checkAndConvert(child.inferredType(), BuiltinTypes.ANY);
+            code.invokeInterface(BuiltinTypes.BOOLEAN, List.class, "add", BuiltinTypes.ANY);
+            code.pop(); // Pop the boolean result of add()
+        }
     }
 
 }

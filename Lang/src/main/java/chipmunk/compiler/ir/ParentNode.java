@@ -67,13 +67,6 @@ public abstract class ParentNode extends IRNode {
     }
 
     @Override
-    public void generateInitializers(EvaluationEnvironment env){
-        for(var child : children){
-            child.generateInitializers(env);
-        }
-    }
-
-    @Override
     public void markSymbols(EvaluationEnvironment env){
         for(var child : children){
             child.markSymbols(env);

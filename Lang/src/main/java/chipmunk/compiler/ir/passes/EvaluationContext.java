@@ -21,21 +21,260 @@
 package chipmunk.compiler.ir.passes;
 
 import chipmunk.compiler.CodeEvaluator;
+import chipmunk.compiler.Compilation;
+import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.LocalBlockNode;
 import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.blocks.ClassNode;
 import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.blocks.ModuleNode;
+import chipmunk.compiler.ir.blocks.SyntheticMethodNode;
+import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.MethodType;
+import chipmunk.compiler.types.ObjectType;
+import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.MethodBinding;
 
-import java.util.Optional;
+import java.lang.classfile.ClassBuilder;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.constantpool.ClassEntry;
+import java.lang.constant.ClassDesc;
+import java.lang.constant.MethodTypeDesc;
+import java.lang.reflect.AccessFlag;
+import java.util.*;
+import java.util.function.Consumer;
 
-public interface EvaluationContext {
+import static java.lang.constant.ConstantDescs.*;
+import static java.lang.constant.ConstantDescs.CD_Object;
+import static java.lang.constant.ConstantDescs.CD_String;
+import static java.lang.constant.ConstantDescs.CD_boolean;
+import static java.lang.constant.ConstantDescs.CD_byte;
+import static java.lang.constant.ConstantDescs.CD_double;
+import static java.lang.constant.ConstantDescs.CD_float;
+import static java.lang.constant.ConstantDescs.CD_int;
+import static java.lang.constant.ConstantDescs.CD_long;
+import static java.lang.constant.ConstantDescs.CD_short;
+import static java.lang.constant.ConstantDescs.CD_void;
+import static java.lang.constant.ConstantDescs.INIT_NAME;
+import static java.lang.constant.ConstantDescs.MTD_void;
 
-    Optional<Variable> lookupVariable(String varName);
-    void evaluateModule(ModuleNode module);
-    void evaluateClass(ClassNode classNode);
-    void evaluateMethod(MethodNode method);
-    void evaluateVarDec(VarDecNode varDec);
-    CodeEvaluator codeEvaluator();
+public class EvaluationContext {
 
+    protected final Compilation compilation;
+    protected final EvaluationEnvironment env;
+    protected final Deque<CodeEvaluator> evaluators;
+    protected final Deque<ClassBuilder> classBuilders;
+
+    protected final Map<ObjectType, ClassDesc> typeMapping;
+
+    protected final Map<String, byte[]> classes;
+
+    public EvaluationContext(Compilation compilation, EvaluationEnvironment env) {
+        this.compilation = compilation;
+        this.env = env;
+
+        evaluators = new ArrayDeque<>();
+        classBuilders = new ArrayDeque<>();
+        classes = new HashMap<>();
+
+        typeMapping = new IdentityHashMap<>();
+        initBuiltinTypes();
+    }
+
+    public Map<String, byte[]> getEmittedClasses(){
+        return Collections.unmodifiableMap(classes);
+    }
+
+    public Optional<Variable> lookupVariable(String varName){
+        if(evaluators.isEmpty()){
+            throw new IllegalStateException("Not currently assembling a method. This is a compiler bug.");
+        }
+        return evaluators.peek().localScope().lookupVariable(varName);
+    }
+
+    public void evaluateModule(ModuleNode module){
+        var name = prefixedClassName(module.moduleType().name());
+        var descriptor = ClassDesc.of(name);
+
+        var code = ClassFile.of()
+                .build(descriptor, builder -> {
+                    classBuilders.push(builder);
+                    newClass(builder, name, ModuleNode.INITIALIZER_NAME);
+                    module.evaluate(env, this);
+                    exitModule(module);
+                });
+        classes.put(name, code);
+    }
+
+    protected void exitModule(ModuleNode module){
+        classBuilders.pop();
+    }
+
+    public void evaluateClass(ClassNode classNode) {
+
+        var name = prefixedClassName(classNode.classType().name());
+
+        var code = ClassFile.of()
+                .build(ClassDesc.of(name), builder -> {
+                    classBuilders.push(builder);
+                    classNode.evaluate(env, this);
+                    exitClass(classNode);
+                });
+        classes.put(name, code);
+    }
+
+    protected void exitClass(ClassNode classNode) {
+        classBuilders.pop();
+    }
+
+    public void evaluateMethod(MethodNode method){
+        if(classBuilders.isEmpty()){
+            throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
+        }
+        var builder = classBuilders.peek();
+        var methodType = method.methodType();
+        builder.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
+        builder.withMethodBody(method.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
+            evaluators.push(new CodeEvaluator(this, code));
+            enterLocalScope(method);
+            method.evaluate(env, this);
+            exitMethod();
+        });
+    }
+
+    /**
+     * Synthetic methods are methods that are necessary for JVM interop or other under-the-hood functionality,
+     * but don't exist in the IR (such as module/class initializers). Note that the code evaluator used here has
+     * no ability to resolve local variables.
+     */
+    public void writeSyntheticMethod(String name, MethodType methodType, Consumer<CodeEvaluator> builder){
+        if(classBuilders.isEmpty()){
+            throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
+        }
+        var clsBuilder = classBuilders.peek();
+        clsBuilder.withMethodBody(name, methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC,
+                code -> {
+                    var evaluator = new CodeEvaluator(this, code);
+                    evaluator.enterLocalScope(new SyntheticMethodNode());
+                    builder.accept(evaluator);
+                    evaluator.exitLocalScope();
+                });
+    }
+
+    public void evaluateVarDec(VarDecNode varDec) {
+        // TODO
+    }
+
+
+    public CodeEvaluator codeEvaluator() {
+        return evaluators.peek();
+    }
+
+    protected void exitMethod(){
+        exitLocalScope();
+        evaluators.pop();
+    }
+
+    public void enterLocalScope(LocalBlockNode scope){
+        if(evaluators.isEmpty()){
+            throw new IllegalStateException("Not currently assembling a method. This is a compiler bug.");
+        }
+        evaluators.peek().enterLocalScope(scope);
+    }
+
+    public void exitLocalScope(){
+        if(evaluators.isEmpty()){
+            throw new IllegalStateException("Not currently assembling a method. This is a compiler bug.");
+        }
+        evaluators.peek().exitLocalScope();
+    }
+
+    public MethodTypeDesc methodDescriptorFor(MethodType methodType){
+        // We have to skip 1 when generating the JVM descriptor to account for the fact that "self" is in the AST/IR
+        // but not in the JVM's descriptor.
+        return MethodTypeDesc.of(descriptorFor(methodType.rType()), methodType.pTypes().stream().skip(1).map(this::descriptorFor).toList());
+    }
+
+    public void checkAndConvert(ObjectType actual, ObjectType expected){
+        if(!actual.isAssignableTo(expected)){
+            if(actual.canPromoteTo(expected)){
+                Intrinsics.getConversion(expected, actual)
+                        .ifPresentOrElse(emitter -> evaluators.peek().conversion(actual, expected, emitter),
+                                () -> {
+                                    throw new IllegalArgumentException("Cannot convert " + actual + " to " + expected);
+                                });
+            }
+        }
+    }
+
+    protected String prefixedClassName(String name){
+        if(compilation.getCompilerConfig().packagePrefix() != null){
+            return compilation.getCompilerConfig().packagePrefix() + "." + name;
+        }
+        return name;
+    }
+
+    private void initBuiltinTypes(){
+        typeMapping.put(BuiltinTypes.VOID, CD_void);
+        typeMapping.put(BuiltinTypes.ANY, CD_Object);
+        typeMapping.put(BuiltinTypes.BOOLEAN, CD_boolean);
+        typeMapping.put(BuiltinTypes.BYTE, CD_byte);
+        typeMapping.put(BuiltinTypes.SHORT, CD_short);
+        typeMapping.put(BuiltinTypes.INT, CD_int);
+        typeMapping.put(BuiltinTypes.LONG, CD_long);
+        typeMapping.put(BuiltinTypes.FLOAT, CD_float);
+        typeMapping.put(BuiltinTypes.DOUBLE, CD_double);
+        typeMapping.put(BuiltinTypes.STRING, CD_String);
+        typeMapping.put(BuiltinTypes.LIST, descriptorFor(List.class));
+        typeMapping.put(BuiltinTypes.MAP, descriptorFor(Map.class));
+    }
+
+    protected ClassDesc descriptorFor(Class<?> cls){
+        if(cls.isPrimitive()){
+            var mapping = new HashMap<Class<?>, ClassDesc>();
+            mapping.put(boolean.class, CD_boolean);
+            mapping.put(byte.class, CD_byte);
+            mapping.put(short.class, CD_short);
+            mapping.put(int.class, CD_int);
+            mapping.put(long.class, CD_long);
+            mapping.put(float.class, CD_float);
+            mapping.put(double.class, CD_double);
+            return mapping.get(cls);
+        }
+        return ClassDesc.of(cls.getName());
+    }
+
+    protected ClassDesc descriptorFor(ObjectType type){
+        if(type == null){
+            return descriptorFor(BuiltinTypes.ANY);
+        }
+        if(type instanceof chipmunk.compiler.types.MethodType){
+            return descriptorFor(MethodBinding.class);
+        }
+        var desc = typeMapping.get(type);
+        if(desc == null){
+            desc = ClassDesc.of(type.name()); // TODO - qualified & package-prefixed names
+            typeMapping.put(type, desc);
+        }
+        return desc;
+    }
+
+    protected void newClass(ClassBuilder builder, String name, String... initMethods){
+        var descriptor = ClassDesc.of(name);
+        builder.withFlags(AccessFlag.PUBLIC)
+                .withMethodBody(INIT_NAME, MTD_void,
+                        ClassFile.ACC_PUBLIC,
+                        init -> {
+                            init.aload(0)
+                                    .invokespecial(CD_Object,
+                                            INIT_NAME, MTD_void);
+                            for(var initMethod : initMethods){
+                                init.aload(0)
+                                        .invokevirtual(descriptor, initMethod, MethodTypeDesc.of(CD_void));
+                            }
+
+                            init.return_();
+                        });
+    }
 }
