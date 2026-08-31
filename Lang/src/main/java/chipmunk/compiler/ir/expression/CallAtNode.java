@@ -20,5 +20,12 @@
 
 package chipmunk.compiler.ir.expression;
 
-public class CallAtNode extends ExpressionNode {
+import chipmunk.compiler.ir.ParentNode;
+
+public class CallAtNode extends OperationNode {
+
+    public CallAtNode(String operationName, ParentNode parent) {
+        super(operationName, parent);
+    }
+
 }

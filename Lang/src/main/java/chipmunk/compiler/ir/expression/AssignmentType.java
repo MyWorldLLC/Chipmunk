@@ -21,5 +21,5 @@
 package chipmunk.compiler.ir.expression;
 
 public enum AssignmentType {
-    ASSIGN, DUP_ASSIGN
+    ASSIGN, ASSIGN_RETURN
 }

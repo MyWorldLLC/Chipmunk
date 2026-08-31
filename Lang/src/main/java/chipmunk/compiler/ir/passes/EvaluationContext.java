@@ -24,10 +24,8 @@ import chipmunk.compiler.CodeEvaluator;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.Intrinsics;
 import chipmunk.compiler.Variable;
-import chipmunk.compiler.ast.NodeType;
 import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.blocks.LocalBlockNode;
-import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.blocks.ClassNode;
 import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.blocks.ModuleNode;
@@ -189,20 +187,22 @@ public class EvaluationContext {
     }
 
     public void storeLocal(IRNode codeSite, String name, ObjectType type){
-        var scope = codeSite.lookupVariableScope(name).get();
+        var scope = codeSite.lookupVariableScope(name).orElseThrow(() -> new IllegalStateException("Cannot find scope for variable " + name));
         var index = scope.variables().indexOf(name);
         var variable = scope.variables().get(index);
         checkAndConvert(type, variable.type());
+        // TODO - check upvalue flag
         codeEvaluator().setLocal(index, variable.type());
     }
 
     public void loadLocal(IRNode codeSite, String name, ObjectType type){
-        var scope = codeSite.lookupVariableScope(name).get();
+        var scope = codeSite.lookupVariableScope(name).orElseThrow(() -> new IllegalStateException("Cannot find scope for variable " + name));
         var index = scope.variables().indexOf(name);
         var variable = scope.variables().get(index);
 
         var storedType = variable.type();
         codeEvaluator().getLocal(index, storedType);
+        // TODO - check upvalue flag
         checkAndConvert(storedType, type);
     }
 
@@ -270,6 +270,20 @@ public class EvaluationContext {
                 throw new IllegalArgumentException("Cannot convert " + actual + " to " + expected + ". This is a compiler bug.");
             }
         }
+    }
+
+    public ObjectType[] evaluateAndConvertAll(List<IRNode> nodes, List<ObjectType> expectedTypes){
+        if(nodes.size() != expectedTypes.size()){
+            throw new IllegalArgumentException("Mismatched conversion sizes");
+        }
+        var convertedTypes = new ObjectType[nodes.size()];
+        for(int i = 0; i < nodes.size(); i++){
+            var node = nodes.get(i);
+            node.evaluate(env, this);
+            checkAndConvert(node.inferredType(), expectedTypes.get(i));
+            convertedTypes[i] = expectedTypes.get(i);
+        }
+        return convertedTypes;
     }
 
     protected String prefixedClassName(String name){

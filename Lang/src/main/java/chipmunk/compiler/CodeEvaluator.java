@@ -32,6 +32,7 @@ import java.lang.classfile.TypeKind;
 import java.lang.constant.*;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -295,6 +296,18 @@ public class CodeEvaluator {
         return this;
     }
 
+    public CodeEvaluator setAttr(String name, ObjectType objectType, ObjectType fieldType){
+        stack.pop(2);
+        code.putfield(descriptorFor(objectType), name, descriptorFor(fieldType));
+        return this;
+    }
+
+    public CodeEvaluator getAttr(String name, ObjectType objectType, ObjectType fieldType){
+        stack.doOperation(fieldType, objectType);
+        code.getfield(descriptorFor(objectType), name, descriptorFor(fieldType));
+        return this;
+    }
+
     public CodeEvaluator newInstance(ObjectType type, Class<?> cls, ObjectType... params){
         return newInstance(type, cls.getName(), params);
     }
@@ -313,7 +326,7 @@ public class CodeEvaluator {
     }
 
     public CodeEvaluator invokeVirtual(ObjectType rType, String clsName, String method, ObjectType... params){
-        stack.doOperation(rType, params);
+        stack.doSelfOperation(rType, params);
         var target = ClassDesc.of(clsName);
         code.invokevirtual(target, method, methodDescriptor(rType, params));
         return this;
@@ -324,14 +337,24 @@ public class CodeEvaluator {
     }
 
     public CodeEvaluator invokeInterface(ObjectType rType, String clsName, String method, ObjectType... params){
-        stack.doOperation(rType, params);
+        stack.doSelfOperation(rType, params);
         code.invokeinterface(ClassDesc.of(clsName), method, methodDescriptor(rType, params));
         return this;
     }
 
     public CodeEvaluator invokeDynamic(String name, ObjectType... argTypes){
         stack.doOperation(BuiltinTypes.ANY, argTypes);
-        genDynamicInvocation(code, name, argTypes);
+        genDynamicInvocation(name, argTypes);
+        return this;
+    }
+
+    public CodeEvaluator accessDynamic(String name, boolean set, ObjectType objType, ObjectType fieldType){
+        if(set){
+            stack.pop(2);
+        }else{
+            stack.doOperation(fieldType, objType);
+        }
+        generateDynamicFieldAccess(name, set);
         return this;
     }
 
@@ -343,7 +366,11 @@ public class CodeEvaluator {
 
     public CodeEvaluator dup(){
         stack.dup();
-        code.dup();
+        if(stack.peek() instanceof PrimitiveType p && p.bitSize() == 64){
+            code.dup2();
+        }else{
+            code.dup();
+        }
         return this;
     }
 
@@ -423,6 +450,10 @@ public class CodeEvaluator {
         return code;
     }
 
+    public ObjectType operationType(String symbol, ObjectType... types){
+        return getOp(symbol, types).map(emitter -> emitter.op().rValue()).orElse(BuiltinTypes.ANY);
+    }
+
     public Optional<OpEmitter> getOp(String symbol, ObjectType... types){
         return Intrinsics.getEmitter(symbol, types);
     }
@@ -430,10 +461,16 @@ public class CodeEvaluator {
     protected ObjectType emitOp(String symbol, ObjectType... types){
         var intrinsic = getOp(symbol, types);
         return intrinsic.map(emitter -> {
+            for(int i = 0; i < types.length; i++){
+                var expected = emitter.op().pValues()[i];
+                if(!types[i].isAssignableTo(expected)){
+                    ctx.checkAndConvert(types[i], expected);
+                }
+            }
             emitter.emitter().accept(code);
             return emitter.op().rValue();
         }).orElseGet(() -> {
-            genDynamicInvocation(code, symbol, types);
+            genDynamicInvocation(symbol, types);
             return BuiltinTypes.ANY;
         });
     }
@@ -451,7 +488,11 @@ public class CodeEvaluator {
         return this;
     }
 
-    private void genDynamicInvocation(CodeBuilder code, String op, ClassDesc... argTypes){
+    public String dumpStack(){
+        return stack.dumpStack();
+    }
+
+    private void genDynamicInvocation(String op, ClassDesc... argTypes){
         var objType = ClassDesc.of(Object.class.getName());
 
         var dynamicOp = binaryOpNames(op);
@@ -469,11 +510,33 @@ public class CodeEvaluator {
                         Binder.INDY_BOOTSTRAP_METHOD, bootstrapDescriptor), dynamicOp, callType));
     }
 
-    private void genDynamicInvocation(CodeBuilder code, String op, ObjectType... argTypes){
+    private void genDynamicInvocation(String op, ObjectType... argTypes){
         var pTypes = Arrays.stream(argTypes)
                 .map(this::descriptorFor)
                 .toArray(ClassDesc[]::new);
-        genDynamicInvocation(code, op, pTypes);
+        genDynamicInvocation(op, pTypes);
+    }
+
+    private void generateDynamicFieldAccess(String field, boolean set) {
+        var objType = ClassDesc.of(Object.class.getName());
+        ClassDesc[] pTypes = new ClassDesc[set ? 2 : 1];
+        pTypes[0] = objType;
+        if(set){
+            pTypes[1] = objType;
+        }
+
+        var callType = MethodTypeDesc.of(objType, pTypes);
+
+        var CD_Binder = ClassDesc.of(Binder.class.getName());
+        var CD_CallSite = ClassDesc.of(CallSite.class.getName());
+        var CD_MHLookup = ClassDesc.of(MethodHandles.Lookup.class.getName());
+        var CD_MType = ClassDesc.of(MethodType.class.getName());
+        var bootstrapDescriptor = MethodTypeDesc.of(CD_CallSite, CD_MHLookup, CD_String, CD_MType).descriptorString();
+
+        code.invokedynamic(DynamicCallSiteDesc.of(
+                MethodHandleDesc.of(DirectMethodHandleDesc.Kind.STATIC, CD_Binder,
+                        set ? Binder.INDY_BOOTSTRAP_SET : Binder.INDY_BOOTSTRAP_GET, bootstrapDescriptor), field, callType));
+
     }
 
     protected ClassDesc descriptorFor(ObjectType type){

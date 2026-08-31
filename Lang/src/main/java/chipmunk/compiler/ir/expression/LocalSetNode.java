@@ -47,6 +47,9 @@ public class LocalSetNode extends AssignmentNode {
     @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         children.getFirst().evaluate(env, ctx);
+        if(assignmentType == AssignmentType.ASSIGN_RETURN){
+            ctx.codeEvaluator().dup();
+        }
         ctx.storeLocal(this, name, children.getFirst().inferredType());
     }
 

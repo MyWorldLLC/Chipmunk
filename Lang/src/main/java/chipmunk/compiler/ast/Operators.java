@@ -23,8 +23,6 @@ package chipmunk.compiler.ast;
 import chipmunk.compiler.lexer.Token;
 import chipmunk.compiler.lexer.TokenType;
 
-import java.util.Arrays;
-
 public class Operators {
 
     public static AstNode make(String op, AstNode... operands){
@@ -60,7 +58,15 @@ public class Operators {
     }
 
     public static boolean isSetAttr(AstNode node){
-        return false; // TODO
+        return isAssignment(node) && node.getLeft().getToken().type() == TokenType.DOT;
+    }
+
+    public static String getSetAttrName(AstNode node){
+        return node.getLeft().getRight().getToken().text();
+    }
+
+    public static AstNode getSetAttrTarget(AstNode node){
+        return node.getLeft().getLeft();
     }
 
     public static String getDotCallMethodName(AstNode node){

@@ -20,5 +20,42 @@
 
 package chipmunk.compiler.ir.expression;
 
-public class SetAttrNode extends ExpressionNode{
+import chipmunk.compiler.Intrinsics;
+import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
+import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+
+public class SetAttrNode extends AssignmentNode {
+
+    protected final String name;
+
+    public SetAttrNode(String name, ParentNode parent, AssignmentType assignmentType) {
+        super(parent, assignmentType);
+        this.name = name;
+    }
+
+    public String name(){
+        return name;
+    }
+
+    @Override
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        var code = ctx.codeEvaluator();
+
+        var target = children.get(0);
+        var value = children.get(2);
+
+        target.evaluate(env, ctx);
+        if(assignmentType == AssignmentType.ASSIGN_RETURN){
+            code.dup();
+        }
+
+        value.evaluate(env, ctx);
+
+        code.setAttr(name, target.inferredType(), value.inferredType());
+
+        if(assignmentType == AssignmentType.ASSIGN_RETURN){
+            code.getAttr(name, target.inferredType(), value.inferredType());
+        }
+    }
 }

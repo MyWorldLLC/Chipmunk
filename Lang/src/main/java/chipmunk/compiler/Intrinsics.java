@@ -69,6 +69,7 @@ public class Intrinsics {
     public static final String URSHIFT = ">>>";
 
     public static final String SET_AT = "setAt";
+    public static final String GET_AT = "getAt";
     public static final String IS = "is";
 
     protected static final Map<String, List<OpEmitter>> builtinOps;

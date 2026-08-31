@@ -21,6 +21,8 @@
 package chipmunk.compiler.ir;
 
 import chipmunk.compiler.Variable;
+import chipmunk.compiler.ir.blocks.ClassNode;
+import chipmunk.compiler.ir.blocks.MethodNode;
 import chipmunk.compiler.ir.expression.ExpressionNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
@@ -42,7 +44,7 @@ public class VarDecNode extends ParentNode {
 
     @Override
     public boolean isAllowedChild(IRNode c){
-        return c instanceof ExpressionNode;
+        return c instanceof ExpressionNode || c instanceof MethodNode || c instanceof ClassNode;
     }
 
     @Override

@@ -220,7 +220,7 @@ public class IRBuilder {
         }
     }
 
-    public ExpressionNode buildExpression(EvaluationEnvironment env, ParentNode parent, AstNode exp){
+    public IRNode buildExpression(EvaluationEnvironment env, ParentNode parent, AstNode exp){
         return switch (exp.getNodeType()){
             case ID -> new LocalGetNode(exp.getToken().text(), parent);
             case LITERAL -> {
@@ -284,33 +284,41 @@ public class IRBuilder {
                 yield irNode;
             }
             case OPERATOR -> {
-                // TODO - check for & handle forms that don't neatly resolve to simple unary/binary operators (a.b(), a[b] = c, etc)
+                // Check for & handle forms that don't neatly resolve to simple unary/binary operators (a.b(), a[b] = c, etc)
                 var lhs = exp.getLeft();
                 if(Operators.isAssignment(exp)){
+                    var assignmentType = parent instanceof LocalBlockNode ? AssignmentType.ASSIGN : AssignmentType.ASSIGN_RETURN;
                     if(Operators.isSetAt(exp)){
-                        var irNode = new SetAtNode(parent);
+                        var irNode = new SetAtNode(parent, assignmentType);
                         irNode.addChild(buildExpression(env, irNode, lhs.getLeft()));
                         irNode.addChild(buildExpression(env, irNode, lhs.getRight()));
                         irNode.addChild(buildExpression(env, irNode, exp.getRight()));
                         yield irNode;
                     }else if(Operators.isSetAttr(exp)){
-
+                        var irNode = new SetAttrNode(Operators.getSetAttrName(exp), parent, assignmentType);
+                        irNode.addChild(buildExpression(env, irNode, Operators.getSetAttrTarget(exp)));
+                        irNode.addChild(buildExpression(env, irNode, exp.getRight()));
+                        yield irNode;
                     }else{
                         // Local assignment
-                        // TODO - determine when we're reading a method binding
                         // If the parent is a block, do a "statement assignment" where we skip the dup() & pop() pair
                         // that would be otherwise necessary to support assignment as both an expression and statement. Unnecessary
                         // dup()/pop() can heavily impact performance, probably by causing the JIT's optimizer to miss otherwise
                         // available optimizations.
-                        var irNode = new LocalSetNode(parent, exp.getLeft().getToken().text(), parent instanceof LocalBlockNode ? AssignmentType.ASSIGN : AssignmentType.DUP_ASSIGN);
+                        var irNode = new LocalSetNode(parent, exp.getLeft().getToken().text(), assignmentType);
                         irNode.addChild(buildExpression(env, irNode, exp.getRight()));
                         yield irNode;
                     }
                 }
                 else if(Operators.isDotCall(exp)){
-                    // TODO
+                    var irNode = new CallAtNode(Operators.getDotCallMethodName(exp), parent);
+                    irNode.addChild(buildExpression(env, irNode, Operators.getDotCallTarget(exp)));
+                    Operators.visitDotCallParams(exp, param -> irNode.addChild(buildExpression(env, irNode, param)));
+                    yield irNode;
                 }else if(Operators.isRawCall(exp)){
-                    // TODO
+                    var irNode = new OperationNode("call", parent);
+                    exp.visitChildren(child -> irNode.addChild(buildExpression(env, irNode, child)));
+                    yield irNode;
                 }else if(exp.getToken().type() == TokenType.DOUBLEDOT || exp.getToken().type() == TokenType.DOUBLEDOTLESS){
                     var op = new RangeNode(parent, exp.getToken().type() == TokenType.DOUBLEDOT);
                     exp.visitChildren(child -> op.addChild(buildExpression(env, op, child)));
@@ -320,6 +328,8 @@ public class IRBuilder {
                 exp.visitChildren(child -> op.addChild(buildExpression(env, op, child)));
                 yield op;
             }
+            case METHOD -> buildMethod(env, parent, exp);
+            case CLASS -> buildClass(env, parent, null, exp); // TODO - resolve & unify handling parent types across standard and inline classes
             default -> throw new IllegalArgumentException("Invalid expression node: " + exp.getNodeType() + ". This is a compiler bug.");
         };
     }

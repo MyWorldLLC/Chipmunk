@@ -21,8 +21,10 @@
 package chipmunk.compiler;
 
 import chipmunk.compiler.types.ObjectType;
+import chipmunk.compiler.types.VoidType;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -32,6 +34,9 @@ public class Stack {
     protected final Deque<ObjectType> stack  = new ArrayDeque<>();
 
     public Stack push(ObjectType type) {
+        if(type instanceof VoidType){
+            return this;
+        }
         stack.push(type);
         return this;
     }
@@ -45,6 +50,10 @@ public class Stack {
         return stack.pop();
     }
 
+    public ObjectType peek(){
+        return stack.peek();
+    }
+
     public void pop(int count){
         for(int i = 0; i < count; i++){
             stack.pop();
@@ -56,6 +65,13 @@ public class Stack {
     }
 
     public ObjectType doOperation(Supplier<ObjectType> rType, ObjectType... pTypes){
+        return doOperation(rType, false, pTypes);
+    }
+
+    public ObjectType doOperation(Supplier<ObjectType> rType, boolean popSelf, ObjectType... pTypes){
+
+        var resultType = rType.get();
+
         // Operands are pushed in forward order, so to check types we have to
         // go in reverse order
         for(int i = pTypes.length - 1; i >= 0; i--){
@@ -65,9 +81,17 @@ public class Stack {
                 throw new IllegalStateException("Operand type " + stackType + " is not assignable to " + pType + " @ " + i);
             }
         }
-        var resultType = rType.get();
-        stack.push(resultType);
+
+        if(popSelf){
+            stack.pop();
+        }
+
+        push(resultType);
         return resultType;
+    }
+
+    public ObjectType doSelfOperation(ObjectType rType, ObjectType... pTypes){
+        return doOperation(() -> rType, true, pTypes);
     }
 
     public ObjectType doOperation(ObjectType rType, ObjectType... pTypes){
@@ -76,6 +100,10 @@ public class Stack {
 
     public Stream<ObjectType> stream(){
         return stack.stream();
+    }
+
+    public String dumpStack(){
+        return stream().toList().toString();
     }
 
 }
