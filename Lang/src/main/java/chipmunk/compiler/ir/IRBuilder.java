@@ -30,6 +30,7 @@ import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.flow.ThrowNode;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.lexer.ChipmunkLexer;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.parser.parselets.LiteralParselet;
 import chipmunk.compiler.types.*;
 
@@ -159,7 +160,7 @@ public class IRBuilder {
     }
 
     public IRNode buildForLoop(EvaluationEnvironment env, LocalBlockNode parent, AstNode loop){
-        var irNode = new ForNode(parent);
+        var irNode = new ForNode(loop.getChild().getLeft().getSymbol().getName(), parent);
         irNode.addChild(buildExpression(env, irNode, loop.getChild()));
         loop.visitChildren(statement -> appendStatementToBlockBody(env, irNode, statement), 1);
         return irNode;
@@ -310,6 +311,10 @@ public class IRBuilder {
                     // TODO
                 }else if(Operators.isRawCall(exp)){
                     // TODO
+                }else if(exp.getToken().type() == TokenType.DOUBLEDOT || exp.getToken().type() == TokenType.DOUBLEDOTLESS){
+                    var op = new RangeNode(parent, exp.getToken().type() == TokenType.DOUBLEDOT);
+                    exp.visitChildren(child -> op.addChild(buildExpression(env, op, child)));
+                    yield op;
                 }
                 var op = new OperationNode(exp.getToken().text(), parent);
                 exp.visitChildren(child -> op.addChild(buildExpression(env, op, child)));

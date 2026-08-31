@@ -18,18 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.ir.blocks;
+package chipmunk.compiler.types;
 
-import chipmunk.compiler.ir.ParentNode;
-import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+public class IteratorType extends ObjectType {
 
-public class SyntheticMethodNode extends LocalBlockNode {
+    public static final IteratorType INSTANCE = new IteratorType();
 
-    public SyntheticMethodNode() {
-        super((ParentNode) null);
+    private IteratorType(){
+        super("iterator");
     }
 
-    public void markBlockSymbols(EvaluationEnvironment env){
-        throw new IllegalStateException("Synthetic method nodes are only for use during code generation, and may not be attached to the IR tree. This is a compiler bug.");
+    @Override
+    public boolean isAssignableTo(ObjectType other) {
+        return switch (other){
+            case AnyType _, IteratorType _ -> true;
+            default -> super.isAssignableTo(other);
+        };
     }
 }

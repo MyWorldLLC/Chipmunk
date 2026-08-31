@@ -23,34 +23,30 @@ package chipmunk.compiler.ir.expression;
 import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
-import chipmunk.compiler.ir.passes.TypeResolutionContext;
+import chipmunk.compiler.types.BuiltinTypes;
 
-public class LocalGetNode extends ExpressionNode {
+public class RangeNode extends OperationNode {
 
-    protected final String name;
+    protected final boolean inclusive;
 
-    public LocalGetNode(String name, ParentNode parent) {
-        super(parent);
-        this.name = name;
+    public RangeNode(ParentNode parent, boolean inclusive) {
+        super("range", parent);
+        this.inclusive = inclusive;
     }
 
-    @Override
-    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
-        lookupVariable(name).ifPresent(variable -> inferredType(variable.type()));
+    public boolean inclusive() {
+        return inclusive;
     }
 
     @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
-        ctx.loadLocal(this, name, inferredType());
-    }
-
-    @Override
-    public String toString(){
-        return toString("");
-    }
-
-    public String toString(String indent){
-        return "[" + getClass().getSimpleName() + " Inferred Type: " + inferredType + " Declared Type: " + declaredType + " Identifier: " + name + "]";
+        for(var child : children){
+            child.evaluate(env, ctx);
+            ctx.checkAndConvert(child.inferredType(), BuiltinTypes.ANY);
+        }
+        var code = ctx.codeEvaluator();
+        code.push(inclusive);
+        code.invokeDynamic("range", BuiltinTypes.ANY, BuiltinTypes.ANY, BuiltinTypes.BOOLEAN);
     }
 
 }

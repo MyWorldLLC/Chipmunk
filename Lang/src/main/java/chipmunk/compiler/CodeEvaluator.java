@@ -319,13 +319,19 @@ public class CodeEvaluator {
         return this;
     }
 
-    public CodeEvaluator invokeInterface(ObjectType type, Class<?> cls, String method, ObjectType... params){
-        return invokeInterface(type, cls.getName(), method, params);
+    public CodeEvaluator invokeInterface(ObjectType rType, Class<?> cls, String method, ObjectType... params){
+        return invokeInterface(rType, cls.getName(), method, params);
     }
 
     public CodeEvaluator invokeInterface(ObjectType rType, String clsName, String method, ObjectType... params){
         stack.doOperation(rType, params);
         code.invokeinterface(ClassDesc.of(clsName), method, methodDescriptor(rType, params));
+        return this;
+    }
+
+    public CodeEvaluator invokeDynamic(String name, ObjectType... argTypes){
+        stack.doOperation(BuiltinTypes.ANY, argTypes);
+        genDynamicInvocation(code, name, argTypes);
         return this;
     }
 
@@ -379,6 +385,11 @@ public class CodeEvaluator {
 
     public CodeEvaluator ifeq(Label skipLabel){
         code.ifeq(skipLabel);
+        return this;
+    }
+
+    public CodeEvaluator ifne(Label skipLabel){
+        code.ifne(skipLabel);
         return this;
     }
 
@@ -508,6 +519,7 @@ public class CodeEvaluator {
         typeMapping.put(BuiltinTypes.STRING, CD_String);
         typeMapping.put(BuiltinTypes.LIST, descriptorFor(List.class));
         typeMapping.put(BuiltinTypes.MAP, descriptorFor(Map.class));
+        typeMapping.put(BuiltinTypes.ITERATOR, descriptorFor(Iterator.class));
     }
 
     private String binaryOpNames(String op){

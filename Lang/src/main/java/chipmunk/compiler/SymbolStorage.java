@@ -28,7 +28,7 @@ import java.util.NoSuchElementException;
 public class SymbolStorage<T extends Named> {
 
     protected final SymbolStorage<T> parent;
-    protected final int offset;
+    protected int offset;
     protected final List<T> elements;
 
     public SymbolStorage() {
@@ -71,6 +71,11 @@ public class SymbolStorage<T extends Named> {
 
     public T get(String name){
         return get(indexOf(name));
+    }
+
+    public int markOffset(){
+        offset = parent != null ? parent.offset + parent.elements.size() : 0;
+        return offset;
     }
 
     public int offset(){

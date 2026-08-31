@@ -77,6 +77,18 @@ public abstract class LocalBlockNode extends ParentNode implements VariableScope
     }
 
     @Override
+    public final void markSymbols(EvaluationEnvironment env){
+        locals.markOffset();
+        markBlockSymbols(env);
+    }
+
+    protected void markBlockSymbols(EvaluationEnvironment env){
+        for(var child : children){
+            child.markSymbols(env);
+        }
+    }
+
+    @Override
     public final void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         ctx.enterLocalScope(this);
         evaluateBlock(env, ctx);
