@@ -835,9 +835,20 @@ public class CVMCodegen {
                         .return_();
             });
 
+            System.out.println(
+                    "Binding method " + methodName
+            );
+
+            System.out.println(targetType.getName());
+
+            Arrays.stream(targetType.getDeclaredMethods())
+                    .forEach(m -> System.out.println(m.getName() + " flags: " + m.accessFlags() + ": " + Arrays.toString(m.getParameterTypes())));
+
             var methods = Arrays.stream(targetType.getMethods())
                     .filter(m -> m.getName().equals(methodName))
                     .toList();
+
+            System.out.println(methods);
 
             for(var method : methods){
                 var pDescs = Arrays.stream(method.getParameterTypes())
@@ -845,6 +856,8 @@ public class CVMCodegen {
                         .toArray(ClassDesc[]::new);
 
                 var methodDesc = MethodTypeDesc.of(descriptorFor(method.getReturnType()), pDescs);
+
+                System.out.println("Binding method " + methodName + methodDesc);
 
                 cls.withMethodBody("call", methodDesc, ClassFile.ACC_PUBLIC, code -> {
                     code.aload(0)
@@ -906,6 +919,7 @@ public class CVMCodegen {
             mapping.put(long.class, CD_long);
             mapping.put(float.class, CD_float);
             mapping.put(double.class, CD_double);
+            mapping.put(void.class, CD_void);
             return mapping.get(cls);
         }
         return ClassDesc.of(cls.getName());

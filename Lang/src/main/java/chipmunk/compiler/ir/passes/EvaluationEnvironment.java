@@ -88,11 +88,16 @@ public class EvaluationEnvironment {
     }
 
     public List<String> errors(){
-        return Collections.unmodifiableList(errors);
+        return List.copyOf(errors);
     }
 
     public List<String> warnings(){
-        return Collections.unmodifiableList(warnings);
+        return List.copyOf(warnings);
+    }
+
+    public void clearWarningsAndErrors(){
+        warnings.clear();
+        errors.clear();
     }
 
     public boolean typeConflict(ObjectType actual, ObjectType expected) {

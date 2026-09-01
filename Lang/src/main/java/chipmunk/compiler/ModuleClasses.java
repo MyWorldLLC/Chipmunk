@@ -23,9 +23,10 @@ package chipmunk.compiler;
 import chipmunk.compiler.ir.IRNode;
 import chipmunk.runtime.CompiledModule;
 
+import java.util.List;
 import java.util.Map;
 
-public record ModuleClasses(String name, String className, IRNode ir, Map<String, byte[]> classes) {
+public record ModuleClasses(String name, String className, IRNode ir, Map<String, byte[]> classes, List<String> warnings, List<String> errors) {
 
     public CompiledModule compiledModule(){
         return new CompiledModule(name, className, classes.get(className).length);

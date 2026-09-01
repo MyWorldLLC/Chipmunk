@@ -22,6 +22,8 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.ParentNode;
+import chipmunk.compiler.ir.expression.LocalGetNode;
+import chipmunk.compiler.ir.expression.LocalSetNode;
 import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
@@ -69,6 +71,10 @@ public class MethodNode extends LocalBlockNode {
         super.resolveTypes(env, ctx);
 
         // TODO - mark upvalues by finding any descendents that refer to variables in an outer local scope
+        /*var outerLocalReads = findDescendants(node -> node instanceof LocalGetNode)
+                .map(n -> (LocalGetNode) n)
+                //.map()
+                .toList();*/
 
         // TODO - handle unresolved types
         var returnTypes = findDescendants(node -> node instanceof ReturnNode)
@@ -78,7 +84,7 @@ public class MethodNode extends LocalBlockNode {
                 .toList();
 
         var rType = switch (returnTypes.size()){
-            case 0 -> BuiltinTypes.VOID;
+            case 0 -> children.size() == 1 ? BuiltinTypes.ANY : BuiltinTypes.VOID;
             case 1 -> returnTypes.getFirst();
             default -> BuiltinTypes.ANY;
         };
@@ -93,7 +99,18 @@ public class MethodNode extends LocalBlockNode {
 
     @Override
     public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
-        if(!isLambda() || ctx.isEvaluatingLambdas()){
+        if(isLambda() && !ctx.isEvaluatingLambdas()){
+            ctx.enqueueLambda(this);
+
+            // The lambda method implementation will be hoisted into the nearest class, so we can
+            // just emit a binding for self::<this method>
+            var code = ctx.codeEvaluator();
+            ctx.loadLocal(this, "self", BuiltinTypes.ANY);
+            // TODO - bind closure params
+            code.push(name);
+            code.invokeRuntime("bind", BuiltinTypes.BINDING, BuiltinTypes.ANY, BuiltinTypes.STRING);
+
+        }else if(!isLambda() || ctx.isEvaluatingLambdas()){
             for(var child : children){
                 child.evaluate(env, ctx);
             }
@@ -107,12 +124,12 @@ public class MethodNode extends LocalBlockNode {
                 }
             }
         }else{
-            // The lambda method implementation will be hoisted into the nearest class, so we can
+            /*// The lambda method implementation will be hoisted into the nearest class, so we can
             // just emit a binding for self::<this method>
             var code = ctx.codeEvaluator();
             ctx.loadLocal(this, "self", BuiltinTypes.ANY);
             code.push(name);
-            code.invokeRuntime("bind", BuiltinTypes.BINDING, BuiltinTypes.ANY, BuiltinTypes.STRING);
+            code.invokeRuntime("bind", BuiltinTypes.BINDING, BuiltinTypes.ANY, BuiltinTypes.STRING);*/
         }
     }
 }

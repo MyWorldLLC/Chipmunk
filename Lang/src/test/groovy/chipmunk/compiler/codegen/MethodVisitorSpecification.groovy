@@ -21,6 +21,8 @@
 package chipmunk.compiler.codegen
 
 import chipmunk.compiler.CVMCompiler
+import chipmunk.compiler.ChipmunkSource
+import chipmunk.compiler.Compilation
 import chipmunk.compiler.CompilerUtil
 import chipmunk.compiler.ModuleClasses
 import chipmunk.vm.ChipmunkVM
@@ -41,7 +43,6 @@ class MethodVisitorSpecification extends Specification {
 			def method(){
 				return 1 + 2
 			}
-			method()
 		""")
 		
 		then:
@@ -248,7 +249,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "While loop - no iterations")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -282,7 +283,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -378,7 +379,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(){return 1}
 				return v1()
 			}
-			""", "Lambda call")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -393,7 +394,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a) a
 				return v1(1)
 			}
-			""", "Lambda call - one parameter")
+			""")
 			
 		then:
 		result instanceof Integer
@@ -407,28 +408,50 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
-			""", "Lambda call - two parameters")
+			""")
 			
 		then:
 		result instanceof Integer
 		result == 3
 	}
 	
-	def parseAndCall(String methodBody, String test = ""){
-
-		if(test != ""){
-			println("==================== ${test} ====================")
-			println(CompilerUtil.dumpIRTree("exp", methodBody))
-		}
+	def parseAndCall(String methodBody){
 
 		def compiler = new CVMCompiler()
-		def compiled = compiler.compileMethod(methodBody)
+		var compilation = new Compilation()
+		try{
+			compilation.addSource(new ChipmunkSource("runtimeMethod", "module exp\n\n" + methodBody))
+			def compiled = compiler.compile(compilation)
 
-		def script = vm.createScript()
-		script.moduleLoader().define(new ModuleClasses("exp", "exp", null, Map.of("exp", compiled)))
-		script.entryPoint("exp", "method")
+			def script = vm.createScript()
+			script.moduleLoader().defineAll(compiled)
+			script.entryPoint("exp", "method")
 
-		return script.run()
+			for(def module : compilation.getModuleClasses()){
+				println("==================== ${module.name()} ====================")
+				if(!module.errors().isEmpty()){
+					println("Errors:")
+					module.errors().forEach {m -> println(m)}
+					println("\n")
+				}
+
+				if(!module.warnings().isEmpty()){
+					println("Warnings:")
+					module.warnings().forEach {m -> println(m)}
+					println("\n")
+				}
+				println(module.ir())
+			}
+
+			return script.run()
+		}catch (Exception e){
+			for(def module : compilation.getModuleClasses()){
+				println("==================== ${module.name()} ====================")
+				println(module.ir())
+			}
+			throw e
+		}
+
 	}
 
 }

@@ -95,7 +95,7 @@ public class ModuleNode extends ParentNode implements VariableScope {
         // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
         for(var child : children){
             switch (child){
-                //case VarDecNode n -> ctx.evaluateVarDec(n);
+                case VarDecNode n -> n.evaluate(env, ctx);
                 case ClassNode n -> ctx.evaluateClass(n);
                 case MethodNode n -> ctx.evaluateMethod(n);
                 default -> {} // This should never be hit because we've already validated the IR

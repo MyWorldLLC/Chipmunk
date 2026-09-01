@@ -145,7 +145,6 @@ public class EvaluationContext {
     protected void evaluateMethod(MethodNode method, boolean lambdaPhase){
         if(method.isLambda() && !lambdaPhase){
             enqueueLambda(method);
-            // TODO - emit a binding for this method
         }else{
             if(classBuilders.isEmpty()){
                 throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
@@ -305,7 +304,7 @@ public class EvaluationContext {
         return isEvaluatingLambdas;
     }
 
-    protected void enqueueLambda(MethodNode lambda){
+    public void enqueueLambda(MethodNode lambda){
         classBuilders.peek().lambdas().add(lambda);
     }
 

@@ -20,10 +20,7 @@
 
 package chipmunk.compiler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class ChipmunkSource {
@@ -34,6 +31,10 @@ public class ChipmunkSource {
     public ChipmunkSource(InputStream in, String fileName){
         is = in;
         this.fileName = fileName;
+    }
+
+    public ChipmunkSource(String fileName, String source){
+        this(new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)), fileName);
     }
 
     public InputStream getIs() {

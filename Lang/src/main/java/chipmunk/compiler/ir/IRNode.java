@@ -32,6 +32,7 @@ import chipmunk.compiler.types.UnresolvedType;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public abstract class IRNode {
 
@@ -167,6 +168,10 @@ public abstract class IRNode {
             }
         }
         return Optional.empty();
+    }
+
+    public Stream<IRNode> ancestors(){
+        return Stream.iterate(this, IRNode::hasParent, IRNode::parent);
     }
 
     public ModuleNode getModule(){

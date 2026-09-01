@@ -30,6 +30,7 @@ public class Compilation {
     protected final List<ChipmunkSource> sources;
     protected final CompilerConfig compilerConfig;
     protected final ModuleLoader moduleLoader;
+    protected final List<ModuleClasses> moduleClasses;
 
     public Compilation(){
         this(CompilerConfig.DEFAULT, new ModuleLoader());
@@ -43,6 +44,7 @@ public class Compilation {
         sources = new ArrayList<>();
         this.compilerConfig = compilerConfig;
         this.moduleLoader = moduleLoader;
+        moduleClasses = new ArrayList<>();
     }
 
     public List<ChipmunkSource> getSources(){
@@ -59,5 +61,9 @@ public class Compilation {
 
     public ModuleLoader getModuleLoader() {
         return moduleLoader;
+    }
+
+    public List<ModuleClasses> getModuleClasses(){
+        return moduleClasses;
     }
 }

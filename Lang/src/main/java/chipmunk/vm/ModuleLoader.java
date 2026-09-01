@@ -166,6 +166,10 @@ public class ModuleLoader {
 		}
 	}
 
+	public void defineAll(List<ModuleClasses> classes){
+		classes.forEach(this::define);
+	}
+
 	public void removeDefined(String name){
 		loadedModules.remove(name);
 	}
