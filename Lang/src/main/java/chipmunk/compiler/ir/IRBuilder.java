@@ -214,9 +214,8 @@ public class IRBuilder {
             case FOR -> parent.addChild(buildForLoop(env, parent, statement));
             case IF_ELSE -> parent.addChild(buildIfElse(env, parent, statement));
             case TRY_CATCH -> parent.addChild(buildTryCatch(env, parent, statement));
-            case OPERATOR, ID -> parent.addChild(buildExpression(env, parent, statement));
             case COMMENT -> {} // Comment is a no-op for now
-            default -> env.error(parent, "Invalid statement: " + statement.getNodeType());
+            default -> parent.addChild(buildExpression(env, parent, statement)); // TODO - pop extraneous expression results from stack
         }
     }
 

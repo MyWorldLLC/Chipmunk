@@ -20,12 +20,10 @@
 
 package chipmunk.compiler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Stream;
 
-public class SymbolStorage<T extends Named> {
+public class SymbolStorage<T extends Named> implements Iterable<T> {
 
     protected final SymbolStorage<T> parent;
     protected int offset;
@@ -92,5 +90,14 @@ public class SymbolStorage<T extends Named> {
 
     public SymbolStorage<T> parent(){
         return parent;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return elements.iterator();
+    }
+
+    public Stream<T> stream() {
+        return elements.stream();
     }
 }

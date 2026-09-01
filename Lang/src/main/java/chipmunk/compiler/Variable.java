@@ -32,13 +32,19 @@ public class Variable extends Named {
     public static final int SHARED  = 0b1000;
 
     protected final ParentNode declarationSite;
+    protected final Import imp;
     protected int flags;
     protected ObjectType type;
     protected ObjectType declaredType;
 
     public Variable(String name, ParentNode declarationSite) {
+        this(name, declarationSite, null);
+    }
+
+    public Variable(String name, ParentNode declarationSite, Import imp) {
         super(name);
         this.declarationSite = declarationSite;
+        this.imp = imp;
     }
 
     public ParentNode declarationSite() {
@@ -91,5 +97,13 @@ public class Variable extends Named {
 
     public void declaredType(ObjectType declaredType) {
         this.declaredType = declaredType;
+    }
+
+    public boolean isImported(){
+        return imp != null;
+    }
+
+    public Import imp() {
+        return imp;
     }
 }

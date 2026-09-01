@@ -23,7 +23,6 @@ package chipmunk.compiler.ir.blocks;
 import chipmunk.compiler.SymbolStorage;
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.*;
-import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
@@ -91,11 +90,39 @@ public class ModuleNode extends ParentNode implements VariableScope {
     }
 
     @Override
+    public void markSymbols(EvaluationEnvironment env){
+        var variables = variables();
+        moduleType.imports().stream()
+                .forEach(imp -> {
+                    var name = "$" + imp.module();
+                    if(!variables.has(name)) {
+                        var variable = new Variable(name, this, imp);
+                        variable.type(BuiltinTypes.ANY);
+                        variable.setFlag(Variable.FINAL);
+                        variables.declare(variable);
+                    }
+
+                    if(variables.has(imp.name())){
+                        env.error(this, imp.name() + " is already imported in module " + moduleType.name());
+                    }else{
+                        var variable = new Variable(imp.name(), this, imp);
+                        variable.setFlag(Variable.FINAL);
+                        variable.type(BuiltinTypes.ANY);
+                        variables.declare(variable);
+                    }
+                });
+
+        // TODO - variables, classes, & methods
+    }
+
+    // TODO - resolve types
+
+    @Override
     public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
         // Evaluation consists of emitting classes, emitting methods, and emitting the initializer
         for(var child : children){
             switch (child){
-                case VarDecNode n -> n.evaluate(env, ctx);
+                //case VarDecNode n -> n.evaluate(env, ctx);
                 case ClassNode n -> ctx.evaluateClass(n);
                 case MethodNode n -> ctx.evaluateMethod(n);
                 default -> {} // This should never be hit because we've already validated the IR
@@ -110,10 +137,23 @@ public class ModuleNode extends ParentNode implements VariableScope {
         // 3. Run class shared initializers & init variables in declaration order. This allows
         //    class shared variables & module variables to be initialized in an expected order.
         // TODO
-        //init.addChild(new ReturnNode(init));
-        //addChild(init);
 
         ctx.writeSyntheticMethod(INITIALIZER_NAME, new MethodType(BuiltinTypes.VOID), code -> {
+
+            for(var imp : moduleType.imports()){
+                // TODO
+            }
+
+            for(var child : children){
+                switch (child){
+                    // We evaluate the var decs here so that they have a code builder to use for initialization
+                    case VarDecNode n -> n.evaluate(env, ctx);
+                    case ClassNode n -> {
+                        // TODO - do module-level initialization of class
+                    }
+                    default -> {}
+                }
+            }
             code._return(BuiltinTypes.VOID);
         });
 

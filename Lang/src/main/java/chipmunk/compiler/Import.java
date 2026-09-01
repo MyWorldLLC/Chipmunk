@@ -46,4 +46,8 @@ public class Import extends Typed<ObjectType> {
     public String aliasOf(){
         return aliasOf;
     }
+
+    public String module(){
+        return module;
+    }
 }
