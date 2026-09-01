@@ -278,9 +278,8 @@ public class IRBuilder {
                 yield it;
             }
             case BINDING -> {
-                var irNode = new OperationNode("::", parent);
+                var irNode = new BindingNode(exp.getRight().getToken().text(), parent);
                 irNode.addChild(buildExpression(env, irNode, exp.getLeft()));
-                irNode.addChild(buildExpression(env, irNode, exp.getRight()));
                 yield irNode;
             }
             case OPERATOR -> {

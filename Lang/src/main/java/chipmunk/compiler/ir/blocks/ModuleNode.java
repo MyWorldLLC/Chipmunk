@@ -26,6 +26,7 @@ import chipmunk.compiler.ir.*;
 import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.BuiltinTypes;
 import chipmunk.compiler.types.MethodType;
 import chipmunk.compiler.types.ModuleType;
@@ -81,6 +82,12 @@ public class ModuleNode extends ParentNode implements VariableScope {
             return Optional.of(this);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
+        inferredType(moduleType);
+        super.resolveTypes(env, ctx);
     }
 
     @Override

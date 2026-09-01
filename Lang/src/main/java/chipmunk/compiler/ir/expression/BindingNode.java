@@ -20,23 +20,30 @@
 
 package chipmunk.compiler.ir.expression;
 
-import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
-import chipmunk.compiler.ir.blocks.ClassNode;
-import chipmunk.compiler.ir.blocks.MethodNode;
+import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
+import chipmunk.compiler.types.BuiltinTypes;
 
-public abstract class ExpressionNode extends ParentNode {
+public class BindingNode extends OperationNode {
 
-    public ExpressionNode(){}
+    protected final String name;
 
-    public ExpressionNode(ParentNode parent){
-        super(parent);
+    public BindingNode(String name, ParentNode parent) {
+        super("bind", parent);
+        this.name = name;
+        inferredType(BuiltinTypes.ANY);
+    }
+
+    public String name(){
+        return name;
     }
 
     @Override
-    public boolean isAllowedChild(IRNode c){
-        return c instanceof ExpressionNode || c instanceof MethodNode || c instanceof ClassNode;
+    public void evaluate(EvaluationEnvironment env, EvaluationContext ctx){
+        children.getFirst().evaluate(env, ctx);
+        var code = ctx.codeEvaluator();
+        code.push(name);
+        code.invokeRuntime("bind", BuiltinTypes.BINDING, BuiltinTypes.ANY, BuiltinTypes.STRING);
     }
-
 }

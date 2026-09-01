@@ -23,6 +23,7 @@ package chipmunk.compiler;
 import chipmunk.compiler.ir.blocks.LocalBlockNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.types.*;
+import chipmunk.runtime.CRuntime;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.invoke.Binder;
 
@@ -75,11 +76,11 @@ public class CodeEvaluator {
 
     public void exitLocalScope(){
         var parent = localScope.parent();
-        if(parent instanceof LocalBlockNode l){
-            localScope = l;
-        }else{
-            localScope = null;
+        // Have to be able to skip levels to handle things like nested methods
+        while(parent != null && !(parent instanceof LocalBlockNode)){
+            parent = parent.parent();
         }
+        localScope = (LocalBlockNode) parent;
     }
 
     public CodeEvaluator push(boolean b){
@@ -348,6 +349,12 @@ public class CodeEvaluator {
         return this;
     }
 
+    public CodeEvaluator invokeRuntime(String name, ObjectType rType, ObjectType... argTypes){
+        stack.doOperation(rType, argTypes);
+        code.invokestatic(descriptorFor(CRuntime.class), name, methodDescriptor(rType, argTypes));
+        return this;
+    }
+
     public CodeEvaluator accessDynamic(String name, boolean set, ObjectType objType, ObjectType fieldType){
         if(set){
             stack.pop(2);
@@ -583,6 +590,7 @@ public class CodeEvaluator {
         typeMapping.put(BuiltinTypes.LIST, descriptorFor(List.class));
         typeMapping.put(BuiltinTypes.MAP, descriptorFor(Map.class));
         typeMapping.put(BuiltinTypes.ITERATOR, descriptorFor(Iterator.class));
+        typeMapping.put(BuiltinTypes.BINDING, descriptorFor(MethodBinding.class));
     }
 
     private String binaryOpNames(String op){

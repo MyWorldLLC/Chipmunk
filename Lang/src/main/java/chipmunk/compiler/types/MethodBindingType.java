@@ -20,34 +20,12 @@
 
 package chipmunk.compiler.types;
 
-import chipmunk.compiler.MethodDef;
-import chipmunk.compiler.SymbolStorage;
-import chipmunk.compiler.Variable;
+public class MethodBindingType extends ObjectType {
 
-public abstract class BaseClassType extends ObjectType {
+    public static final MethodBindingType INSTANCE = new MethodBindingType();
 
-    protected final SymbolStorage<Variable> variables;
-    protected final SymbolStorage<MethodDef> methods;
-    protected final SymbolStorage<ClassType> classes;
-
-    public BaseClassType(String name) {
-        super(name);
-
-        variables = new SymbolStorage<>();
-        methods = new SymbolStorage<>();
-        classes = new SymbolStorage<>();
-    }
-
-    public SymbolStorage<Variable> variables(){
-        return variables;
-    }
-
-    public SymbolStorage<MethodDef> methods(){
-        return methods;
-    }
-
-    public SymbolStorage<ClassType> classes(){
-        return classes;
+    private MethodBindingType() {
+        super("MethodBinding");
     }
 
     @Override
@@ -57,4 +35,5 @@ public abstract class BaseClassType extends ObjectType {
             default -> super.isAssignableTo(other);
         };
     }
+
 }

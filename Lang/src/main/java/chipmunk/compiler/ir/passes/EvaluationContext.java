@@ -60,14 +60,22 @@ import static java.lang.constant.ConstantDescs.MTD_void;
 
 public class EvaluationContext {
 
+    private record ClassAssembler(ClassBuilder builder, Queue<MethodNode> lambdas){
+        public static ClassAssembler create(ClassBuilder builder){
+            return new ClassAssembler(builder, new ArrayDeque<>());
+        }
+    }
+
     protected final Compilation compilation;
     protected final EvaluationEnvironment env;
     protected final Deque<CodeEvaluator> evaluators;
-    protected final Deque<ClassBuilder> classBuilders;
+    protected final Deque<ClassAssembler> classBuilders;
 
     protected final Map<ObjectType, ClassDesc> typeMapping;
 
     protected final Map<String, byte[]> classes;
+
+    protected boolean isEvaluatingLambdas;
 
     public EvaluationContext(Compilation compilation, EvaluationEnvironment env) {
         this.compilation = compilation;
@@ -98,8 +106,9 @@ public class EvaluationContext {
 
         var code = ClassFile.of()
                 .build(descriptor, builder -> {
-                    classBuilders.push(builder);
+                    classBuilders.push(ClassAssembler.create(builder));
                     newClass(builder, name, ModuleNode.INITIALIZER_NAME);
+                    builder.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
                     module.evaluate(env, this);
                     exitModule(module);
                 });
@@ -107,6 +116,7 @@ public class EvaluationContext {
     }
 
     protected void exitModule(ModuleNode module){
+        flushLambdas();
         classBuilders.pop();
     }
 
@@ -116,7 +126,7 @@ public class EvaluationContext {
 
         var code = ClassFile.of()
                 .build(ClassDesc.of(name), builder -> {
-                    classBuilders.push(builder);
+                    classBuilders.push(ClassAssembler.create(builder));
                     classNode.evaluate(env, this);
                     exitClass(classNode);
                 });
@@ -124,20 +134,30 @@ public class EvaluationContext {
     }
 
     protected void exitClass(ClassNode classNode) {
+        flushLambdas();
         classBuilders.pop();
     }
 
     public void evaluateMethod(MethodNode method){
-        if(classBuilders.isEmpty()){
-            throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
+        evaluateMethod(method, false);
+    }
+
+    protected void evaluateMethod(MethodNode method, boolean lambdaPhase){
+        if(method.isLambda() && !lambdaPhase){
+            enqueueLambda(method);
+            // TODO - emit a binding for this method
+        }else{
+            if(classBuilders.isEmpty()){
+                throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
+            }
+            var builder = classBuilders.peek().builder();
+            var methodType = method.methodType();
+
+            builder.withMethodBody(method.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
+                evaluators.push(new CodeEvaluator(this, code));
+                method.evaluate(env, this);
+            });
         }
-        var builder = classBuilders.peek();
-        var methodType = method.methodType();
-        builder.withInterfaceSymbols(ClassDesc.of(ChipmunkModule.class.getName()));
-        builder.withMethodBody(method.name(), methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC, code -> {
-            evaluators.push(new CodeEvaluator(this, code));
-            method.evaluate(env, this);
-        });
     }
 
     /**
@@ -149,7 +169,7 @@ public class EvaluationContext {
         if(classBuilders.isEmpty()){
             throw new IllegalArgumentException("Not currently evaluating a class. This is a compiler bug.");
         }
-        var clsBuilder = classBuilders.peek();
+        var clsBuilder = classBuilders.peek().builder();
         clsBuilder.withMethodBody(name, methodDescriptorFor(methodType), ClassFile.ACC_PUBLIC,
                 code -> {
                     var evaluator = new CodeEvaluator(this, code);
@@ -233,11 +253,6 @@ public class EvaluationContext {
         return evaluators.peek();
     }
 
-    protected void exitMethod(){
-        exitLocalScope();
-        evaluators.pop();
-    }
-
     public void enterLocalScope(LocalBlockNode scope){
         if(evaluators.isEmpty()){
             throw new IllegalStateException("Not currently assembling a method. This is a compiler bug.");
@@ -284,6 +299,24 @@ public class EvaluationContext {
             convertedTypes[i] = expectedTypes.get(i);
         }
         return convertedTypes;
+    }
+
+    public boolean isEvaluatingLambdas(){
+        return isEvaluatingLambdas;
+    }
+
+    protected void enqueueLambda(MethodNode lambda){
+        classBuilders.peek().lambdas().add(lambda);
+    }
+
+    protected void flushLambdas(){
+        isEvaluatingLambdas = true;
+        var assembler = classBuilders.peek();
+        while(!assembler.lambdas().isEmpty()){
+            var lambda = assembler.lambdas().poll();
+            evaluateMethod(lambda, true);
+        }
+        isEvaluatingLambdas = false;
     }
 
     protected String prefixedClassName(String name){

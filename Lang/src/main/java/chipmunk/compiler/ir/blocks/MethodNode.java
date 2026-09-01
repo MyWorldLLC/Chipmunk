@@ -22,7 +22,6 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.Variable;
 import chipmunk.compiler.ir.ParentNode;
-import chipmunk.compiler.ir.VarDecNode;
 import chipmunk.compiler.ir.flow.ReturnNode;
 import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
@@ -44,17 +43,12 @@ public class MethodNode extends LocalBlockNode {
         this.name = name;
         inferredType(methodType);
         this.methodType = methodType;
-        variables().declare(new Variable("self", this));
-    }
 
-    /**
-     * Constructor for lambda methods
-     */
-    public MethodNode(String name, LocalBlockNode parent, MethodType methodType) {
-        super(parent);
-        this.name = name;
-        inferredType(methodType);
-        this.methodType = methodType;
+        if(!isLambda()){
+            var self = new Variable("self", this);
+            self.setFlag(Variable.FINAL);
+            variables().declare(self);
+        }
     }
 
     public String name(){
@@ -83,22 +77,42 @@ public class MethodNode extends LocalBlockNode {
                 .distinct()
                 .toList();
 
-        methodType.replaceRType(returnTypes.size() != 1 ? BuiltinTypes.VOID : returnTypes.getFirst());
+        var rType = switch (returnTypes.size()){
+            case 0 -> BuiltinTypes.VOID;
+            case 1 -> returnTypes.getFirst();
+            default -> BuiltinTypes.ANY;
+        };
+
+        methodType.replaceRType(rType);
+    }
+
+    public boolean isLambda(){
+        // TODO - this might not quite be enough for the case of methods within class expressions
+        return !(parent instanceof ClassNode || parent instanceof ModuleNode);
     }
 
     @Override
     public void evaluateBlock(EvaluationEnvironment env, EvaluationContext ctx){
-        for(var child : children){
-            child.evaluate(env, ctx);
-        }
-
-        // Generate default return
-        switch (methodType.rType()){
-            case VoidType _ -> ctx.codeEvaluator()._return(BuiltinTypes.VOID);
-            default -> {
-                ctx.pushZeroValue(methodType.rType());
-                ctx.codeEvaluator()._return(methodType.rType());
+        if(!isLambda() || ctx.isEvaluatingLambdas()){
+            for(var child : children){
+                child.evaluate(env, ctx);
             }
+
+            // Generate default return
+            switch (methodType.rType()){
+                case VoidType _ -> ctx.codeEvaluator()._return(BuiltinTypes.VOID);
+                default -> {
+                    ctx.pushZeroValue(methodType.rType());
+                    ctx.codeEvaluator()._return(methodType.rType());
+                }
+            }
+        }else{
+            // The lambda method implementation will be hoisted into the nearest class, so we can
+            // just emit a binding for self::<this method>
+            var code = ctx.codeEvaluator();
+            ctx.loadLocal(this, "self", BuiltinTypes.ANY);
+            code.push(name);
+            code.invokeRuntime("bind", BuiltinTypes.BINDING, BuiltinTypes.ANY, BuiltinTypes.STRING);
         }
     }
 }

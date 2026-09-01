@@ -44,7 +44,7 @@ public class Operators {
     }
 
     public static boolean isRawCall(AstNode node){
-        return false; // TODO
+        return node.is(NodeType.OPERATOR) && node.token.type() == TokenType.LPAREN;
     }
 
     public static boolean isAssignment(AstNode node){

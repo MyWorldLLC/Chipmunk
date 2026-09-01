@@ -28,6 +28,7 @@ import chipmunk.compiler.ir.passes.EvaluationContext;
 import chipmunk.compiler.ir.passes.EvaluationEnvironment;
 import chipmunk.compiler.ir.passes.TypeResolutionContext;
 import chipmunk.compiler.types.BuiltinTypes;
+import chipmunk.compiler.types.MethodType;
 
 public class VarDecNode extends ParentNode {
 
@@ -59,7 +60,7 @@ public class VarDecNode extends ParentNode {
     @Override
     public void resolveTypes(EvaluationEnvironment env, TypeResolutionContext ctx){
         super.resolveTypes(env, ctx);
-        var type = children.isEmpty() ? BuiltinTypes.ANY : children.getFirst().inferredType();
+        var type = children.isEmpty() || children.getFirst() instanceof MethodNode ? BuiltinTypes.ANY : children.getFirst().inferredType();
         inferredType(type);
         lookupVariable(name).ifPresent(variable -> variable.type(type));
     }

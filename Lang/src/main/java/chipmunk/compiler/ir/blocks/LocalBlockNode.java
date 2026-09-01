@@ -22,7 +22,6 @@ package chipmunk.compiler.ir.blocks;
 
 import chipmunk.compiler.SymbolStorage;
 import chipmunk.compiler.Variable;
-import chipmunk.compiler.ir.IRNode;
 import chipmunk.compiler.ir.ParentNode;
 import chipmunk.compiler.ir.VariableScope;
 import chipmunk.compiler.ir.passes.EvaluationContext;

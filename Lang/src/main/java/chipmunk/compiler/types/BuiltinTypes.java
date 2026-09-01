@@ -40,4 +40,5 @@ public class BuiltinTypes {
     public static final ObjectType MAP = CollectionType.MAP;
     public static final ObjectType LIST = CollectionType.LIST;
     public static final ObjectType ITERATOR = IteratorType.INSTANCE;
+    public static final ObjectType BINDING = MethodBindingType.INSTANCE;
 }
