@@ -142,7 +142,7 @@ task jmh(type: JavaExec, dependsOn: jmhCompile) {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-	main = 'chipmunk.benchmark.ChipmunkBenchmarks'
+	mainClass = 'chipmunk.benchmark.ChipmunkBenchmarks'
 
 	classpath = sourceSets.jmh.runtimeClasspath +
 			sourceSets.jmh.compileClasspath +
@@ -161,6 +161,6 @@ task runProfiler(type:JavaExec) {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-    main = 'chipmunk.profiling.ChipmunkProfiler'
+    mainClass = 'chipmunk.profiling.ChipmunkProfiler'
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }

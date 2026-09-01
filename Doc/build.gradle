@@ -66,7 +66,7 @@ test {
 
 task genTestFiles(type: JavaExec, dependsOn: compileTestGroovy) {
     classpath = sourceSets.test.runtimeClasspath
-    main = 'chipmunk.doc.TestFileGenerator'
+    mainClass = 'chipmunk.doc.TestFileGenerator'
     workingDir = "$projectDir/src/test/groovy/chipmunk/doc"
     args './generated'
 }
