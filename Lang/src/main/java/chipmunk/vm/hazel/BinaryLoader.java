@@ -121,6 +121,86 @@ public class BinaryLoader {
                     sp--;
                     ip++;
                 }
+                case SUB -> {
+                    instructions.add(new Sub(sp));
+                    sp--;
+                    ip++;
+                }
+                case MUL -> {
+                    instructions.add(new Mul(sp));
+                    sp--;
+                    ip++;
+                }
+                case DIV -> {
+                    instructions.add(new Div(sp));
+                    sp--;
+                    ip++;
+                }
+                case FDIV -> {
+                    instructions.add(new FDiv(sp));
+                    sp--;
+                    ip++;
+                }
+                case MOD -> {
+                    instructions.add(new Mod(sp));
+                    sp--;
+                    ip++;
+                }
+                case POW -> {
+                    instructions.add(new Pow(sp));
+                    sp--;
+                    ip++;
+                }
+                case INC -> {
+                    instructions.add(new Inc(sp));
+                    ip++;
+                }
+                case DEC -> {
+                    instructions.add(new Dec(sp));
+                    ip++;
+                }
+                case POS -> {
+                    instructions.add(new Pos(sp));
+                    ip++;
+                }
+                case NEG -> {
+                    instructions.add(new Neg(sp));
+                    ip++;
+                }
+                case BXOR -> {
+                    instructions.add(new Bxor(sp));
+                    sp--;
+                    ip++;
+                }
+                case BAND -> {
+                    instructions.add(new Band(sp));
+                    sp--;
+                    ip++;
+                }
+                case BOR -> {
+                    instructions.add(new Bor(sp));
+                    sp--;
+                    ip++;
+                }
+                case BNEG -> {
+                    instructions.add(new BNeg(sp));
+                    ip++;
+                }
+                case LSHIFT -> {
+                    instructions.add(new LShift(sp));
+                    sp--;
+                    ip++;
+                }
+                case RSHIFT -> {
+                    instructions.add(new RShift(sp));
+                    sp--;
+                    ip++;
+                }
+                case URSHIFT -> {
+                    instructions.add(new URShift(sp));
+                    sp--;
+                    ip++;
+                }
                 case PUSH -> {
                     instructions.add(new Push(sp, fetchInt(code, ip + 1)));
                     sp++;
@@ -138,13 +218,16 @@ public class BinaryLoader {
                     sp++;
                     ip++;
                 }
+                case SWAP -> {
+                    instructions.add(new Swap(sp));
+                    ip++;
+                }
                 case GETLOCAL -> {
                     instructions.add(new LocalGet(sp, code[ip + 1]));
                     sp++;
                     ip += 2;
                 }
                 case SETLOCAL -> {
-                    // Note: local set does not pop the stack.
                     instructions.add(new LocalSet(sp, code[ip + 1]));
                     sp--;
                     ip += 2;
@@ -191,19 +274,65 @@ public class BinaryLoader {
                     };
                     var replace = instruction;
                     instructions.add(null);
-                    postProcessors.add(() -> instructions.set(replace, new UnaryCondition(stackDepths[target], condition, target)));
+                    postProcessors.add(() -> instructions.set(replace, new UnaryCondition(stackDepths[remapping[target]], condition, target)));
                     sp--;
                     ip += jump ? 6 : 1;
+                }
+                case IF -> {
+                    var target = fetchInt(code, ip + 1);
+                    var replace = instruction;
+                    instructions.add(null);
+                    postProcessors.add(() -> instructions.set(replace, new If(stackDepths[remapping[target]], target)));
+                    ip += 5;
                 }
                 case CALL -> {
                     // TODO
                     ip += 2;
+                }
+                case THROW -> {
+                    instructions.add(new Throw(sp));
+                    sp--;
+                    ip++;
+                    ip += 1;
                 }
                 case CALLAT -> {
                     ip += 6; // TODO
                 }
                 case SETATTR -> {
                     ip += 5; // TODO
+                }
+                case GETAT -> {
+
+                }
+                case SETAT -> {
+
+                }
+                case AS -> {
+
+                }
+                case ITER -> {
+
+                }
+                case RANGE -> {
+
+                }
+                case LIST -> {
+
+                }
+                case MAP -> {
+
+                }
+                case INITUPVALUE -> {
+
+                }
+                case GETUPVALUE -> {
+
+                }
+                case SETUPVALUE -> {
+
+                }
+                case BIND -> {
+
                 }
                 default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X".formatted(op));
             }

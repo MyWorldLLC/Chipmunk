@@ -25,9 +25,9 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
 
-public class Add extends Instruction {
+public class FDiv extends Instruction {
 
-    public Add(int sp) {
+    public FDiv(int sp) {
         super(sp);
     }
 
@@ -37,11 +37,10 @@ public class Add extends Instruction {
         var a = stack[bp + sp - 1];
         var b = stack[bp + sp];
         if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 1] = a + b;
+            stack[bp + sp - 1] = Math.floor(a / b);
         }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.ADD, 1);
+            dynamicCall(bp + sp - 1, a, OpcodeNames.FDIV, 1);
         }
         return ip + 1;
     }
-
 }

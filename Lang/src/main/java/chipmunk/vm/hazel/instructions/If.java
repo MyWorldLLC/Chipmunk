@@ -25,23 +25,34 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
 
-public class Add extends Instruction {
+public class If extends Instruction {
 
-    public Add(int sp) {
+    protected final int target;
+
+    public If(int sp, int target) {
         super(sp);
+        this.target = target;
     }
 
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        var b = stack[bp + sp];
-        if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 1] = a + b;
+        var a = stack[bp + sp];
+        boolean result = false;
+        if(Value.isNumber(a)) {
+            result = a != 0.0;
         }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.ADD, 1);
+            dynamicCall(bp + sp, a, OpcodeNames.TRUTH, 0);
+        }
+
+        if(target != Integer.MIN_VALUE){
+            // Note that branches use inverse of result - if the condition does not hold, the branch is taken
+            if(!result){
+                return target;
+            }
+        }else{
+            stack[bp + sp - 1] = result ? 1.0 : 0.0;
         }
         return ip + 1;
     }
-
 }

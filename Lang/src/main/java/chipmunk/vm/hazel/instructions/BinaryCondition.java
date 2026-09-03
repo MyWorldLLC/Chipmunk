@@ -55,7 +55,6 @@ public class BinaryCondition extends Instruction {
         var b = stack[bp + sp];
         boolean result = false;
         if(Value.isNumber(a) && Value.isNumber(b)) {
-            //System.out.println("Comparing " + a + " and " + b + " (sp=" + (bp + sp) + ")" + " cond=" + condition);
             result = switch (condition) {
                 case COND_LT -> a < b;
                 case COND_LE -> a <= b;
@@ -67,16 +66,14 @@ public class BinaryCondition extends Instruction {
                 case COND_INSTANCEOF -> false; // TODO
                 default -> false;
             };
-            //System.out.println("Comparing " + a + " and " + b + " (sp=" + (bp + sp) + ")" + " cond=" + condition + " result=" + result);
         }else{
-            // TODO - null checks, invoke comparison methods
+            // TODO - object truth & branch
         }
 
         if(target != Integer.MIN_VALUE){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
-                //System.out.println("Branching to " + target);
-                return -target;
+                return target;
             }
         }else{
             stack[bp + sp - 1] = result ? 1.0 : 0.0;

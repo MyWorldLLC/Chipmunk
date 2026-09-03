@@ -46,20 +46,26 @@ public class UnaryCondition extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[sp];
-        boolean result = switch (condition){
-            case COND_TRUE -> Value.isNumber(a) ? a != 0.0 : false; // TODO - object truth
-            case COND_NOT -> !(Value.isNumber(a) ? a != 0.0 : false); // TODO - object truth
-            case COND_NULL -> Value.isPointer(a) && Value.isNullPointer(a);
-            default -> false;
-        };
+        var a = stack[bp + sp];
+        boolean result = false;
+        if (chipmunk.vm.hazel.Value.isNumber(a)) {
+            result = switch (condition) {
+                case COND_TRUE -> Value.isNumber(a) && a != 0.0; // TODO - object truth
+                case COND_NOT -> !(Value.isNumber(a) && a != 0.0); // TODO - object truth
+                case COND_NULL -> Value.isPointer(a) && Value.isNullPointer(a);
+                default -> false;
+            };
+        }else{
+            // TODO - object truth & branch
+        }
 
         if(target != Integer.MIN_VALUE){
-            if(result){
+            // Note that branches use inverse of result - if the condition does not hold, the branch is taken
+            if(!result){
                 return target;
             }
         }else{
-            stack[sp] = result ? 1.0 : 0.0;
+            stack[bp + sp - 1] = result ? 1.0 : 0.0;
         }
         return ip + 1;
     }

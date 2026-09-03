@@ -37,8 +37,8 @@ public class Value {
     // up to 2G memory entries, but this leaves the option open for things like segmented memories to support a
     // larger address space.
 
-    public static final long NAN_MASK       =    0x7FF8_0000_0000_0000L;
-    public static final long TYPE_MASK        =  0x0007_F000_0000_0000L;
+    public static final long NAN_MASK          = 0x7FF8_0000_0000_0000L;
+    public static final long TYPE_MASK         = 0x0007_F000_0000_0000L;
     public static final long POINTER_TYPE_FLAG = 0x0007_F000_0000_0000L;
 
     public static final long NULL_POINTER = 0L;
@@ -75,6 +75,14 @@ public class Value {
 
     public static long getPointer(double v){
         return toBits(v) ^ NAN_MASK ^ TYPE_MASK;
+    }
+
+    public static int toIntBits(double v){
+        return (int) v;
+    }
+
+    public static double fromIntBits(int v){
+        return v;
     }
 
     public static boolean isNullPointer(double v){

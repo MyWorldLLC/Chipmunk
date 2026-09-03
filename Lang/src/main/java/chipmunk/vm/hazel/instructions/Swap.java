@@ -20,28 +20,22 @@
 
 package chipmunk.vm.hazel.instructions;
 
-import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.Value;
 
-public class Add extends Instruction {
+public class Swap extends Instruction {
 
-    public Add(int sp) {
+    public Swap(int sp) {
         super(sp);
     }
 
     @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
+    public int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
         var a = stack[bp + sp - 1];
         var b = stack[bp + sp];
-        if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 1] = a + b;
-        }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.ADD, 1);
-        }
+        stack[bp + sp - 1] = b;
+        stack[bp + sp] = a;
         return ip + 1;
     }
-
 }

@@ -50,6 +50,10 @@ public abstract class Instruction {
 
     public abstract int apply(Fiber fiber, int ip, int bp);
 
+    public final void dynamicCall(int stackAddr, double ptr, String method, int args){
+        // TODO
+    }
+
     public String toString() {
         return getClass().getSimpleName() + " sp=" + sp;
     }
