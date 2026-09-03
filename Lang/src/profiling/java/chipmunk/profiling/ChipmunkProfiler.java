@@ -20,10 +20,17 @@
 
 package chipmunk.profiling;
 
+import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.ChipmunkDisassembler;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
+import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.hazel.EntryPoint;
+import chipmunk.vm.hazel.HazelVM;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 public class ChipmunkProfiler {
 
@@ -46,12 +53,31 @@ public class ChipmunkProfiler {
 			program = programs.get(args[0]);
 		}
 
+		var compiler = new ChipmunkCompiler();
+		var modules = compiler.compile(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+		var hazelVM = new HazelVM(new ModuleLoader());
+		hazelVM.moduleLoader().addToLoaded(List.of(modules));
+		hazelVM.entryPoint(new EntryPoint("profiling", "main"));
+		for(var module : modules){
+			System.out.println("=================================");
+			System.out.println(ChipmunkDisassembler.disassemble(module));
+			System.out.println("=================================");
+		}
+		hazelVM.run(); // Run once to init everything so that subsequent runs are measuring only the workload
+
 		while(true){
-			Object value;
+			/*Object value;
 			long startTime = System.nanoTime();
 			value = vm.runAsync(program).get();
 			long endTime = System.nanoTime();
 			
+			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
+			 */
+			Object value;
+			long startTime = System.nanoTime();
+			value = hazelVM.run().get();
+			long endTime = System.nanoTime();
+
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
 
 			Thread.sleep(500);

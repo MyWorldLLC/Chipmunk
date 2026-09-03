@@ -23,7 +23,7 @@ package chipmunk.compiler;
 import chipmunk.binary.*;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 
-import static chipmunk.compiler.assembler.Opcodes.*;
+import static chipmunk.vm.Opcodes.*;
 
 public class ChipmunkDisassembler {
 

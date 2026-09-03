@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 
 public class ModuleLoader {
 
@@ -132,7 +133,7 @@ public class ModuleLoader {
 		return module;
 	}
 
-	public ChipmunkModule loadNative(String moduleName){
+	public ChipmunkModule  loadNative(String moduleName){
 		NativeModuleFactory nativeFactory = nativeFactories.get(moduleName);
 		if(nativeFactory == null){
 			if(delegate != null){
@@ -148,6 +149,16 @@ public class ModuleLoader {
 
 		if(binMod != null){
 			return compiler.compileModule(binMod);
+		}
+
+		return loadNative(moduleName);
+	}
+
+	public ChipmunkModule load(String moduleName, Function<BinaryModule, ChipmunkModule> loader) throws IOException, BinaryFormatException {
+		BinaryModule binMod = loadBinary(moduleName);
+
+		if(binMod != null){
+			return loader.apply(binMod);
 		}
 
 		return loadNative(moduleName);
