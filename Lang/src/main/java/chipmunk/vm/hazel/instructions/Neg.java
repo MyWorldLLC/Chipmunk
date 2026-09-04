@@ -38,7 +38,7 @@ public class Neg extends Instruction {
         if(Value.isNumber(a)) {
             stack[bp + sp] = -a;
         }else{
-            dynamicCall(bp + sp, a, OpcodeNames.NEG, 0);
+            dynamicCall(fiber, bp + sp, a, OpcodeNames.NEG, 0);
         }
         return ip + 1;
     }

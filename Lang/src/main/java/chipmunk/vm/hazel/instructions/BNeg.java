@@ -38,7 +38,7 @@ public class BNeg extends Instruction {
         if(Value.isNumber(a)) {
             stack[bp + sp] = ~((int) a);
         }else{
-            dynamicCall(bp + sp, a, OpcodeNames.BNEG, 0);
+            dynamicCall(fiber, bp + sp, a, OpcodeNames.BNEG, 0);
         }
         return ip + 1;
     }

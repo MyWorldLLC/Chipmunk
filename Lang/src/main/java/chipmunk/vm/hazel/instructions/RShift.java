@@ -39,7 +39,7 @@ public class RShift extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = ((int) a) >> ((int) b);
         }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.RSHIFT, 1);
+            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.RSHIFT, 1);
         }
         return ip + 1;
     }

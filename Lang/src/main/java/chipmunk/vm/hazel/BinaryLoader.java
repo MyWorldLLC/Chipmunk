@@ -236,7 +236,13 @@ public class BinaryLoader {
                     var target = fetchInt(code, ip + 1);
                     var replace = instruction;
                     instructions.add(null);
-                    postProcessors.add(() -> instructions.set(replace, new Goto(stackDepths[remapping[target]], remapping[target])));
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new Goto(stackDepths[remapping[target]], jumpTo));
+                    });
                     ip += 5;
                 }
                 case RETURN -> {
@@ -259,7 +265,13 @@ public class BinaryLoader {
                     };
                     var replace = instruction;
                     instructions.add(null);
-                    postProcessors.add(() -> instructions.set(replace, new BinaryCondition(stackDepths[remapping[target]], condition, remapping[target])));
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new BinaryCondition(stackDepths[remapping[target]], condition, jumpTo));
+                    });
                     sp--;
                     ip += jump ? 6 : 1;
                 }
@@ -274,7 +286,13 @@ public class BinaryLoader {
                     };
                     var replace = instruction;
                     instructions.add(null);
-                    postProcessors.add(() -> instructions.set(replace, new UnaryCondition(stackDepths[remapping[target]], condition, target)));
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new UnaryCondition(stackDepths[remapping[target]], condition, jumpTo));
+                    });
                     sp--;
                     ip += jump ? 6 : 1;
                 }
@@ -282,7 +300,13 @@ public class BinaryLoader {
                     var target = fetchInt(code, ip + 1);
                     var replace = instruction;
                     instructions.add(null);
-                    postProcessors.add(() -> instructions.set(replace, new If(stackDepths[remapping[target]], target)));
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new If(stackDepths[remapping[target]], jumpTo));
+                    });
                     ip += 5;
                 }
                 case CALL -> {

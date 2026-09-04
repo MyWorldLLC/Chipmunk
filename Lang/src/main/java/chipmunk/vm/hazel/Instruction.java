@@ -32,25 +32,9 @@ public abstract class Instruction {
         return sp;
     }
 
-    public final double readStack(Fiber fiber) {
-        return fiber.stack[sp];
-    }
-
-    public final double readStack(Fiber fiber, int off) {
-        return fiber.stack[sp + off];
-    }
-
-    public final void writeStack(Fiber fiber, double value) {
-        fiber.stack[sp] = value;
-    }
-
-    public final void writeStack(Fiber fiber, int off, double value) {
-        fiber.stack[sp + off] = value;
-    }
-
     public abstract int apply(Fiber fiber, int ip, int bp);
 
-    public final void dynamicCall(int stackAddr, double ptr, String method, int args){
+    public final void dynamicCall(Fiber fiber, int stackAddr, double ptr, String method, int args){
         // TODO
     }
 

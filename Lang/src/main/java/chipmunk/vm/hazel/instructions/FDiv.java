@@ -39,7 +39,7 @@ public class FDiv extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = Math.floor(a / b);
         }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.FDIV, 1);
+            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.FDIV, 1);
         }
         return ip + 1;
     }

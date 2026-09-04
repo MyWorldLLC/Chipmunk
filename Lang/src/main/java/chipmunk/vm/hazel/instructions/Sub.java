@@ -39,7 +39,7 @@ public class Sub extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = a - b;
         }else{
-            dynamicCall(bp + sp - 1, a, OpcodeNames.SUB, 1);
+            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.SUB, 1);
         }
         return ip + 1;
     }

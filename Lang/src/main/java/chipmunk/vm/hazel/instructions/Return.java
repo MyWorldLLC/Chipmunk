@@ -31,8 +31,8 @@ public class Return extends Instruction {
 
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
-        //System.out.println("Returning");
-        return -Integer.MAX_VALUE;
+        fiber.popFrame();
+        return Fiber.RETURN_SIGNAL;
     }
 
 }

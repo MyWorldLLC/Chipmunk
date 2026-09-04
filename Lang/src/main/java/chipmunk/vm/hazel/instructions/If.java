@@ -42,7 +42,7 @@ public class If extends Instruction {
         if(Value.isNumber(a)) {
             result = a != 0.0;
         }else{
-            dynamicCall(bp + sp, a, OpcodeNames.TRUTH, 0);
+            dynamicCall(fiber, bp + sp, a, OpcodeNames.TRUTH, 0);
         }
 
         if(target != Integer.MIN_VALUE){

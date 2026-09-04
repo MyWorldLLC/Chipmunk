@@ -24,7 +24,10 @@ import chipmunk.runtime.CMethod;
 
 public final class Fiber {
 
+    public static final int RETURN_SIGNAL = -Integer.MAX_VALUE;
+
     public static final int DEFAULT_INITIAL_STACK = 1024;
+    public static final int DEFAULT_CALL_FRAMES = 32;
 
     public enum State {
         RUNNABLE,
@@ -32,25 +35,39 @@ public final class Fiber {
         TRAPPED
     }
 
+    public static class Frame {
+        public int ip;
+        public int bp;
+        public int sp;
+        public CMethod method;
+    }
+
     private final HazelVM vm;
     private final CMethod startMethod;
     private State state;
     private volatile boolean yieldRequested = false;
     public double[] stack;
+    public Frame[] callFrames;
+    public int callFramePtr;
+    private Frame currentFrame;
+    private Object[] constants;
 
     public int ip;
     public int bp;
     public int sp;
 
     public Fiber(HazelVM vm, CMethod startMethod) {
-        this(vm, startMethod, DEFAULT_INITIAL_STACK);
+        this(vm, startMethod, DEFAULT_INITIAL_STACK, DEFAULT_CALL_FRAMES);
     }
 
-    public Fiber(HazelVM vm, CMethod startMethod, int initialStack){
+    public Fiber(HazelVM vm, CMethod startMethod, int initialStack, int initialCallFrames){
         this.vm = vm;
         this.startMethod = startMethod;
         stack = new double[initialStack];
         state = State.RUNNABLE;
+
+        callFrames = new Frame[initialCallFrames];
+        callFramePtr = 0;
     }
 
     public HazelVM vm() {
@@ -62,7 +79,7 @@ public final class Fiber {
     }
 
     public Object[] constants(){
-        return startMethod.module().constants(); // TODO - this needs to be from the current method on top of the call stack
+        return constants;
     }
 
     public void state(State state){
@@ -73,17 +90,56 @@ public final class Fiber {
         return state;
     }
 
-    public int _return(){
-        // TODO - keep stack of method code that's been entered, pop the stack here and restore ip/bp/sp accordingly
-        return Integer.MIN_VALUE;
-    }
-
     public double[] stack(){
         return stack;
     }
 
+    public Frame pushAndPopulateFrame(CMethod callMethod, int ip, int bp, int sp){
+        var frame = pushFrame();
+        frame.bp = bp;
+        frame.sp = sp;
+        frame.ip = ip;
+        frame.method = callMethod;
+        constants = currentFrame.method.module().constants();
+        return frame;
+    }
+
+    public Frame pushFrame(){
+        var frame = callFrames[callFramePtr];
+        if(frame == null){
+            frame = new Frame();
+            // TODO - support expanding call stack
+            callFrames[callFramePtr] = frame;
+        }
+        currentFrame = frame;
+        callFramePtr++;
+        return frame;
+    }
+
+    public Frame currentFrame(){
+        return currentFrame;
+    }
+
+    public void popFrame(){
+        callFramePtr--;
+        currentFrame = callFrames[callFramePtr];
+        if(currentFrame != null){
+            constants = currentFrame.method.module().constants();
+        }
+
+    }
+
     public double lastReturned(){
-        return stack[startMethod().localCount()]; // TODO - use last frame info
+        var lastFrame = callFrames[callFramePtr];
+        return stack[lastFrame.bp + lastFrame.method.localCount()];
+    }
+
+    public int callStackDepth(){
+        return callFramePtr;
+    }
+
+    public boolean completed(){
+        return callStackDepth() == 0;
     }
 
     public boolean isYieldRequested(){

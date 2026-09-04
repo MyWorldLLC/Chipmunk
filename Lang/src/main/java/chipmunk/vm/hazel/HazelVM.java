@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel;
 
+import chipmunk.ChipmunkRuntimeException;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
 import chipmunk.runtime.ChipmunkModule;
@@ -64,7 +65,7 @@ public class HazelVM {
                 var init = module.getMethod("$module_init$");
                 if(init != null && !module.isInitialized()){
                     module.markInitialized();
-                    spawnFiber(init);
+                    //spawnFiber(init);
                 }
             }
 
@@ -74,8 +75,8 @@ public class HazelVM {
                 if(main == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
                 }
-                System.out.println("===== Method: " + main.name() + " =====");
-                System.out.println(main.dumpCode());
+                /*System.out.println("===== Method: " + main.name() + " =====");
+                System.out.println(main.dumpCode());*/
                 spawnFiber(main);
             }
 
@@ -129,6 +130,7 @@ public class HazelVM {
 
     protected Fiber spawnFiber(CMethod method){
         var fiber = new Fiber(this, method);
+        fiber.pushAndPopulateFrame(method, 0, 0, 0);
         enqueue(fiber);
         return fiber;
     }
@@ -145,18 +147,22 @@ public class HazelVM {
      * will be dispatched next.
      */
     protected void runFiber(Fiber fiber){
-        var ip = fiber.ip;
-        var bp = fiber.bp;
+        while(!checkAndClearYield() && !fiber.completed()){
+            var frame = fiber.currentFrame();
+            var ip = frame.ip;
+            var bp = frame.bp;
 
-        var code = fiber.startMethod().code();
+            var code = frame.method.code();
 
-        while(Math.abs(ip) < code.length){
-            try {
-                ip = Math.abs(ip);
-                var op = code[ip];
-                ip = op.apply(fiber, ip, bp);
-                if(ip >= 0){
-                    op = code[ip];
+            while(Math.abs(ip) < code.length){
+                // Function calls, returns, loops, etc. will all cause this to be hit frequently.
+                if(checkYield()){
+                    break;
+                }
+                try {
+                    ip = Math.abs(ip);
+                    var op = code[ip];
+                    //System.out.println(op.getClass().getSimpleName() + " SP=" + sp + " dSP=" + op.spChange() + " stack=" + dumpStack(fiber, bp, sp));
                     ip = op.apply(fiber, ip, bp);
                     if(ip >= 0){
                         op = code[ip];
@@ -182,6 +188,374 @@ public class HazelVM {
                                                 if(ip >= 0){
                                                     op = code[ip];
                                                     ip = op.apply(fiber, ip, bp);
+                                                    if(ip >= 0){
+                                                        op = code[ip];
+                                                        ip = op.apply(fiber, ip, bp);
+                                                        if(ip >= 0){
+                                                            op = code[ip];
+                                                            ip = op.apply(fiber, ip, bp);
+                                                            if(ip >= 0){
+                                                                op = code[ip];
+                                                                ip = op.apply(fiber, ip, bp);
+                                                                if(ip >= 0){
+                                                                    op = code[ip];
+                                                                    ip = op.apply(fiber, ip, bp);
+                                                                    if(ip >= 0){
+                                                                        op = code[ip];
+                                                                        ip = op.apply(fiber, ip, bp);
+                                                                        if(ip >= 0){
+                                                                            op = code[ip];
+                                                                            ip = op.apply(fiber, ip, bp);
+                                                                            if(ip >= 0){
+                                                                                op = code[ip];
+                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                if(ip >= 0){
+                                                                                    op = code[ip];
+                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                    if(ip >= 0){
+                                                                                        op = code[ip];
+                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                        if(ip >= 0){
+                                                                                            op = code[ip];
+                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                            if(ip >= 0){
+                                                                                                op = code[ip];
+                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                if(ip >= 0){
+                                                                                                    op = code[ip];
+                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                    if(ip >= 0){
+                                                                                                        op = code[ip];
+                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                        if(ip >= 0){
+                                                                                                            op = code[ip];
+                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                            if(ip >= 0){
+                                                                                                                op = code[ip];
+                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                if(ip >= 0){
+                                                                                                                    op = code[ip];
+                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                    if(ip >= 0){
+                                                                                                                        op = code[ip];
+                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                        if(ip >= 0){
+                                                                                                                            op = code[ip];
+                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                            if(ip >= 0){
+                                                                                                                                op = code[ip];
+                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                if(ip >= 0){
+                                                                                                                                    op = code[ip];
+                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                    if(ip >= 0){
+                                                                                                                                        op = code[ip];
+                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                        if(ip >= 0){
+                                                                                                                                            op = code[ip];
+                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                            if(ip >= 0){
+                                                                                                                                                op = code[ip];
+                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                if(ip >= 0){
+                                                                                                                                                    op = code[ip];
+                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                        op = code[ip];
+                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                            op = code[ip];
+                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                op = code[ip];
+                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                    if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                        op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                        ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                        if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                            op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                            ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                            if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                                op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                                ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                                if(ip >= 0){
+                                                                                                                                                                                                                                                                                                                                                                                                                                    op = code[ip];
+                                                                                                                                                                                                                                                                                                                                                                                                                                    ip = op.apply(fiber, ip, bp);
+                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                }
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                }
+                                                                                                                                                                                            }
+                                                                                                                                                                                        }
+                                                                                                                                                                                    }
+                                                                                                                                                                                }
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                    }
+                                                                                                                                                                }
+                                                                                                                                                            }
+                                                                                                                                                        }
+                                                                                                                                                    }
+                                                                                                                                                }
+                                                                                                                                            }
+                                                                                                                                        }
+                                                                                                                                    }
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -190,17 +564,23 @@ public class HazelVM {
                             }
                         }
                     }
+                }catch(Throwable t){
+                    //throw t; // TODO
+                    t.printStackTrace();
+                    throw new ChipmunkRuntimeException(t.getMessage());
                 }
-                // TODO - extend the distributor dispatch to a suitable level
-                //var locals = new double[fiber.startMethod().localCount()];
-                /*System.arraycopy(fiber.stack, 0, locals, 0, locals.length);
-                var stack = new double[fiber.startMethod().maxStack()];
-                System.arraycopy(fiber.stack, fiber.startMethod().localCount(), stack, 0, stack.length);
-                System.out.println(ip + ": " + op + ": locals=" + Arrays.toString(locals) + " stack="  + Arrays.toString(stack));*/
-            }catch(Throwable t){
-                throw t; // TODO
             }
         }
+    }
+
+    protected double[] frameState(Fiber fiber, int bp, int sp){
+        var copy = new double[bp + sp];
+        System.arraycopy(fiber.stack, 0, copy, 0, bp + sp);
+        return copy;
+    }
+
+    protected String dumpStack(Fiber fiber, int bp, int sp){
+        return Arrays.toString(frameState(fiber, bp, sp));
     }
 
     public void yield(){
@@ -218,6 +598,10 @@ public class HazelVM {
 
     public EntryPoint entryPoint(){
         return entryPoint;
+    }
+
+    private boolean checkYield(){
+        return yieldRequested;
     }
 
     private boolean checkAndClearYield(){
