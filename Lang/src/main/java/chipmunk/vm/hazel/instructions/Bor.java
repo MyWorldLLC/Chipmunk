@@ -39,7 +39,7 @@ public class Bor extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = ((int) a) | ((int) b);
         }else{
-            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.BOR, 1);
+            dynamicCall(fiber, ip, bp, bp + sp - 1, a, OpcodeNames.BOR, 1);
         }
         return ip + 1;
     }

@@ -18,28 +18,23 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.instructions;
+package chipmunk.runtime;
 
-import chipmunk.vm.OpcodeNames;
-import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.Value;
+public class HostCObject {
 
-public class BNeg extends Instruction {
+    protected double selfPtr;
 
-    public BNeg(int sp) {
-        super(sp);
+    public HostCObject() {}
+
+    public HostCObject(double selfPtr) {
+        this.selfPtr = selfPtr;
     }
 
-    @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        var stack = fiber.stack;
-        var a = stack[bp + sp];
-        if(Value.isNumber(a)) {
-            stack[bp + sp] = ~((int) a);
-        }else{
-            dynamicCall(fiber, ip, bp, bp + sp, a, OpcodeNames.BNEG, 0);
-        }
-        return ip + 1;
+    public void selfPtr(double selfPtr) {
+        this.selfPtr = selfPtr;
+    }
+
+    public double selfPtr() {
+        return selfPtr;
     }
 }

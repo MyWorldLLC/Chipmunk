@@ -39,7 +39,7 @@ public class Pow extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = Math.pow(a, b);
         }else{
-            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.POW, 1);
+            dynamicCall(fiber, ip, bp, bp + sp - 1, a, OpcodeNames.POW, 1);
         }
         return ip + 1;
     }

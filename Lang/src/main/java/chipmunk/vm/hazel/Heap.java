@@ -20,15 +20,18 @@
 
 package chipmunk.vm.hazel;
 
-public class Heap {
+import chipmunk.vm.hazel.util.BitFieldAllocator;
+
+public final class Heap {
 
     public static final int DEFAULT_INITIAL_HEAP_SIZE = 1024;
     public static final int DEFAULT_GROWTH_STEP = 1024;
     public static final int DEFAULT_HEAP_LIMIT = 2048;
 
-    protected int limit;
-    protected int step;
-    protected Object[] memory;
+    private final int limit;
+    private final int step;
+    private Object[] memory;
+    private final BitFieldAllocator allocator;
 
     public Heap(){
         this(DEFAULT_INITIAL_HEAP_SIZE, DEFAULT_HEAP_LIMIT);
@@ -46,6 +49,7 @@ public class Heap {
         this.limit = limit;
         this.step = step;
         memory = new Object[initialHeapSize];
+        allocator = new BitFieldAllocator(initialHeapSize);
     }
 
     public Object read(long ptr){
@@ -56,16 +60,35 @@ public class Heap {
         try{
             memory[(int) ptr] = value;
         }catch(ArrayIndexOutOfBoundsException e){
-            try{
-                if(ptr >= limit){
-                    throw e; // TODO - customize & attach the bad pointer
-                }
-                var tmp = new Object[Math.toIntExact(Math.min(limit, memory.length + ptr + step))];
-                System.arraycopy(memory, 0, tmp, 0, memory.length);
-                memory = tmp;
-            } catch (ArithmeticException ex) {
-                throw new HeapOverflowException(ptr, "Required new heap size would exceed array size limits");
+            growHeap(ptr);
+            memory[(int) ptr] = value;
+        }
+    }
+
+    public BitFieldAllocator allocator(){
+        return allocator;
+    }
+
+    public long allocate(){
+        return allocator.allocate();
+    }
+
+    public void free(long ptr){
+        memory[(int) ptr] = null;
+        allocator.free((int) ptr);
+    }
+
+    private void growHeap(long outOfBoundsPtr){
+        try{
+            if(outOfBoundsPtr >= limit){
+                throw new HeapOverflowException(outOfBoundsPtr, "Required new heap size would exceed array size limits");
             }
+            var tmp = new Object[Math.toIntExact(Math.min(limit, memory.length + outOfBoundsPtr + step))];
+            System.arraycopy(memory, 0, tmp, 0, memory.length);
+            memory = tmp;
+            allocator.resize(memory.length);
+        } catch (ArithmeticException ex) {
+            throw new HeapOverflowException(outOfBoundsPtr, "Required new heap size would exceed array size limits");
         }
     }
 }

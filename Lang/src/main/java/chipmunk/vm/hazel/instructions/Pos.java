@@ -38,7 +38,7 @@ public class Pos extends Instruction {
         if(Value.isNumber(a)) {
             stack[bp + sp] = Math.abs(a);
         }else{
-            dynamicCall(fiber, bp + sp, a, OpcodeNames.POS, 0);
+            dynamicCall(fiber, ip, bp + sp, sp, a, OpcodeNames.POS, 0);
         }
         return ip + 1;
     }

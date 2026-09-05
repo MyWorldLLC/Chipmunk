@@ -39,7 +39,7 @@ public class Mod extends Instruction {
         if(Value.isNumber(a) && Value.isNumber(b)) {
             stack[bp + sp - 1] = a % b;
         }else{
-            dynamicCall(fiber, bp + sp - 1, a, OpcodeNames.MOD, 1);
+            dynamicCall(fiber, ip, bp, bp + sp - 1, a, OpcodeNames.MOD, 1);
         }
         return ip + 1;
     }

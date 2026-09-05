@@ -94,13 +94,15 @@ public final class Fiber {
         return stack;
     }
 
-    public Frame pushAndPopulateFrame(CMethod callMethod, int ip, int bp, int sp){
+    public Frame pushCallFrame(CMethod callMethod, int ip, int bp, int sp){
         var frame = pushFrame();
         frame.bp = bp;
         frame.sp = sp;
         frame.ip = ip;
         frame.method = callMethod;
-        constants = currentFrame.method.module().constants();
+        if(callMethod != null){
+            constants = currentFrame.method.module().constants();
+        }
         return frame;
     }
 
@@ -108,12 +110,23 @@ public final class Fiber {
         var frame = callFrames[callFramePtr];
         if(frame == null){
             frame = new Frame();
-            // TODO - support expanding call stack
-            callFrames[callFramePtr] = frame;
+            try{
+                callFrames[callFramePtr] = frame;
+            }catch(ArrayIndexOutOfBoundsException e){
+                // TODO - support call stack limit, throw error when stack depth exceeded.
+                var tmp = new Frame[callFrames.length * 2];
+                System.arraycopy(callFrames, 0, tmp, 0, callFrames.length);
+                callFrames = tmp;
+                callFrames[callFramePtr] = frame;
+            }
         }
         currentFrame = frame;
         callFramePtr++;
         return frame;
+    }
+
+    public Frame pushCallFrame(int ip, int bp, int sp){
+        return pushCallFrame(null, ip, bp, sp);
     }
 
     public Frame currentFrame(){

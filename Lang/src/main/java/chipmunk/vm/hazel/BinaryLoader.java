@@ -310,17 +310,19 @@ public class BinaryLoader {
                     ip += 5;
                 }
                 case CALL -> {
-                    // TODO
+                    instructions.add(new Call(sp, "call", code[ip + 1]));
                     ip += 2;
+                }
+                case CALLAT -> {
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 2)];
+                    instructions.add(new Call(sp, name, code[ip + 1]));
+                    ip += 6;
                 }
                 case THROW -> {
                     instructions.add(new Throw(sp));
                     sp--;
                     ip++;
                     ip += 1;
-                }
-                case CALLAT -> {
-                    ip += 6; // TODO
                 }
                 case SETATTR -> {
                     ip += 5; // TODO

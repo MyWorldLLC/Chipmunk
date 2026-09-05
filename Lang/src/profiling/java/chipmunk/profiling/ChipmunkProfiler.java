@@ -22,6 +22,7 @@ package chipmunk.profiling;
 
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkDisassembler;
+import chipmunk.compiler.ChipmunkSource;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
@@ -37,14 +38,14 @@ public class ChipmunkProfiler {
 	
 	public static void main(String[] args) throws Throwable {
 
-		ChipmunkVM vm = new ChipmunkVM();
-		var programs = new HashMap<String, ChipmunkScript>();
-		programs.put("countToAMillion", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion"));
-		programs.put("countingForLoop", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop"));
-		programs.put("fibonacci", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci"));
-		programs.put("mandelbrot", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot"));
-		programs.put("polymorphism", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("PolymorphicCalling.chp"), "polymorphism"));
-		programs.put("nonpolymorphism", vm.compileScript(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism"));
+		var programs = new HashMap<String, ChipmunkSource>();
+		programs.put("countToAMillion", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion"));
+		programs.put("callOneMillion", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("CallOneMillion.chp"), "callOneMillion"));
+		programs.put("countingForLoop", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("CountingForLoop.chp"), "countingForLoop"));
+		programs.put("fibonacci", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("Fibonacci.chp"), "fibonacci"));
+		programs.put("mandelbrot", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("Mandelbrot.chp"), "mandelbrot"));
+		programs.put("polymorphism", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("PolymorphicCalling.chp"), "polymorphism"));
+		programs.put("nonpolymorphism", new ChipmunkSource(ChipmunkProfiler.class.getResourceAsStream("NonpolymorphicCalling.chp"), "nonpolymorphism"));
 		
 		System.out.println("Starting profiler. Press Ctrl-C to exit.");
 
@@ -54,7 +55,7 @@ public class ChipmunkProfiler {
 		}
 
 		var compiler = new ChipmunkCompiler();
-		var modules = compiler.compile(ChipmunkProfiler.class.getResourceAsStream("CountToAMillion.chp"), "countToAMillion");
+		var modules = compiler.compile(program.getIs(), program.getFileName());
 		var hazelVM = new HazelVM(new ModuleLoader());
 		hazelVM.moduleLoader().addToLoaded(List.of(modules));
 		hazelVM.entryPoint(new EntryPoint("profiling", "main"));
@@ -66,13 +67,6 @@ public class ChipmunkProfiler {
 		hazelVM.run(); // Run once to init everything so that subsequent runs are measuring only the workload
 
 		while(true){
-			/*Object value;
-			long startTime = System.nanoTime();
-			value = vm.runAsync(program).get();
-			long endTime = System.nanoTime();
-			
-			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");
-			 */
 			Object value;
 			long startTime = System.nanoTime();
 			value = hazelVM.run().get();

@@ -22,22 +22,21 @@ package chipmunk.runtime;
 
 import chipmunk.vm.hazel.Instruction;
 
-public class CMethod {
+public class CMethod extends NamedHostObject {
 
     protected final CModule module;
-    protected final String name;
     protected final Instruction[] code;
-    protected final int paramCount;
+    protected final int argCount;
     protected final int localCount;
     protected final int maxStack;
 
     protected byte[] origCode;
 
-    public CMethod(CModule module, String name, Instruction[] code, int paramCount, int localCount, int maxStack) {
+    public CMethod(CModule module, String name, Instruction[] code, int argCount, int localCount, int maxStack) {
+        super(name);
         this.module = module;
-        this.name = name;
         this.code = code;
-        this.paramCount = paramCount;
+        this.argCount = argCount;
         this.localCount = localCount;
         this.maxStack = maxStack;
     }
@@ -46,16 +45,12 @@ public class CMethod {
         return module;
     }
 
-    public String name() {
-        return name;
-    }
-
     public Instruction[] code() {
         return code;
     }
 
-    public int paramCount() {
-        return paramCount;
+    public int argCount() {
+        return argCount;
     }
 
     public int localCount() {
@@ -69,7 +64,7 @@ public class CMethod {
     public String dumpCode(){
         var builder = new StringBuilder();
         for(int i = 0; i < code.length; ++i){
-            System.out.println(i + ": " + code[i]);
+            builder.append(i + ": " + code[i] + "\n");
         }
         return builder.toString();
     }

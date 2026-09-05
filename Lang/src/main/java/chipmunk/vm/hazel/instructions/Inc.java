@@ -38,7 +38,7 @@ public class Inc extends Instruction {
         if(Value.isNumber(a)) {
             stack[bp + sp] = a + 1;
         }else{
-            dynamicCall(fiber, bp + sp, a, OpcodeNames.INC, 0);
+            dynamicCall(fiber, ip, bp, bp + sp, a, OpcodeNames.INC, 0);
         }
         return ip + 1;
     }

@@ -45,6 +45,10 @@ public class HazelVM {
     protected final Map<String, ChipmunkModule> modules = new HashMap<>();
     protected final ModuleLoader moduleLoader;
 
+    protected final MemoryStats memoryStats;
+    protected final Heap heap;
+    protected final GarbageCollector gc;
+
     protected Fiber currentFiber;
     protected Fiber lastFiber;
 
@@ -52,6 +56,9 @@ public class HazelVM {
 
     public HazelVM(ModuleLoader moduleLoader) {
         this.moduleLoader = moduleLoader;
+        memoryStats = new MemoryStats();
+        heap = new Heap();
+        gc = new GarbageCollector(this, heap);
     }
 
     public Optional<Object> run(){
@@ -65,7 +72,7 @@ public class HazelVM {
                 var init = module.getMethod("$module_init$");
                 if(init != null && !module.isInitialized()){
                     module.markInitialized();
-                    //spawnFiber(init);
+                    spawnFiber(init);
                 }
             }
 
@@ -117,6 +124,14 @@ public class HazelVM {
         return null;
     }
 
+    public MemoryStats memoryStats() {
+        return memoryStats;
+    }
+
+    public Heap heap(){
+        return heap;
+    }
+
     private void enqueue(Fiber fiber){
         fibers.add(fiber);
     }
@@ -128,9 +143,15 @@ public class HazelVM {
         );
     }
 
+    public Stream<CModule> allCModules(){
+        return modules.values().stream()
+                .filter(chipmunkModule -> chipmunkModule instanceof CModule)
+                .map(chipmunkModule -> (CModule) chipmunkModule);
+    }
+
     protected Fiber spawnFiber(CMethod method){
         var fiber = new Fiber(this, method);
-        fiber.pushAndPopulateFrame(method, 0, 0, 0);
+        fiber.pushCallFrame(method, 0, 0, 0);
         enqueue(fiber);
         return fiber;
     }
@@ -157,6 +178,9 @@ public class HazelVM {
             while(Math.abs(ip) < code.length){
                 // Function calls, returns, loops, etc. will all cause this to be hit frequently.
                 if(checkYield()){
+                    ip = Math.abs(ip);
+                    frame.ip = ip;
+                    frame.sp = frame.bp + code[ip].sp();
                     break;
                 }
                 try {

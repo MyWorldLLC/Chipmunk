@@ -20,5 +20,66 @@
 
 package chipmunk.runtime;
 
-public class CClass {
+import chipmunk.vm.hazel.HazelVM;
+
+public class CClass extends NamedHostObject {
+
+    protected double selfPtr;
+    protected double[] sharedFields;
+    protected CField[] sharedFieldDefs;
+    protected CMethod[] sharedMethodDefs;
+
+    protected CField[] instanceFieldDefs;
+    protected CMethod[] instanceMethodDefs;
+
+    public CClass(String name) {
+        super(name);
+    }
+
+    public double[] sharedFields() {
+        return sharedFields;
+    }
+
+    public void sharedFields(double[] sharedFields) {
+        this.sharedFields = sharedFields;
+    }
+
+    public CField[] sharedFieldDefs() {
+        return sharedFieldDefs;
+    }
+
+    public void sharedFieldDefs(CField[] sharedFieldDefs) {
+        this.sharedFieldDefs = sharedFieldDefs;
+    }
+
+    public CField[] instanceFieldDefs() {
+        return instanceFieldDefs;
+    }
+
+    public void instanceFieldDefs(CField[] instanceFieldDefs) {
+        this.instanceFieldDefs = instanceFieldDefs;
+    }
+
+    public void sharedMethodDefs(CMethod[] sharedMethodDefs) {
+        this.sharedMethodDefs = sharedMethodDefs;
+    }
+
+    public CMethod[] sharedMethodDefs() {
+        return sharedMethodDefs;
+    }
+
+    public void instanceMethodDefs(CMethod[] instanceMethodDefs) {
+        this.instanceMethodDefs = instanceMethodDefs;
+    }
+
+    public CMethod[] instanceMethodDefs() {
+        return instanceMethodDefs;
+    }
+
+    public double[] createInstanceStorage(HazelVM vm){
+        vm.memoryStats().instanceCreated(instanceFieldDefs.length);
+        var storage = new double[instanceFieldDefs.length];
+        storage[0] = selfPtr;
+        return storage;
+    }
 }

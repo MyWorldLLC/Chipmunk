@@ -22,9 +22,8 @@ package chipmunk.runtime;
 
 import java.util.Arrays;
 
-public class CModule implements ChipmunkModule {
+public class CModule extends NamedHostObject implements ChipmunkModule {
 
-    protected final String name;
     protected final String fileName;
     protected Object[] constantPool;
 
@@ -35,10 +34,11 @@ public class CModule implements ChipmunkModule {
     protected boolean initialized;
 
     public CModule(String name, String fileName) {
-        this.name = name;
+        super(name);
         this.fileName = fileName;
     }
 
+    @Override
     public String getName() {
         return name;
     }

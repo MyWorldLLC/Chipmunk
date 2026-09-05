@@ -1,0 +1,11 @@
+module profiling
+
+def one() 1
+
+def main(){
+	var x = 0
+    while(x < 1000000){
+    	x = x + one()
+    }
+    return x
+}
