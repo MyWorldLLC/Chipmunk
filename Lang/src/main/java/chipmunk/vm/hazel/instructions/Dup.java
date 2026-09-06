@@ -32,7 +32,7 @@ public class Dup extends Instruction {
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        stack[bp + sp + 1] = stack[bp + sp];
+        stack[bp + sp] = stack[bp + sp - 1];
         return ip + 1;
     }
 }

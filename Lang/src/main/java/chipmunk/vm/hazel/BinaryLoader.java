@@ -105,9 +105,9 @@ public class BinaryLoader {
         // ops (such as ADD) read TOS, TOS - 1, and leave their result at TOS - N (where N = the arity of the operator - 1).
 
         int ip = 0;
-        // Stack pointer - used to track the stack offsets each instruction operates on. Since the stack is initially empty
-        // this points to the index of the last local variable (which is an invalid stack index).
-        int sp = localCount - 1;
+        // Stack pointer - used to track the stack offsets each instruction operates on. This starts at the index just past
+        // the end of the last local variable.
+        int sp = localCount;
         while(ip < code.length){
             var op = code[ip];
             // We can't just do a simple increment because pop doesn't emit a runtime instruction, conditional fusing
@@ -270,9 +270,9 @@ public class BinaryLoader {
                         if(jumpTo < replace){
                             jumpTo = -jumpTo;
                         }
-                        instructions.set(replace, new BinaryCondition(stackDepths[remapping[target]], condition, jumpTo));
+                        instructions.set(replace, new BinaryCondition(stackDepths[instruction], condition, jumpTo));
                     });
-                    sp--;
+                    sp -= jump ? 2 : 1;
                     ip += jump ? 6 : 1;
                 }
                 case TRUTH, NOT -> {
@@ -307,12 +307,15 @@ public class BinaryLoader {
                         }
                         instructions.set(replace, new If(stackDepths[remapping[target]], jumpTo));
                     });
+                    sp--;
                     ip += 5;
                 }
                 case CALL -> {
-                    // Note: have to add 1 to the param counts since bytecode does not include the self parameter,
-                    // but the runtime instructions do.
+                    // Callsite args don't include self, which is always present. For simplicity within the interpreter,
+                    // call instructions always include the full argument count.
                     instructions.add(new Call(sp, "call", code[ip + 1] + 1));
+                    // Reduce the stack pointer by the total arg count - 1, which means that the "self" position on the
+                    // stack gets overwritten with the call result
                     sp -= code[ip + 1];
                     ip += 2;
                 }

@@ -51,8 +51,8 @@ public class BinaryCondition extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        var b = stack[bp + sp];
+        var a = stack[bp + sp - 2];
+        var b = stack[bp + sp - 1];
         boolean result = false;
         if(Value.isNumber(a) && Value.isNumber(b)) {
             result = switch (condition) {
@@ -76,7 +76,7 @@ public class BinaryCondition extends Instruction {
                 return target;
             }
         }else{
-            stack[bp + sp - 1] = result ? 1.0 : 0.0;
+            stack[bp + sp - 2] = result ? 1.0 : 0.0;
         }
         return ip + 1;
     }

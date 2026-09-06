@@ -38,4 +38,9 @@ public class Call extends Instruction {
     public int apply(Fiber fiber, int ip, int bp) {
         return dynamicCall(fiber, ip, bp, sp, methodName, argCount);
     }
+
+    @Override
+    public String toString() {
+        return "Call:" + methodName + "(" + argCount + ") " + "sp=" + sp;
+    }
 }

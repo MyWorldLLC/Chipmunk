@@ -180,8 +180,13 @@ public class HazelVM {
             var bp = frame.bp;
 
             var code = frame.method.code();
-            //System.out.println("Executing " + frame.method.name() + " IP: " + ip + " BP: " + bp);
-            //System.out.println(dumpStack(fiber, bp, code[Math.abs(ip)].sp));
+            /*System.out.println("======================");
+            for(int i = 0; i < code.length; i++){
+                System.out.println(i + ": " + code[i]);
+            }
+            System.out.println("======================");
+            System.out.println("Executing " + frame.method.name() + " IP: " + ip + " BP: " + bp);
+            System.out.println(dumpStack(fiber, bp, code[Math.abs(ip)].sp));*/
 
             while(Math.abs(ip) < code.length){
                 // Function calls, returns, loops, etc. will all cause this to be hit frequently.
@@ -193,9 +198,9 @@ public class HazelVM {
                 try {
                     ip = Math.abs(ip);
                     var op = code[ip];
-                    //System.out.println(op.toString() + " IP=" + ip + " SP=" + op.sp() + " stack=" + dumpStack(fiber, bp, 8));
+                    //System.out.println(op.toString() + " IP: " + ip + " BP: " + bp + " SP: " + op.sp + ": " + dumpStack(fiber, bp, code[Math.abs(ip)].sp));
                     ip = op.apply(fiber, ip, bp);
-                    if(ip >= 0){
+                    /*if(ip >= 0){
                         op = code[ip];
                         ip = op.apply(fiber, ip, bp);
                         if(ip >= 0){
@@ -594,7 +599,7 @@ public class HazelVM {
                                 }
                             }
                         }
-                    }
+                    }*/
                 }catch(Throwable t){
                     //throw t; // TODO
                     t.printStackTrace();
@@ -606,7 +611,7 @@ public class HazelVM {
 
     protected double[] frameState(Fiber fiber, int bp, int sp){
         var copy = new double[bp + sp];
-        System.arraycopy(fiber.stack, 0, copy, 0, bp + sp);
+        System.arraycopy(fiber.stack, bp, copy, 0, bp + sp);
         return copy;
     }
 

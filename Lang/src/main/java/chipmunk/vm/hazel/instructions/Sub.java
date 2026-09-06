@@ -34,12 +34,12 @@ public class Sub extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        var b = stack[bp + sp];
+        var a = stack[bp + sp - 2];
+        var b = stack[bp + sp - 1];
         if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 1] = a - b;
+            stack[bp + sp - 2] = a - b;
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.SUB, 1);
+            dynamicCall(fiber, ip, bp, sp, OpcodeNames.SUB, 2);
         }
         return ip + 1;
     }

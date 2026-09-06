@@ -39,7 +39,7 @@ public class LocalSet extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         //System.out.println("Setting " + local);
-        fiber.stack[bp + local] = fiber.stack[bp + sp];
+        fiber.stack[bp + local] = fiber.stack[bp + sp - 1];
         return ip + 1;
     }
 
