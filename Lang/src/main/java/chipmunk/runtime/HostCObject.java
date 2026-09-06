@@ -20,7 +20,7 @@
 
 package chipmunk.runtime;
 
-public class HostCObject {
+public abstract class HostCObject {
 
     protected double selfPtr;
 

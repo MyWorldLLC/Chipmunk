@@ -25,20 +25,21 @@ import chipmunk.vm.hazel.Instruction;
 
 public class Push extends Instruction {
 
-    protected final int constantIndex;
+    //protected final int constantIndex;
+    protected final Object value;
 
-    public Push(int sp, int constantIndex) {
+    public Push(int sp, Object value) {
         super(sp);
-        this.constantIndex = constantIndex;
+        this.value = value;
+        //this.constantIndex = constantIndex;
     }
 
-    public int constantIndex() {
+    /*public int constantIndex() {
         return constantIndex;
-    }
+    }*/
 
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
-        var value = fiber.constants()[constantIndex];
         switch (value){
             case Number n -> fiber.stack[bp + sp] = n.doubleValue();
             default -> {
@@ -50,6 +51,6 @@ public class Push extends Instruction {
 
     @Override
     public String toString() {
-        return super.toString() + " " + constantIndex;
+        return super.toString() + " " + value;
     }
 }

@@ -59,8 +59,9 @@ public class GarbageCollector {
 
         vm.allFibers().forEach(fiber-> {
             var stack = fiber.stack();
-            var sp = fiber.currentFrame().sp;
-            for(int i = 0; i < sp; i++){
+            var frame = fiber.currentFrame();
+            var stackDepth = frame.bp + frame.method.maxStack();
+            for(int i = frame.bp; i < frame.bp + stackDepth; i++){
                 markIfPointer(black, grey, stack[i]);
             }
         });

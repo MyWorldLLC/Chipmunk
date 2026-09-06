@@ -22,7 +22,6 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.Value;
 
 public class Call extends Instruction {
 
@@ -37,8 +36,6 @@ public class Call extends Instruction {
 
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
-        System.out.println("Hit call");
-        var ptr = Value.getPointer(fiber.stack[sp - 1]);
-        return dynamicCall(fiber, ip, bp, sp, ptr, methodName, argCount);
+        return dynamicCall(fiber, ip, bp, sp, methodName, argCount);
     }
 }

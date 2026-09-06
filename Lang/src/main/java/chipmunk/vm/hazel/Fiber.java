@@ -50,7 +50,6 @@ public final class Fiber {
     public Frame[] callFrames;
     public int callFramePtr;
     private Frame currentFrame;
-    private Object[] constants;
 
     public int ip;
     public int bp;
@@ -78,10 +77,6 @@ public final class Fiber {
         return startMethod;
     }
 
-    public Object[] constants(){
-        return constants;
-    }
-
     public void state(State state){
         this.state = state;
     }
@@ -94,15 +89,11 @@ public final class Fiber {
         return stack;
     }
 
-    public Frame pushCallFrame(CMethod callMethod, int ip, int bp, int sp){
+    public Frame pushCallFrame(CMethod callMethod, int bp){
         var frame = pushFrame();
         frame.bp = bp;
-        frame.sp = sp;
-        frame.ip = ip;
+        frame.ip = 0;
         frame.method = callMethod;
-        if(callMethod != null){
-            constants = currentFrame.method.module().constants();
-        }
         return frame;
     }
 
@@ -120,26 +111,23 @@ public final class Fiber {
                 callFrames[callFramePtr] = frame;
             }
         }
-        currentFrame = frame;
+        //currentFrame = frame;
         callFramePtr++;
         return frame;
     }
 
     public Frame pushCallFrame(int ip, int bp, int sp){
-        return pushCallFrame(null, ip, bp, sp);
+        return pushCallFrame(null, bp);
     }
 
     public Frame currentFrame(){
-        return currentFrame;
+        //return currentFrame;
+        return callFrames[callFramePtr - 1];
     }
 
     public void popFrame(){
         callFramePtr--;
-        currentFrame = callFrames[callFramePtr];
-        if(currentFrame != null){
-            constants = currentFrame.method.module().constants();
-        }
-
+        //currentFrame = callFrames[callFramePtr];
     }
 
     public double lastReturned(){

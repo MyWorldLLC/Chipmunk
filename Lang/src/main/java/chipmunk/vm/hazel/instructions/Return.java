@@ -31,6 +31,9 @@ public class Return extends Instruction {
 
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
+        //System.out.println("Returning from " + fiber.currentFrame().method.name() + ": " + fiber.stack[bp + sp - 1]);
+        //System.out.println(fiber.vm().dumpStack(fiber, bp, sp));
+        fiber.stack[bp] = fiber.stack[bp + sp - 1];
         fiber.popFrame();
         return Fiber.RETURN_SIGNAL;
     }

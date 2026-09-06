@@ -58,6 +58,8 @@ public class HazelVM {
         this.moduleLoader = moduleLoader;
         memoryStats = new MemoryStats();
         heap = new Heap();
+        heap.allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
+        // TODO - support GC pinning, and pin this so that the GC can never free the null pointer and allow it to be used.
         gc = new GarbageCollector(this, heap);
     }
 
@@ -68,6 +70,9 @@ public class HazelVM {
                 if(module == null){
                     throw new IllegalStateException("Entry point module " + entryPoint.module() + " not found");
                 }
+                var ptr = heap.allocateAndWrite(module);
+                module.selfPtr(ptr);
+                System.out.println("Module pointer: " + Value.pointerToString(ptr));
                 modules.put(module.getName(), module);
                 var init = module.getMethod("$module_init$");
                 if(init != null && !module.isInitialized()){
@@ -151,7 +156,8 @@ public class HazelVM {
 
     protected Fiber spawnFiber(CMethod method){
         var fiber = new Fiber(this, method);
-        fiber.pushCallFrame(method, 0, 0, 0);
+        fiber.stack[0] = method.module().selfPtr();
+        fiber.pushCallFrame(method, 0);
         enqueue(fiber);
         return fiber;
     }
@@ -174,19 +180,20 @@ public class HazelVM {
             var bp = frame.bp;
 
             var code = frame.method.code();
+            //System.out.println("Executing " + frame.method.name() + " IP: " + ip + " BP: " + bp);
+            //System.out.println(dumpStack(fiber, bp, code[Math.abs(ip)].sp));
 
             while(Math.abs(ip) < code.length){
                 // Function calls, returns, loops, etc. will all cause this to be hit frequently.
                 if(checkYield()){
                     ip = Math.abs(ip);
                     frame.ip = ip;
-                    frame.sp = frame.bp + code[ip].sp();
                     break;
                 }
                 try {
                     ip = Math.abs(ip);
                     var op = code[ip];
-                    //System.out.println(op.getClass().getSimpleName() + " SP=" + sp + " dSP=" + op.spChange() + " stack=" + dumpStack(fiber, bp, sp));
+                    //System.out.println(op.toString() + " IP=" + ip + " SP=" + op.sp() + " stack=" + dumpStack(fiber, bp, 8));
                     ip = op.apply(fiber, ip, bp);
                     if(ip >= 0){
                         op = code[ip];
@@ -603,8 +610,22 @@ public class HazelVM {
         return copy;
     }
 
-    protected String dumpStack(Fiber fiber, int bp, int sp){
-        return Arrays.toString(frameState(fiber, bp, sp));
+    public String dumpStack(Fiber fiber, int bp, int sp){
+        var frameState = frameState(fiber, bp, sp);
+        var builder = new StringBuilder();
+        builder.append('[');
+        for(int i = 0; i < frameState.length; i++){
+            if(Value.isPointer(frameState[i])){
+                builder.append(Value.pointerToString(frameState[i]));
+            }else{
+                builder.append(frameState[i]);
+            }
+            if(i < frameState.length - 1){
+                builder.append(", ");
+            }
+        }
+        builder.append(']');
+        return builder.toString();
     }
 
     public void yield(){

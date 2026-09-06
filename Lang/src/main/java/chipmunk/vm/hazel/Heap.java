@@ -69,6 +69,12 @@ public final class Heap {
         return allocator;
     }
 
+    public double allocateAndWrite(Object obj){
+        var ptr = allocate();
+        write(ptr, obj);
+        return Value.makePointer(ptr);
+    }
+
     public long allocate(){
         return allocator.allocate();
     }

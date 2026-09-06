@@ -202,7 +202,7 @@ public class BinaryLoader {
                     ip++;
                 }
                 case PUSH -> {
-                    instructions.add(new Push(sp, fetchInt(code, ip + 1)));
+                    instructions.add(new Push(sp, module.constants()[fetchInt(code, ip + 1)]));
                     sp++;
                     ip += 5;
                 }
@@ -310,12 +310,16 @@ public class BinaryLoader {
                     ip += 5;
                 }
                 case CALL -> {
-                    instructions.add(new Call(sp, "call", code[ip + 1]));
+                    // Note: have to add 1 to the param counts since bytecode does not include the self parameter,
+                    // but the runtime instructions do.
+                    instructions.add(new Call(sp, "call", code[ip + 1] + 1));
+                    sp -= code[ip + 1];
                     ip += 2;
                 }
                 case CALLAT -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 2)];
-                    instructions.add(new Call(sp, name, code[ip + 1]));
+                    instructions.add(new Call(sp, name, code[ip + 1] + 1));
+                    sp -= code[ip + 1];
                     ip += 6;
                 }
                 case THROW -> {

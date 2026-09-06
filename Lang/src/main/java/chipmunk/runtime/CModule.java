@@ -22,7 +22,7 @@ package chipmunk.runtime;
 
 import java.util.Arrays;
 
-public class CModule extends NamedHostObject implements ChipmunkModule {
+public class CModule extends HostNamespaced implements ChipmunkModule {
 
     protected final String fileName;
     protected Object[] constantPool;
@@ -60,8 +60,12 @@ public class CModule extends NamedHostObject implements ChipmunkModule {
     }
 
     public CMethod getMethod(String name){
+        return getMethod(name, -1);
+    }
+
+    public CMethod getMethod(String name, int args){
         return Arrays.stream(methods)
-                .filter(m -> m.name().equals(name))
+                .filter(m -> m.name().equals(name) && (args < 0 || m.argCount() == args))
                 .findFirst()
                 .orElse(null);
     }

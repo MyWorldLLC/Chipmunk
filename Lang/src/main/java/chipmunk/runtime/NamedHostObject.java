@@ -20,7 +20,7 @@
 
 package chipmunk.runtime;
 
-public class NamedHostObject extends HostCObject {
+public abstract class NamedHostObject extends HostCObject {
 
     protected final String name;
 

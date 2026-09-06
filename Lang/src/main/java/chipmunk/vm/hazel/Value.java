@@ -89,4 +89,12 @@ public class Value {
         return isPointer(v) && getPointer(v) == NULL_POINTER;
     }
 
+    public static String pointerToString(double v){
+        return pointerToString(Value.getPointer(v));
+    }
+
+    public static String pointerToString(long ptr){
+        return String.format("0x%08X", (int) ptr);
+    }
+
 }
