@@ -34,11 +34,11 @@ public class Inc extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp];
+        var a = stack[bp + sp - 1];
         if(Value.isNumber(a)) {
-            stack[bp + sp] = a + 1;
+            stack[bp + sp - 1] = a + 1;
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.INC, 0);
+            dynamicCall(fiber, ip, bp, sp, OpcodeNames.INC, 1);
         }
         return ip + 1;
     }

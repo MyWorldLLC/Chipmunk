@@ -34,12 +34,12 @@ public class Band extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        var b = stack[bp + sp];
+        var a = stack[bp + sp - 2];
+        var b = stack[bp + sp - 1];
         if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 1] = ((int) a) & ((int) b);
+            stack[bp + sp - 2] = ((int) a) & ((int) b);
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.BAND, 1);
+            dynamicCall(fiber, ip, bp, sp, OpcodeNames.BAND, 2);
         }
         return ip + 1;
     }

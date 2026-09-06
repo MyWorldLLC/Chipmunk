@@ -34,11 +34,11 @@ public class Neg extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp];
+        var a = stack[bp + sp - 1];
         if(Value.isNumber(a)) {
-            stack[bp + sp] = -a;
+            stack[bp + sp - 1] = -a;
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.NEG, 0);
+            dynamicCall(fiber, ip, bp, sp, OpcodeNames.NEG, 1);
         }
         return ip + 1;
     }

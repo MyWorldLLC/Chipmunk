@@ -32,10 +32,10 @@ public class Swap extends Instruction {
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        var b = stack[bp + sp];
-        stack[bp + sp - 1] = b;
-        stack[bp + sp] = a;
+        var a = stack[bp + sp - 2];
+        var b = stack[bp + sp - 1];
+        stack[bp + sp - 2] = b;
+        stack[bp + sp - 1] = a;
         return ip + 1;
     }
 }

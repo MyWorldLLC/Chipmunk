@@ -37,12 +37,12 @@ public class If extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp];
+        var a = stack[bp + sp - 1];
         boolean result = false;
         if(Value.isNumber(a)) {
             result = a != 0.0;
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 0);
+            dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 1);
         }
 
         if(target != Integer.MIN_VALUE){
