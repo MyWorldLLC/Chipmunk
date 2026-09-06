@@ -29,6 +29,7 @@ import chipmunk.compiler.CompileChipmunk;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
+import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.ChipmunkLinker;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
@@ -60,6 +61,7 @@ public class ChipmunkVM {
 	protected final AtomicLong scriptIds;
 	protected final ExecutorService scriptExecutor;
 	protected final Scheduler scheduler;
+	protected final ModuleLoader rootLoader;
 
 	public ChipmunkVM() {
 		this(SecurityMode.ALLOWING);
@@ -79,6 +81,8 @@ public class ChipmunkVM {
 		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy, new TrapConfig());
 
 		defaultTrapHandler = new TrapHandler() {};
+
+		rootLoader = new ModuleLoader();
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){
@@ -97,20 +101,8 @@ public class ChipmunkVM {
 		return defaultLibraries;
 	}
 
-	public JvmCompilerConfig getDefaultJvmCompilerConfig() {
-		return defaultJvmCompilerConfig;
-	}
-
-	public void setDefaultJvmCompilerConfig(JvmCompilerConfig defaultJvmCompilerConfig) {
-		this.defaultJvmCompilerConfig = defaultJvmCompilerConfig;
-	}
-
 	public TrapHandler getDefaultTrapHandler(){
 		return defaultTrapHandler;
-	}
-
-	public void setDefaultTrapHandler(TrapHandler handler){
-		defaultTrapHandler = handler;
 	}
 
 	public void start() {
@@ -126,26 +118,6 @@ public class ChipmunkVM {
 		return scheduler;
 	}
 
-	public JvmCompiler createDefaultJvmCompiler(){
-		return createJvmCompiler(defaultJvmCompilerConfig);
-	}
-
-	public JvmCompiler createJvmCompiler(JvmCompilerConfig config){
-		if(config == null){
-			config = defaultJvmCompilerConfig;
-		}
-		return new JvmCompiler(config);
-	}
-
-	public ChipmunkScript compileScript(Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
-		return compileScript(createJvmCompiler(compilation.getJvmCompilerConfig()), compilation);
-	}
-
-	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, Compilation compilation) throws CompileChipmunk, IOException, BinaryFormatException {
-		ChipmunkCompiler compiler = new ChipmunkCompiler();
-		BinaryModule[] modules = compiler.compile(compilation);
-		return compileScript(jvmCompiler, modules);
-	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
 		Compilation compilation = new Compilation();
@@ -153,69 +125,45 @@ public class ChipmunkVM {
 		return compileScript(compilation);
 	}
 
-	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
-		Compilation compilation = new Compilation();
-		compilation.addSource(new ChipmunkSource(is, fileName));
-		return compileScript(jvmCompiler, compilation);
+	public ChipmunkScript compileScript(Compilation compilation) {
+		var compiler = new ChipmunkCompiler();
+		var modules = compiler.compile(compilation);
+		return compileScript(modules);
 	}
 
-	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, BinaryModule[] modules) throws IOException, BinaryFormatException {
-
-		BinaryModule mainModule = null;
-		for (BinaryModule module : modules) {
-			if (module.getNamespace().has("main")) {
-				mainModule = module;
-				break;
-			}
-		}
-
-		if (mainModule == null) {
-			throw new IllegalArgumentException("Could not find main method");
-		}
-
-		CompilationUnit unit = new CompilationUnit();
-		unit.setModuleLoader(new ModuleLoader(Arrays.asList(modules)));
-		unit.setEntryModule(mainModule.getName());
-		unit.setEntryMethodName("main");
-
-		return compileScript(jvmCompiler, unit);
+	public ChipmunkScript compileScript(BinaryModule... modules){
+		return compileScript(EntryPoint.DEFAULT, modules);
 	}
 
-	public ChipmunkScript compileScript(BinaryModule[] modules) throws IOException, BinaryFormatException {
-		return compileScript(createDefaultJvmCompiler(), modules);
-	}
+	public ChipmunkScript compileScript(EntryPoint entryPoint, BinaryModule... modules) {
 
-	public ChipmunkScript compileScript(CompilationUnit unit) throws IOException, BinaryFormatException {
-		return compileScript(createJvmCompiler(unit.getJvmCompilerConfig()), unit);
-	}
-
-	public ChipmunkScript compileScript(JvmCompiler jvmCompiler, CompilationUnit unit) throws IOException, BinaryFormatException {
-		ChipmunkScript script = jvmCompiler.compile(unit);
-		script.setVM(this);
-		script.setModuleLoader(unit.getModuleLoader());
-		script.setId(scriptIds.incrementAndGet());
-		script.setLinkPolicy(defaultLinkPolicy);
-		script.setLibs(defaultLibraries);
-		script.setJvmCompiler(jvmCompiler);
-		script.setTrapHandler(defaultTrapHandler);
+		var script = new ChipmunkScript(this, scriptIds.incrementAndGet(), new ModuleLoader(rootLoader, Arrays.asList(modules)));
+		// TODO - configure default HVM limits
+		script.getHazelVM().entryPoint(entryPoint);
 
 		return script;
 	}
 
-	public Object eval(String exp) throws Throwable {
+	public Object eval(String exp) {
 		ChipmunkCompiler compiler = new ChipmunkCompiler();
 		BinaryModule expModule = compiler.compileExpression(exp);
 
-		ChipmunkModule compiled = createDefaultJvmCompiler().compileModule(expModule);
-		return invoke(compiled, "evaluate");
+		var script = compileScript(new EntryPoint("exp", "evaluate"), expModule);
+		var result = script.run();
+		while(result.isEmpty()){
+			result = script.run();
+		}
+
+		return result.get();
 	}
 
-	@AllowChipmunkLinkage
+	/*@AllowChipmunkLinkage
 	public ChipmunkModule getModule(String moduleName) throws Throwable {
 		return getModule(ChipmunkScript.getCurrentScript(), moduleName);
-	}
+	}*/
 
-	public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
+	/*public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
+		script.getModuleLoader().load(moduleName);
 		ChipmunkModule module = script.modules.get(moduleName);
 		if(module != null){
 			return module;
@@ -230,24 +178,7 @@ public class ChipmunkVM {
 		script.modules.put(moduleName, module);
 		module.initialize(this);
 		return module;
-	}
-
-	public boolean isModuleLoaded(String moduleName) {
-		return isModuleLoaded(ChipmunkScript.getCurrentScript(), moduleName);
-	}
-
-	public boolean isModuleLoaded(ChipmunkScript script, String moduleName){
-		return script.modules.containsKey(moduleName);
-	}
-
-	public ChipmunkModule load(BinaryModule module) {
-		return load(createDefaultJvmCompiler(), module);
-	}
-
-	public ChipmunkModule load(JvmCompiler jvmCompiler, BinaryModule module) {
-		JvmCompilation compilation = new JvmCompilation(module, new ModuleLoader(), defaultJvmCompilerConfig);
-		return jvmCompiler.compileModule(compilation);
-	}
+	}*/
 
 	public Object invoke(Object target, String methodName) throws Throwable {
 		return invoke(target, methodName, null);
@@ -344,7 +275,7 @@ public class ChipmunkVM {
 		}, scriptExecutor);
 	}
 
-	@AllowChipmunkLinkage
+	/*@AllowChipmunkLinkage
 	public MethodBinding bind(Object target, String methodName) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 		return (MethodBinding) getBinding(target, methodName).getConstructor(Object.class, String.class).newInstance(target, methodName);
 	}
@@ -379,9 +310,9 @@ public class ChipmunkVM {
 		} catch (ClassNotFoundException e) {
 			return script.getJvmCompiler().argBindingFor(script.getModuleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
 		}
-	}
+	}*/
 
-	@SuppressWarnings("unchecked")
+	/*@SuppressWarnings("unchecked")
 	public <T> T proxy(Class<T> interfaceType, Object target) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 		if(!interfaceType.isInterface()){
 			throw new IllegalArgumentException(interfaceType.getName() + " is not an interface type");
@@ -407,7 +338,7 @@ public class ChipmunkVM {
 		}
 
 		return proxyType.getConstructor(ChipmunkScript.class, Object.class).newInstance(script, target);
-	}
+	}*/
 
 	protected boolean isSamType(Class<?> interfaceType){
 		var nonDefaults = 0;

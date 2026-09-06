@@ -52,6 +52,10 @@ public final class Heap {
         allocator = new BitFieldAllocator(initialHeapSize);
     }
 
+    public Object read(double ptr){
+        return read(Value.getPointer(ptr));
+    }
+
     public Object read(long ptr){
         return memory[(int) ptr];
     }

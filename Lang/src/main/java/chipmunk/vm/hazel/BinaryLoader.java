@@ -73,11 +73,11 @@ public class BinaryLoader {
     public static CMethod[] collectMethods(CModule module, BinaryNamespace namespace){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.METHOD)
-                .map(e -> entryMethod(module, e))
+                .map(e -> enterMethod(module, e))
                 .toArray(CMethod[]::new);
     }
 
-    public static CMethod entryMethod(CModule module, BinaryNamespace.Entry entry){
+    public static CMethod enterMethod(CModule module, BinaryNamespace.Entry entry){
         var binaryMethod = entry.getBinaryMethod();
         var code = binaryMethod.getCode();
         final var argCount = binaryMethod.getArgCount();
@@ -252,7 +252,7 @@ public class BinaryLoader {
                 case LT, GT, LE, GE, EQ, IS, INSTANCEOF -> {
                     // Attempt to fuse COND -> IF sequences in the raw bytecode for dispatch efficiency.
                     var jump = code[ip + 1] == IF;
-                    var target = jump ? fetchInt(code, ip + 2) : Integer.MIN_VALUE;
+                    var target = jump ? fetchInt(code, ip + 2) : BinaryCondition.NO_JUMP;
                     var condition = switch (op){
                         case LT -> BinaryCondition.COND_LT;
                         case GT -> BinaryCondition.COND_GT;
@@ -266,9 +266,12 @@ public class BinaryLoader {
                     var replace = instruction;
                     instructions.add(null);
                     postProcessors.add(() -> {
-                        var jumpTo = remapping[target];
-                        if(jumpTo < replace){
-                            jumpTo = -jumpTo;
+                        var jumpTo = BinaryCondition.NO_JUMP;
+                        if(jump){
+                            jumpTo = remapping[target];
+                            if(jumpTo < replace){
+                                jumpTo = -jumpTo;
+                            }
                         }
                         instructions.set(replace, new BinaryCondition(stackDepths[instruction], condition, jumpTo));
                     });
@@ -278,7 +281,7 @@ public class BinaryLoader {
                 case TRUTH, NOT -> {
                     // Attempt to fuse COND -> IF sequences in the raw bytecode for dispatch efficiency.
                     var jump = code[ip + 1] == IF;
-                    var target = jump ? fetchInt(code, ip + 2) : Integer.MIN_VALUE;
+                    var target = jump ? fetchInt(code, ip + 2) : UnaryCondition.NO_JUMP;
                     var condition = switch (op){
                         case TRUTH -> UnaryCondition.COND_TRUE;
                         case NOT -> UnaryCondition.COND_NOT;
@@ -287,13 +290,16 @@ public class BinaryLoader {
                     var replace = instruction;
                     instructions.add(null);
                     postProcessors.add(() -> {
-                        var jumpTo = remapping[target];
-                        if(jumpTo < replace){
-                            jumpTo = -jumpTo;
+                        var jumpTo = UnaryCondition.NO_JUMP;
+                        if(jump){
+                            jumpTo = remapping[target];
+                            if(jumpTo < replace){
+                                jumpTo = -jumpTo;
+                            }
                         }
-                        instructions.set(replace, new UnaryCondition(stackDepths[remapping[target]], condition, jumpTo));
+                        instructions.set(replace, new UnaryCondition(stackDepths[instruction], condition, jumpTo));
                     });
-                    sp--;
+                    sp -= jump ? 1 : 0;
                     ip += jump ? 6 : 1;
                 }
                 case IF -> {
@@ -305,7 +311,7 @@ public class BinaryLoader {
                         if(jumpTo < replace){
                             jumpTo = -jumpTo;
                         }
-                        instructions.set(replace, new If(stackDepths[remapping[target]], jumpTo));
+                        instructions.set(replace, new If(stackDepths[instruction], jumpTo));
                     });
                     sp--;
                     ip += 5;
@@ -331,41 +337,69 @@ public class BinaryLoader {
                     ip++;
                     ip += 1;
                 }
+                case GETATTR -> {
+                    ip += 5; // TODO
+                }
                 case SETATTR -> {
                     ip += 5; // TODO
                 }
                 case GETAT -> {
-
+                    // TODO
+                    sp--;
+                    ip++;
                 }
                 case SETAT -> {
-
+                    // TODO
+                    sp -= 2;
+                    ip++;
                 }
                 case AS -> {
-
+                    // TODO
+                    sp--;
+                    ip++;
                 }
                 case ITER -> {
-
+                    // TODO
+                    sp--;
+                    ip++;
                 }
                 case RANGE -> {
-
+                    // TODO
+                    var inclusive = code[ip + 1] != 0;
+                    sp--;
+                    ip += 2;
                 }
                 case LIST -> {
-
+                    var elements = fetchInt(code, ip + 1);
+                    instructions.add(new ListIns(sp, elements));
+                    sp++;
+                    ip += 5;
                 }
                 case MAP -> {
-
+                    var elements = fetchInt(code, ip + 1);
+                    instructions.add(new MapIns(sp, elements));
+                    sp++;
+                    ip += 5;
                 }
                 case INITUPVALUE -> {
-
+                    // TODO
+                    var localIndex = code[ip + 1];
+                    ip += 2;
                 }
                 case GETUPVALUE -> {
-
+                    // TODO
+                    var localIndex = code[ip + 1];
+                    ip += 2;
                 }
                 case SETUPVALUE -> {
-
+                    // TODO
+                    var localIndex = code[ip + 1];
+                    ip += 2;
                 }
                 case BIND -> {
-
+                    // TODO
+                    var nameConstIndex  = fetchInt(code, ip + 1);
+                    ip += 5;
                 }
                 default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X".formatted(op));
             }

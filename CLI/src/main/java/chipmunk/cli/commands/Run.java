@@ -36,6 +36,7 @@ import chipmunk.pkg.Entrypoint;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.locators.FileModuleLocator;
 import picocli.CommandLine.Command;
@@ -152,19 +153,15 @@ public class Run implements Callable<Integer> {
 
             loader.addToLoaded(Arrays.asList(modules));
 
-            CompilationUnit unit = new CompilationUnit();
-            unit.setModuleLoader(loader);
-            unit.setEntryModule("main");
-            unit.setEntryMethodName("main");
-
+            var hvmEntry = EntryPoint.DEFAULT;
             if(entryPoint != null){
                 Entrypoint newEntrypoint = Entrypoint.fromString(entryPoint);
-                unit.setEntryModule(newEntrypoint.getModule());
-                unit.setEntryMethodName(newEntrypoint.getMethod());
+                hvmEntry = new EntryPoint(newEntrypoint.getModule(), newEntrypoint.getMethod());
             }else{
                 // Verify default entrypoint is findable, search compiled modules for
                 // main module if not
-                BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
+                // TODO
+                /*BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
                 if(mainModule == null || !(mainModule.getNamespace().has("main") && mainModule.getNamespace().getEntry("main").getType() == FieldType.METHOD)){
                     for(BinaryModule module : modules){
                         BinaryNamespace.Entry entry = module.getNamespace().getEntry("main");
@@ -172,10 +169,10 @@ public class Run implements Callable<Integer> {
                             unit.setEntryModule(module.getName());
                         }
                     }
-                }
+                }*/
             }
 
-            ChipmunkScript script = vm.compileScript(unit);
+            ChipmunkScript script = vm.compileScript(hvmEntry, modules);
             vm.runAsync(script).get();
 
             return 0;

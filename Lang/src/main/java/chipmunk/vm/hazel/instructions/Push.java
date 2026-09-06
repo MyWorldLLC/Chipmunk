@@ -42,9 +42,8 @@ public class Push extends Instruction {
     public final int apply(Fiber fiber, int ip, int bp) {
         switch (value){
             case Number n -> fiber.stack[bp + sp] = n.doubleValue();
-            default -> {
-                // TODO - get value, convert, allocate a pointer on heap, and push the pointer
-            }
+            case Boolean b -> fiber.stack[bp + sp] = b ? 1 : 0;
+            default -> fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(value);
         }
         return ip + 1;
     }

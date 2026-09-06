@@ -21,6 +21,8 @@
 package chipmunk.vm;
 
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.hazel.EntryPoint;
+import chipmunk.vm.hazel.HazelVM;
 import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
@@ -30,10 +32,11 @@ import chipmunk.vm.jvm.JvmCompilerConfig;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ChipmunkScript {
+public class ChipmunkScript {
 
     private static final ThreadLocal<ChipmunkScript> currentScript;
     static {
@@ -55,45 +58,36 @@ public abstract class ChipmunkScript {
         }
     }
 
-    protected long id;
-    private volatile boolean yieldFlag;
+    protected final ChipmunkVM cvm;
+    protected final long id;
+    protected final HazelVM vm;
 
     protected final List<Object> tags;
-    protected final Map<String, ChipmunkModule> modules;
 
-    protected volatile ChipmunkVM vm;
-    protected volatile ModuleLoader loader;
-    protected volatile TrapHandler trapHandler;
-    protected volatile ChipmunkLibraries libs;
-    protected volatile LinkingPolicy linkPolicy;
-    protected volatile JvmCompiler jvmCompiler;
+    protected TrapHandler trapHandler;
+    protected ChipmunkLibraries libs;
+    protected LinkingPolicy linkPolicy;
 
-    public ChipmunkScript(){
-        this(null);
+    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader){
+        this(cvm, id, loader, null);
     }
 
-    public ChipmunkScript(TrapHandler trapHandler){
+    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader, TrapHandler trapHandler) {
+        this.cvm = cvm;
+        this.id = id;
         this.trapHandler = trapHandler;
+        vm = new HazelVM(loader);
         tags = new CopyOnWriteArrayList<>();
-        modules = new ConcurrentHashMap<>();
 
         linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
     }
 
     public ChipmunkVM getVM() {
+        return cvm;
+    }
+
+    public HazelVM getHazelVM() {
         return vm;
-    }
-
-    protected void setVM(ChipmunkVM vm) {
-        this.vm = vm;
-    }
-
-    public JvmCompiler getJvmCompiler() {
-        return jvmCompiler;
-    }
-
-    public void setJvmCompiler(JvmCompiler jvmCompiler) {
-        this.jvmCompiler = jvmCompiler;
     }
 
     public void tag(Object tag){
@@ -130,58 +124,36 @@ public abstract class ChipmunkScript {
         return id;
     }
 
-    protected void setId(long id){
-        this.id = id;
-    }
-
     public void setTrapHandler(TrapHandler trapHandler){
         this.trapHandler = trapHandler;
     }
 
     public TrapHandler getTrapHandler(){
-        return trapHandler != null ? trapHandler : vm.getDefaultTrapHandler();
-    }
-
-    public void setModuleLoader(ModuleLoader loader){
-        this.loader = loader;
+        return trapHandler != null ? trapHandler : cvm.getDefaultTrapHandler();
     }
 
     public ModuleLoader getModuleLoader(){
-        return loader;
+        return vm.moduleLoader();
     }
 
-    public Map<String, ChipmunkModule> getModulesUnmodifiable() {
-        return Collections.unmodifiableMap(modules);
+    public EntryPoint entryPoint(){
+        return vm.entryPoint();
     }
 
-    public void addModule(ChipmunkModule module){
-        if(modules.containsKey(module.getName())){
-            throw new IllegalStateException(String.format("Module %s is already loaded", module.getName()));
-        }
-
-        modules.put(module.getName(), module);
+    public void setEntryPoint(EntryPoint entryPoint){
+        vm.entryPoint(entryPoint);
     }
 
-    public boolean isLoaded(String moduleName){
-        return modules.containsKey(moduleName);
-    }
-
-    public abstract Object run(Object[] args);
-
-    public Object run(){
-        return run(null);
+    public Optional<Object> run(){
+        return vm.run();
     }
 
     public void yield(){
-        yieldFlag = true;
+        vm.yield();
     }
 
     public boolean isYielded(){
-        return yieldFlag;
-    }
-
-    public void resume(){
-        yieldFlag = false;
+        return vm.isYieldRequested();
     }
 
     public void setLibs(ChipmunkLibraries libs){

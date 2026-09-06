@@ -26,6 +26,8 @@ import chipmunk.vm.hazel.Value;
 
 public class BinaryCondition extends Instruction {
 
+    public static final int NO_JUMP = Integer.MIN_VALUE;
+
     public static final int COND_LT = 0;
     public static final int COND_LE = 1;
     public static final int COND_EQ = 2;
@@ -39,7 +41,7 @@ public class BinaryCondition extends Instruction {
     protected final int target;
 
     public BinaryCondition(int sp, int condition){
-        this(sp, condition, Integer.MIN_VALUE);
+        this(sp, condition, NO_JUMP);
     }
 
     public BinaryCondition(int sp, int condition, int target) {
@@ -70,7 +72,7 @@ public class BinaryCondition extends Instruction {
             // TODO - object truth & branch
         }
 
-        if(target != Integer.MIN_VALUE){
+        if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
                 return target;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,27 +18,25 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm
+package chipmunk.vm.hazel.instructions;
 
-import chipmunk.vm.ChipmunkVM
-import chipmunk.compiler.ChipmunkCompiler
-import spock.lang.Ignore
-import spock.lang.Specification
+import chipmunk.vm.hazel.Fiber;
+import chipmunk.vm.hazel.Instruction;
 
-@Ignore
-class JvmCompilerSpecification extends Specification {
+import java.util.ArrayList;
 
-    ChipmunkVM vm = new ChipmunkVM()
-    ChipmunkCompiler cc = new ChipmunkCompiler()
+public class ListIns extends Instruction {
 
-    def "Load as Java code & run"(){
-        when:
-        def module = cc.compile(getClass().getResourceAsStream("/chipmunk/Map.chp"), "Map.chp")[0]
-        def instance = vm.load(module)
+    protected final int elements;
 
-        def result = vm.invoke(instance, "main")
+    public ListIns(int sp, int elements) {
+        super(sp);
+        this.elements = elements;
+    }
 
-        then:
-        result == 10
+    @Override
+    public int apply(Fiber fiber, int ip, int bp) {
+        fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(new ArrayList<>(elements));
+        return ip + 1;
     }
 }

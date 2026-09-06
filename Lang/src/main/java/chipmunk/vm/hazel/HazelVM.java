@@ -52,7 +52,7 @@ public class HazelVM {
     protected Fiber currentFiber;
     protected Fiber lastFiber;
 
-    protected boolean yieldRequested;
+    protected volatile boolean yieldRequested;
 
     public HazelVM(ModuleLoader moduleLoader) {
         this.moduleLoader = moduleLoader;
@@ -72,7 +72,6 @@ public class HazelVM {
                 }
                 var ptr = heap.allocateAndWrite(module);
                 module.selfPtr(ptr);
-                System.out.println("Module pointer: " + Value.pointerToString(ptr));
                 modules.put(module.getName(), module);
                 var init = module.getMethod("$module_init$");
                 if(init != null && !module.isInitialized()){
@@ -110,7 +109,8 @@ public class HazelVM {
             state = State.EXITED;
 
             // Return empty when yielded, return value of last fiber when normal exit happens.
-            return Optional.of(lastFiber.lastReturned()); // TODO - unbox if the value is not a number
+            var value = lastFiber.lastReturned();
+            return Optional.of(Value.isPointer(value) ? heap.read(value) : value);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -635,7 +635,10 @@ public class HazelVM {
 
     public void yield(){
         yieldRequested = true;
-        currentFiber.yield();
+    }
+
+    public boolean isYieldRequested(){
+        return yieldRequested;
     }
 
     public ModuleLoader moduleLoader(){

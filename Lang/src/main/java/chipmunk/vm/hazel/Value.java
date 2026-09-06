@@ -97,4 +97,8 @@ public class Value {
         return String.format("0x%08X", (int) ptr);
     }
 
+    public static boolean isTruthy(double v){
+        return isNumber(v) ? v != 0.0 : !isNullPointer(v);
+    }
+
 }

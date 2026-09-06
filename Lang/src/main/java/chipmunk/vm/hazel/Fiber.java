@@ -45,15 +45,9 @@ public final class Fiber {
     private final HazelVM vm;
     private final CMethod startMethod;
     private State state;
-    private volatile boolean yieldRequested = false;
     public double[] stack;
     public Frame[] callFrames;
     public int callFramePtr;
-    private Frame currentFrame;
-
-    public int ip;
-    public int bp;
-    public int sp;
 
     public Fiber(HazelVM vm, CMethod startMethod) {
         this(vm, startMethod, DEFAULT_INITIAL_STACK, DEFAULT_CALL_FRAMES);
@@ -111,7 +105,6 @@ public final class Fiber {
                 callFrames[callFramePtr] = frame;
             }
         }
-        //currentFrame = frame;
         callFramePtr++;
         return frame;
     }
@@ -121,13 +114,11 @@ public final class Fiber {
     }
 
     public Frame currentFrame(){
-        //return currentFrame;
         return callFrames[callFramePtr - 1];
     }
 
     public void popFrame(){
         callFramePtr--;
-        //currentFrame = callFrames[callFramePtr];
     }
 
     public double lastReturned(){
@@ -143,11 +134,4 @@ public final class Fiber {
         return callStackDepth() == 0;
     }
 
-    public boolean isYieldRequested(){
-        return yieldRequested;
-    }
-
-    public void yield(){
-        yieldRequested = true;
-    }
 }

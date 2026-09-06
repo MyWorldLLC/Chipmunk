@@ -26,6 +26,8 @@ import chipmunk.vm.hazel.Value;
 
 public class UnaryCondition extends Instruction {
 
+    public static final int NO_JUMP = Integer.MIN_VALUE;
+
     public static final int COND_TRUE = 0;
     public static final int COND_NOT = 1;
     public static final int COND_NULL = 2; // TODO - don't think there's any way to use this - null will probably always be checked with pointer equality
@@ -34,7 +36,7 @@ public class UnaryCondition extends Instruction {
     protected final int target;
 
     public UnaryCondition(int sp, int condition){
-        this(sp, condition, Integer.MIN_VALUE);
+        this(sp, condition, NO_JUMP);
     }
 
     public UnaryCondition(int sp, int condition, int target) {
@@ -46,12 +48,12 @@ public class UnaryCondition extends Instruction {
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
         var stack = fiber.stack;
-        var a = stack[bp + sp];
+        var a = stack[bp + sp - 1];
         boolean result = false;
         if (chipmunk.vm.hazel.Value.isNumber(a)) {
             result = switch (condition) {
-                case COND_TRUE -> Value.isNumber(a) && a != 0.0; // TODO - object truth
-                case COND_NOT -> !(Value.isNumber(a) && a != 0.0); // TODO - object truth
+                case COND_TRUE -> Value.isNumber(a) && a != 0.0;
+                case COND_NOT -> !(Value.isNumber(a) && a != 0.0);
                 case COND_NULL -> Value.isPointer(a) && Value.isNullPointer(a);
                 default -> false;
             };
@@ -59,7 +61,7 @@ public class UnaryCondition extends Instruction {
             // TODO - object truth & branch
         }
 
-        if(target != Integer.MIN_VALUE){
+        if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
                 return target;

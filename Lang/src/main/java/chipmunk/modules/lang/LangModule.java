@@ -79,10 +79,10 @@ public class LangModule implements ChipmunkModule {
         throw new UnimplementedMethodException();
     }
 
-    @AllowChipmunkLinkage
+    /*@AllowChipmunkLinkage
     public MethodBinding bindArgs(MethodBinding binding, Integer index, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return ChipmunkScript.getCurrentScript().getVM().bindArgs(binding, index, args.toArray());
-    }
+    }*/
 
     @Override
     public String getName(){

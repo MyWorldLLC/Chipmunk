@@ -23,6 +23,7 @@ package chipmunk.compiler.codegen
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.vm.ChipmunkVM
+import chipmunk.vm.hazel.Value
 import spock.lang.Specification
 
 class ExpressionVisitorSpecification extends Specification {
@@ -34,8 +35,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true")
 		
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 	
 	def "Evaluate boolean literal false"(){
@@ -43,8 +43,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false")
 		
 		then:
-		result instanceof Boolean
-		result == false
+		!Value.isTruthy(result)
 	}
 	
 	def "Evaluate int literal 0"(){
@@ -52,7 +51,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0")
 		
 		then:
-		result instanceof Integer
 		result == 0
 	}
 	
@@ -61,7 +59,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 		
 		then:
-		result instanceof Integer
 		result == -1
 	}
 	
@@ -70,7 +67,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0.0")
 		
 		then:
-		result instanceof Float
 		result == 0.0
 	}
 	
@@ -79,7 +75,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1.0")
 		
 		then:
-		result instanceof Float
 		result == -1.0
 	}
 	
@@ -88,7 +83,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0xA6")
 		
 		then:
-		result instanceof Integer
 		result == 0xA6
 	}
 	
@@ -97,7 +91,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0o12")
 		
 		then:
-		result instanceof Integer
 		result == 012
 	}
 	
@@ -106,7 +99,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("0b101")
 		
 		then:
-		result instanceof Integer
 		result == 0b101
 	}
 	
@@ -135,7 +127,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 + 2")
 
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -144,7 +135,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+1")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -153,7 +143,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("-1")
 
 		then:
-		result instanceof Integer
 		result == -1
 	}
 
@@ -162,7 +151,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("+-1")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -171,7 +159,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 * 2")
 
 		then:
-		result instanceof Integer
 		result == 2
 	}
 
@@ -180,7 +167,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 / 2")
 
 		then:
-		result instanceof Float
 		result == 0.5
 	}
 
@@ -189,7 +175,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("1 // 2")
 
 		then:
-		result instanceof Integer
 		result == 0
 	}
 
@@ -198,7 +183,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("3 % 2")
 
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -207,7 +191,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2**1**2")
 
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -216,8 +199,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && true")
 
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 	
 	def "Generate and run code for true && false"(){
@@ -225,8 +207,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true && false")
 
 		then:
-		result instanceof Boolean
-		result == false
+		!Value.isTruthy(result)
 	}
 
 	def "Generate and run code for true || true"(){
@@ -234,8 +215,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || true")
 
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 
 	def "Generate and run code for true || false"(){
@@ -243,8 +223,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("true || false")
 
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 
 	def "Generate and run code for false || false"(){
@@ -252,8 +231,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("false || false")
 
 		then:
-		result instanceof Boolean
-		result == false
+		!Value.isTruthy(result)
 	}
 	
 	def "Generate and run code for complex comparison"(){
@@ -261,8 +239,7 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("2*2 + 3*3 <= 4*4 && 4 < 5")
 
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 	
 	def "Evaluate []"(){
@@ -312,7 +289,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[3]""")
 		
 		then:
-		result instanceof Integer
 		result == 4
 	}
 	
@@ -321,7 +297,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1]""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -330,7 +305,6 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""[1, 2, 3][1] = 0""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -339,19 +313,16 @@ class ExpressionVisitorSpecification extends Specification {
 		def result = parseAndCall("""{1:2, 3:4}[1] = 0""")
 		
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
-	def parseAndCall(String expression, String test = ""){
-		
-		if(test != ""){
-			def compiler = new ChipmunkCompiler()
-			compiler.compileExpression(expression)
-			println()
-			println("============= ${test} =============")
-			println(ChipmunkDisassembler.disassemble(compiler.compileExpression(expression)))
-		}
+	def parseAndCall(String expression){
+
+		def compiler = new ChipmunkCompiler()
+		compiler.compileExpression(expression)
+		println()
+		println("=============================")
+		println(ChipmunkDisassembler.disassemble(compiler.compileExpression(expression)))
 
 		return vm.eval(expression)
 	}

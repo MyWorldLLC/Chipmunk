@@ -20,6 +20,7 @@
 
 package chipmunk.modules
 
+
 import chipmunk.runtime.ChipmunkModule
 import chipmunk.vm.jvm.Uncatchable
 
@@ -32,7 +33,7 @@ class TestModule implements ChipmunkModule {
     }
 
     void println(Object o){
-        System.out.println(o);
+        SystemModule.out.println(o);
     }
 
     String getName() {

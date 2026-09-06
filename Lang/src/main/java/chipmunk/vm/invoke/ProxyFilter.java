@@ -43,7 +43,8 @@ public class ProxyFilter {
             return param;
         }
 
-        return vm.proxy(target, param);
+        //return vm.proxy(target, param);
+        return null; // TODO
     }
 
     public static MethodHandle filterFor(MethodHandles.Lookup lookup, Class<?> target) throws NoSuchMethodException, IllegalAccessException{
