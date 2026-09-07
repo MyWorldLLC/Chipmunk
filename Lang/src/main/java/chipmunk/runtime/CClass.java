@@ -26,14 +26,26 @@ public class CClass extends NamedHostObject {
 
     protected double selfPtr;
     protected double[] sharedFields;
+    protected CClass[] sharedClassDefs;
     protected CField[] sharedFieldDefs;
     protected CMethod[] sharedMethodDefs;
 
+    protected CClass[] instanceClassDefs;
     protected CField[] instanceFieldDefs;
     protected CMethod[] instanceMethodDefs;
 
+    protected CModule module;
+
     public CClass(String name) {
         super(name);
+    }
+
+    public CModule module() {
+        return module;
+    }
+
+    public void module(CModule module) {
+        this.module = module;
     }
 
     public double[] sharedFields() {
@@ -81,5 +93,21 @@ public class CClass extends NamedHostObject {
         var storage = new double[instanceFieldDefs.length];
         storage[0] = selfPtr;
         return storage;
+    }
+
+    public CClass[] sharedClassDefs() {
+        return sharedClassDefs;
+    }
+
+    public void sharedClassDefs(CClass[] sharedClassDefs) {
+        this.sharedClassDefs = sharedClassDefs;
+    }
+
+    public CClass[] instanceClassDefs() {
+        return instanceClassDefs;
+    }
+
+    public void instanceClassDefs(CClass[] instanceClassDefs) {
+        this.instanceClassDefs = instanceClassDefs;
     }
 }

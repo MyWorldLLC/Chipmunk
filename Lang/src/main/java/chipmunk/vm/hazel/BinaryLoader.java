@@ -65,19 +65,31 @@ public class BinaryLoader {
     }
 
     public static CClass entryClass(CModule module, BinaryNamespace.Entry entry){
-        // TODO - visit instance namespace
-        // TODO - visit shared namespace
-        return null; // TODO
+        var cls = entry.getBinaryClass();
+        var cClass = new CClass(entry.getName());
+        cClass.module(module);
+
+        var insNamespace = cls.getInstanceNamespace();
+        cClass.instanceFieldDefs(collectFields(insNamespace));
+        cClass.instanceMethodDefs(collectMethods(module, insNamespace));
+        cClass.instanceClassDefs(collectClasses(module, insNamespace));
+
+        var sharedNamespace = cls.getSharedNamespace();
+        cClass.sharedFieldDefs(collectFields(sharedNamespace));
+        cClass.sharedMethodDefs(collectMethods(module, sharedNamespace));
+        cClass.sharedClassDefs(collectClasses(module, sharedNamespace));
+
+        return cClass;
     }
 
     public static CMethod[] collectMethods(CModule module, BinaryNamespace namespace){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.METHOD)
-                .map(e -> enterMethod(module, e))
+                .map(e -> entryMethod(module, e))
                 .toArray(CMethod[]::new);
     }
 
-    public static CMethod enterMethod(CModule module, BinaryNamespace.Entry entry){
+    public static CMethod entryMethod(CModule module, BinaryNamespace.Entry entry){
         var binaryMethod = entry.getBinaryMethod();
         var code = binaryMethod.getCode();
         final var argCount = binaryMethod.getArgCount();
@@ -414,12 +426,26 @@ public class BinaryLoader {
         }
 
         postProcessors.forEach(Runnable::run);
-
-        // TODO - Remap exception handling table also
         var maxStack = Arrays.stream(stackDepths).max().getAsInt() + 1;
 
-        var method = new CMethod(module, entry.getName(), instructions.toArray(Instruction[]::new), argCount, localCount, maxStack);
-        method.setOriginalCode(code);
+        var method = new CMethod(module, entry.getName(), instructions.toArray(Instruction[]::new),
+                argCount, localCount, binaryMethod.getDefaultArgCount(), maxStack);
+
+        method.debugTable(Arrays.stream(binaryMethod.getDebugTable())
+                        .map(binEntry ->
+                                new CMethod.DebugEntry(
+                                        remapping[binEntry.beginIndex],
+                                        remapping[binEntry.endIndex],
+                                        binEntry.lineNumber))
+                .toArray(CMethod.DebugEntry[]::new));
+
+        method.exceptionTable(Arrays.stream(binaryMethod.getExceptionTable())
+                        .map(binEntry -> new CMethod.ExceptionBlock(
+                                remapping[binEntry.startIndex],
+                                remapping[binEntry.endIndex],
+                                remapping[binEntry.catchIndex],
+                                binEntry.exceptionLocalIndex))
+                        .toArray(CMethod.ExceptionBlock[]::new));
         return method;
     }
 

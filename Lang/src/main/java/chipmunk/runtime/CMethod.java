@@ -24,20 +24,26 @@ import chipmunk.vm.hazel.Instruction;
 
 public class CMethod extends NamedHostObject {
 
+    public record DebugEntry(int beginIp, int endIp, int line) {}
+
+    public record ExceptionBlock(int beginIp, int endIp, int catchIp, int exceptionLocalIndex) {}
+
     protected final CModule module;
     protected final Instruction[] code;
+    protected DebugEntry[] debugTable;
+    protected ExceptionBlock[] exceptionTable;
     protected final int argCount;
     protected final int localCount;
+    protected final int defaultArgCount;
     protected final int maxStack;
 
-    protected byte[] origCode;
-
-    public CMethod(CModule module, String name, Instruction[] code, int argCount, int localCount, int maxStack) {
+    public CMethod(CModule module, String name, Instruction[] code, int argCount, int localCount, int defaultArgCount, int maxStack) {
         super(name);
         this.module = module;
         this.code = code;
         this.argCount = argCount;
         this.localCount = localCount;
+        this.defaultArgCount = defaultArgCount;
         this.maxStack = maxStack;
     }
 
@@ -57,6 +63,10 @@ public class CMethod extends NamedHostObject {
         return localCount;
     }
 
+    public int defaultArgCount() {
+        return defaultArgCount;
+    }
+
     public int maxStack() {
         return maxStack;
     }
@@ -69,11 +79,19 @@ public class CMethod extends NamedHostObject {
         return builder.toString();
     }
 
-    public byte[] getOriginalCode() {
-        return origCode;
+    public DebugEntry[] debugTable() {
+        return debugTable;
     }
 
-    public void setOriginalCode(byte[] origCode) {
-        this.origCode = origCode;
+    public void debugTable(DebugEntry[] debugTable) {
+        this.debugTable = debugTable;
+    }
+
+    public ExceptionBlock[] exceptionTable() {
+        return exceptionTable;
+    }
+
+    public void exceptionTable(ExceptionBlock[] exceptionTable) {
+        this.exceptionTable = exceptionTable;
     }
 }
