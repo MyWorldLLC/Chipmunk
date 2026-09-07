@@ -22,30 +22,19 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.Value;
 
-public class Push extends Instruction {
+public class SetField extends Instruction {
 
-    protected final Object value;
+    protected final String field;
 
-    public Push(int sp, Object value) {
+    public SetField(int sp, String field) {
         super(sp);
-        this.value = value;
+        this.field = field;
     }
 
     @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        switch (value){
-            case Number n -> fiber.stack[bp + sp] = n.doubleValue();
-            case Boolean b -> fiber.stack[bp + sp] = b ? 1 : 0;
-            case null -> fiber.stack[bp + sp] = Value.NULL_PTR_VALUE;
-            default -> fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(value);
-        }
+    public int apply(Fiber fiber, int ip, int bp) {
+        // TODO
         return ip + 1;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + " " + value;
     }
 }

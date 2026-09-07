@@ -108,10 +108,22 @@ public class HazelVM {
 
             // Return empty when yielded, return value of last fiber when normal exit happens.
             var value = lastFiber.lastReturned();
-            return Optional.of(Value.isPointer(value) ? heap.read(value) : value);
+            return Optional.ofNullable(toHostValue(value));
 
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public Object toHostValue(double v){
+        if(Value.isPointer(v)){
+            if(Value.NULL_PTR_VALUE == v){
+                return null;
+            }else{
+                return heap.read(v);
+            }
+        }else{
+            return v;
         }
     }
 

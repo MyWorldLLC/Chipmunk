@@ -32,6 +32,7 @@ import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
 import chipmunk.vm.Uncatchable
+import chipmunk.vm.hazel.EntryPoint
 import spock.lang.Specification
 
 class StaticAccess {
@@ -51,6 +52,7 @@ class LanguageSpecification extends Specification {
 
 	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = false){
 		ModuleLoader loader = new ModuleLoader()
+
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
 		loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })
 
@@ -59,30 +61,27 @@ class LanguageSpecification extends Specification {
 		Compilation compilation = new Compilation()
 		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
 
-		BinaryModule[] modules = compiler.compile(compilation)
-
-		loader.addToLoaded(Arrays.asList(modules))
-
-		ChipmunkScript script = vm.compileScript(modules)
-		script.setModuleLoader(loader)
-		ChipmunkScript.setCurrentScript(script)
+		// TODO - native modules registration
+		def script = vm.compileScript(compilation)
+		script.setEntryPoint(new EntryPoint("test", "main"))
 
 		def argArray = args != null ? args.toArray() : null
 
 		if(!disassembleOnException){
-			return argArray == null ? script.run() : script.run(argArray)
+			return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
 		}else{
 			try{
-				return argArray == null ? script.run() : script.run(argArray)
+				return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
 			}catch(Throwable e){
 
-				for(def binaryModule : modules){
+				// TODO
+				/*for(def binaryModule : modules){
 					println(ChipmunkDisassembler.disassemble(binaryModule))
 				}
 
 				def sw = new StringWriter()
 				e.printStackTrace(new PrintWriter(sw))
-				println(sw.toString())
+				println(sw.toString())*/
 
 				throw e
 			}

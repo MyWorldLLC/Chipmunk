@@ -42,6 +42,7 @@ public class Value {
     public static final long POINTER_TYPE_FLAG = 0x0007_F000_0000_0000L;
 
     public static final long NULL_POINTER = 0L;
+    public static final double NULL_PTR_VALUE = makePointer(NULL_POINTER);
 
     private Value(){} // This is a static helper class, so should never be instantiated
 

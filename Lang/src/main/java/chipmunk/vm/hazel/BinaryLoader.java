@@ -338,10 +338,15 @@ public class BinaryLoader {
                     ip += 1;
                 }
                 case GETATTR -> {
-                    ip += 5; // TODO
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new GetField(sp, name));
+                    ip += 5;
                 }
                 case SETATTR -> {
-                    ip += 5; // TODO
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new SetField(sp, name));
+                    sp--; // TODO - verify if this is expected to pop 1 or 2
+                    ip += 5;
                 }
                 case GETAT -> {
                     instructions.add(new Call(sp, "getAt", 2));
@@ -399,8 +404,8 @@ public class BinaryLoader {
                     ip += 2;
                 }
                 case BIND -> {
-                    // TODO
-                    var nameConstIndex  = fetchInt(code, ip + 1);
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new Bind(sp, name));
                     ip += 5;
                 }
                 default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X".formatted(op));
