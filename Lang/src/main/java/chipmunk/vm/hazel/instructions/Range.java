@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,25 +18,26 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules
+package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.CRange;
+import chipmunk.vm.hazel.Fiber;
+import chipmunk.vm.hazel.Instruction;
 
-import chipmunk.runtime.ChipmunkModule
-import chipmunk.vm.Uncatchable
+public class Range extends Instruction {
 
-class TestModule implements ChipmunkModule {
+    protected final boolean inclusive;
 
-    static final String TEST_MODULE_NAME = "chipmunk.test"
-
-    def throwUncatchable(){
-        throw new Uncatchable()
+    public Range(int sp, boolean inclusive) {
+        super(sp);
+        this.inclusive = inclusive;
     }
 
-    void println(Object o){
-        SystemModule.out.println(o);
-    }
-
-    String getName() {
-        return TEST_MODULE_NAME
+    @Override
+    public int apply(Fiber fiber, int ip, int bp) {
+        var start = fiber.stack[bp + sp - 2];
+        var end = fiber.stack[bp + sp - 1];
+        fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(new CRange(start, end, 1, inclusive));
+        return ip + 1;
     }
 }

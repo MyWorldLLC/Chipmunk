@@ -21,11 +21,13 @@
 package chipmunk.vm.hazel;
 
 import chipmunk.ChipmunkRuntimeException;
+import chipmunk.binary.BinaryFormatException;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.ModuleLoader;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -66,22 +68,18 @@ public class HazelVM {
     public Optional<Object> run(){
         try{
             if(state == State.NEW) {
-                var module = (CModule) moduleLoader.load(entryPoint.module(), BinaryLoader::loadModule);
+                var module = (CModule) getModule(entryPoint.module());
                 if(module == null){
                     throw new IllegalStateException("Entry point module " + entryPoint.module() + " not found");
-                }
-                var ptr = heap.allocateAndWrite(module);
-                module.selfPtr(ptr);
-                modules.put(module.getName(), module);
-                var init = module.getMethod("$module_init$");
-                if(init != null && !module.isInitialized()){
-                    module.markInitialized();
-                    spawnFiber(init);
                 }
             }
 
             if(state == State.NEW || state == State.EXITED) {
-                var module = (CModule) modules.get(entryPoint.module());
+                var module = (CModule) getModule(entryPoint.module());
+                if(module == null){
+                    throw new IllegalStateException("Entry point module " + entryPoint.module() + " not found");
+                }
+
                 var main = module.getMethod(entryPoint.method());
                 if(main == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
@@ -179,6 +177,11 @@ public class HazelVM {
             var ip = frame.ip;
             var bp = frame.bp;
 
+            if(frame.continuation != null) {
+                frame.continuation.resume(fiber, frame);
+                continue;
+            }
+
             var code = frame.method.code();
             /*System.out.println("======================");
             for(int i = 0; i < code.length; i++){
@@ -200,7 +203,7 @@ public class HazelVM {
                     var op = code[ip];
                     //System.out.println(op.toString() + " IP: " + ip + " BP: " + bp + " SP: " + op.sp + ": " + dumpStack(fiber, bp, code[Math.abs(ip)].sp));
                     ip = op.apply(fiber, ip, bp);
-                    /*if(ip >= 0){
+                    if(ip >= 0){
                         op = code[ip];
                         ip = op.apply(fiber, ip, bp);
                         if(ip >= 0){
@@ -599,7 +602,7 @@ public class HazelVM {
                                 }
                             }
                         }
-                    }*/
+                    }
                 }catch(Throwable t){
                     //throw t; // TODO
                     t.printStackTrace();
@@ -607,6 +610,13 @@ public class HazelVM {
                 }
             }
         }
+
+        if(!fiber.completed()){
+            enqueue(fiber);
+        }else if(fiber.isBlocking()){
+            fiber.unblock();
+        }
+
     }
 
     protected double[] frameState(Fiber fiber, int bp, int sp){
@@ -643,6 +653,34 @@ public class HazelVM {
 
     public ModuleLoader moduleLoader(){
         return moduleLoader;
+    }
+
+    public ChipmunkModule getModule(String name){
+        try {
+            CModule module = (CModule) modules.get(name);
+            if(module == null){
+                module = (CModule) moduleLoader.load(name, BinaryLoader::loadModule);
+            }
+            if(module == null){
+                throw new RuntimeException("Module " + name + " not found");
+            }
+            var ptr = heap.allocateAndWrite(module);
+            module.selfPtr(ptr);
+            modules.put(module.getName(), module);
+
+            var init = module.getMethod("$module_init$");
+            if(init != null && !module.isInitialized()){
+                module.markInitialized();
+                var initFiber = spawnFiber(init);
+                if(currentFiber != null){
+                    initFiber.block(currentFiber);
+                    this.yield();
+                }
+            }
+            return module;
+        } catch (IOException | BinaryFormatException e) {
+            throw new RuntimeException(e); // TODO
+        }
     }
 
     public void entryPoint(EntryPoint entryPoint){

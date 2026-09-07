@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,7 +18,10 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm;
+package chipmunk.vm.hazel;
 
-public class Uncatchable extends Throwable {
+public abstract class NativeContinuation {
+
+    public abstract void resume(Fiber fiber, Fiber.Frame frame);
+
 }

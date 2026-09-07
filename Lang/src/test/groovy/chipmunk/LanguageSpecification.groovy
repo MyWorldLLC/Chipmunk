@@ -31,7 +31,7 @@ import chipmunk.runtime.UnimplementedMethodException
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
-import chipmunk.vm.jvm.Uncatchable
+import chipmunk.vm.Uncatchable
 import spock.lang.Specification
 
 class StaticAccess {

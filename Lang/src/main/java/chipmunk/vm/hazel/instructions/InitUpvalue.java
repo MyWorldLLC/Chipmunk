@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,25 +18,24 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules
+package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.Upvalue;
+import chipmunk.vm.hazel.Fiber;
+import chipmunk.vm.hazel.Instruction;
 
-import chipmunk.runtime.ChipmunkModule
-import chipmunk.vm.Uncatchable
+public class InitUpvalue extends Instruction {
 
-class TestModule implements ChipmunkModule {
+    protected final int local;
 
-    static final String TEST_MODULE_NAME = "chipmunk.test"
-
-    def throwUncatchable(){
-        throw new Uncatchable()
+    public InitUpvalue(int sp, int local) {
+        super(sp);
+        this.local = local;
     }
 
-    void println(Object o){
-        SystemModule.out.println(o);
-    }
-
-    String getName() {
-        return TEST_MODULE_NAME
+    @Override
+    public int apply(Fiber fiber, int ip, int bp) {
+        fiber.stack[bp + local] = fiber.vm().heap().allocateAndWrite(new Upvalue());
+        return ip + 1;
     }
 }

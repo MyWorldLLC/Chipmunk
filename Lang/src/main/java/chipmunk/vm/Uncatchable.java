@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,25 +18,6 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules
+package chipmunk.vm;
 
-
-import chipmunk.runtime.ChipmunkModule
-import chipmunk.vm.Uncatchable
-
-class TestModule implements ChipmunkModule {
-
-    static final String TEST_MODULE_NAME = "chipmunk.test"
-
-    def throwUncatchable(){
-        throw new Uncatchable()
-    }
-
-    void println(Object o){
-        SystemModule.out.println(o);
-    }
-
-    String getName() {
-        return TEST_MODULE_NAME
-    }
-}
+public class Uncatchable extends RuntimeException {}

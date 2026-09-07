@@ -134,7 +134,7 @@ public class ModuleLoader {
 		return module;
 	}
 
-	public ChipmunkModule  loadNative(String moduleName){
+	public ChipmunkModule loadNative(String moduleName){
 		NativeModuleFactory nativeFactory = nativeFactories.get(moduleName);
 		if(nativeFactory == null){
 			if(delegate != null){
@@ -143,16 +143,6 @@ public class ModuleLoader {
 			return null;
 		}
 		return nativeFactory.createModule();
-	}
-
-	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
-		BinaryModule binMod = loadBinary(moduleName);
-
-		if(binMod != null){
-			return compiler.compileModule(binMod);
-		}
-
-		return loadNative(moduleName);
 	}
 
 	public ChipmunkModule load(String moduleName) throws IOException, BinaryFormatException {

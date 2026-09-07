@@ -22,6 +22,8 @@ package chipmunk.vm.hazel;
 
 import chipmunk.runtime.CMethod;
 
+import java.util.List;
+
 public final class Fiber {
 
     public static final int RETURN_SIGNAL = -Integer.MAX_VALUE;
@@ -40,10 +42,19 @@ public final class Fiber {
         public int bp;
         public int sp;
         public CMethod method;
+        public NativeContinuation continuation;
+
+        public void completeNative(){
+            continuation = null;
+        }
     }
 
     private final HazelVM vm;
     private final CMethod startMethod;
+
+    private Fiber blockedBy;
+    private Fiber blocking;
+
     private State state;
     public double[] stack;
     public Frame[] callFrames;
@@ -132,6 +143,22 @@ public final class Fiber {
 
     public boolean completed(){
         return callStackDepth() == 0;
+    }
+
+    public void block(Fiber f){
+        f.state = State.BLOCKED;
+        f.blockedBy = this;
+        blocking = f;
+    }
+
+    public void unblock(){
+        blocking.state = State.RUNNABLE;
+        blocking.blockedBy = null;
+        blocking = null;
+    }
+
+    public boolean isBlocking(){
+        return blocking != null;
     }
 
 }

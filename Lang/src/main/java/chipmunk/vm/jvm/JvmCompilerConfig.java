@@ -20,6 +20,7 @@
 
 package chipmunk.vm.jvm;
 
+import chipmunk.vm.Uncatchable;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 
 import java.util.HashSet;

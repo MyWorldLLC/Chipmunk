@@ -84,6 +84,13 @@ public class LangModule implements ChipmunkModule {
         return ChipmunkScript.getCurrentScript().getVM().bindArgs(binding, index, args.toArray());
     }*/
 
+    @AllowChipmunkLinkage
+    public ChipmunkModule getModule(String name){
+        return ChipmunkScript.getCurrentScript()
+                .getHazelVM()
+                .getModule(name);
+    }
+
     @Override
     public String getName(){
         return MODULE_NAME;

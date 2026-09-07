@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,25 +18,37 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.modules
+package chipmunk.runtime;
 
+public class CRange {
 
-import chipmunk.runtime.ChipmunkModule
-import chipmunk.vm.Uncatchable
+    protected final double start;
+    protected final double end;
+    protected final double step;
+    protected final boolean inclusive;
 
-class TestModule implements ChipmunkModule {
-
-    static final String TEST_MODULE_NAME = "chipmunk.test"
-
-    def throwUncatchable(){
-        throw new Uncatchable()
+    public CRange(double start, double end, double step, boolean inclusive) {
+        this.start = start;
+        this.end = end;
+        this.step = step;
+        this.inclusive = inclusive;
     }
 
-    void println(Object o){
-        SystemModule.out.println(o);
+    public double start() {
+        return start;
     }
 
-    String getName() {
-        return TEST_MODULE_NAME
+    public double end() {
+        return end;
     }
+
+    public double step() {
+        return step;
+    }
+
+    public boolean isInclusive() {
+        return inclusive;
+    }
+
+    // TODO - iterator
 }

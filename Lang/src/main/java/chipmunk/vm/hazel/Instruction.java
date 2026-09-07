@@ -76,6 +76,7 @@ public abstract class Instruction {
                     fiber.stack[bp + sp - args] = m.selfPtr();
                     //System.out.println("Returning self");
                 }else{
+
                     System.out.println(m + "::" + methodName + "(" + args + ") not found");
                 }
             }

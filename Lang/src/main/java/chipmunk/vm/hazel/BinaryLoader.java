@@ -344,28 +344,28 @@ public class BinaryLoader {
                     ip += 5; // TODO
                 }
                 case GETAT -> {
-                    // TODO
+                    instructions.add(new Call(sp, "getAt", 2));
                     sp--;
                     ip++;
                 }
                 case SETAT -> {
-                    // TODO
+                    instructions.add(new Call(sp, "setAt", 3));
                     sp -= 2;
                     ip++;
                 }
                 case AS -> {
-                    // TODO
+                    instructions.add(new Call(sp, "as", 2));
                     sp--;
                     ip++;
                 }
                 case ITER -> {
-                    // TODO
+                    instructions.add(new Call(sp, "iterator", 2));
                     sp--;
                     ip++;
                 }
                 case RANGE -> {
-                    // TODO
                     var inclusive = code[ip + 1] != 0;
+                    instructions.add(new Range(sp, inclusive));
                     sp--;
                     ip += 2;
                 }
@@ -382,18 +382,20 @@ public class BinaryLoader {
                     ip += 5;
                 }
                 case INITUPVALUE -> {
-                    // TODO
                     var localIndex = code[ip + 1];
+                    instructions.add(new InitUpvalue(sp, localIndex));
                     ip += 2;
                 }
                 case GETUPVALUE -> {
-                    // TODO
                     var localIndex = code[ip + 1];
+                    instructions.add(new GetUpvalue(sp, localIndex));
+                    sp++;
                     ip += 2;
                 }
                 case SETUPVALUE -> {
-                    // TODO
                     var localIndex = code[ip + 1];
+                    instructions.add(new SetUpvalue(sp, localIndex));
+                    sp--;
                     ip += 2;
                 }
                 case BIND -> {
