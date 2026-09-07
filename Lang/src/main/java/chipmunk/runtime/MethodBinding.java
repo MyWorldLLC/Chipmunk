@@ -20,17 +20,11 @@
 
 package chipmunk.runtime;
 
-import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.ChipmunkLinker;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import jdk.dynalink.linker.GuardedInvocation;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class MethodBinding {
+public class MethodBinding {
 
     public static final String TARGET_FIELD_NAME = "target";
 

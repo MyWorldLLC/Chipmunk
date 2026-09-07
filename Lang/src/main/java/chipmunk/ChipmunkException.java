@@ -18,26 +18,42 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk;
 
-import chipmunk.ChipmunkException;
+import chipmunk.vm.hazel.Fiber;
 
-public class InvalidOpcodeChipmunk extends ChipmunkException {
-	private static final long serialVersionUID = -8090867885080049997L;
-	
-	protected byte opcode;
-	
-	public InvalidOpcodeChipmunk(byte op){
-		super(String.format("Invalid Opcode: 0x%H", op));
-		opcode = op;
+public class ChipmunkException extends RuntimeException {
+
+	protected final Object payload;
+	protected final Fiber fiber;
+
+	public ChipmunkException(Fiber fiber){
+		this(fiber, null);
 	}
-	
-	public InvalidOpcodeChipmunk(byte op, String msg){
-		super(msg);
-		opcode = op;
+
+	public ChipmunkException(Fiber fiber, String message){
+		super(message);
+		this.fiber = fiber;
+		fiber.markExceptionTraceTop();
+		payload = null;
 	}
-	
-	public byte getInvalidOpcode(){
-		return opcode;
+
+	public ChipmunkException(){
+		fiber = null;
+		payload = null;
 	}
+
+	public ChipmunkException(Object payload){
+		this.payload = payload;
+		this.fiber = null;
+	}
+
+	public Fiber fiber(){
+		return fiber;
+	}
+
+	public Object getPayload(){
+		return payload;
+	}
+
 }

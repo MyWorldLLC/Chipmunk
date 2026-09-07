@@ -22,7 +22,9 @@ package chipmunk.vm.hazel;
 
 import chipmunk.runtime.CMethod;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class Fiber {
 
@@ -38,13 +40,16 @@ public final class Fiber {
     }
 
     public static class Frame {
+
+        public static final int FRAME_SIZE = 4 * 3 + 2 * 8; // 3 ints, 2 object references
+
         public int ip;
         public int bp;
         public int sp;
         public CMethod method;
         public NativeContinuation continuation;
 
-        public void completeNative(){
+        public void clearNativeContinuation(){
             continuation = null;
         }
     }
@@ -137,6 +142,12 @@ public final class Fiber {
         return stack[lastFrame.bp + lastFrame.method.localCount()];
     }
 
+    public void markExceptionTraceTop(){
+        if(callFramePtr < callFrames.length){
+            callFrames[callFramePtr] = null;
+        }
+    }
+
     public int callStackDepth(){
         return callFramePtr;
     }
@@ -157,8 +168,21 @@ public final class Fiber {
         blocking = null;
     }
 
+    public boolean isBlocked(){
+        return blocking.state == State.BLOCKED;
+    }
+
+    public Fiber blockedBy(){
+        return blockedBy;
+    }
+
     public boolean isBlocking(){
         return blocking != null;
+    }
+
+    public Stream<Frame> stackTrace(){
+        return Arrays.stream(callFrames)
+                .filter(Objects::nonNull);
     }
 
 }

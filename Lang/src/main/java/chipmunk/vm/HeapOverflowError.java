@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,26 +18,13 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.compiler.assembler;
+package chipmunk.vm;
 
-import chipmunk.ChipmunkException;
+import chipmunk.vm.hazel.Fiber;
 
-public class InvalidOpcodeChipmunk extends ChipmunkException {
-	private static final long serialVersionUID = -8090867885080049997L;
-	
-	protected byte opcode;
-	
-	public InvalidOpcodeChipmunk(byte op){
-		super(String.format("Invalid Opcode: 0x%H", op));
-		opcode = op;
-	}
-	
-	public InvalidOpcodeChipmunk(byte op, String msg){
-		super(msg);
-		opcode = op;
-	}
-	
-	public byte getInvalidOpcode(){
-		return opcode;
-	}
+public class HeapOverflowError extends Uncatchable {
+
+    public HeapOverflowError(Fiber fiber, String message) {
+        super(fiber, message);
+    }
 }

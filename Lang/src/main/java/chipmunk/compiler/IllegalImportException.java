@@ -20,9 +20,9 @@
 
 package chipmunk.compiler;
 
-import chipmunk.ChipmunkRuntimeException;
+import chipmunk.ChipmunkException;
 
-public class IllegalImportException extends ChipmunkRuntimeException {
+public class IllegalImportException extends ChipmunkException {
 
 	private static final long serialVersionUID = 8040202523161901920L;
 

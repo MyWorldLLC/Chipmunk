@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,20 +18,14 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk;
+package chipmunk.vm.hazel;
 
-public class ChipmunkRuntimeException extends java.lang.RuntimeException {
+import chipmunk.ChipmunkException;
 
-	private static final long serialVersionUID = 4997822014942264350L;
+public class TypeError extends ChipmunkException {
 
-	protected final Object payload;
-
-	public ChipmunkRuntimeException(Object payload){
-		this.payload = payload;
-	}
-
-	public Object getPayload(){
-		return payload;
-	}
+    public TypeError(Fiber fiber, String message) {
+        super(fiber, message);
+    }
 
 }

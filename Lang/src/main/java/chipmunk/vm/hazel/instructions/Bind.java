@@ -20,8 +20,11 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.TypeError;
+import chipmunk.vm.hazel.Value;
 
 public class Bind extends Instruction {
 
@@ -34,7 +37,14 @@ public class Bind extends Instruction {
 
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
-        // TODO
+        var targetPtr = fiber.stack[bp + sp - 1];
+        if(Value.isPointer(targetPtr)){
+            var heap = fiber.vm().heap();
+            var target = heap.read(targetPtr);
+            fiber.stack[bp + sp - 1] = heap.allocateAndWrite(new MethodBinding(target, method));
+        }else{
+            throw new TypeError(fiber, "Object instance required for bind");
+        }
         return ip + 1;
     }
 }

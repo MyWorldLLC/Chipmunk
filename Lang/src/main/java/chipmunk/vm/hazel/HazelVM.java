@@ -20,12 +20,13 @@
 
 package chipmunk.vm.hazel;
 
-import chipmunk.ChipmunkRuntimeException;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.HeapOverflowError;
 import chipmunk.vm.ModuleLoader;
+import chipmunk.vm.Uncatchable;
 
 import java.io.IOException;
 import java.util.*;
@@ -616,9 +617,19 @@ public class HazelVM {
                         }
                     }
                 }catch(Throwable t){
-                    //throw t; // TODO
-                    t.printStackTrace();
-                    throw new ChipmunkRuntimeException(t.getMessage());
+                    if(t instanceof Uncatchable){
+                        throw t;
+                    }
+                    for(var block : frame.method.exceptionTable()){
+                        if(block.beginIp() <= ip && ip < block.endIp()){
+                            var ptr = fiber.vm().heap().allocateAndWrite(t);
+                            if(ptr == Value.NULL_PTR_VALUE){
+                                throw new HeapOverflowError(fiber, "Heap overflow occured while handling exception " + t);
+                            }
+                            fiber.stack[bp + block.exceptionLocalIndex()] = ptr;
+                            ip = block.beginIp();
+                        }
+                    }
                 }
             }
         }
@@ -655,10 +666,17 @@ public class HazelVM {
         return builder.toString();
     }
 
+    /**
+     * Request a preemptive yield. This can be called by any thread.
+     */
     public void yield(){
         yieldRequested = true;
     }
 
+    /**
+     * Check if a yield has been requested already or not. This can be called by any thread.
+     * @return true if yield requested (and has not yet occured), false otherwise.
+     */
     public boolean isYieldRequested(){
         return yieldRequested;
     }

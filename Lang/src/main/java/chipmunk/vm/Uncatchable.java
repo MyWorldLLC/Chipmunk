@@ -20,4 +20,21 @@
 
 package chipmunk.vm;
 
-public class Uncatchable extends RuntimeException {}
+import chipmunk.ChipmunkException;
+import chipmunk.vm.hazel.Fiber;
+
+public class Uncatchable extends ChipmunkException {
+
+    public Uncatchable() {
+        super();
+    }
+
+    public Uncatchable(Fiber fiber) {
+        this(fiber, null);
+    }
+
+    public Uncatchable(Fiber fiber, String message) {
+        super(fiber, message);
+    }
+
+}

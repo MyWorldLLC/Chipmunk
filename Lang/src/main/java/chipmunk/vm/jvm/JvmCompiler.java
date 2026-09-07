@@ -20,7 +20,7 @@
 
 package chipmunk.vm.jvm;
 
-import chipmunk.ChipmunkRuntimeException;
+import chipmunk.ChipmunkException;
 import chipmunk.compiler.ModuleNotFoundException;
 import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
@@ -1000,11 +1000,11 @@ public class JvmCompiler {
         Label endWrap = new Label();
         mv.visitJumpInsn(Opcodes.IFNE, endWrap);
 
-        mv.visitTypeInsn(Opcodes.NEW, Type.getType(ChipmunkRuntimeException.class).getInternalName());
+        mv.visitTypeInsn(Opcodes.NEW, Type.getType(ChipmunkException.class).getInternalName());
         mv.visitInsn(Opcodes.DUP_X1);
         mv.visitInsn(Opcodes.SWAP);
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                Type.getType(ChipmunkRuntimeException.class).getInternalName(),
+                Type.getType(ChipmunkException.class).getInternalName(),
                 "<init>",
                 Type.getMethodType(Type.VOID_TYPE, Type.getType(Object.class)).getDescriptor(),
                 false);

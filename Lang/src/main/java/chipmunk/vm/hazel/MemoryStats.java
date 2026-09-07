@@ -20,12 +20,57 @@
 
 package chipmunk.vm.hazel;
 
-public class MemoryStats {
+public final class MemoryStats {
 
-    protected int instanceMem;
+    public static final int BYTES_PER_SLOT = 8;
+
+    private int estimatedReachable;
+    private int heapSize;
+    private int fiberStacks;
+    private int fiberFrames;
 
     public void instanceCreated(int slots){
-        instanceMem += slots * 64;
+        bumpEstimatedReachable(slots * BYTES_PER_SLOT);
+    }
+
+    public void instanceFreed(int slots){
+        bumpEstimatedReachable(-slots * BYTES_PER_SLOT);
+    }
+
+    public void bumpEstimatedReachable(int delta){
+        estimatedReachable += delta;
+    }
+
+    public int estimatedReachable(){
+        return estimatedReachable;
+    }
+
+    public int heapSize(){
+        return heapSize;
+    }
+
+    public void heapSize(int slots){
+        heapSize = slots * BYTES_PER_SLOT;
+    }
+
+    public int fiberStacks(){
+        return fiberStacks;
+    }
+
+    public void fiberStacks(int totalSlots, int totalFrames){
+        fiberStacks = totalSlots * BYTES_PER_SLOT;
+        fiberFrames = totalFrames * Fiber.Frame.FRAME_SIZE;
+    }
+
+    public void resetUsage(){
+        estimatedReachable = 0;
+        heapSize = 0;
+        fiberStacks = 0;
+        fiberFrames = 0;
+    }
+
+    public int totalUsage(){
+        return estimatedReachable + heapSize + fiberStacks + fiberFrames;
     }
 
 }
