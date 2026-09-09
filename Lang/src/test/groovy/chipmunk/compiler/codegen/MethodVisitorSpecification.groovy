@@ -276,7 +276,7 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "")
+			""")
 			
 		then:
 		result == 5
@@ -381,7 +381,7 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a) a
 				return v1(1)
 			}
-			""", "")
+			""")
 			
 		then:
 		result == 1
@@ -394,27 +394,25 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
-			""", "")
+			""")
 			
 		then:
 		result == 3
 	}
 	
-	def parseAndCall(String methodBody, String test = ""){
+	def parseAndCall(String methodBody){
 
 		BinaryModule binary = compiler.compileMethod(methodBody)
 		ChipmunkScript script = vm.compileScript(new EntryPoint("exp", "method"), binary)
-		
-		if(test != ""){
-			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
-			println()
-			println("============= ${test} =============")
-			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
+
+		try{
+			def result = script.run()
+			return result.orElse(null)
+		}catch (Throwable t){
+			println(ChipmunkDisassembler.disassemble(binary))
+			throw t
 		}
 
-		def result = script.run()
-		return result.orElse(null)
 	}
 
 }

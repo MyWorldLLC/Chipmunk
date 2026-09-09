@@ -46,11 +46,11 @@ class LanguageSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
-	def compileAndRun(String scriptName, boolean disassembleOnException = false){
+	def compileAndRun(String scriptName, boolean disassembleOnException = true){
 		return compileAndRunWithArgs(scriptName, null, disassembleOnException)
 	}
 
-	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = false){
+	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = true){
 		ModuleLoader loader = new ModuleLoader()
 
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
@@ -62,7 +62,8 @@ class LanguageSpecification extends Specification {
 		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
 
 		// TODO - native modules registration
-		def script = vm.compileScript(compilation)
+		var modules = compiler.compile(compilation)
+		def script = vm.compileScript(modules)
 		script.setEntryPoint(new EntryPoint("test", "main"))
 
 		def argArray = args != null ? args.toArray() : null
@@ -74,14 +75,13 @@ class LanguageSpecification extends Specification {
 				return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
 			}catch(Throwable e){
 
-				// TODO
-				/*for(def binaryModule : modules){
+				for(def binaryModule : modules){
 					println(ChipmunkDisassembler.disassemble(binaryModule))
 				}
 
 				def sw = new StringWriter()
 				e.printStackTrace(new PrintWriter(sw))
-				println(sw.toString())*/
+				println(sw.toString())
 
 				throw e
 			}
