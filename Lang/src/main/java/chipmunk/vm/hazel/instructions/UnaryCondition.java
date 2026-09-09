@@ -23,8 +23,9 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class UnaryCondition extends Instruction {
+public class UnaryCondition extends CallingInstruction {
 
     public static final int NO_JUMP = Integer.MIN_VALUE;
 
@@ -35,12 +36,12 @@ public class UnaryCondition extends Instruction {
     protected final int condition;
     protected final int target;
 
-    public UnaryCondition(int sp, int condition){
-        this(sp, condition, NO_JUMP);
+    public UnaryCondition(int sp, Invoker invoker, int condition){
+        this(sp, invoker, condition, NO_JUMP);
     }
 
-    public UnaryCondition(int sp, int condition, int target) {
-        super(sp);
+    public UnaryCondition(int sp, Invoker invoker, int condition, int target) {
+        super(sp, invoker);
         this.condition = condition;
         this.target = target;
     }

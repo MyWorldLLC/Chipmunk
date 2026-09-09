@@ -24,6 +24,8 @@ import chipmunk.vm.hazel.util.BitFieldAllocator;
 
 public final class Heap {
 
+    public static final int ALLOC_FAILURE = -1;
+
     public static final int DEFAULT_INITIAL_HEAP_SIZE = 1024;
     public static final int DEFAULT_GROWTH_STEP = 1024;
     public static final int DEFAULT_HEAP_LIMIT = 2048;
@@ -33,23 +35,29 @@ public final class Heap {
     private Object[] memory;
     private final BitFieldAllocator allocator;
 
-    public Heap(){
-        this(DEFAULT_INITIAL_HEAP_SIZE, DEFAULT_HEAP_LIMIT);
+    private final HazelVM vm;
+    private final GarbageCollector gc;
+
+    public Heap(HazelVM vm){
+        this(vm, DEFAULT_INITIAL_HEAP_SIZE, DEFAULT_HEAP_LIMIT);
     }
 
-    public Heap(int initialHeapSize){
-        this(initialHeapSize, DEFAULT_HEAP_LIMIT);
+    public Heap(HazelVM vm, int initialHeapSize){
+        this(vm, initialHeapSize, DEFAULT_HEAP_LIMIT);
     }
 
-    public Heap(int initialHeapSize, int limit){
-        this(initialHeapSize, limit, DEFAULT_GROWTH_STEP);
+    public Heap(HazelVM vm, int initialHeapSize, int limit){
+        this(vm, initialHeapSize, limit, DEFAULT_GROWTH_STEP);
     }
 
-    public Heap(int initialHeapSize, int limit, int step){
+    public Heap(HazelVM vm, int initialHeapSize, int limit, int step){
+        this.vm = vm;
         this.limit = limit;
         this.step = step;
         memory = new Object[initialHeapSize];
         allocator = new BitFieldAllocator(initialHeapSize);
+        gc = new GarbageCollector(vm, this);
+        // TODO - support GC pinning, and pin this so that the GC can never free the null pointer and allow it to be used.
     }
 
     public Object read(double ptr){
@@ -75,11 +83,19 @@ public final class Heap {
 
     public double allocateAndWrite(Object obj){
         var ptr = allocate();
+        if(ptr < 0){
+            new Exception().printStackTrace();
+        }
         write(ptr, obj);
         return Value.makePointer(ptr);
     }
 
     public long allocate(){
+        var ptr = allocator.allocate();
+        if(ptr == ALLOC_FAILURE){
+            System.out.println("Running GC");
+            gc.collect();
+        }
         return allocator.allocate();
     }
 

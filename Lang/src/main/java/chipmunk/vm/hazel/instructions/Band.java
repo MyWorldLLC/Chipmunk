@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Band extends Instruction {
+public class Band extends CallingInstruction {
 
-    public Band(int sp) {
-        super(sp);
+    public Band(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

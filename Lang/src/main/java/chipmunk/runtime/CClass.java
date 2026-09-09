@@ -22,6 +22,8 @@ package chipmunk.runtime;
 
 import chipmunk.vm.hazel.HazelVM;
 
+import java.util.Arrays;
+
 public class CClass extends NamedHostObject {
 
     protected double selfPtr;
@@ -109,5 +111,12 @@ public class CClass extends NamedHostObject {
 
     public void instanceClassDefs(CClass[] instanceClassDefs) {
         this.instanceClassDefs = instanceClassDefs;
+    }
+
+    public CMethod findMethod(CMethod[] methods, String name, int argCount){
+        return Arrays.stream(methods)
+                .filter(m -> m.name().equals(name) && m.argCount() == argCount)
+                .findFirst()
+                .orElse(null);
     }
 }

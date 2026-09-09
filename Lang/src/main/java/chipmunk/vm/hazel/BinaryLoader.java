@@ -28,6 +28,7 @@ import chipmunk.runtime.CField;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
 import chipmunk.vm.hazel.instructions.*;
+import chipmunk.vm.hazel.invoke.Invoker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,17 @@ import static chipmunk.vm.Opcodes.*;
 
 public class BinaryLoader {
 
-    public static CModule loadModule(BinaryModule module){
+    protected final Invoker invoker;
+
+    public BinaryLoader() {
+        this(new Invoker());
+    }
+
+    public BinaryLoader(Invoker invoker) {
+        this.invoker = invoker;
+    }
+
+    public CModule loadModule(BinaryModule module) {
         var namespace = module.getNamespace();
         var cModule = new CModule(module.getName(), module.getFileName());
         cModule.setConstantPool(module.getConstantPool());
@@ -46,25 +57,25 @@ public class BinaryLoader {
         return cModule;
     }
 
-    public static CField[] collectFields(BinaryNamespace namespace){
+    public CField[] collectFields(BinaryNamespace namespace){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.DYNAMIC_VAR)
-                .map(BinaryLoader::entryField)
+                .map(this::entryField)
                 .toArray(CField[]::new);
     }
 
-    public static CField entryField(BinaryNamespace.Entry entry){
+    public CField entryField(BinaryNamespace.Entry entry){
         return new CField(entry.getName(), entry.getFlags());
     }
 
-    public static CClass[] collectClasses(CModule module, BinaryNamespace namespace){
+    public CClass[] collectClasses(CModule module, BinaryNamespace namespace){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.CLASS)
-                .map(e -> BinaryLoader.entryClass(module, e))
+                .map(e -> entryClass(module, e))
                 .toArray(CClass[]::new);
     }
 
-    public static CClass entryClass(CModule module, BinaryNamespace.Entry entry){
+    public CClass entryClass(CModule module, BinaryNamespace.Entry entry){
         var cls = entry.getBinaryClass();
         var cClass = new CClass(entry.getName());
         cClass.module(module);
@@ -82,14 +93,14 @@ public class BinaryLoader {
         return cClass;
     }
 
-    public static CMethod[] collectMethods(CModule module, BinaryNamespace namespace){
+    public CMethod[] collectMethods(CModule module, BinaryNamespace namespace){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.METHOD)
                 .map(e -> entryMethod(module, e))
                 .toArray(CMethod[]::new);
     }
 
-    public static CMethod entryMethod(CModule module, BinaryNamespace.Entry entry){
+    public CMethod entryMethod(CModule module, BinaryNamespace.Entry entry){
         var binaryMethod = entry.getBinaryMethod();
         var code = binaryMethod.getCode();
         final var argCount = binaryMethod.getArgCount();
@@ -129,87 +140,87 @@ public class BinaryLoader {
             stackDepths[instruction] = sp;
             switch(op){
                 case ADD -> {
-                    instructions.add(new Add(sp));
+                    instructions.add(new Add(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case SUB -> {
-                    instructions.add(new Sub(sp));
+                    instructions.add(new Sub(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case MUL -> {
-                    instructions.add(new Mul(sp));
+                    instructions.add(new Mul(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case DIV -> {
-                    instructions.add(new Div(sp));
+                    instructions.add(new Div(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case FDIV -> {
-                    instructions.add(new FDiv(sp));
+                    instructions.add(new FDiv(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case MOD -> {
-                    instructions.add(new Mod(sp));
+                    instructions.add(new Mod(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case POW -> {
-                    instructions.add(new Pow(sp));
+                    instructions.add(new Pow(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case INC -> {
-                    instructions.add(new Inc(sp));
+                    instructions.add(new Inc(sp, invoker));
                     ip++;
                 }
                 case DEC -> {
-                    instructions.add(new Dec(sp));
+                    instructions.add(new Dec(sp, invoker));
                     ip++;
                 }
                 case POS -> {
-                    instructions.add(new Pos(sp));
+                    instructions.add(new Pos(sp, invoker));
                     ip++;
                 }
                 case NEG -> {
-                    instructions.add(new Neg(sp));
+                    instructions.add(new Neg(sp, invoker));
                     ip++;
                 }
                 case BXOR -> {
-                    instructions.add(new Bxor(sp));
+                    instructions.add(new Bxor(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case BAND -> {
-                    instructions.add(new Band(sp));
+                    instructions.add(new Band(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case BOR -> {
-                    instructions.add(new Bor(sp));
+                    instructions.add(new Bor(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case BNEG -> {
-                    instructions.add(new BNeg(sp));
+                    instructions.add(new BNeg(sp, invoker));
                     ip++;
                 }
                 case LSHIFT -> {
-                    instructions.add(new LShift(sp));
+                    instructions.add(new LShift(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case RSHIFT -> {
-                    instructions.add(new RShift(sp));
+                    instructions.add(new RShift(sp, invoker));
                     sp--;
                     ip++;
                 }
                 case URSHIFT -> {
-                    instructions.add(new URShift(sp));
+                    instructions.add(new URShift(sp, invoker));
                     sp--;
                     ip++;
                 }
@@ -285,7 +296,7 @@ public class BinaryLoader {
                                 jumpTo = -jumpTo;
                             }
                         }
-                        instructions.set(replace, new BinaryCondition(stackDepths[instruction], condition, jumpTo));
+                        instructions.set(replace, new BinaryCondition(stackDepths[instruction], invoker, condition, jumpTo));
                     });
                     sp -= jump ? 2 : 1;
                     ip += jump ? 6 : 1;
@@ -309,7 +320,7 @@ public class BinaryLoader {
                                 jumpTo = -jumpTo;
                             }
                         }
-                        instructions.set(replace, new UnaryCondition(stackDepths[instruction], condition, jumpTo));
+                        instructions.set(replace, new UnaryCondition(stackDepths[instruction], invoker, condition, jumpTo));
                     });
                     sp -= jump ? 1 : 0;
                     ip += jump ? 6 : 1;
@@ -323,7 +334,7 @@ public class BinaryLoader {
                         if(jumpTo < replace){
                             jumpTo = -jumpTo;
                         }
-                        instructions.set(replace, new If(stackDepths[instruction], jumpTo));
+                        instructions.set(replace, new If(stackDepths[instruction], invoker, jumpTo));
                     });
                     sp--;
                     ip += 5;
@@ -331,7 +342,7 @@ public class BinaryLoader {
                 case CALL -> {
                     // Callsite args don't include self, which is always present. For simplicity within the interpreter,
                     // call instructions always include the full argument count.
-                    instructions.add(new Call(sp, "call", code[ip + 1] + 1));
+                    instructions.add(new Call(sp, invoker, "call", code[ip + 1] + 1));
                     // Reduce the stack pointer by the total arg count - 1, which means that the "self" position on the
                     // stack gets overwritten with the call result
                     sp -= code[ip + 1];
@@ -339,7 +350,7 @@ public class BinaryLoader {
                 }
                 case CALLAT -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 2)];
-                    instructions.add(new Call(sp, name, code[ip + 1] + 1));
+                    instructions.add(new Call(sp, invoker, name, code[ip + 1] + 1));
                     sp -= code[ip + 1];
                     ip += 6;
                 }
@@ -351,32 +362,32 @@ public class BinaryLoader {
                 }
                 case GETATTR -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
-                    instructions.add(new GetField(sp, name));
+                    instructions.add(new GetField(sp, invoker, name));
                     ip += 5;
                 }
                 case SETATTR -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
-                    instructions.add(new SetField(sp, name));
+                    instructions.add(new SetField(sp, invoker, name));
                     sp--; // TODO - verify if this is expected to pop 1 or 2
                     ip += 5;
                 }
                 case GETAT -> {
-                    instructions.add(new Call(sp, "getAt", 2));
+                    instructions.add(new Call(sp, invoker, "getAt", 2));
                     sp--;
                     ip++;
                 }
                 case SETAT -> {
-                    instructions.add(new Call(sp, "setAt", 3));
+                    instructions.add(new Call(sp, invoker, "setAt", 3));
                     sp -= 2;
                     ip++;
                 }
                 case AS -> {
-                    instructions.add(new Call(sp, "as", 2));
+                    instructions.add(new Call(sp, invoker, "as", 2));
                     sp--;
                     ip++;
                 }
                 case ITER -> {
-                    instructions.add(new Call(sp, "iterator", 2));
+                    instructions.add(new Call(sp, invoker, "iterator", 2));
                     sp--;
                     ip++;
                 }

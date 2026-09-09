@@ -22,13 +22,14 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class GetField extends Instruction {
+public class GetField extends CallingInstruction {
 
     protected final String field;
 
-    public GetField(int sp, String field) {
-        super(sp);
+    public GetField(int sp, Invoker invoker, String field) {
+        super(sp, invoker);
         this.field = field;
     }
 

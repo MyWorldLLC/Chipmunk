@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Mul extends Instruction {
+public class Mul extends CallingInstruction {
 
-    public Mul(int sp) {
-        super(sp);
+    public Mul(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

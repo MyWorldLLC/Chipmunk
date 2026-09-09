@@ -24,13 +24,14 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class If extends Instruction {
+public class If extends CallingInstruction {
 
     protected final int target;
 
-    public If(int sp, int target) {
-        super(sp);
+    public If(int sp, Invoker invoker, int target) {
+        super(sp, invoker);
         this.target = target;
     }
 
@@ -41,6 +42,8 @@ public class If extends Instruction {
         boolean result = false;
         if(Value.isNumber(a)) {
             result = a != 0.0;
+        }else if(Value.isNullPointer(a)){
+            result = false;
         }else{
             dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 1);
         }

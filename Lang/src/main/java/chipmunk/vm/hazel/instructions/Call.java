@@ -22,14 +22,15 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Call extends Instruction {
+public class Call extends CallingInstruction {
 
     protected final String methodName;
     protected final int argCount;
 
-    public Call(int sp, String methodName, int argCount) {
-        super(sp);
+    public Call(int sp, Invoker invoker, String methodName, int argCount) {
+        super(sp, invoker);
         this.methodName = methodName;
         this.argCount = argCount;
     }

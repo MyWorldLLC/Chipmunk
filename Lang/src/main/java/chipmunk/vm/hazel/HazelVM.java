@@ -50,7 +50,6 @@ public class HazelVM {
 
     protected final MemoryStats memoryStats;
     protected final Heap heap;
-    protected final GarbageCollector gc;
 
     protected Fiber currentFiber;
     protected Fiber lastFiber;
@@ -60,10 +59,8 @@ public class HazelVM {
     public HazelVM(ModuleLoader moduleLoader) {
         this.moduleLoader = moduleLoader;
         memoryStats = new MemoryStats();
-        heap = new Heap();
+        heap = new Heap(this);
         heap.allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
-        // TODO - support GC pinning, and pin this so that the GC can never free the null pointer and allow it to be used.
-        gc = new GarbageCollector(this, heap);
     }
 
     public Optional<Object> run(){
@@ -111,8 +108,8 @@ public class HazelVM {
             var value = lastFiber.lastReturned();
             return Optional.ofNullable(toHostValue(value));
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Throwable t) {
+            throw t;
         }
     }
 
@@ -165,9 +162,12 @@ public class HazelVM {
                 .map(chipmunkModule -> (CModule) chipmunkModule);
     }
 
-    protected Fiber spawnFiber(CMethod method){
+    protected Fiber spawnFiber(CMethod method, double... args){
         var fiber = new Fiber(this, method);
         fiber.stack[0] = method.module().selfPtr();
+        for(int i = 0; i < args.length; i++){
+            fiber.stack[i + 1] = args[i];
+        }
         fiber.pushCallFrame(method, 0);
         enqueue(fiber);
         return fiber;
@@ -620,6 +620,7 @@ public class HazelVM {
                     if(t instanceof Uncatchable){
                         throw t;
                     }
+                    var handled = false;
                     for(var block : frame.method.exceptionTable()){
                         if(block.beginIp() <= ip && ip < block.endIp()){
                             var ptr = fiber.vm().heap().allocateAndWrite(t);
@@ -628,7 +629,11 @@ public class HazelVM {
                             }
                             fiber.stack[bp + block.exceptionLocalIndex()] = ptr;
                             ip = block.beginIp();
+                            handled = true;
                         }
+                    }
+                    if(!handled){
+                        throw t;
                     }
                 }
             }
@@ -640,6 +645,16 @@ public class HazelVM {
             fiber.unblock();
         }
 
+    }
+
+    public final int invokeMethod(CMethod method, Fiber fiber, int ip, int bp, int sp){
+        var callingFrame = fiber.currentFrame();
+        //System.out.println("Calling frame before invoking " + method.name() + ": " + fiber.vm().dumpStack(fiber, bp, 5));
+        callingFrame.ip = ip + 1; // Resume at next instruction following this one
+        fiber.pushCallFrame(method, bp + sp - method.argCount());
+        // This causes the interpreter to transfer control to the outer interpreter loop, where it will reset ip & bp
+        // and transfer control to the newly called method.
+        return Fiber.RETURN_SIGNAL;
     }
 
     protected double[] frameState(Fiber fiber, int bp, int sp){
@@ -687,24 +702,26 @@ public class HazelVM {
 
     public ChipmunkModule getModule(String name){
         try {
-            CModule module = (CModule) modules.get(name);
+            var module = modules.get(name);
             if(module == null){
-                module = (CModule) moduleLoader.load(name, BinaryLoader::loadModule);
+                module = moduleLoader.load(name, new BinaryLoader()::loadModule);
             }
             if(module == null){
                 throw new RuntimeException("Module " + name + " not found");
             }
-            var ptr = heap.allocateAndWrite(module);
-            module.selfPtr(ptr);
-            modules.put(module.getName(), module);
+            if(module instanceof CModule cModule){
+                var ptr = heap.allocateAndWrite(cModule);
+                cModule.selfPtr(ptr);
+                modules.put(cModule.getName(), cModule);
 
-            var init = module.getMethod("$module_init$");
-            if(init != null && !module.isInitialized()){
-                module.markInitialized();
-                var initFiber = spawnFiber(init);
-                if(currentFiber != null){
-                    initFiber.block(currentFiber);
-                    this.yield();
+                var init = cModule.getMethod("$module_init$");
+                if(init != null && !cModule.isInitialized()){
+                    cModule.markInitialized();
+                    var initFiber = spawnFiber(init, heap.allocateAndWrite(this));
+                    if(currentFiber != null){
+                        initFiber.block(currentFiber);
+                        this.yield();
+                    }
                 }
             }
             return module;

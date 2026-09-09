@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Dec extends Instruction {
+public class Dec extends CallingInstruction {
 
-    public Dec(int sp) {
-        super(sp);
+    public Dec(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

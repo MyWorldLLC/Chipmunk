@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Neg extends Instruction {
+public class Neg extends CallingInstruction {
 
-    public Neg(int sp) {
-        super(sp);
+    public Neg(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

@@ -18,29 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.instructions;
+package chipmunk.vm.hazel.invoke;
 
-import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Inc extends CallingInstruction {
+public abstract class MethodInvoker {
 
-    public Inc(int sp, Invoker invoker) {
-        super(sp, invoker);
+    protected final String name;
+    protected final int argCount;
+
+    public MethodInvoker(String name, int argCount) {
+        this.name = name;
+        this.argCount = argCount;
     }
 
-    @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        if(Value.isNumber(a)) {
-            stack[bp + sp - 1] = a + 1;
-        }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.INC, 1);
-        }
-        return ip + 1;
-    }
+    public abstract boolean canInvoke(Object target);
+    public abstract int invokeMethod(Fiber fiber, int ip, int bp, int sp);
+
 }

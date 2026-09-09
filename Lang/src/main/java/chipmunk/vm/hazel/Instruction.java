@@ -38,7 +38,7 @@ public abstract class Instruction {
 
     public abstract int apply(Fiber fiber, int ip, int bp);
 
-    public final int dynamicCall(Fiber fiber, int ip, int bp, int sp, String methodName, int args){
+    /*public int dynamicCall(Fiber fiber, int ip, int bp, int sp, String methodName, int args){
         var ptr = fiber.stack[bp + sp - args];
         var heap = fiber.vm().heap();
         var obj = heap.read(Value.getPointer(ptr));
@@ -56,7 +56,8 @@ public abstract class Instruction {
                 }
             }
             if(method != null){
-                return invokeMethod(method, fiber, ip, bp, sp);
+                // TODO - this is going to be handled by an invoker per-instruction
+                return fiber.vm().invokeMethod(method, fiber, ip, bp, sp);
             }else{
                 // TODO - method not found
                 System.out.println(
@@ -85,7 +86,7 @@ public abstract class Instruction {
         return ip + 1;
     }
 
-    protected final int invokeMethod(CMethod method, Fiber fiber, int ip, int bp, int sp){
+    public static final int invokeMethod(CMethod method, Fiber fiber, int ip, int bp, int sp){
         var callingFrame = fiber.currentFrame();
         //System.out.println("Calling frame before invoking " + method.name() + ": " + fiber.vm().dumpStack(fiber, bp, 5));
         callingFrame.ip = ip + 1; // Resume at next instruction following this one
@@ -93,7 +94,7 @@ public abstract class Instruction {
         // This causes the interpreter to transfer control to the outer interpreter loop, where it will reset ip & bp
         // and transfer control to the newly called method.
         return Fiber.RETURN_SIGNAL;
-    }
+    }*/
 
     public String toString() {
         return getClass().getSimpleName() + " sp=" + sp;

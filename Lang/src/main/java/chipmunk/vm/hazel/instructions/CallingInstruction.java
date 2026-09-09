@@ -20,27 +20,34 @@
 
 package chipmunk.vm.hazel.instructions;
 
-import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.MethodInvoker;
 
-public class Inc extends CallingInstruction {
+public abstract class CallingInstruction extends Instruction {
 
-    public Inc(int sp, Invoker invoker) {
-        super(sp, invoker);
+    protected final Invoker invoker;
+    protected MethodInvoker method;
+
+    protected CallingInstruction(int sp, Invoker invoker) {
+        super(sp);
+        this.invoker = invoker;
     }
 
-    @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        var stack = fiber.stack;
-        var a = stack[bp + sp - 1];
-        if(Value.isNumber(a)) {
-            stack[bp + sp - 1] = a + 1;
-        }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.INC, 1);
+    protected MethodInvoker getMethodInvoker(double targetPtr, Object target, Fiber fiber, String name, int args) {
+        if(method != null && method.canInvoke(target)){
+            return method;
         }
-        return ip + 1;
+        method = invoker.methodInvokerFor(fiber, targetPtr, name, args);
+        return method;
+    }
+
+    public int dynamicCall(Fiber fiber, int ip, int bp, int sp, String methodName, int args){
+        var ptr = fiber.stack[bp + sp - args];
+        var heap = fiber.vm().heap();
+        var obj = heap.read(Value.getPointer(ptr));
+        return getMethodInvoker(ptr, obj, fiber, methodName, args).invokeMethod(fiber, ip, bp, sp);
     }
 }

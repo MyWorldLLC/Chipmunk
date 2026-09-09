@@ -90,6 +90,10 @@ public class Value {
         return isPointer(v) && getPointer(v) == NULL_POINTER;
     }
 
+    public static boolean pointersEqual(double p1, double p2){
+        return toBits(p1) == toBits(p2);
+    }
+
     public static String pointerToString(double v){
         return pointerToString(Value.getPointer(v));
     }

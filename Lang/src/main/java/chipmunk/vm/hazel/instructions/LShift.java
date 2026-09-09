@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class LShift extends Instruction {
+public class LShift extends CallingInstruction {
 
-    public LShift(int sp) {
-        super(sp);
+    public LShift(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

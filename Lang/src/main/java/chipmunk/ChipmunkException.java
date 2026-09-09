@@ -32,7 +32,11 @@ public class ChipmunkException extends RuntimeException {
 	}
 
 	public ChipmunkException(Fiber fiber, String message){
-		super(message);
+		this(fiber, message, null);
+	}
+
+	public ChipmunkException(Fiber fiber, String message, Throwable cause){
+		super(message, cause);
 		this.fiber = fiber;
 		fiber.markExceptionTraceTop();
 		payload = null;

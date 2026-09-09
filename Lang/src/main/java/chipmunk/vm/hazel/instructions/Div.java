@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class Div extends Instruction {
+public class Div extends CallingInstruction {
 
-    public Div(int sp) {
-        super(sp);
+    public Div(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override

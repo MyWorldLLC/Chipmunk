@@ -28,4 +28,8 @@ public class TypeError extends ChipmunkException {
         super(fiber, message);
     }
 
+    public TypeError(Fiber fiber, String message, Throwable cause) {
+        super(fiber, message, cause);
+    }
+
 }

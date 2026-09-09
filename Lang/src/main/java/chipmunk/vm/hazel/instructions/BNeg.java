@@ -24,11 +24,12 @@ import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class BNeg extends Instruction {
+public class BNeg extends CallingInstruction {
 
-    public BNeg(int sp) {
-        super(sp);
+    public BNeg(int sp, Invoker invoker) {
+        super(sp, invoker);
     }
 
     @Override
