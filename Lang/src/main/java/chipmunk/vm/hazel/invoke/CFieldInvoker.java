@@ -21,20 +21,22 @@
 package chipmunk.vm.hazel.invoke;
 
 import chipmunk.runtime.CClass;
-import chipmunk.runtime.CMethod;
+import chipmunk.runtime.CField;
 import chipmunk.runtime.CModule;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 
-public class CMethodInvoker extends MethodInvoker {
+public class CFieldInvoker extends FieldInvoker {
 
     protected final double typePtr;
-    protected final CMethod method;
+    protected final CField field;
+    protected final int fieldIndex;
 
-    public CMethodInvoker(double typePtr, CMethod method) {
-        super(method.name(), method.argCount());
+    public CFieldInvoker(double typePtr, CField field, int fieldIndex) {
+        super(field.name());
         this.typePtr = typePtr;
-        this.method = method;
+        this.field = field;
+        this.fieldIndex = fieldIndex;
     }
 
     @Override
@@ -49,7 +51,26 @@ public class CMethodInvoker extends MethodInvoker {
     }
 
     @Override
-    public int invokeMethod(Fiber fiber, int ip, int bp, int sp) {
-        return fiber.vm().invokeMethod(method, fiber, ip, bp, sp);
+    public double invokeGet(Fiber fiber, int bp, int sp) {
+        var target = fiber.stack[bp + sp - 1];
+        return switch (fiber.vm().heap().read(target)){
+            case double[] ins -> ins[fieldIndex];
+            case CModule module -> module.getFields()[fieldIndex];
+            case CClass cls -> cls.sharedFields()[fieldIndex];
+            default -> Value.NULL_PTR_VALUE; // Because of the check above, this shouldn't be possible in practice
+        };
+    }
+
+    @Override
+    public double invokeSet(Fiber fiber, int bp, int sp) {
+        var target = fiber.stack[bp + sp - 2];
+        var value = fiber.stack[bp + sp - 1];
+        switch (fiber.vm().heap().read(target)){
+            case double[] ins -> ins[fieldIndex] = value;
+            case CModule module -> module.getFields()[fieldIndex] = value;
+            case CClass cls -> cls.sharedFields()[fieldIndex] = value;
+            default -> {} // Because of the check above, this shouldn't be possible in practice
+        }
+        return value;
     }
 }

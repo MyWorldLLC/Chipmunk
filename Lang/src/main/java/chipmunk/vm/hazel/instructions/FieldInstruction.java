@@ -18,24 +18,28 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.invoke;
+package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
+import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.invoke.FieldInvoker;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public abstract class FieldInvoker {
+public abstract class FieldInstruction extends Instruction {
 
-    protected final String name;
+    protected final Invoker invoker;
+    protected FieldInvoker field;
 
-    public FieldInvoker(String name) {
-        this.name = name;
+    public FieldInstruction(int sp, Invoker invoker) {
+        super(sp);
+        this.invoker = invoker;
     }
 
-    public String name(){
-        return name;
+    protected FieldInvoker getFieldInvoker(double targetPtr, Object target, Fiber fiber, String name) {
+        if(field != null && field.canInvoke(target)){
+            return field;
+        }
+        field = invoker.fieldInvokerFor(fiber, targetPtr, name);
+        return field;
     }
-
-    public abstract boolean canInvoke(Object target);
-    public abstract double invokeGet(Fiber fiber, int bp, int sp);
-    public abstract double invokeSet(Fiber fiber, int bp, int sp);
-
 }

@@ -24,7 +24,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.invoke.Invoker;
 
-public class SetField extends CallingInstruction {
+public class SetField extends FieldInstruction {
 
     protected final String field;
 
@@ -35,7 +35,9 @@ public class SetField extends CallingInstruction {
 
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
-        // TODO
+        var targetPtr = fiber.stack[bp + sp - 2];
+        var target = fiber.vm().heap().read(targetPtr);
+        fiber.stack[bp + sp - 2] = getFieldInvoker(targetPtr, target, fiber, field).invokeSet(fiber, bp, sp);
         return ip + 1;
     }
 }

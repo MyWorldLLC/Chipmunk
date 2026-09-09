@@ -70,6 +70,15 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
                 .orElse(null);
     }
 
+    public int getField(String name){
+        for(int i = 0; i < fieldDefs.length; i++){
+            if(fieldDefs[i].name().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void setFields(CField[] fields){
         this.fields = new double[fields.length];
         this.fieldDefs = fields;

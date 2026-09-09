@@ -119,4 +119,13 @@ public class CClass extends NamedHostObject {
                 .findFirst()
                 .orElse(null);
     }
+
+    public int getField(CField[] fields, String name){
+        for(int i = 0; i < fields.length; i++){
+            if(fields[i].name().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
 }

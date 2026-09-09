@@ -77,4 +77,41 @@ public class Invoker {
         }
     }
 
+    public FieldInvoker fieldInvokerFor(Fiber fiber, double ptr, String name){
+        var heap = fiber.vm().heap();
+        if(Value.isNullPointer(ptr)){
+            throw new TypeError(fiber, "Cannot access null." + name);
+        }
+        var target = heap.read(ptr);
+        if(target == null){
+            throw new TypeError(fiber, "Cannot access null." + name);
+        }
+        if(target instanceof double[] ins){
+            var clsPtr = ins[0];
+            var cClass = (CClass) heap.read(clsPtr);
+            var field = cClass.getField(cClass.instanceFieldDefs(), name);
+            if(field < 0){
+                throw new TypeError(fiber, "Field does not exist: " + cClass.name() + "." + name);
+            }
+            return new CFieldInvoker(clsPtr, cClass.instanceFieldDefs()[field], field);
+        }else{
+            if(target instanceof CModule m){
+                var field = m.getField(name);
+                if(field >= 0){
+                    return new CFieldInvoker(m.selfPtr(), m.getFieldDefs()[field], field);
+                }
+            }
+            // TODO - check for specific type defs before falling back to reflection.
+            var targetType = target.getClass();
+            for(var field : targetType.getFields()){
+                // TODO - check linking policy
+                if(field.getName().equals(name)){
+                    field.setAccessible(true);
+                    return new NativeFieldInvoker(targetType, field, name);
+                }
+            }
+            throw new TypeError(fiber, "Field does not exist: " + targetType.getName() + "." + name);
+        }
+    }
+
 }
