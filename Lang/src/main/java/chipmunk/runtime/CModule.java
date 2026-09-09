@@ -30,6 +30,8 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
     protected double[] fields;
     protected CField[] fieldDefs;
 
+    protected CClass[] classDefs; // Note that these are stored as fields, so having this separate is a convenience for the API rather than the VM.
+
     protected CMethod[] methods;
     protected boolean initialized;
 
@@ -89,6 +91,7 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
     }
 
     public void setClasses(CClass[] classes){
+        classDefs = classes;
     }
 
     public void setConstantPool(Object[] constantPool){

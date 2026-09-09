@@ -63,6 +63,11 @@ public class Invoker {
                 if(method != null){
                     return new CMethodInvoker(m.selfPtr(), method);
                 }
+            }else if(target instanceof CClass c){
+                var method = c.findMethod(c.sharedMethodDefs(), name, args);
+                if(method != null){
+                    return new CMethodInvoker(c.selfPtr(), method);
+                }
             }
             // TODO - check for specific type defs before falling back to reflection.
             var targetType = target.getClass();
@@ -99,6 +104,11 @@ public class Invoker {
                 var field = m.getField(name);
                 if(field >= 0){
                     return new CFieldInvoker(m.selfPtr(), m.getFieldDefs()[field], field);
+                }
+            }else if(target instanceof CClass c){
+                var field = c.getField(c.sharedFieldDefs(), name);
+                if(field >= 0){
+                    return new CFieldInvoker(c.selfPtr(), c.sharedFieldDefs()[field], field);
                 }
             }
             // TODO - check for specific type defs before falling back to reflection.

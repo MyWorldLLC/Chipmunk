@@ -47,19 +47,27 @@ public class BinaryLoader {
         this.invoker = invoker;
     }
 
-    public CModule loadModule(BinaryModule module) {
+    public CModule loadModule(Heap heap, BinaryModule module) {
         var namespace = module.getNamespace();
         var cModule = new CModule(module.getName(), module.getFileName());
         cModule.setConstantPool(module.getConstantPool());
         cModule.setFields(collectFields(namespace));
         cModule.setMethods(collectMethods(cModule, namespace));
-        cModule.setClasses(collectClasses(cModule, namespace));
+
+        var classes = collectClasses(cModule, namespace, heap);
+        for (CClass cClass : classes) {
+            cClass.selfPtr(heap.allocateAndWrite(cClass));
+            var field = cModule.getField(cClass.name());
+            cModule.getFields()[field] = cClass.selfPtr();
+        }
+
+        cModule.setClasses(classes);
         return cModule;
     }
 
     public CField[] collectFields(BinaryNamespace namespace){
         return namespace.getEntries().stream()
-                .filter(e -> e.getType() == FieldType.DYNAMIC_VAR)
+                .filter(e -> e.getType() == FieldType.DYNAMIC_VAR || e.getType() == FieldType.CLASS)
                 .map(this::entryField)
                 .toArray(CField[]::new);
     }
@@ -68,14 +76,14 @@ public class BinaryLoader {
         return new CField(entry.getName(), entry.getFlags());
     }
 
-    public CClass[] collectClasses(CModule module, BinaryNamespace namespace){
+    public CClass[] collectClasses(CModule module, BinaryNamespace namespace, Heap heap){
         return namespace.getEntries().stream()
                 .filter(e -> e.getType() == FieldType.CLASS)
-                .map(e -> entryClass(module, e))
+                .map(e -> entryClass(module, e, heap))
                 .toArray(CClass[]::new);
     }
 
-    public CClass entryClass(CModule module, BinaryNamespace.Entry entry){
+    public CClass entryClass(CModule module, BinaryNamespace.Entry entry, Heap heap){
         var cls = entry.getBinaryClass();
         var cClass = new CClass(entry.getName());
         cClass.module(module);
@@ -83,12 +91,27 @@ public class BinaryLoader {
         var insNamespace = cls.getInstanceNamespace();
         cClass.instanceFieldDefs(collectFields(insNamespace));
         cClass.instanceMethodDefs(collectMethods(module, insNamespace));
-        cClass.instanceClassDefs(collectClasses(module, insNamespace));
+
+        var instanceClasses = collectClasses(module, insNamespace, heap);
+        for (CClass iClass : instanceClasses) {
+            iClass.selfPtr(heap.allocateAndWrite(iClass));
+            var field = cClass.getField(cClass.instanceFieldDefs(), iClass.name());
+            cClass.instanceFields()[field] = iClass.selfPtr();
+        }
+
+        cClass.instanceClassDefs(instanceClasses);
 
         var sharedNamespace = cls.getSharedNamespace();
         cClass.sharedFieldDefs(collectFields(sharedNamespace));
         cClass.sharedMethodDefs(collectMethods(module, sharedNamespace));
-        cClass.sharedClassDefs(collectClasses(module, sharedNamespace));
+
+        var sharedClasses = collectClasses(module, insNamespace, heap);
+        for (CClass sClass : sharedClasses) {
+            sClass.selfPtr(heap.allocateAndWrite(sClass));
+            var field = cClass.getField(cClass.instanceFieldDefs(), sClass.name());
+            cClass.sharedFields()[field] = sClass.selfPtr();
+        }
+        cClass.sharedClassDefs(sharedClasses);
 
         return cClass;
     }

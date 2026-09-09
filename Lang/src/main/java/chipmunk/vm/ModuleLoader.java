@@ -145,10 +145,6 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName) throws IOException, BinaryFormatException {
-		return load(moduleName, new BinaryLoader()::loadModule);
-	}
-
 	public ChipmunkModule load(String moduleName, Function<BinaryModule, ChipmunkModule> loader) throws IOException, BinaryFormatException {
 		BinaryModule binMod = loadBinary(moduleName);
 

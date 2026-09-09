@@ -94,6 +94,16 @@ public class InitializerBuilderVisitor implements AstVisitor {
             AstNode instanceInitializer = Methods.make("$instance_init$");
             node.addChild(1, instanceInitializer);
 
+            var parentInitializer = modulesAndClasses.peek()
+                    .getChild(n -> Methods.isMethodNamed(n, "$module_init$") || Methods.isMethodNamed(n, "$class_init$"));
+
+            Methods.addToBody(parentInitializer,
+                    Operators.make("(", TokenType.LPAREN,
+                            Operators.make(".", TokenType.DOT,
+                                    Identifier.make(node.getSymbol().getName()),
+                                    Identifier.make("$class_init$"))));
+
+
             modulesAndClasses.push(node);
 
             node.visitChildren(this);

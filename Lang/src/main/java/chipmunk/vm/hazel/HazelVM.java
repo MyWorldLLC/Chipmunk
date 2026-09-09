@@ -704,7 +704,7 @@ public class HazelVM {
         try {
             var module = modules.get(name);
             if(module == null){
-                module = moduleLoader.load(name, new BinaryLoader()::loadModule);
+                module = moduleLoader.load(name, bin -> new BinaryLoader().loadModule(heap, bin));
             }
             if(module == null){
                 throw new RuntimeException("Module " + name + " not found");

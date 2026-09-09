@@ -35,6 +35,7 @@ public class CClass extends NamedHostObject {
     protected CClass[] instanceClassDefs;
     protected CField[] instanceFieldDefs;
     protected CMethod[] instanceMethodDefs;
+    protected double[] instanceFields; // This is initialized with the instance-nested CClasses
 
     protected CModule module;
 
@@ -63,6 +64,7 @@ public class CClass extends NamedHostObject {
     }
 
     public void sharedFieldDefs(CField[] sharedFieldDefs) {
+        sharedFields = new double[sharedFieldDefs.length];
         this.sharedFieldDefs = sharedFieldDefs;
     }
 
@@ -72,6 +74,7 @@ public class CClass extends NamedHostObject {
 
     public void instanceFieldDefs(CField[] instanceFieldDefs) {
         this.instanceFieldDefs = instanceFieldDefs;
+        instanceFields = new double[instanceFieldDefs.length];
     }
 
     public void sharedMethodDefs(CMethod[] sharedMethodDefs) {
@@ -93,6 +96,7 @@ public class CClass extends NamedHostObject {
     public double[] createInstanceStorage(HazelVM vm){
         vm.memoryStats().instanceCreated(instanceFieldDefs.length);
         var storage = new double[instanceFieldDefs.length];
+        System.arraycopy(instanceFields, 0, storage, 0, instanceFieldDefs.length);
         storage[0] = selfPtr;
         return storage;
     }
@@ -111,6 +115,10 @@ public class CClass extends NamedHostObject {
 
     public void instanceClassDefs(CClass[] instanceClassDefs) {
         this.instanceClassDefs = instanceClassDefs;
+    }
+
+    public double[] instanceFields(){
+        return instanceFields;
     }
 
     public CMethod findMethod(CMethod[] methods, String name, int argCount){
