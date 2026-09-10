@@ -21,6 +21,8 @@
 package chipmunk.compiler.ast.transforms;
 
 import chipmunk.compiler.ast.*;
+import chipmunk.compiler.lexer.Token;
+import chipmunk.compiler.lexer.TokenType;
 import chipmunk.compiler.symbols.Symbol;
 import chipmunk.compiler.symbols.SymbolTable;
 
@@ -32,18 +34,30 @@ public class ConstructorVisitor implements AstVisitor {
 
             Symbol constructorSymbol = node.getSymbolTable().getSymbolLocal(node.getSymbol().getName());
             if(constructorSymbol == null){
-                AstNode constructor = Methods.make("$" + node.getSymbol().getName());
+                var constructor = Methods.make("$" + node.getSymbol().getName());
+                Methods.visitParams(constructor, p -> constructor.getSymbolTable().setSymbol(new Symbol(VarDec.getVarName(p))));
 
                 node.addChild(constructor);
                 node.getSymbolTable().setSymbol(constructor.getSymbol());
-                constructor.getSymbolTable().setScope(SymbolTable.Scope.CLASS);
+                constructor.getSymbolTable().setScope(SymbolTable.Scope.METHOD);
                 constructor.getSymbolTable().setParent(node.getSymbolTable());
+
+                constructorSymbol = constructor.getSymbol();
 
             }else{
                 constructorSymbol.setName("$" + constructorSymbol.getName());
             }
+
+            Methods.addToBody(constructorSymbol.getReferent(), 0,
+                    Methods.makeInvocation(Identifier.make("self"), "$instance_init$"));
         }
 
         node.visitChildren(this);
+
+        // Note: We have to add a self-return here or for trivial constructors the lambda rewrite will add a default (non-self) return, which we don't want
+        if(node.is(NodeType.CLASS)){
+            var constructor = node.getSymbolTable().getSymbolLocal("$" + node.getSymbol().getName()).getReferent();
+            Methods.addToBody(constructor, new AstNode(NodeType.FLOW_CONTROL, new Token("return", TokenType.RETURN), Identifier.make("self")));
+        }
     }
 }

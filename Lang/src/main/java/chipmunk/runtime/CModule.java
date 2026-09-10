@@ -27,6 +27,8 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
     protected final String fileName;
     protected Object[] constantPool;
 
+    protected CImport[] imports;
+
     protected double[] fields;
     protected CField[] fieldDefs;
 
@@ -96,6 +98,14 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
 
     public void setConstantPool(Object[] constantPool){
         this.constantPool = constantPool;
+    }
+
+    public CImport[] imports() {
+        return imports;
+    }
+
+    public void imports(CImport[] imports) {
+        this.imports = imports;
     }
 
     public boolean isInitialized() {

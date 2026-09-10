@@ -404,7 +404,7 @@ class MethodVisitorSpecification extends Specification {
 
 		BinaryModule binary = compiler.compileMethod(methodBody)
 		ChipmunkScript script = vm.compileScript(new EntryPoint("exp", "method"), binary)
-
+		println(ChipmunkDisassembler.disassemble(binary))
 		try{
 			def result = script.run()
 			return result.orElse(null)

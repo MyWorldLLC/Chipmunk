@@ -714,6 +714,22 @@ public class HazelVM {
                 cModule.selfPtr(ptr);
                 modules.put(cModule.getName(), cModule);
 
+                // Note: All sorts of funkiness can happen with import cycles between modules. That won't cause a runtime
+                // error in and of itself, but may result in null errors because module values being read before their
+                // initializer runs. This is intentional.
+
+                // Do imports before this module initializer runs so that their initializers get queued ahead of ours
+                // if they're not already initialized.
+                // TODO - this won't work if yields happen while initializers are running.
+                for(var imp : cModule.imports()){
+                    var field = cModule.getField("$" + imp.name().replace('.', '_'));
+                    var impModule = getModule(imp.name());
+                    cModule.getFields()[field] = switch (impModule){
+                        case CModule impCModule -> impCModule.selfPtr();
+                        default -> heap.allocateAndWrite(impModule);
+                    };
+                }
+
                 var init = cModule.getMethod("$module_init$");
                 if(init != null && !cModule.isInitialized()){
                     cModule.markInitialized();

@@ -65,6 +65,10 @@ public class CFieldInvoker extends FieldInvoker {
     public double invokeSet(Fiber fiber, int bp, int sp) {
         var target = fiber.stack[bp + sp - 2];
         var value = fiber.stack[bp + sp - 1];
+        if(fieldIndex == 0 && fiber.vm().heap().read(target) instanceof double[]){
+            // TODO - remove this and replace with proper support for 'final'.
+            throw new IllegalArgumentException("Cannot set field 0 for instance");
+        }
         switch (fiber.vm().heap().read(target)){
             case double[] ins -> ins[fieldIndex] = value;
             case CModule module -> module.getFields()[fieldIndex] = value;

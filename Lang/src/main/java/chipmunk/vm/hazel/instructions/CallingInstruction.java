@@ -47,7 +47,7 @@ public abstract class CallingInstruction extends Instruction {
     public int dynamicCall(Fiber fiber, int ip, int bp, int sp, String methodName, int args){
         var ptr = fiber.stack[bp + sp - args];
         var heap = fiber.vm().heap();
-        var obj = heap.read(Value.getPointer(ptr));
+        var obj = heap.read(ptr);
         return getMethodInvoker(ptr, obj, fiber, methodName, args).invokeMethod(fiber, ip, bp, sp);
     }
 }

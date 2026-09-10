@@ -22,6 +22,7 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Invoker;
 
 public class SetField extends FieldInstruction {

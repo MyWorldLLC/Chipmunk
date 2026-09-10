@@ -83,7 +83,7 @@ public final class Heap {
 
     public double allocateAndWrite(Object obj){
         var ptr = allocate();
-        if(ptr < 0){
+        if(ptr == ALLOC_FAILURE){
             new Exception().printStackTrace();
         }
         write(ptr, obj);
@@ -95,8 +95,9 @@ public final class Heap {
         if(ptr == ALLOC_FAILURE){
             System.out.println("Running GC");
             gc.collect();
+            ptr = allocator.allocate();
         }
-        return allocator.allocate();
+        return ptr;
     }
 
     public void free(long ptr){

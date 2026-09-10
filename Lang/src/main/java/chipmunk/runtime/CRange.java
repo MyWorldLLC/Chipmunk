@@ -50,5 +50,21 @@ public class CRange {
         return inclusive;
     }
 
-    // TODO - iterator
+    public RangeIterator iterator() {
+        return new RangeIterator();
+    }
+
+    public class RangeIterator {
+        double current = start;
+
+        public double hasNext(){
+            return (current < end || (inclusive && current == end)) ? 1 : 0;
+        }
+
+        public double next(){
+            var v = current;
+            current += step;
+            return v;
+        }
+    }
 }

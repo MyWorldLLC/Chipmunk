@@ -20,30 +20,27 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.CClass;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
+import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Invoker;
 
-public class LocalSet extends Instruction {
+public class New extends CallingInstruction {
 
-    protected final int local;
+    protected final int argCount;
 
-    public LocalSet(int sp, int local) {
-        super(sp);
-        this.local = local;
-    }
-
-    public int local() {
-        return local;
+    public New(int sp, Invoker invoker, int argCount) {
+        super(sp, invoker);
+        this.argCount = argCount;
     }
 
     @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        fiber.stack[bp + local] = fiber.stack[bp + sp - 1];
-        return ip + 1;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + " local=" + local;
+    public int apply(Fiber fiber, int ip, int bp) {
+        var heap = fiber.vm().heap();
+        var clsPtr = fiber.stack[bp + sp - argCount];
+        var cls = (CClass) heap.read(clsPtr);
+        var insPtr = heap.allocateAndWrite(cls.createInstance(fiber.vm()));
+        fiber.stack[bp + sp - argCount] = insPtr; // Replace the class with the new instance, and call the constructor.
+        return dynamicCall(fiber, ip, bp, sp, "$" + cls.name(), argCount);
     }
 }

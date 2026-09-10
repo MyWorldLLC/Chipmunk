@@ -21,12 +21,12 @@
 package chipmunk.runtime;
 
 import chipmunk.vm.hazel.HazelVM;
+import chipmunk.vm.hazel.Value;
 
 import java.util.Arrays;
 
 public class CClass extends NamedHostObject {
 
-    protected double selfPtr;
     protected double[] sharedFields;
     protected CClass[] sharedClassDefs;
     protected CField[] sharedFieldDefs;
@@ -93,7 +93,7 @@ public class CClass extends NamedHostObject {
         return instanceMethodDefs;
     }
 
-    public double[] createInstanceStorage(HazelVM vm){
+    public double[] createInstance(HazelVM vm){
         vm.memoryStats().instanceCreated(instanceFieldDefs.length);
         var storage = new double[instanceFieldDefs.length];
         System.arraycopy(instanceFields, 0, storage, 0, instanceFieldDefs.length);

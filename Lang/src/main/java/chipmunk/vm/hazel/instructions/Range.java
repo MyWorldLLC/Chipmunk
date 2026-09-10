@@ -37,7 +37,7 @@ public class Range extends Instruction {
     public int apply(Fiber fiber, int ip, int bp) {
         var start = fiber.stack[bp + sp - 2];
         var end = fiber.stack[bp + sp - 1];
-        fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(new CRange(start, end, 1, inclusive));
+        fiber.stack[bp + sp - 2] = fiber.vm().heap().allocateAndWrite(new CRange(start, end, 1, inclusive));
         return ip + 1;
     }
 }

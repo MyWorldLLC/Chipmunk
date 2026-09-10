@@ -23,11 +23,9 @@ package chipmunk.vm.hazel;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryNamespace;
 import chipmunk.binary.FieldType;
-import chipmunk.runtime.CClass;
-import chipmunk.runtime.CField;
-import chipmunk.runtime.CMethod;
-import chipmunk.runtime.CModule;
+import chipmunk.runtime.*;
 import chipmunk.vm.hazel.instructions.*;
+import chipmunk.vm.hazel.instructions.Range;
 import chipmunk.vm.hazel.invoke.Invoker;
 
 import java.util.ArrayList;
@@ -51,6 +49,19 @@ public class BinaryLoader {
         var namespace = module.getNamespace();
         var cModule = new CModule(module.getName(), module.getFileName());
         cModule.setConstantPool(module.getConstantPool());
+
+        cModule.imports(Arrays.stream(module.getImports())
+                        .map(imp -> {
+                            if(imp.isImportAll()){
+                                return new CImport(imp.getName());
+                            }else if(imp.isAliased()){
+                                return new CImport(imp.getName(), imp.getSymbols(), imp.getAliases());
+                            }else{
+                                return new CImport(imp.getName(), imp.getSymbols());
+                            }
+                        })
+                .toArray(CImport[]::new));
+
         cModule.setFields(collectFields(namespace));
         cModule.setMethods(collectMethods(cModule, namespace));
 
@@ -108,7 +119,7 @@ public class BinaryLoader {
         var sharedClasses = collectClasses(module, insNamespace, heap);
         for (CClass sClass : sharedClasses) {
             sClass.selfPtr(heap.allocateAndWrite(sClass));
-            var field = cClass.getField(cClass.instanceFieldDefs(), sClass.name());
+            var field = cClass.getField(cClass.sharedFieldDefs(), sClass.name());
             cClass.sharedFields()[field] = sClass.selfPtr();
         }
         cClass.sharedClassDefs(sharedClasses);
@@ -293,6 +304,7 @@ public class BinaryLoader {
                 }
                 case RETURN -> {
                     instructions.add(new Return(sp));
+                    sp--; // Necessary for correctly tracking SP across branches
                     ip++;
                 }
                 case LT, GT, LE, GE, EQ, IS, INSTANCEOF -> {
@@ -373,7 +385,11 @@ public class BinaryLoader {
                 }
                 case CALLAT -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 2)];
-                    instructions.add(new Call(sp, invoker, name, code[ip + 1] + 1));
+                    if(name.equals("new")){
+                        instructions.add(new New(sp, invoker, code[ip + 1] + 1));
+                    }else{
+                        instructions.add(new Call(sp, invoker, name, code[ip + 1] + 1));
+                    }
                     sp -= code[ip + 1];
                     ip += 6;
                 }
@@ -381,7 +397,6 @@ public class BinaryLoader {
                     instructions.add(new Throw(sp));
                     sp--;
                     ip++;
-                    ip += 1;
                 }
                 case GETATTR -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
@@ -391,7 +406,7 @@ public class BinaryLoader {
                 case SETATTR -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
                     instructions.add(new SetField(sp, invoker, name));
-                    sp--; // TODO - verify if this is expected to pop 1 or 2
+                    sp--;
                     ip += 5;
                 }
                 case GETAT -> {
@@ -410,8 +425,7 @@ public class BinaryLoader {
                     ip++;
                 }
                 case ITER -> {
-                    instructions.add(new Call(sp, invoker, "iterator", 2));
-                    sp--;
+                    instructions.add(new Call(sp, invoker, "iterator", 1));
                     ip++;
                 }
                 case RANGE -> {
@@ -454,7 +468,7 @@ public class BinaryLoader {
                     instructions.add(new Bind(sp, name));
                     ip += 5;
                 }
-                default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X".formatted(op));
+                default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X at ip=%d".formatted(op, ip));
             }
 
         }

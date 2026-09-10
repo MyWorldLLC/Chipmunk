@@ -56,8 +56,11 @@ public class BinaryCondition extends CallingInstruction {
         var stack = fiber.stack;
         var a = stack[bp + sp - 2];
         var b = stack[bp + sp - 1];
-        boolean result = false;
-        if(Value.isNumber(a) && Value.isNumber(b)) {
+        boolean result;
+        if(Value.isNumber(a)) {
+            // Note: in the case of a type mismatch, these will always return false because every non-number is a NaN
+            // and every comparison of a NaN against any value is false. All of these should fail if the LHS is a number
+            // and the RHS is not, because the operation type is always determined by the LHS of an expression.
             result = switch (condition) {
                 case COND_LT -> a < b;
                 case COND_LE -> a <= b;
@@ -66,21 +69,37 @@ public class BinaryCondition extends CallingInstruction {
                 case COND_GE -> a >= b;
                 case COND_GT -> a > b;
                 case COND_IS -> a == b;
-                case COND_INSTANCEOF -> false; // TODO
+                case COND_INSTANCEOF -> false; // Always false because the RHS isn't a class pointer
                 default -> false;
             };
         }else{
-            // TODO - object truth & branch
+            // TODO - object truth & comparison
+            result = switch (condition) {
+                case COND_LT -> a < b;
+                case COND_LE -> a <= b;
+                case COND_EQ -> a == b;
+                case COND_NE -> a != b;
+                case COND_GE -> a >= b;
+                case COND_GT -> a > b;
+                case COND_IS -> Value.getPointer(a) == Value.getPointer(b);
+                case COND_INSTANCEOF -> false; // TODO
+                default -> false;
+            };
         }
+
+        //System.out.println("Branch for values " + Value.toString(a) + " " + Value.toString(b) + " result=" + result);
+        //System.out.println("Jumping? " + (target != NO_JUMP));
 
         if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
+                //System.out.println("Jumping to target");
                 return target;
             }
         }else{
             stack[bp + sp - 2] = result ? 1.0 : 0.0;
         }
+        //System.out.println("Running next op");
         return ip + 1;
     }
 

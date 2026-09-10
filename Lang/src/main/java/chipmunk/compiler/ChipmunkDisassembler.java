@@ -124,6 +124,18 @@ public class ChipmunkDisassembler {
 			}
 		}
 
+		for(BinaryNamespace.Entry entry : cls.getSharedNamespace()){
+			if(entry.getType() == FieldType.METHOD){
+				builder.append(padding);
+				builder.append(INDENTATION);
+				builder.append("shared def ");
+				builder.append(entry.getName());
+				builder.append(":\n");
+				builder.append(disassemble(entry.getBinaryMethod().getCode(), entry.getBinaryMethod().getConstantPool(), false, padding + INDENTATION));
+				builder.append("\n\n");
+			}
+		}
+
 	}
 
 	private static void disassemble(Object[] constantPool, StringBuilder builder, String padding){

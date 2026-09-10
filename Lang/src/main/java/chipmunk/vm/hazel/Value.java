@@ -106,4 +106,11 @@ public class Value {
         return isNumber(v) ? v != 0.0 : !isNullPointer(v);
     }
 
+    public static String toString(double v){
+        if(Value.isNumber(v)){
+            return Double.toString(v);
+        }
+        return Value.toString(v);
+    }
+
 }
