@@ -31,6 +31,7 @@ import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
 import chipmunk.vm.Uncatchable
 import chipmunk.vm.hazel.EntryPoint
+import chipmunk.vm.hazel.TypeError
 import chipmunk.vm.hazel.Value
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -395,10 +396,11 @@ class LanguageSpecification extends Specification {
 
 	def "Run UnimplementedMethod.chp"(){
 		when:
-		def result = compileAndRun("UnimplementedMethod.chp")
+		compileAndRun("UnimplementedMethod.chp")
 
 		then:
-		thrown(UnimplementedMethodException)
+		def ex = thrown(TypeError)
+		ex.message.contains("chipmunk.modules.lang.LangModule.unimplementedMethod")
 	}
 
 	def "Run Upvalues.chp"(){
