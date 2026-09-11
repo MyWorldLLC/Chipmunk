@@ -18,29 +18,9 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.instructions;
+package chipmunk.vm.hazel.invoke.binding;
 
-import chipmunk.vm.OpcodeNames;
-import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Linker;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-public class Pow extends CallingInstruction {
-
-    public Pow(int sp, Linker linker) {
-        super(sp, linker);
-    }
-
-    @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        var stack = fiber.stack;
-        var a = stack[bp + sp - 2];
-        var b = stack[bp + sp - 1];
-        if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 2] = Math.pow(a, b);
-        }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.POW, 2);
-        }
-        return ip + 1;
-    }
-}
+public record FieldModel<O, F>(Class<F> type, Function<O, F> getter, BiConsumer<O, F> setter) {}

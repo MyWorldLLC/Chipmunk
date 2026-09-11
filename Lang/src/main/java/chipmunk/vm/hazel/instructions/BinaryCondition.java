@@ -21,9 +21,8 @@
 package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class BinaryCondition extends CallingInstruction {
 
@@ -41,12 +40,12 @@ public class BinaryCondition extends CallingInstruction {
     protected final int condition;
     protected final int target;
 
-    public BinaryCondition(int sp, Invoker invoker, int condition){
-        this(sp, invoker, condition, NO_JUMP);
+    public BinaryCondition(int sp, Linker linker, int condition){
+        this(sp, linker, condition, NO_JUMP);
     }
 
-    public BinaryCondition(int sp, Invoker invoker, int condition, int target) {
-        super(sp, invoker);
+    public BinaryCondition(int sp, Linker linker, int condition, int target) {
+        super(sp, linker);
         this.condition = condition;
         this.target = target;
     }

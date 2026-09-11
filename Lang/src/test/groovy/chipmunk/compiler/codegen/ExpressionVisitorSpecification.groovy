@@ -279,8 +279,8 @@ class ExpressionVisitorSpecification extends Specification {
 		then:
 		result instanceof Map
 		result.size() == 3
-		result.get(1) == 2
-		result.get(3) == 4
+		result.get(1.0d) == 2
+		result.get(3.0d) == 4
 		result.get("foo") == "bar"
 	}
 	

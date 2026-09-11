@@ -49,7 +49,7 @@ public class CMethodInvoker extends MethodInvoker {
     }
 
     @Override
-    public int invokeMethod(Fiber fiber, int ip, int bp, int sp) {
+    public int invokeMethod(Fiber fiber, int ip, int bp, int sp, Object target) {
         return fiber.vm().invokeMethod(method, fiber, ip, bp, sp);
     }
 }

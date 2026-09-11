@@ -20,19 +20,18 @@
 
 package chipmunk.vm.hazel.invoke;
 
-import chipmunk.runtime.HostCObject;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 
 import java.lang.reflect.Field;
 
-public class NativeFieldInvoker extends FieldInvoker {
+public class ReflectiveFieldInvoker extends FieldInvoker {
 
     protected final Class<?> cls;
     protected final Field field;
 
-    public NativeFieldInvoker(Class<?> cls, Field field, String name) {
+    public ReflectiveFieldInvoker(Class<?> cls, Field field, String name) {
         super(name);
         this.cls = cls;
         this.field = field;
@@ -44,45 +43,19 @@ public class NativeFieldInvoker extends FieldInvoker {
     }
 
     @Override
-    public double invokeGet(Fiber fiber, int bp, int sp) {
-        var heap = fiber.vm().heap();
-
-        var targetPtr = fiber.stack[bp + sp - 1];
-        if(!Value.isPointer(targetPtr)) {
-            throw new TypeError(fiber, "Not a reference to an object");
-        }
-        var target = heap.read(targetPtr);
-
+    public double invokeGet(Fiber fiber, int bp, int sp, Object target) {
         try{
-            var result = field.get(target);
-            return switch (result){
-                case Double d -> d;
-                case null -> Value.NULL_PTR_VALUE;
-                case HostCObject cObj -> {
-                    if(!Value.isNullPointer(cObj.selfPtr())){
-                        yield cObj.selfPtr();
-                    }
-                    var ptr = heap.allocateAndWrite(cObj);
-                    cObj.selfPtr(ptr);
-                    yield ptr;
-                }
-                default -> heap.allocateAndWrite(result);
-            };
+            return fiber.vm().fromHostValue(field.get(target));
         } catch (Throwable t) {
             throw new TypeError(fiber, target.getClass().getName() + "." + name + ") is not gettable: " + t.getMessage(), t);
         }
     }
 
     @Override
-    public double invokeSet(Fiber fiber, int bp, int sp) {
+    public double invokeSet(Fiber fiber, int bp, int sp, Object target) {
         var heap = fiber.vm().heap();
 
-        var targetPtr = fiber.stack[bp + sp - 2];
         var stackValue = fiber.stack[bp + sp - 1];
-        if(!Value.isPointer(targetPtr)) {
-            throw new TypeError(fiber, "Not a reference to an object");
-        }
-        var target = heap.read(targetPtr);
 
         Object value = null; // Assume null pointer because that's free.
         if(Value.isNumber(stackValue)){

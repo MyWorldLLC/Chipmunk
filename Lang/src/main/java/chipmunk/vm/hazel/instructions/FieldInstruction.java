@@ -23,23 +23,23 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.invoke.FieldInvoker;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public abstract class FieldInstruction extends Instruction {
 
-    protected final Invoker invoker;
+    protected final Linker linker;
     protected FieldInvoker field;
 
-    public FieldInstruction(int sp, Invoker invoker) {
+    public FieldInstruction(int sp, Linker linker) {
         super(sp);
-        this.invoker = invoker;
+        this.linker = linker;
     }
 
-    protected FieldInvoker getFieldInvoker(double targetPtr, Object target, Fiber fiber, String name) {
+    protected FieldInvoker getFieldInvoker(double targetPtr, Object target, Fiber fiber, String name, boolean assign) {
         if(field != null && field.canInvoke(target)){
             return field;
         }
-        field = invoker.fieldInvokerFor(fiber, targetPtr, name);
+        field = linker.fieldInvokerFor(fiber, targetPtr, name, assign);
         return field;
     }
 }

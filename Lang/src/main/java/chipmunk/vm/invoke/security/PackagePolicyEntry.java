@@ -58,12 +58,12 @@ public class PackagePolicyEntry extends BasePolicyEntry {
     }
 
     @Override
-    public AccessEvaluation allowMethodCall(Object receiver, Method m, Object[] params){
+    public AccessEvaluation allowMethodCall(Object receiver, Method m){
         return super.evaluateMethodAccess(isSpecifiedByPolicy(receiver));
     }
 
     @Override
-    public AccessEvaluation allowFieldSet(Object receiver, Field f, Object value){
+    public AccessEvaluation allowFieldSet(Object receiver, Field f){
         return super.evaluateFieldSetAccess(isSpecifiedByPolicy(receiver));
     }
 

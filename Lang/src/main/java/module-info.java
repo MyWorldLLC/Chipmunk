@@ -33,5 +33,6 @@ open module chipmunk.lang {
     exports chipmunk.vm.scheduler;
     exports chipmunk.vm.hazel;
     exports chipmunk.vm.hazel.invoke;
+    exports chipmunk.vm.hazel.invoke.binding;
     exports chipmunk.vm.hazel.util;
 }

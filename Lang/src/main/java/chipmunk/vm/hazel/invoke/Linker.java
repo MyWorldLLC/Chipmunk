@@ -25,20 +25,30 @@ import chipmunk.runtime.CModule;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.binding.NativeBinding;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 
-public class Invoker {
+public class Linker {
 
     protected final LinkingPolicy linkingPolicy;
+    protected final NativeBinding binding;
 
-    public Invoker() {
+    public Linker() {
         this(new LinkingPolicy(SecurityMode.ALLOWING));
     }
 
-    public Invoker(LinkingPolicy linkingPolicy) {
+    public Linker(LinkingPolicy linkingPolicy) {
         this.linkingPolicy = linkingPolicy;
+        this.binding = new NativeBinding();
     }
+
+    public NativeBinding binding() {
+        return binding;
+    }
+
+    // TODO - method & field invocation don't yet support traits
 
     public MethodInvoker methodInvokerFor(Fiber fiber, double ptr, String name, int args){
         var heap = fiber.vm().heap();
@@ -69,20 +79,32 @@ public class Invoker {
                     return new CMethodInvoker(c.selfPtr(), method);
                 }
             }
-            // TODO - check for specific type defs before falling back to reflection.
             var targetType = target.getClass();
+
+            var model = binding.modelFor(target.getClass());
+            if(model != null){
+                var nativeMethod = model.getNativeMethod(name);
+                if(nativeMethod != null){
+                    return new NativeMethodInvoker(name, targetType, nativeMethod, args);
+                }
+                var method = model.getMethod(name);
+                if(method != null){
+                    return new BindingMethodInvoker(name, targetType, method);
+                }
+            }
             for(var method : targetType.getMethods()){
-                // TODO - check linking policy
                 if(method.getParameterCount() + 1 == args && method.getName().equals(name)){
-                    method.setAccessible(true);
-                    return new NativeMethodInvoker(targetType, method, name, args);
+                    if(method.isAnnotationPresent(AllowChipmunkLinkage.class) || linkingPolicy.allowMethodCall(target, method)){
+                        method.setAccessible(true);
+                        return new ReflectiveMethodInvoker(targetType, method, name, args);
+                    }
                 }
             }
             throw new TypeError(fiber, "Method does not exist: " + targetType.getName() + "." + name + "(" + args + ")");
         }
     }
 
-    public FieldInvoker fieldInvokerFor(Fiber fiber, double ptr, String name){
+    public FieldInvoker fieldInvokerFor(Fiber fiber, double ptr, String name, boolean assign){
         var heap = fiber.vm().heap();
         if(Value.isNullPointer(ptr)){
             throw new TypeError(fiber, "Cannot access null." + name);
@@ -111,13 +133,22 @@ public class Invoker {
                     return new CFieldInvoker(c.selfPtr(), c.sharedFieldDefs()[field], field);
                 }
             }
-            // TODO - check for specific type defs before falling back to reflection.
+
             var targetType = target.getClass();
+            var model = binding.modelFor(target.getClass());
+            if(model != null){
+                var field = model.getField(name);
+                if(field != null){
+                    return new BindingFieldInvoker(name, targetType, field);
+                }
+            }
             for(var field : targetType.getFields()){
-                // TODO - check linking policy
                 if(field.getName().equals(name)){
-                    field.setAccessible(true);
-                    return new NativeFieldInvoker(targetType, field, name);
+                    if(field.isAnnotationPresent(AllowChipmunkLinkage.class)
+                            || (assign ? linkingPolicy.allowFieldSet(target, field) : linkingPolicy.allowFieldGet(target, field))){
+                        field.setAccessible(true);
+                        return new ReflectiveFieldInvoker(targetType, field, name);
+                    }
                 }
             }
             throw new TypeError(fiber, "Field does not exist: " + targetType.getName() + "." + name);

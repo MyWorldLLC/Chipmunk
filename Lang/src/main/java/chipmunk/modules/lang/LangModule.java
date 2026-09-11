@@ -20,18 +20,19 @@
 
 package chipmunk.modules.lang;
 
+import chipmunk.runtime.CListIterator;
 import chipmunk.runtime.ChipmunkModule;
-import chipmunk.runtime.MethodBinding;
+import chipmunk.runtime.NativeModule;
 import chipmunk.runtime.UnimplementedMethodException;
 import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.binding.NativeBinding;
 import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class LangModule implements ChipmunkModule {
+public class LangModule implements NativeModule {
 
     public static final String MODULE_NAME = "chipmunk.lang";
 
@@ -96,4 +97,73 @@ public class LangModule implements ChipmunkModule {
         return MODULE_NAME;
     }
 
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void registerTypeBindings(NativeBinding binding) {
+        binding.register(ArrayList.class, builder -> {
+
+            builder.withNativeMethod("getAt", ((fiber, bp, sp, argCount, target) -> {
+                var index = (int) fiber.readArg(bp, sp, 2, 1);
+                var value = ((ArrayList) target).get(index);
+                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
+            }));
+
+            builder.withNativeMethod("setAt", ((fiber, bp, sp, argCount, target) -> {
+                var index = (int) fiber.readArg(bp, sp, 3, 1);
+                var prior = ((ArrayList) target).set(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
+                fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
+            }));
+
+            builder.withNativeMethod("sort", ((fiber, bp, sp, argCount, target) -> {
+                ((ArrayList) target).sort(Comparator.naturalOrder());
+                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // Return self as the result
+            }));
+
+            builder.withNativeMethod("iterator", ((fiber, bp, sp, argCount, target) -> {
+                var it = new CListIterator((List)fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0)));
+                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(it));
+            }));
+
+        });
+
+        binding.register(CListIterator.class, builder -> {
+           builder.withNativeMethod("hasNext", ((fiber, bp, sp, argCount, target) -> {
+               fiber.pushResult(bp, sp, 1, ((CListIterator) target).hasNext() ? 1 : 0);
+           }));
+
+            builder.withNativeMethod("next", ((fiber, bp, sp, argCount, target) -> {
+                // TODO - this here demonstrates that double[] as the object format is insufficient due to lack of a stable
+                // self pointer. Passing a Chipmunk object instance back from here would result in it being re-allocated under
+                // a different pointer, meaning multiple pointers could end up aliasing the same underlying value. This will
+                // cause issues with the 'is' operator, among other possible problems. We need a 'CObject' class with a stable self pointer.
+                // Stashing the self pointer in the array would significantly complicate various parts of the VM, and would probably have
+                // nearly as much memory overhead as a wrapper object.
+                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(((CListIterator) target).next()));
+            }));
+        });
+
+        binding.register(HashMap.class, builder -> {
+
+            builder.withNativeMethod("getAt", ((fiber, bp, sp, argCount, target) -> {
+                var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
+                var value = ((HashMap) target).get(index);
+                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
+            }));
+
+            builder.withNativeMethod("setAt", ((fiber, bp, sp, argCount, target) -> {
+                var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 1));
+                var prior = ((HashMap) target).put(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
+                fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
+            }));
+
+        });
+
+        binding.register(String.class, builder -> {
+            builder.withNativeMethod("plus", ((fiber, bp, sp, argCount, target) -> {
+                var v = fiber.readArg(bp, sp, 2, 1);
+                var other = Value.isNumber(v) ? Double.toString(v) : Objects.toString(fiber.vm().heap().read(v));
+                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(((String) target).concat(other)));
+            }));
+        });
+    }
 }

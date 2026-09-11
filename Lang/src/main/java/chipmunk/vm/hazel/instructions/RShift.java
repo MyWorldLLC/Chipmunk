@@ -22,14 +22,13 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class RShift extends CallingInstruction {
 
-    public RShift(int sp, Invoker invoker) {
-        super(sp, invoker);
+    public RShift(int sp, Linker linker) {
+        super(sp, linker);
     }
 
     @Override

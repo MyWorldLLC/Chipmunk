@@ -22,10 +22,8 @@ package chipmunk.vm.invoke;
 
 import chipmunk.runtime.ChipmunkClass;
 import chipmunk.runtime.ChipmunkObject;
-import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.TraitField;
 import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import jdk.dynalink.NamedOperation;
 import jdk.dynalink.StandardOperation;
@@ -307,7 +305,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 if (paramsMatch || m.isVarArgs()) {
                     // We have a match!
                     LinkingPolicy linkPolicy = getLinkingPolicy();
-                    if(linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m, params)){
+                    if(linkPolicy != null && enforceLinkagePolicy && !linkPolicy.allowMethodCall(receiver, m)){
                         throw new IllegalAccessException(formatMethodSignature(receiver, methodName, pTypes) + ": policy forbids call");
                     }
                     m.setAccessible(true);
@@ -353,7 +351,7 @@ public class ChipmunkLinker implements GuardingDynamicLinker {
                 LinkingPolicy linkPolicy = getLinkingPolicy();
                 if(linkPolicy != null && enforceLinkagePolicy){
                     if(set){
-                        if(!linkPolicy.allowFieldSet(receiver, f, linkRequest.getArguments()[1])){
+                        if(!linkPolicy.allowFieldSet(receiver, f)){
                             throw new IllegalAccessException(receiverType.getName() + "." + fieldName + ": policy forbids set to " + linkRequest.getArguments()[1]);
                         }
                     }else {

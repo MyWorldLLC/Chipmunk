@@ -52,7 +52,7 @@ class LanguageSpecification extends Specification {
 	}
 
 	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = true){
-		ModuleLoader loader = new ModuleLoader()
+		ModuleLoader loader = vm.rootLoader()
 
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
 		loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })

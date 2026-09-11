@@ -59,8 +59,8 @@ public class JvmImportModule extends ImportModule {
         if(script != null){
             LinkingPolicy policy = script.getLinkPolicy();
             if(policy != null){
-                boolean allowed = policy.allowInstantiation(cls, constructorArgs);
-                if(!policy.allowInstantiation(cls, constructorArgs)){
+                boolean allowed = policy.allowInstantiation(cls);
+                if(!policy.allowInstantiation(cls)){
                     throw new IllegalAccessException(
                             String.format("Script %d forbidden from instantiating %s(%s)",
                                     script.getId(),

@@ -21,23 +21,25 @@
 package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.TypeError;
+import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class GetField extends FieldInstruction {
 
     protected final String field;
 
-    public GetField(int sp, Invoker invoker, String field) {
-        super(sp, invoker);
+    public GetField(int sp, Linker linker, String field) {
+        super(sp, linker);
         this.field = field;
     }
 
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
         var targetPtr = fiber.stack[bp + sp - 1];
+        if(!Value.isPointer(targetPtr)) throw new TypeError(fiber, "Not a reference to an object");
         var target = fiber.vm().heap().read(targetPtr);
-        fiber.stack[bp + sp - 1] = getFieldInvoker(targetPtr, target, fiber, field).invokeGet(fiber, bp, sp);
+        fiber.stack[bp + sp - 1] = getFieldInvoker(targetPtr, target, fiber, field, false).invokeGet(fiber, bp, sp, target);
         return ip + 1;
     }
 }

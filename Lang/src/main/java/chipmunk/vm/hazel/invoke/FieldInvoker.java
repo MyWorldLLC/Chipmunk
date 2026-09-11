@@ -35,7 +35,7 @@ public abstract class FieldInvoker {
     }
 
     public abstract boolean canInvoke(Object target);
-    public abstract double invokeGet(Fiber fiber, int bp, int sp);
-    public abstract double invokeSet(Fiber fiber, int bp, int sp);
+    public abstract double invokeGet(Fiber fiber, int bp, int sp, Object target);
+    public abstract double invokeSet(Fiber fiber, int bp, int sp, Object target);
 
 }

@@ -22,16 +22,15 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class If extends CallingInstruction {
 
     protected final int target;
 
-    public If(int sp, Invoker invoker, int target) {
-        super(sp, invoker);
+    public If(int sp, Linker linker, int target) {
+        super(sp, linker);
         this.target = target;
     }
 

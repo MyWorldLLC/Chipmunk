@@ -22,15 +22,14 @@ package chipmunk.vm.hazel.instructions;
 
 import chipmunk.runtime.CClass;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class New extends CallingInstruction {
 
     protected final int argCount;
 
-    public New(int sp, Invoker invoker, int argCount) {
-        super(sp, invoker);
+    public New(int sp, Linker linker, int argCount) {
+        super(sp, linker);
         this.argCount = argCount;
     }
 

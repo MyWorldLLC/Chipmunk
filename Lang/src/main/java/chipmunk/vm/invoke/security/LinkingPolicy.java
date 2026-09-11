@@ -21,11 +21,8 @@
 package chipmunk.vm.invoke.security;
 
 import chipmunk.runtime.ChipmunkClass;
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.runtime.ChipmunkObject;
 import chipmunk.runtime.NativeTypeLib;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -66,14 +63,14 @@ public class LinkingPolicy {
         return entries;
     }
 
-    public boolean allowInstantiation(Class<?> targetType, Object[] params){
+    public boolean allowInstantiation(Class<?> targetType){
 
         if(ChipmunkClass.class.isAssignableFrom(targetType)){
             return true;
         }
 
         for(PolicyEntry e : entries){
-            AccessEvaluation eval = e.allowInstantiation(targetType, params);
+            AccessEvaluation eval = e.allowInstantiation(targetType);
             if(eval != AccessEvaluation.UNSPECIFIED){
                 return eval == AccessEvaluation.ALLOWED;
             }
@@ -82,7 +79,7 @@ public class LinkingPolicy {
         return mode == SecurityMode.ALLOWING;
     }
 
-    public boolean allowMethodCall(Object target, Method method, Object[] params){
+    public boolean allowMethodCall(Object target, Method method){
 
         if(method.getAnnotation(AllowChipmunkLinkage.class) != null ||
                 method.getDeclaringClass().getDeclaredAnnotation(AllowChipmunkLinkage.class) != null){
@@ -90,7 +87,7 @@ public class LinkingPolicy {
         }
 
         for(PolicyEntry e : entries){
-            AccessEvaluation eval = e.allowMethodCall(target, method, params);
+            AccessEvaluation eval = e.allowMethodCall(target, method);
             if(eval != AccessEvaluation.UNSPECIFIED){
                 return eval == AccessEvaluation.ALLOWED;
             }
@@ -99,7 +96,7 @@ public class LinkingPolicy {
         return mode == SecurityMode.ALLOWING;
     }
 
-    public boolean allowFieldSet(Object target, Field field, Object value){
+    public boolean allowFieldSet(Object target, Field field){
 
         if(field.getAnnotation(AllowChipmunkLinkage.class) != null ||
             field.getDeclaringClass().getDeclaredAnnotation(AllowChipmunkLinkage.class) != null){
@@ -107,7 +104,7 @@ public class LinkingPolicy {
         }
 
         for(PolicyEntry e : entries){
-            AccessEvaluation eval = e.allowFieldSet(target, field, value);
+            AccessEvaluation eval = e.allowFieldSet(target, field);
             if(eval != AccessEvaluation.UNSPECIFIED){
                 return eval == AccessEvaluation.ALLOWED;
             }

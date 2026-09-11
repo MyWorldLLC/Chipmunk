@@ -20,7 +20,6 @@
 
 package chipmunk.runtime;
 
-import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 public interface ChipmunkModule {
@@ -30,8 +29,7 @@ public interface ChipmunkModule {
         return getClass().getName();
     }
 
-    default void initialize(ChipmunkVM vm){}
-
+    // TODO: remove this. Requires compiler to resolve references by $module field instead of by calling this.
     @AllowChipmunkLinkage
     default ChipmunkModule getModule(){
         return this;

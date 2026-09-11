@@ -21,9 +21,8 @@
 package chipmunk.vm.hazel.instructions;
 
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Invoker;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class UnaryCondition extends CallingInstruction {
 
@@ -36,12 +35,12 @@ public class UnaryCondition extends CallingInstruction {
     protected final int condition;
     protected final int target;
 
-    public UnaryCondition(int sp, Invoker invoker, int condition){
-        this(sp, invoker, condition, NO_JUMP);
+    public UnaryCondition(int sp, Linker linker, int condition){
+        this(sp, linker, condition, NO_JUMP);
     }
 
-    public UnaryCondition(int sp, Invoker invoker, int condition, int target) {
-        super(sp, invoker);
+    public UnaryCondition(int sp, Linker linker, int condition, int target) {
+        super(sp, linker);
         this.condition = condition;
         this.target = target;
     }

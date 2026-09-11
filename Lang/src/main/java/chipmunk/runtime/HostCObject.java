@@ -20,11 +20,15 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.hazel.Value;
+
 public abstract class HostCObject {
 
     protected double selfPtr;
 
-    public HostCObject() {}
+    public HostCObject() {
+        selfPtr = Value.NULL_PTR_VALUE;
+    }
 
     public HostCObject(double selfPtr) {
         this.selfPtr = selfPtr;

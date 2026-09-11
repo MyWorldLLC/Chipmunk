@@ -26,6 +26,7 @@ import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
+import chipmunk.modules.lang.LangModule;
 import chipmunk.runtime.ChipmunkModule;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.runtime.NativeTypeLib;
@@ -83,6 +84,11 @@ public class ChipmunkVM {
 		defaultTrapHandler = new TrapHandler() {};
 
 		rootLoader = new ModuleLoader();
+		rootLoader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
+	}
+
+	public ModuleLoader rootLoader(){
+		return rootLoader;
 	}
 
 	public LinkingPolicy getDefaultLinkPolicy(){

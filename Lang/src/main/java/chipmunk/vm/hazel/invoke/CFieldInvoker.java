@@ -51,9 +51,8 @@ public class CFieldInvoker extends FieldInvoker {
     }
 
     @Override
-    public double invokeGet(Fiber fiber, int bp, int sp) {
-        var target = fiber.stack[bp + sp - 1];
-        return switch (fiber.vm().heap().read(target)){
+    public double invokeGet(Fiber fiber, int bp, int sp, Object target) {
+        return switch (target){
             case double[] ins -> ins[fieldIndex];
             case CModule module -> module.getFields()[fieldIndex];
             case CClass cls -> cls.sharedFields()[fieldIndex];
@@ -62,14 +61,13 @@ public class CFieldInvoker extends FieldInvoker {
     }
 
     @Override
-    public double invokeSet(Fiber fiber, int bp, int sp) {
-        var target = fiber.stack[bp + sp - 2];
+    public double invokeSet(Fiber fiber, int bp, int sp, Object target) {
         var value = fiber.stack[bp + sp - 1];
-        if(fieldIndex == 0 && fiber.vm().heap().read(target) instanceof double[]){
+        if(fieldIndex == 0 && target instanceof double[]){
             // TODO - remove this and replace with proper support for 'final'.
             throw new IllegalArgumentException("Cannot set field 0 for instance");
         }
-        switch (fiber.vm().heap().read(target)){
+        switch (target){
             case double[] ins -> ins[fieldIndex] = value;
             case CModule module -> module.getFields()[fieldIndex] = value;
             case CClass cls -> cls.sharedFields()[fieldIndex] = value;

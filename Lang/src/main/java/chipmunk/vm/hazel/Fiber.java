@@ -148,6 +148,18 @@ public final class Fiber {
         }
     }
 
+    public double readArg(int bp, int sp, int argCount, int arg){
+        return stack[bp + sp - argCount + arg];
+    }
+
+    public void pushResult(int bp, int sp, int argCount, double result){
+        stack[bp + sp - argCount] = result;
+    }
+
+    public void continueWith(NativeContinuation continuation){
+        currentFrame().continuation = continuation;
+    }
+
     public int callStackDepth(){
         return callFramePtr;
     }

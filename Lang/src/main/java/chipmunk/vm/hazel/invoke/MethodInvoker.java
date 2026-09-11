@@ -33,6 +33,6 @@ public abstract class MethodInvoker {
     }
 
     public abstract boolean canInvoke(Object target);
-    public abstract int invokeMethod(Fiber fiber, int ip, int bp, int sp);
+    public abstract int invokeMethod(Fiber fiber, int ip, int bp, int sp, Object target);
 
 }

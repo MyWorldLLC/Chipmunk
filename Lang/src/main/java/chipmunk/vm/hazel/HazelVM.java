@@ -21,12 +21,11 @@
 package chipmunk.vm.hazel;
 
 import chipmunk.binary.BinaryFormatException;
-import chipmunk.runtime.CMethod;
-import chipmunk.runtime.CModule;
-import chipmunk.runtime.ChipmunkModule;
+import chipmunk.runtime.*;
 import chipmunk.vm.HeapOverflowError;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.Uncatchable;
+import chipmunk.vm.hazel.invoke.Linker;
 
 import java.io.IOException;
 import java.util.*;
@@ -54,6 +53,8 @@ public class HazelVM {
     protected Fiber currentFiber;
     protected Fiber lastFiber;
 
+    protected final Linker linker;
+
     protected volatile boolean yieldRequested;
 
     public HazelVM(ModuleLoader moduleLoader) {
@@ -61,6 +62,7 @@ public class HazelVM {
         memoryStats = new MemoryStats();
         heap = new Heap(this);
         heap.allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
+        linker = new Linker();
     }
 
     public Optional<Object> run(){
@@ -110,18 +112,6 @@ public class HazelVM {
 
         } catch (Throwable t) {
             throw t;
-        }
-    }
-
-    public Object toHostValue(double v){
-        if(Value.isPointer(v)){
-            if(Value.NULL_PTR_VALUE == v){
-                return null;
-            }else{
-                return heap.read(v);
-            }
-        }else{
-            return v;
         }
     }
 
@@ -704,15 +694,21 @@ public class HazelVM {
         try {
             var module = modules.get(name);
             if(module == null){
-                module = moduleLoader.load(name, bin -> new BinaryLoader().loadModule(heap, bin));
+                module = moduleLoader.load(name, bin -> new BinaryLoader(linker).loadModule(heap, bin));
+                if(module instanceof NativeModule nModule){
+                    nModule.registerTypeBindings(linker.binding());
+                }
             }
+
             if(module == null){
                 throw new RuntimeException("Module " + name + " not found");
             }
+
+            modules.put(name, module);
+
             if(module instanceof CModule cModule){
                 var ptr = heap.allocateAndWrite(cModule);
                 cModule.selfPtr(ptr);
-                modules.put(cModule.getName(), cModule);
 
                 // Note: All sorts of funkiness can happen with import cycles between modules. That won't cause a runtime
                 // error in and of itself, but may result in null errors because module values being read before their
@@ -752,6 +748,38 @@ public class HazelVM {
 
     public EntryPoint entryPoint(){
         return entryPoint;
+    }
+
+    public Linker linker(){
+        return linker;
+    }
+
+    public Object toHostValue(double v){
+        if(Value.isPointer(v)){
+            if(Value.NULL_PTR_VALUE == v){
+                return null;
+            }else{
+                return heap.read(v);
+            }
+        }else{
+            return v;
+        }
+    }
+
+    public double fromHostValue(Object v){
+        return switch (v){
+            case Double d -> d;
+            case null -> Value.NULL_PTR_VALUE;
+            case HostCObject cObj -> {
+                if(!Value.isNullPointer(cObj.selfPtr())){
+                    yield cObj.selfPtr();
+                }
+                var ptr = heap.allocateAndWrite(cObj);
+                cObj.selfPtr(ptr);
+                yield ptr;
+            }
+            default -> heap.allocateAndWrite(v);
+        };
     }
 
     private boolean checkYield(){

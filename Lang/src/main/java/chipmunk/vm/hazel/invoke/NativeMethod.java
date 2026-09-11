@@ -18,29 +18,12 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.instructions;
+package chipmunk.vm.hazel.invoke;
 
-import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Value;
-import chipmunk.vm.hazel.invoke.Linker;
 
-public class Pow extends CallingInstruction {
+public interface NativeMethod {
 
-    public Pow(int sp, Linker linker) {
-        super(sp, linker);
-    }
+    void invoke(Fiber fiber, int bp, int sp, int argCount, Object target);
 
-    @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
-        var stack = fiber.stack;
-        var a = stack[bp + sp - 2];
-        var b = stack[bp + sp - 1];
-        if(Value.isNumber(a) && Value.isNumber(b)) {
-            stack[bp + sp - 2] = Math.pow(a, b);
-        }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.POW, 2);
-        }
-        return ip + 1;
-    }
 }
