@@ -465,7 +465,7 @@ public class BinaryLoader {
                 }
                 case BIND -> {
                     var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
-                    instructions.add(new Bind(sp, name));
+                    instructions.add(new Bind(sp, name, linker));
                     ip += 5;
                 }
                 default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X at ip=%d".formatted(op, ip));

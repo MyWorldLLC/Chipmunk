@@ -40,7 +40,6 @@ public class NativeMethodInvoker extends MethodInvoker {
 
     @Override
     public int invokeMethod(Fiber fiber, int ip, int bp, int sp, Object target) {
-        method.invoke(fiber, bp, sp, argCount, target);
-        return ip + 1;
+        return method.invoke(fiber, ip, bp, sp, argCount, target);
     }
 }

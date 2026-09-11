@@ -24,6 +24,6 @@ import chipmunk.vm.hazel.Fiber;
 
 public interface NativeMethod {
 
-    void invoke(Fiber fiber, int bp, int sp, int argCount, Object target);
+    int invoke(Fiber fiber, int ip, int bp, int sp, int argCount, Object target);
 
 }

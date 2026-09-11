@@ -20,19 +20,23 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.CMethodBinding;
 import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.invoke.Linker;
 
 public class Bind extends Instruction {
 
     protected final String method;
+    protected final Linker linker;
 
-    public Bind(int sp, String method) {
+    public Bind(int sp, String method, Linker linker) {
         super(sp);
         this.method = method;
+        this.linker = linker;
     }
 
     @Override
@@ -40,8 +44,10 @@ public class Bind extends Instruction {
         var targetPtr = fiber.stack[bp + sp - 1];
         if(Value.isPointer(targetPtr)){
             var heap = fiber.vm().heap();
-            var target = heap.read(targetPtr);
-            fiber.stack[bp + sp - 1] = heap.allocateAndWrite(new MethodBinding(target, method));
+            var binding = new CMethodBinding(targetPtr, method, linker);
+            var ptr = heap.allocateAndWrite(binding);
+            binding.selfPtr(ptr);
+            fiber.stack[bp + sp - 1] = ptr;
         }else{
             throw new TypeError(fiber, "Object instance required for bind");
         }
