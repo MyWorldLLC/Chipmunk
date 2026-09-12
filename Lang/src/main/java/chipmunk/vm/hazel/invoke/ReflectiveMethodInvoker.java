@@ -21,10 +21,12 @@
 package chipmunk.vm.hazel.invoke;
 
 import chipmunk.runtime.HostCObject;
+import chipmunk.vm.Uncatchable;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectiveMethodInvoker extends MethodInvoker {
@@ -86,8 +88,14 @@ public class ReflectiveMethodInvoker extends MethodInvoker {
                 default -> heap.allocateAndWrite(result);
             };
             return ip + 1;
-        } catch (Throwable t) {
-            throw new TypeError(fiber, target.getClass().getName() + "." + name + "(" + (argCount - 1) + ") is not callable: " + t.getMessage(), t);
+        }catch (IllegalAccessException e) {
+            throw new TypeError(fiber, target.getClass().getName() + "." + name + "(" + (argCount - 1) + ") is not callable: " + e.getMessage(), e);
+        }catch(InvocationTargetException e){
+            var targetEx = e.getTargetException();
+            if(targetEx instanceof Uncatchable u){
+                throw u;
+            }
+            throw new TypeError(fiber, target.getClass().getName() + "." + name + "(" + (argCount - 1) + ") is not callable: " + e.getMessage(), e);
         }
     }
 }

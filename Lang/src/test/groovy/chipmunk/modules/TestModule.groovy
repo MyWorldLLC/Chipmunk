@@ -33,7 +33,7 @@ class TestModule implements ChipmunkModule {
     }
 
     void println(Object o){
-        SystemModule.out.println(o);
+        SystemModule.println(o);
     }
 
     String getName() {

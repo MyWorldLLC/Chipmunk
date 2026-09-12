@@ -607,6 +607,8 @@ public class HazelVM {
                         }
                     }
                 }catch(Throwable t){
+                    System.out.println(t);
+                    t.printStackTrace();
                     if(t instanceof Uncatchable){
                         throw t;
                     }
@@ -620,7 +622,6 @@ public class HazelVM {
                             fiber.stack[bp + block.exceptionLocalIndex()] = ptr;
                             ip = block.endIp();
                             handled = true;
-                            System.out.println("Catching exception");
                         }
                     }
                     if(!handled){
