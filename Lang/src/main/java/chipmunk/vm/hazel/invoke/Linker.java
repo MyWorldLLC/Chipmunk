@@ -192,10 +192,19 @@ public class Linker {
                 var field = fields[i];
                 if(field.isTrait()){
                     var traitTarget = ins.storage()[i];
-                    var invoker = linkField(fiber, traitTarget, name, assign);
-                    if(invoker != null){
-                        // TODO - switch points & trait chain binding.
-                        return invoker;
+                    if(!Value.isNullPointer(traitTarget)){
+                        var invoker = linkField(fiber, traitTarget, name, assign);
+                        if(invoker != null){
+                            switch (invoker){
+                                case TraitFieldInvoker t -> t.addToChain(ins.getGuard(i));
+                                default -> {
+                                    var tInvoker = new TraitFieldInvoker(traitTarget, invoker);
+                                    tInvoker.addToChain(ins.getGuard(i));
+                                    invoker = tInvoker;
+                                }
+                            }
+                            return invoker;
+                        }
                     }
                 }
             }
