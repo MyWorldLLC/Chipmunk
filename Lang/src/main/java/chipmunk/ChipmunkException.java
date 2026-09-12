@@ -20,12 +20,17 @@
 
 package chipmunk;
 
+import chipmunk.runtime.CMethod;
 import chipmunk.vm.hazel.Fiber;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
 
 public class ChipmunkException extends RuntimeException {
 
 	protected final Object payload;
 	protected final Fiber fiber;
+	protected String[] stackTraceFrames;
 
 	public ChipmunkException(Fiber fiber){
 		this(fiber, null);
@@ -58,6 +63,71 @@ public class ChipmunkException extends RuntimeException {
 
 	public Object getPayload(){
 		return payload;
+	}
+
+	public void populateStackTrace(){
+		if(stackTraceFrames == null && fiber != null){
+			stackTraceFrames = new String[fiber.callStackDepth()];
+			for(int stackPtr = 0; stackPtr < fiber.callStackDepth(); stackPtr++){
+				var frame = fiber.callFrames[stackPtr];
+				var entry = debugEntry(frame.method, frame.ip);
+
+				stackTraceFrames[stackTraceFrames.length - 1 - stackPtr] = frame.method.debugName() +
+						"(" + frame.method.module().name() + ":" + (entry != null ? entry.line() : "<unknown>") + ")";
+			}
+		}
+	}
+
+	protected CMethod.DebugEntry debugEntry(CMethod m, int ip){
+		var debugTable = m.debugTable();
+		if(debugTable == null){
+			return null;
+		}
+		for(var i = 0; i < debugTable.length; i++){
+			var entry = debugTable[i];
+			if(entry.beginIp() <= ip && ip < entry.endIp()){
+				return entry;
+			}
+		}
+		return null;
+	}
+
+	public String formatStackTrace(){
+		if(fiber == null){
+			return "<Chipmunk trace unavailable>";
+		}
+		if(stackTraceFrames == null){
+			populateStackTrace();
+		}
+		var message = getMessage();
+		StringBuilder formatted = new StringBuilder(getClass().getName() + ": " + (message != null ? message : ""));
+		for(var line : stackTraceFrames){
+			formatted.append("\n    at ").append(line);
+		}
+		return formatted.toString();
+	}
+
+	@Override
+	public void printStackTrace(){
+		printStackTrace(System.err);
+	}
+
+	@Override
+	public void printStackTrace(PrintStream s){
+		s.println("<Chipmunk trace>");
+		s.println(formatStackTrace());
+		s.println();
+		s.println("<VM trace>");
+		super.printStackTrace(s);
+	}
+
+	@Override
+	public void printStackTrace(PrintWriter s){
+		s.println("<Chipmunk trace>");
+		s.println(formatStackTrace());
+		s.println();
+		s.println("<VM trace>");
+		super.printStackTrace(s);
 	}
 
 }

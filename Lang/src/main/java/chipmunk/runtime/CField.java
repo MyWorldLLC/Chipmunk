@@ -33,4 +33,12 @@ public record CField(String name, int flags) {
         return (flags & flag) != 0;
     }
 
+    public boolean isTrait(){
+        return isSet(TRAIT_FLAG);
+    }
+
+    public boolean isFinal(){
+        return isSet(FINAL_FLAG);
+    }
+
 }

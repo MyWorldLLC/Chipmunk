@@ -33,6 +33,6 @@ public class Throw extends Instruction {
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
         var v = fiber.stack[bp + sp - 1];
-        throw new ThrownValue(v);
+        throw new ThrownValue(fiber, v);
     }
 }

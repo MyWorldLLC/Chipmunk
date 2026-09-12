@@ -479,6 +479,7 @@ public class BinaryLoader {
         var method = new CMethod(module, entry.getName(), instructions.toArray(Instruction[]::new),
                 argCount, localCount, binaryMethod.getDefaultArgCount(), maxStack);
 
+        method.debugName(binaryMethod.getDeclarationSymbol());
         method.debugTable(Arrays.stream(binaryMethod.getDebugTable())
                         .map(binEntry ->
                                 new CMethod.DebugEntry(

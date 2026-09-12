@@ -97,6 +97,23 @@ public class LangModule implements NativeModule {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void registerTypeBindings(NativeBinding binding) {
+
+        binding.register(CClass.class, builder -> {
+            builder.withNativeMethod("getModule", ((fiber, ip, bp, sp, argCount, target) -> {
+                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(((CClass) target).module()));
+                return ip + 1;
+            }));
+        });
+
+        binding.register(double[].class, builder -> {
+            builder.withNativeMethod("getModule", ((fiber, ip, bp, sp, argCount, target) -> {
+                var cls = (CClass) fiber.vm().heap().read(((double[]) target)[0]);
+                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(cls.module()));
+                return ip + 1;
+            }));
+        });
+
+
         binding.register(ArrayList.class, builder -> {
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {

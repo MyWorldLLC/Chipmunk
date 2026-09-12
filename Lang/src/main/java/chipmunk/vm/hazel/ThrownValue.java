@@ -27,7 +27,8 @@ public class ThrownValue extends ChipmunkException {
     protected final double value;
 
     // TODO - expose thrown value + stack trace to Chipmunk
-    public ThrownValue(double value) {
+    public ThrownValue(Fiber fiber, double value) {
+        super(fiber);
         this.value = value;
     }
 

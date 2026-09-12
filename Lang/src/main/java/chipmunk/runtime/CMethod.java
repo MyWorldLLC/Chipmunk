@@ -30,6 +30,7 @@ public class CMethod extends NamedHostObject {
 
     protected final CModule module;
     protected final Instruction[] code;
+    protected String debugName;
     protected DebugEntry[] debugTable;
     protected ExceptionBlock[] exceptionTable;
     protected final int argCount;
@@ -77,6 +78,14 @@ public class CMethod extends NamedHostObject {
             builder.append(i + ": " + code[i] + "\n");
         }
         return builder.toString();
+    }
+
+    public void debugName(String name){
+        debugName = name;
+    }
+
+    public String debugName(){
+        return debugName;
     }
 
     public DebugEntry[] debugTable() {

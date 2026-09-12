@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel;
 
+import chipmunk.ChipmunkException;
 import chipmunk.binary.BinaryFormatException;
 import chipmunk.runtime.*;
 import chipmunk.vm.HeapOverflowError;
@@ -607,10 +608,10 @@ public class HazelVM {
                         }
                     }
                 }catch(Throwable t){
-                    System.out.println(t);
-                    t.printStackTrace();
                     if(t instanceof Uncatchable){
                         throw t;
+                    }else if(t instanceof ChipmunkException e){
+                        e.populateStackTrace();
                     }
                     var handled = false;
                     for(var block : frame.method.exceptionTable()){
@@ -794,5 +795,19 @@ public class HazelVM {
             return true;
         }
         return false;
+    }
+
+    public String typeName(double ptr){
+        return typeName(heap.read(ptr));
+    }
+
+    public String typeName(Object t){
+        return switch (t){
+            case null -> "null";
+            case double[] ins -> ((CClass) heap.read(ins[0])).name();
+            case CClass c -> c.name();
+            case CModule m -> m.name();
+            default -> t.getClass().getName();
+        };
     }
 }
