@@ -18,21 +18,21 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.hazel.instructions;
+package chipmunk.vm.hazel;
 
-import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.Instruction;
-import chipmunk.vm.hazel.ThrownValue;
+import chipmunk.ChipmunkException;
 
-public class Throw extends Instruction {
+public class ThrownValue extends ChipmunkException {
 
-    public Throw(int sp) {
-        super(sp);
+    protected final double value;
+
+    // TODO - expose thrown value + stack trace to Chipmunk
+    public ThrownValue(double value) {
+        this.value = value;
     }
 
-    @Override
-    public int apply(Fiber fiber, int ip, int bp) {
-        var v = fiber.stack[bp + sp - 1];
-        throw new ThrownValue(v);
+    public double value(){
+        return value;
     }
+
 }

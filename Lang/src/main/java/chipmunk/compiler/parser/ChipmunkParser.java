@@ -609,6 +609,7 @@ public class ChipmunkParser {
 		idNode.setSymbol(new Symbol(id.text()));
 
 		var dec = new AstNode(NodeType.VAR_DEC, id).withChild(idNode);
+		dec.setSymbol(new Symbol(id.text()));
 		catchNode.addChild(dec);
 		tokens.forceNext(TokenType.RPAREN);
 			

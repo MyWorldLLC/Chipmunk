@@ -618,8 +618,9 @@ public class HazelVM {
                                 throw new HeapOverflowError(fiber, "Heap overflow occured while handling exception " + t);
                             }
                             fiber.stack[bp + block.exceptionLocalIndex()] = ptr;
-                            ip = block.beginIp();
+                            ip = block.endIp();
                             handled = true;
+                            System.out.println("Catching exception");
                         }
                     }
                     if(!handled){
