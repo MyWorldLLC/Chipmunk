@@ -71,6 +71,12 @@ public class BinaryCondition extends CallingInstruction {
                 case COND_INSTANCEOF -> false; // Always false because the RHS isn't a class pointer
                 default -> false;
             };
+        }else if(Value.isNullPointer(a) || Value.isNullPointer(b)) {
+            result = switch (condition) {
+                case COND_EQ, COND_IS -> Value.getPointer(a) == Value.getPointer(b);
+                case COND_NE -> Value.getPointer(a) != Value.getPointer(b);
+                default -> false;
+            };
         }else{
             // TODO - object truth & comparison
             result = switch (condition) {
@@ -86,19 +92,14 @@ public class BinaryCondition extends CallingInstruction {
             };
         }
 
-        //System.out.println("Branch for values " + Value.toString(a) + " " + Value.toString(b) + " result=" + result);
-        //System.out.println("Jumping? " + (target != NO_JUMP));
-
         if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
-                //System.out.println("Jumping to target");
                 return target;
             }
         }else{
             stack[bp + sp - 2] = result ? 1.0 : 0.0;
         }
-        //System.out.println("Running next op");
         return ip + 1;
     }
 

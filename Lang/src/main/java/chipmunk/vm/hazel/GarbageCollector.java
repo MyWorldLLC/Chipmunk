@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel;
 
+import chipmunk.runtime.CObject;
 import chipmunk.vm.hazel.util.BitField;
 
 public class GarbageCollector {
@@ -105,7 +106,8 @@ public class GarbageCollector {
     }
 
     private void markFields(BitField black, BitField grey, Object obj){
-        if(obj instanceof double[] d){
+        if(obj instanceof CObject ins){
+            var d = ins.storage();
             for(int i = 0; i < d.length; i++){
                 var v = d[i];
                 if(Value.isPointer(v)){
@@ -116,8 +118,9 @@ public class GarbageCollector {
                 }
             }
         }
-        // If this isn't a double[] then we know that it's a native object and we
+        // If this isn't a CObject then we know that it's a native object and we
         // have nothing to do.
+        // TODO - other host objects, such as modules, class shared fields, etc.
     }
 
 }

@@ -22,6 +22,7 @@ package chipmunk.vm.hazel.invoke;
 
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CModule;
+import chipmunk.runtime.CObject;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
@@ -63,8 +64,8 @@ public class Linker {
         }
 
         CClass traitBase = null;
-        if(target instanceof double[] ins){
-            var clsPtr = ins[0];
+        if(target instanceof CObject ins){
+            var clsPtr = ins.storage()[0];
             var cClass = (CClass) heap.read(clsPtr);
             var method = cClass.findMethod(cClass.instanceMethodDefs(), name, args);
             if(method != null){
@@ -104,16 +105,18 @@ public class Linker {
             }
         }
         if(traitBase != null){
-            var ins = (double[]) target;
+            var ins = (CObject) target;
             var fields = traitBase.instanceFieldDefs();
             for(int i = 0; i < fields.length; i++){
                 var field = fields[i];
                 if(field.isTrait()){
-                    var traitTarget = ins[i];
-                    var invoker = linkMethod(fiber, traitTarget, name, args);
-                    if(invoker != null){
-                        // TODO - switch points & trait chain binding.
-                        return invoker;
+                    var traitTarget = ins.storage()[i];
+                    if(!Value.isNullPointer(traitTarget)){
+                        var invoker = linkMethod(fiber, traitTarget, name, args);
+                        if(invoker != null){
+                            // TODO - switch points & trait chain binding.
+                            return invoker;
+                        }
                     }
                 }
             }
@@ -140,8 +143,8 @@ public class Linker {
         }
 
         CClass traitBase = null;
-        if(target instanceof double[] ins){
-            var clsPtr = ins[0];
+        if(target instanceof CObject ins){
+            var clsPtr = ins.storage()[0];
             var cClass = (CClass) heap.read(clsPtr);
             var field = cClass.getField(cClass.instanceFieldDefs(), name);
             if(field >= 0){
@@ -179,12 +182,12 @@ public class Linker {
             }
         }
         if(traitBase != null){
-            var ins = (double[]) target;
+            var ins = (CObject) target;
             var fields = traitBase.instanceFieldDefs();
             for(int i = 0; i < fields.length; i++){
                 var field = fields[i];
                 if(field.isTrait()){
-                    var traitTarget = ins[i];
+                    var traitTarget = ins.storage()[i];
                     var invoker = linkField(fiber, traitTarget, name, assign);
                     if(invoker != null){
                         // TODO - switch points & trait chain binding.

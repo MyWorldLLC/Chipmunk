@@ -23,6 +23,7 @@ package chipmunk.vm.hazel.invoke;
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CField;
 import chipmunk.runtime.CModule;
+import chipmunk.runtime.CObject;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 
@@ -43,7 +44,7 @@ public class CFieldInvoker extends FieldInvoker {
     public boolean canInvoke(Object target) {
         // TODO - should specialize for each case
         return switch (target){
-            case double[] ins -> ins.length > 0 && Value.pointersEqual(ins[0], typePtr);
+            case CObject ins -> Value.pointersEqual(ins.storage()[0], typePtr);
             case CModule module -> Value.pointersEqual(module.selfPtr(), typePtr);
             case CClass cls -> Value.pointersEqual(cls.selfPtr(), typePtr);
             default -> false;
@@ -53,7 +54,7 @@ public class CFieldInvoker extends FieldInvoker {
     @Override
     public double invokeGet(Fiber fiber, int bp, int sp, Object target) {
         return switch (target){
-            case double[] ins -> ins[fieldIndex];
+            case CObject ins -> ins.storage()[fieldIndex];
             case CModule module -> module.getFields()[fieldIndex];
             case CClass cls -> cls.sharedFields()[fieldIndex];
             default -> Value.NULL_PTR_VALUE; // Because of the check above, this shouldn't be possible in practice
@@ -63,12 +64,12 @@ public class CFieldInvoker extends FieldInvoker {
     @Override
     public double invokeSet(Fiber fiber, int bp, int sp, Object target) {
         var value = fiber.stack[bp + sp - 1];
-        if(fieldIndex == 0 && target instanceof double[]){
+        if(fieldIndex == 0 && target instanceof CObject){
             // TODO - remove this and replace with proper support for 'final'.
             throw new IllegalArgumentException("Cannot set field 0 for instance");
         }
         switch (target){
-            case double[] ins -> ins[fieldIndex] = value;
+            case CObject ins -> ins.setField(fieldIndex, value);
             case CModule module -> module.getFields()[fieldIndex] = value;
             case CClass cls -> cls.sharedFields()[fieldIndex] = value;
             default -> {} // Because of the check above, this shouldn't be possible in practice

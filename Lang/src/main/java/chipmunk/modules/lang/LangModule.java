@@ -20,6 +20,7 @@
 
 package chipmunk.modules.lang;
 
+import chipmunk.ChipmunkException;
 import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.hazel.Value;
@@ -105,9 +106,9 @@ public class LangModule implements NativeModule {
             }));
         });
 
-        binding.register(double[].class, builder -> {
+        binding.register(CObject.class, builder -> {
             builder.withNativeMethod("getModule", ((fiber, ip, bp, sp, argCount, target) -> {
-                var cls = (CClass) fiber.vm().heap().read(((double[]) target)[0]);
+                var cls = (CClass) fiber.vm().heap().read(((CObject) target).storage()[0]);
                 fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(cls.module()));
                 return ip + 1;
             }));
@@ -151,12 +152,6 @@ public class LangModule implements NativeModule {
            }));
 
             builder.withNativeMethod("next", ((fiber, ip, bp, sp, argCount, target) -> {
-                // TODO - this here demonstrates that double[] as the object format is insufficient due to lack of a stable
-                // self pointer. Passing a Chipmunk object instance back from here would result in it being re-allocated under
-                // a different pointer, meaning multiple pointers could end up aliasing the same underlying value. This will
-                // cause issues with the 'is' operator, among other possible problems. We need a 'CObject' class with a stable self pointer.
-                // Stashing the self pointer in the array would significantly complicate various parts of the VM, and would probably have
-                // nearly as much memory overhead as a wrapper object.
                 fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(((CListIterator) target).next()));
                 return ip + 1;
             }));
@@ -168,12 +163,15 @@ public class LangModule implements NativeModule {
                 var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
                 var value = ((HashMap) target).get(index);
                 fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
+                System.out.println("Returning " + " key=" + index + " value=" + value);
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 1));
                 var prior = ((HashMap) target).put(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
+                //var cls = (CClass) fiber.vm().heap().read(((CObject) index).storage()[0]);
+                //System.out.println("Setting " + " key=" + cls.name() + " value=" + fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)) + " at:\n" + new ChipmunkException(fiber).formatStackTrace());
                 fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
                 return ip + 1;
             }));

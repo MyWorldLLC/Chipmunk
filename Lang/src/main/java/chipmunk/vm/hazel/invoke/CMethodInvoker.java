@@ -23,6 +23,7 @@ package chipmunk.vm.hazel.invoke;
 import chipmunk.runtime.CClass;
 import chipmunk.runtime.CMethod;
 import chipmunk.runtime.CModule;
+import chipmunk.runtime.CObject;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 
@@ -41,7 +42,7 @@ public class CMethodInvoker extends MethodInvoker {
     public boolean canInvoke(Object target) {
         // TODO - should specialize for each case
         return switch (target){
-            case double[] ins -> ins.length > 0 && Value.pointersEqual(ins[0], typePtr);
+            case CObject ins -> Value.pointersEqual(ins.storage()[0], typePtr);
             case CModule module -> Value.pointersEqual(module.selfPtr(), typePtr);
             case CClass cls -> Value.pointersEqual(cls.selfPtr(), typePtr);
             default -> false;

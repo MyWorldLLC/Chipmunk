@@ -804,7 +804,7 @@ public class HazelVM {
     public String typeName(Object t){
         return switch (t){
             case null -> "null";
-            case double[] ins -> ((CClass) heap.read(ins[0])).name();
+            case CObject ins -> ((CClass) heap.read(ins.storage()[0])).name();
             case CClass c -> c.name();
             case CModule m -> m.name();
             default -> t.getClass().getName();

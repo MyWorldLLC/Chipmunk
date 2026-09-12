@@ -34,6 +34,7 @@ public class CClass extends NamedHostObject {
 
     protected CClass[] instanceClassDefs;
     protected CField[] instanceFieldDefs;
+    protected int[] traitFields;
     protected CMethod[] instanceMethodDefs;
     protected double[] instanceFields; // This is initialized with the instance-nested CClasses
 
@@ -75,6 +76,16 @@ public class CClass extends NamedHostObject {
     public void instanceFieldDefs(CField[] instanceFieldDefs) {
         this.instanceFieldDefs = instanceFieldDefs;
         instanceFields = new double[instanceFieldDefs.length];
+        var traitCount = (int) Arrays.stream(instanceFieldDefs).filter(CField::isTrait).count();
+        if(traitCount > 0){
+            var traitFields = new int[traitCount];
+            for (int i = 0, t = 0; i < traitCount; i++) {
+                if(instanceFieldDefs[i].isTrait()) {
+                    traitFields[t] = i;
+                    t++;
+                }
+            }
+        }
     }
 
     public void sharedMethodDefs(CMethod[] sharedMethodDefs) {
@@ -93,12 +104,19 @@ public class CClass extends NamedHostObject {
         return instanceMethodDefs;
     }
 
-    public double[] createInstance(HazelVM vm){
+    public CObject createInstance(HazelVM vm){
         vm.memoryStats().instanceCreated(instanceFieldDefs.length);
         var storage = new double[instanceFieldDefs.length];
         System.arraycopy(instanceFields, 0, storage, 0, instanceFieldDefs.length);
         storage[0] = selfPtr;
-        return storage;
+        TraitGuard[] guards = null;
+        if(traitFields != null){
+            guards = new TraitGuard[traitFields.length];
+            for (int i = 0; i < traitFields.length; i++) {
+                guards[i] = new TraitGuard(traitFields[i]);
+            }
+        }
+        return new CObject(storage, guards);
     }
 
     public CClass[] sharedClassDefs() {

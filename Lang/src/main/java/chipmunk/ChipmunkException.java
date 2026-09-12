@@ -73,7 +73,7 @@ public class ChipmunkException extends RuntimeException {
 				var entry = debugEntry(frame.method, frame.ip);
 
 				stackTraceFrames[stackTraceFrames.length - 1 - stackPtr] = frame.method.debugName() +
-						"(" + frame.method.module().name() + ":" + (entry != null ? entry.line() : "<unknown>") + ")";
+						"(" + frame.method.module().name() + ":" + (entry != null && entry.line() > 0 ? entry.line() : "<unknown>") + ")";
 			}
 		}
 	}
