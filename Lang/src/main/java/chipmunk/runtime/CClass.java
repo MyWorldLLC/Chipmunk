@@ -78,8 +78,8 @@ public class CClass extends NamedHostObject {
         instanceFields = new double[instanceFieldDefs.length];
         var traitCount = (int) Arrays.stream(instanceFieldDefs).filter(CField::isTrait).count();
         if(traitCount > 0){
-            var traitFields = new int[traitCount];
-            for (int i = 0, t = 0; i < traitCount; i++) {
+            traitFields = new int[traitCount];
+            for (int i = 0, t = 0; i < instanceFieldDefs.length; i++) {
                 if(instanceFieldDefs[i].isTrait()) {
                     traitFields[t] = i;
                     t++;

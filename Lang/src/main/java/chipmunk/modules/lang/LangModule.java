@@ -163,15 +163,12 @@ public class LangModule implements NativeModule {
                 var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
                 var value = ((HashMap) target).get(index);
                 fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
-                System.out.println("Returning " + " key=" + index + " value=" + value);
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 1));
                 var prior = ((HashMap) target).put(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
-                //var cls = (CClass) fiber.vm().heap().read(((CObject) index).storage()[0]);
-                //System.out.println("Setting " + " key=" + cls.name() + " value=" + fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)) + " at:\n" + new ChipmunkException(fiber).formatStackTrace());
                 fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
                 return ip + 1;
             }));

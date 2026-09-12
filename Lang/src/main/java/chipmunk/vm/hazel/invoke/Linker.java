@@ -51,8 +51,6 @@ public class Linker {
         return binding;
     }
 
-    // TODO - method & field invocation don't yet support traits
-
     public MethodInvoker linkMethod(Fiber fiber, double ptr, String name, int args){
         var heap = fiber.vm().heap();
         if(Value.isNullPointer(ptr)){
@@ -114,7 +112,14 @@ public class Linker {
                     if(!Value.isNullPointer(traitTarget)){
                         var invoker = linkMethod(fiber, traitTarget, name, args);
                         if(invoker != null){
-                            // TODO - switch points & trait chain binding.
+                            switch (invoker){
+                                case TraitMethodInvoker t -> t.addToChain(ins.getGuard(i));
+                                default -> {
+                                    var tInvoker = new TraitMethodInvoker(traitTarget, invoker);
+                                    tInvoker.addToChain(ins.getGuard(i));
+                                    invoker = tInvoker;
+                                }
+                            }
                             return invoker;
                         }
                     }
@@ -149,7 +154,6 @@ public class Linker {
             var field = cClass.getField(cClass.instanceFieldDefs(), name);
             if(field >= 0){
                 return new CFieldInvoker(clsPtr, cClass.instanceFieldDefs()[field], field);
-                //throw new TypeError(fiber, "Field does not exist: " + cClass.name() + "." + name);
             }
             traitBase = cClass; // Later on we'll use this to search traits
         }else if (target instanceof CModule m) {

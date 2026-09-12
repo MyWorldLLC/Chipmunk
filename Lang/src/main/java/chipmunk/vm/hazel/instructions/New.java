@@ -38,7 +38,9 @@ public class New extends CallingInstruction {
         var heap = fiber.vm().heap();
         var clsPtr = fiber.stack[bp + sp - argCount];
         var cls = (CClass) heap.read(clsPtr);
-        var insPtr = heap.allocateAndWrite(cls.createInstance(fiber.vm()));
+        var ins = cls.createInstance(fiber.vm());
+        var insPtr = heap.allocateAndWrite(ins);
+        ins.selfPtr(insPtr);
         fiber.stack[bp + sp - argCount] = insPtr; // Replace the class with the new instance, and call the constructor.
         return dynamicCall(fiber, ip, bp, sp, "$" + cls.name(), argCount);
     }

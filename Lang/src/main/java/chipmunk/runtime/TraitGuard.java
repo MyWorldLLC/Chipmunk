@@ -40,4 +40,9 @@ public class TraitGuard {
     protected void trip(){
         tripped = true;
     }
+
+    @Override
+    public String toString(){
+        return "TraitGuard[ " + "field=" + guardedField + ", tripped=" + tripped + "]";
+    }
 }
