@@ -143,7 +143,7 @@ public class BinaryLoader {
         // This maps every IP in the code array that contains an opcode to an
         // instruction index. This is used to remap jump targets from binary code indices
         // to logical instruction indices.
-        var remapping = new int[code.length];
+        var remapping = new int[code.length]; //buildRemappingTable(code);
 
         // This tracks the stack depth at each instruction. This is longer than needed since it
         // is allocated with the length of the bytecode rather than the length of the logical instructions,
@@ -157,13 +157,12 @@ public class BinaryLoader {
         var postProcessors = new ArrayList<Runnable>();
         var instructions = new ArrayList<Instruction>();
 
-        // SP - the "stack pointer." This always references the index on the stack (relative to this method's frame)
-        // where the TOS value is. This means that "stack growing" ops (such as PUSH) write to SP + 1, and "stack shrinking"
-        // ops (such as ADD) read TOS, TOS - 1, and leave their result at TOS - N (where N = the arity of the operator - 1).
+
 
         int ip = 0;
-        // Stack pointer - used to track the stack offsets each instruction operates on. This starts at the index just past
-        // the end of the last local variable.
+        // SP - the "stack pointer." This always references the index on the stack (relative to this method's frame)
+        // where the next value will be pushed. Reads always happen relative to SP - for example, TOS value is always
+        // bp + sp - 1, TOS - 1 is bp + sp - 2, etc. This starts at the index just past the last local variable.
         int sp = localCount;
         while(ip < code.length){
             var op = code[ip];
@@ -171,7 +170,14 @@ public class BinaryLoader {
             // merges multiple bytecodes into a single dispatch instruction, etc.
             var instruction = instructions.size();
             remapping[ip] = instruction;
-            stackDepths[instruction] = sp;
+
+            if(stackDepths[ip] == 0){
+                stackDepths[ip] = sp;
+            }else{
+                sp = stackDepths[ip];
+            }
+            //stackDepths[instruction] = sp;
+
             switch(op){
                 case ADD -> {
                     instructions.add(new Add(sp, linker));
@@ -298,7 +304,7 @@ public class BinaryLoader {
                         if(jumpTo < replace){
                             jumpTo = -jumpTo;
                         }
-                        instructions.set(replace, new Goto(stackDepths[remapping[target]], jumpTo));
+                        instructions.set(replace, new Goto(stackDepths[target], jumpTo));
                     });
                     ip += 5;
                 }
@@ -322,6 +328,7 @@ public class BinaryLoader {
                         default -> 0; // This should never be possible to hit, need it here to keep the compiler happy
                     };
                     var replace = instruction;
+                    var cIp = ip;
                     instructions.add(null);
                     postProcessors.add(() -> {
                         var jumpTo = BinaryCondition.NO_JUMP;
@@ -331,9 +338,12 @@ public class BinaryLoader {
                                 jumpTo = -jumpTo;
                             }
                         }
-                        instructions.set(replace, new BinaryCondition(stackDepths[instruction], linker, condition, jumpTo));
+                        instructions.set(replace, new BinaryCondition(stackDepths[cIp], linker, condition, jumpTo));
                     });
                     sp -= jump ? 2 : 1;
+                    if(jump){
+                        stackDepths[target] = sp;
+                    }
                     ip += jump ? 6 : 1;
                 }
                 case TRUTH, NOT -> {
@@ -346,6 +356,7 @@ public class BinaryLoader {
                         default -> 0; // This should never be possible to hit, need it here to keep the compiler happy
                     };
                     var replace = instruction;
+                    var cIp = ip;
                     instructions.add(null);
                     postProcessors.add(() -> {
                         var jumpTo = UnaryCondition.NO_JUMP;
@@ -355,23 +366,28 @@ public class BinaryLoader {
                                 jumpTo = -jumpTo;
                             }
                         }
-                        instructions.set(replace, new UnaryCondition(stackDepths[instruction], linker, condition, jumpTo));
+                        instructions.set(replace, new UnaryCondition(stackDepths[cIp], linker, condition, jumpTo));
                     });
                     sp -= jump ? 1 : 0;
+                    if(jump){
+                        stackDepths[target] = sp;
+                    }
                     ip += jump ? 6 : 1;
                 }
                 case IF -> {
                     var target = fetchInt(code, ip + 1);
                     var replace = instruction;
+                    var cIp = ip;
                     instructions.add(null);
                     postProcessors.add(() -> {
                         var jumpTo = remapping[target];
                         if(jumpTo < replace){
                             jumpTo = -jumpTo;
                         }
-                        instructions.set(replace, new If(stackDepths[instruction], linker, jumpTo));
+                        instructions.set(replace, new If(stackDepths[cIp], linker, jumpTo));
                     });
                     sp--;
+                    stackDepths[target] = sp;
                     ip += 5;
                 }
                 case CALL -> {
@@ -495,7 +511,36 @@ public class BinaryLoader {
                                 remapping[binEntry.catchIndex],
                                 binEntry.exceptionLocalIndex))
                         .toArray(CMethod.ExceptionBlock[]::new));
+        System.out.println("====== " + method.name() + "========");
+        System.out.println(method.dumpCode());
         return method;
+    }
+
+    public int[] buildRemappingTable(byte[] code){
+        // This maps every IP in the code array that contains an opcode to an
+        // instruction index. This is used to remap jump targets from binary code indices
+        // to logical instruction indices.
+        var remapping = new int[code.length];
+        var instruction = 0;
+        var ip = 0;
+        while(ip < code.length){
+            var op = code[ip];
+            remapping[ip] = instruction;
+            switch(op){
+                case ADD, ITER, SETAT, AS, GETAT, RETURN, THROW, SWAP, DUP, POP, URSHIFT, RSHIFT, LSHIFT, BNEG, BOR,
+                     BAND, BXOR, NEG, POS, DEC, INC, SUB, MUL, DIV, FDIV, MOD, POW -> ip++;
+                case PUSH, LIST, BIND, GOTO, IF, GETATTR, SETATTR, MAP -> ip += 5;
+                case GETLOCAL, RANGE, SETUPVALUE, INITUPVALUE, GETUPVALUE, CALL, SETLOCAL -> ip += 2;
+                case LT, GT, LE, GE, EQ, IS, INSTANCEOF, TRUTH, NOT -> {
+                    var jump = code[ip + 1] == IF;
+                    ip += jump ? 6 : 1;
+                }
+                case CALLAT -> ip += 6;
+                default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X at ip=%d".formatted(op, ip));
+            }
+            instruction++;
+        }
+        return remapping;
     }
 
     public static int fetchInt(byte[] instructions, int ip) {

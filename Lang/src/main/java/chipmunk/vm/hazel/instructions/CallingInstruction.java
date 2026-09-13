@@ -27,6 +27,8 @@ import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 import chipmunk.vm.hazel.invoke.MethodInvoker;
 
+import java.util.List;
+
 public abstract class CallingInstruction extends Instruction {
 
     protected final Linker linker;

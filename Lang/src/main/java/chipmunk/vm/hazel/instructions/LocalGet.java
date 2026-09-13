@@ -38,7 +38,6 @@ public class LocalGet extends Instruction {
 
     @Override
     public final int apply(Fiber fiber, int ip, int bp) {
-        //System.out.println("Getting " + local);
         fiber.stack[bp + sp] = fiber.stack[bp + local];
         return ip + 1;
     }

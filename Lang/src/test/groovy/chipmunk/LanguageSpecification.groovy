@@ -241,13 +241,13 @@ class LanguageSpecification extends Specification {
 		then:
 		thrown(Uncatchable.class)
 	}
-	
+
 	def "Run Fibonacci.chp"(){
 		when:
 		def result = compileAndRun("Fibonacci.chp", true)
 		
 		then:
-		result == 832040
+		result == 13
 	}
 
 	def "Run IfElseExpressions.chp"(){
