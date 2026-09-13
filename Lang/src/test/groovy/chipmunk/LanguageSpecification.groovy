@@ -223,7 +223,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("InnerClasses.chp")
 		
 		then:
-		result == 21
+		result == 24
 	}
 
 	def "Run TryCatch.chp"(){

@@ -42,4 +42,9 @@ public class GetField extends FieldInstruction {
         fiber.stack[bp + sp - 1] = getFieldInvoker(targetPtr, target, fiber, field, false).invokeGet(fiber, bp, sp, target);
         return ip + 1;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " field=" + field;
+    }
 }

@@ -507,8 +507,7 @@ public class BinaryLoader {
                                 remapping[binEntry.catchIndex],
                                 binEntry.exceptionLocalIndex))
                         .toArray(CMethod.ExceptionBlock[]::new));
-        System.out.println("====== " + method.name() + "========");
-        System.out.println(method.dumpCode());
+
         return method;
     }
 

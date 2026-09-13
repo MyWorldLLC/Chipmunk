@@ -162,7 +162,7 @@ public class Linker {
             if (field >= 0) {
                 return new CFieldInvoker(m.selfPtr(), m.getFieldDefs()[field], field);
             }
-        } else if (target instanceof CClass c) {
+        }else if (target instanceof CClass c) {
             var field = c.getField(c.sharedFieldDefs(), name);
             if (field >= 0) {
                 return new CFieldInvoker(c.selfPtr(), c.sharedFieldDefs()[field], field);

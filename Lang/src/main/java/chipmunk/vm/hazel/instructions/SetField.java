@@ -42,4 +42,9 @@ public class SetField extends FieldInstruction {
         fiber.stack[bp + sp - 2] = getFieldInvoker(targetPtr, target, fiber, field, true).invokeSet(fiber, bp, sp, target);
         return ip + 1;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " field=" + field;
+    }
 }

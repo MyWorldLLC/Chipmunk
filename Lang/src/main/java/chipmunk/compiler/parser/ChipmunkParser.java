@@ -206,7 +206,9 @@ public class ChipmunkParser {
 				node.addChild(methodNode);
 			}else if(checkClassDef()){
 				AstNode classNode = parseClassDef();
-				classNode.getSymbol().setShared(shared);
+				// Note: all nested classes are implicitly shared. The shared keyword is still allowed, but
+				// has no effect.
+				classNode.getSymbol().setShared(true);
 				node.addChild(classNode);
 			}else if(tokens.peek(TokenType.RBRACE)){
 				break;
