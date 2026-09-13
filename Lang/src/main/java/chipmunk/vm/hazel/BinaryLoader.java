@@ -432,7 +432,7 @@ public class BinaryLoader {
                     ip++;
                 }
                 case AS -> {
-                    instructions.add(new Call(sp, linker, "as", 2));
+                    instructions.add(new As(sp, linker));
                     sp--;
                     ip++;
                 }

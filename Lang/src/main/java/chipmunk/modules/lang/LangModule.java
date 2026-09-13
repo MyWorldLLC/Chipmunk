@@ -20,13 +20,11 @@
 
 package chipmunk.modules.lang;
 
-import chipmunk.ChipmunkException;
 import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.binding.NativeBinding;
-import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 import java.util.*;
@@ -36,53 +34,21 @@ public class LangModule implements NativeModule {
     public static final String MODULE_NAME = "chipmunk.lang";
 
     @AllowChipmunkLinkage
-    @ChipmunkName("Any")
-    public final Class<Object> _any;
+    public final String Boolean = "Boolean";
 
     @AllowChipmunkLinkage
-    @ChipmunkName("Int")
-    public final Class<Integer> _int;
+    public final String String = "String";
 
     @AllowChipmunkLinkage
-    @ChipmunkName("Float")
-    public final Class<Float> _float;
+    public final String List = "List";
 
     @AllowChipmunkLinkage
-    @ChipmunkName("Boolean")
-    public final Class<Boolean> _boolean;
-
-    @AllowChipmunkLinkage
-    @ChipmunkName("String")
-    public final Class<String> _string;
-
-    @AllowChipmunkLinkage
-    @ChipmunkName("List")
-    public final Class<List> _list;
-
-    @AllowChipmunkLinkage
-    @ChipmunkName("Map")
-    public final Class<Map> _map;
-
-    public LangModule(){
-        _any = Object.class;
-        _int = Integer.class;
-        _float = Float.class;
-        _boolean = Boolean.class;
-        _string = String.class;
-
-        _list = List.class;
-        _map = Map.class;
-    }
+    public final String Map = "Map";
 
     @AllowChipmunkLinkage
     public void unimplementedMethod() throws UnimplementedMethodException {
         throw new UnimplementedMethodException();
     }
-
-    /*@AllowChipmunkLinkage
-    public MethodBinding bindArgs(MethodBinding binding, Integer index, List<Object> args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return ChipmunkScript.getCurrentScript().getVM().bindArgs(binding, index, args.toArray());
-    }*/
 
     @AllowChipmunkLinkage
     public ChipmunkModule getModule(String name){

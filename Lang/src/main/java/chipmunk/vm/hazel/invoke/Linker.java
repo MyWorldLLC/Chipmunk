@@ -27,6 +27,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.binding.NativeBinding;
+import chipmunk.vm.invoke.ChipmunkName;
 import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
@@ -95,7 +96,7 @@ public class Linker {
             }
         }
         for(var method : targetType.getMethods()){
-            if(method.getParameterCount() + 1 == args && method.getName().equals(name)){
+            if(method.getParameterCount() + 1 == args && (method.getName().equals(name) || (method.isAnnotationPresent(ChipmunkName.class) && method.getAnnotation(ChipmunkName.class).value().equals(name)))){
                 if(method.isAnnotationPresent(AllowChipmunkLinkage.class) || linkingPolicy.allowMethodCall(target, method)){
                     method.setAccessible(true);
                     return new ReflectiveMethodInvoker(targetType, method, name, args);
@@ -177,7 +178,7 @@ public class Linker {
             }
         }
         for (var field : targetType.getFields()) {
-            if (field.getName().equals(name)) {
+            if (field.getName().equals(name) || (field.isAnnotationPresent(ChipmunkName.class) && field.getAnnotation(ChipmunkName.class).value().equals(name))) {
                 if (field.isAnnotationPresent(AllowChipmunkLinkage.class)
                         || (assign ? linkingPolicy.allowFieldSet(target, field) : linkingPolicy.allowFieldGet(target, field))) {
                     field.setAccessible(true);
