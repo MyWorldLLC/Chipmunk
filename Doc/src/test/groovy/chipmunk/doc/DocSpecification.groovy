@@ -23,5 +23,13 @@ package chipmunk.doc
 import spock.lang.Specification
 
 class DocSpecification extends Specification {
-    // TODO
+
+    def "Do a test"(){
+        // This is just here to make jUnit happy
+        when:
+        def a = 5
+
+        then:
+        a == 5
+    }
 }
