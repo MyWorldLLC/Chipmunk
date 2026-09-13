@@ -23,6 +23,7 @@ package chipmunk.modules.lang;
 import chipmunk.ChipmunkException;
 import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
+import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.binding.NativeBinding;
 import chipmunk.vm.invoke.ChipmunkName;
@@ -188,25 +189,40 @@ public class LangModule implements NativeModule {
             builder.withNativeMethod("call", ((fiber, ip, bp, sp, argCount, target) -> {
                 var methodBinding = (CMethodBinding) target;
 
-                var totalArgs = argCount;
                 var boundArgs = methodBinding.args();
-                if(boundArgs != null){
-                    totalArgs += boundArgs.length;
-                    // Bulk copy the bound args to the stack
-                    System.arraycopy(boundArgs, 0, fiber.stack, bp + sp - totalArgs + 1, boundArgs.length);
-                }
+                var totalArgs = argCount + boundArgs.length;
+
+                // We use a +1 offset so that parameter indices align with the method's formal parameter list, skipping self
+                var argIndex = methodBinding.callIndex() + 1;
+
+                // Shift the current args up the stack (skipping self)
+                System.arraycopy(fiber.stack, bp + sp - argCount + argIndex, fiber.stack, bp + sp - argCount + argIndex + boundArgs.length, argCount - 1);
+
+                // Bulk copy the bound args to the stack
+                System.arraycopy(boundArgs, 0, fiber.stack, bp + sp - argCount + argIndex, boundArgs.length);
+
                 // Overwrite self
-                fiber.pushResult(bp, sp, totalArgs, methodBinding.target());
-                return methodBinding.dynamicCall(fiber, ip, bp, sp, methodBinding.methodName(), totalArgs);
+                fiber.pushResult(bp, sp, argCount, methodBinding.target());
+                return methodBinding.dynamicCall(fiber, ip, bp, sp + boundArgs.length, methodBinding.methodName(), totalArgs);
             }));
 
             builder.withNativeMethod("bindArgs", ((fiber, ip, bp, sp, argCount, target) -> {
                 var methodBinding = (CMethodBinding) target;
-                // TODO - this doesn't implement the same API as prior versions did.
-                var captured = argCount - 1; // don't capture self with the args
-                var args = new double[captured];
-                System.arraycopy(fiber.stack, bp + sp - captured, args, 0, captured);
-                methodBinding.bindArgs(args);
+                var heap = fiber.vm().heap();
+                var argList = (List) heap.read(fiber.readArg(bp, sp, argCount, 2));
+                var argIndex = fiber.readArg(bp, sp, argCount, 1);
+                if(!Value.isNumber(argIndex)){
+                    throw new TypeError(fiber, "argIndex must be a number");
+                }
+
+                var boundArgs = new double[argList.size()];
+
+                // TODO - use a Chipmunk-native list so we don't have to do Chipmunk-host-Chipmunk round trips.
+                for(int i = 0; i < boundArgs.length; i++){
+                    boundArgs[i] = fiber.vm().fromHostValue(argList.get(i));
+                }
+                methodBinding.bindArgs((int) argIndex, boundArgs);
+
                 return ip + 1;
             }));
         });

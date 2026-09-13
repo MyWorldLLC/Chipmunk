@@ -116,7 +116,7 @@ public class BinaryLoader {
         cClass.sharedFieldDefs(collectFields(sharedNamespace));
         cClass.sharedMethodDefs(collectMethods(module, sharedNamespace));
 
-        var sharedClasses = collectClasses(module, insNamespace, heap);
+        var sharedClasses = collectClasses(module, sharedNamespace, heap);
         for (CClass sClass : sharedClasses) {
             sClass.selfPtr(heap.allocateAndWrite(sClass));
             var field = cClass.getField(cClass.sharedFieldDefs(), sClass.name());
@@ -147,8 +147,7 @@ public class BinaryLoader {
 
         // This tracks the stack depth at each instruction. This is longer than needed since it
         // is allocated with the length of the bytecode rather than the length of the logical instructions,
-        // but bytecode is fairly dense so this isn't a big problem. Indices are made with instruction pointers,
-        // not raw bytecode pointers.
+        // but bytecode is fairly dense so this isn't a big problem. Indices are made with bytecode instruction pointers.
         var stackDepths = new int[code.length];
 
         // For jump retargeting, a second pass is needed. This list
@@ -156,8 +155,6 @@ public class BinaryLoader {
         // pass is complete. Each one is intended to replace a single instruction.
         var postProcessors = new ArrayList<Runnable>();
         var instructions = new ArrayList<Instruction>();
-
-
 
         int ip = 0;
         // SP - the "stack pointer." This always references the index on the stack (relative to this method's frame)
@@ -176,7 +173,6 @@ public class BinaryLoader {
             }else{
                 sp = stackDepths[ip];
             }
-            //stackDepths[instruction] = sp;
 
             switch(op){
                 case ADD -> {

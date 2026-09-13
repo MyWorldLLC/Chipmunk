@@ -33,15 +33,18 @@ public class CMethodBinding extends HostCObject {
     protected final Linker linker;
 
     protected MethodInvoker method;
+    protected int callIndex;
     protected double[] args;
 
     public CMethodBinding(double target, String methodName, Linker linker) {
         this.target = target;
         this.methodName = methodName;
         this.linker = linker;
+        args = new double[0];
     }
 
-    public void bindArgs(double[] args) {
+    public void bindArgs(int callIndex, double[] args) {
+        this.callIndex = callIndex;
         this.args = args;
     }
 
@@ -51,6 +54,10 @@ public class CMethodBinding extends HostCObject {
 
     public String methodName(){
         return methodName;
+    }
+
+    public int callIndex(){
+        return callIndex;
     }
 
     public double[] args(){
