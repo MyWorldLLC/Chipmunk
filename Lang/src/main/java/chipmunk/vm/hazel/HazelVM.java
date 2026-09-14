@@ -38,6 +38,8 @@ import java.util.stream.Stream;
  */
 public class HazelVM {
 
+    public static final int DEFAULT_FIBER_COUNT_LIMIT = 128;
+
     public enum State {
         NEW, RUNNING, SUSPENDED, EXITED
     }
@@ -48,6 +50,7 @@ public class HazelVM {
     protected final Map<String, ChipmunkModule> modules = new HashMap<>();
     protected final ModuleLoader moduleLoader;
 
+    protected final Limits limits;
     protected final MemoryStats memoryStats;
     protected final Heap heap;
 
@@ -60,9 +63,9 @@ public class HazelVM {
 
     public HazelVM(ModuleLoader moduleLoader) {
         this.moduleLoader = moduleLoader;
+        limits = new Limits();
         memoryStats = new MemoryStats();
         heap = new Heap(this);
-        heap.allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
         linker = new Linker();
     }
 
@@ -128,6 +131,10 @@ public class HazelVM {
         return null;
     }
 
+    public Limits limits() {
+        return limits;
+    }
+
     public MemoryStats memoryStats() {
         return memoryStats;
     }
@@ -154,6 +161,9 @@ public class HazelVM {
     }
 
     protected Fiber spawnFiber(CMethod method, double... args){
+        if(!limits.canSpawn(fibers.size())){
+            throw new ChipmunkException(currentFiber, "Cannot spawn fiber, fiber limit has been reached");
+        }
         var fiber = new Fiber(this, method);
         fiber.stack[0] = method.module().selfPtr();
         for(int i = 0; i < args.length; i++){

@@ -20,12 +20,13 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
 import chipmunk.vm.hazel.HazelVM;
-import chipmunk.vm.hazel.Value;
 
 import java.util.Arrays;
 
-public class CClass extends NamedHostObject {
+public class CClass extends NamedHostObject implements GCCollectable {
 
     protected double[] sharedFields;
     protected CClass[] sharedClassDefs;
@@ -158,5 +159,10 @@ public class CClass extends NamedHostObject {
     @Override
     public String toString(){
         return "CClass[" + name + "]";
+    }
+
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(sharedFields);
     }
 }

@@ -20,7 +20,10 @@
 
 package chipmunk.runtime;
 
-public final class CObject extends HostCObject {
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
+
+public final class CObject extends HostCObject implements GCCollectable {
 
     private final double[] storage;
     private final TraitGuard[] guards;
@@ -79,4 +82,8 @@ public final class CObject extends HostCObject {
         }
     }
 
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(storage);
+    }
 }

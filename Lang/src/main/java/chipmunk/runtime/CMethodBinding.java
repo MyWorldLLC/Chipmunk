@@ -20,13 +20,11 @@
 
 package chipmunk.runtime;
 
-import chipmunk.vm.hazel.Fiber;
-import chipmunk.vm.hazel.TypeError;
-import chipmunk.vm.hazel.Value;
+import chipmunk.vm.hazel.*;
 import chipmunk.vm.hazel.invoke.Linker;
 import chipmunk.vm.hazel.invoke.MethodInvoker;
 
-public class CMethodBinding extends HostCObject {
+public class CMethodBinding extends HostCObject implements GCCollectable {
 
     protected final double target;
     protected final String methodName;
@@ -78,5 +76,10 @@ public class CMethodBinding extends HostCObject {
         if(!Value.isPointer(ptr)) throw new TypeError(fiber, "Not a reference to an object: " + Value.toString(ptr) + "." + methodName + "(" + args + ")");
         var obj = heap.read(ptr);
         return getMethodInvoker(ptr, obj, fiber, methodName, args).invokeMethod(fiber, ip, bp, sp, obj);
+    }
+
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(args);
     }
 }

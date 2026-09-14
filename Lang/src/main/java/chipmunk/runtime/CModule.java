@@ -20,9 +20,12 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
+
 import java.util.Arrays;
 
-public class CModule extends HostNamespaced implements ChipmunkModule {
+public class CModule extends HostNamespaced implements ChipmunkModule, GCCollectable {
 
     protected final String fileName;
     protected Object[] constantPool;
@@ -114,5 +117,10 @@ public class CModule extends HostNamespaced implements ChipmunkModule {
 
     public void markInitialized(){
         initialized = true;
+    }
+
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(fields);
     }
 }

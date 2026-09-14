@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel;
 
+import chipmunk.ChipmunkException;
 import chipmunk.runtime.CMethod;
 
 import java.util.Arrays;
@@ -32,6 +33,9 @@ public final class Fiber {
 
     public static final int DEFAULT_INITIAL_STACK = 1024;
     public static final int DEFAULT_CALL_FRAMES = 32;
+
+    public static final int DEFAULT_STACK_LIMIT = 2048;
+    public static final int DEFAULT_CALL_FRAMES_LIMIT = 256;
 
     public enum State {
         RUNNABLE,
@@ -114,7 +118,9 @@ public final class Fiber {
             try{
                 callFrames[callFramePtr] = frame;
             }catch(ArrayIndexOutOfBoundsException e){
-                // TODO - support call stack limit, throw error when stack depth exceeded.
+                if(callFrames.length + DEFAULT_CALL_FRAMES > vm.limits().callStackDepth()){
+                    throw new ChipmunkException(this, "Call stack depth limit exceeded: " + callFrames.length);
+                }
                 var tmp = new Frame[callFrames.length * 2];
                 System.arraycopy(callFrames, 0, tmp, 0, callFrames.length);
                 callFrames = tmp;

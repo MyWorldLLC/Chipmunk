@@ -20,10 +20,25 @@
 
 package chipmunk.vm.hazel;
 
-import chipmunk.runtime.CObject;
 import chipmunk.vm.hazel.util.BitField;
 
 public class GarbageCollector {
+
+    public static class GCCollection {
+        protected final GarbageCollector collector;
+        protected final BitField black;
+        protected final BitField grey;
+
+        protected GCCollection(GarbageCollector collector, BitField black, BitField grey) {
+            this.collector = collector;
+            this.black = black;
+            this.grey = grey;
+        }
+
+        public void visitStorage(double[] storage){
+            collector.visitStorage(this, storage);
+        }
+    }
 
     protected final HazelVM vm;
     protected final Heap heap;
@@ -48,14 +63,13 @@ public class GarbageCollector {
         // now the bitfield has much better space efficiency.
         var grey = new BitField(heap.allocator().bitCount());
 
+        var collection = new GCCollection(this, black, grey);
+
         var allocator = heap.allocator();
 
         // Mark initial black set
         vm.allCModules().forEach(module -> {
-            var fields = module.getFields();
-            for(var field : fields){
-                markIfPointer(black, grey, field);
-            }
+            visitStorage(collection, module.getFields());
         });
 
         vm.allFibers().forEach(fiber-> {
@@ -63,7 +77,7 @@ public class GarbageCollector {
             var frame = fiber.currentFrame();
             var stackDepth = frame.bp + frame.method.maxStack();
             for(int i = frame.bp; i < frame.bp + stackDepth; i++){
-                markIfPointer(black, grey, stack[i]);
+                markIfPointer(collection, stack[i]);
             }
         });
 
@@ -77,7 +91,7 @@ public class GarbageCollector {
                     // We're exploring it, so move from grey set to black set.
                     grey.clear(i);
                     black.set(i);
-                    markFields(black, grey, heap.read(i));
+                    markFields(collection, heap.read(i));
                 }
             }
             greyEmpty = !foundOrMarkedPointer;
@@ -94,33 +108,36 @@ public class GarbageCollector {
         }
     }
 
-    private void markIfPointer(BitField black, BitField grey, double v){
+    private void markIfPointer(GCCollection collection, double v){
         if(Value.isPointer(v)){
             var ptr = (int) Value.getPointer(v);
             if(ptr != 0){
-                black.set(ptr);
+                collection.black.set(ptr);
                 var obj = heap.read(ptr);
-                markFields(black, grey, obj);
+                markFields(collection, obj);
             }
         }
     }
 
-    private void markFields(BitField black, BitField grey, Object obj){
-        if(obj instanceof CObject ins){
-            var d = ins.storage();
-            for(int i = 0; i < d.length; i++){
-                var v = d[i];
-                if(Value.isPointer(v)){
-                    var ptr = (int) Value.getPointer(v);
-                    if(!black.isSet(ptr)){
-                        grey.set(ptr);
+    private void markFields(GCCollection collection, Object obj){
+        if(obj instanceof GCCollectable collectable){
+            collectable.gcVisit(collection);
+        }
+        // If this isn't a GCCollectable then we know that it's a native object that does not expose storage to
+        // the GC and we have nothing to do.
+    }
+
+    protected void visitStorage(GCCollection collection, double[] storage){
+        for(var p : storage){
+            if(Value.isPointer(p)){
+                var ptr = (int) Value.getPointer(p);
+                if(ptr != Value.NULL_POINTER){
+                    if(!collection.black.isSet(ptr)){
+                        collection.grey.set(ptr);
                     }
                 }
             }
         }
-        // If this isn't a CObject then we know that it's a native object and we
-        // have nothing to do.
-        // TODO - other host objects, such as modules, class shared fields, etc.
     }
 
 }

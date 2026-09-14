@@ -30,7 +30,6 @@ public final class Heap {
     public static final int DEFAULT_GROWTH_STEP = 1024;
     public static final int DEFAULT_HEAP_LIMIT = 2048;
 
-    private final int limit;
     private final int step;
     private Object[] memory;
     private final BitFieldAllocator allocator;
@@ -39,25 +38,21 @@ public final class Heap {
     private final GarbageCollector gc;
 
     public Heap(HazelVM vm){
-        this(vm, DEFAULT_INITIAL_HEAP_SIZE, DEFAULT_HEAP_LIMIT);
+        this(vm, DEFAULT_INITIAL_HEAP_SIZE);
     }
 
     public Heap(HazelVM vm, int initialHeapSize){
-        this(vm, initialHeapSize, DEFAULT_HEAP_LIMIT);
+        this(vm, initialHeapSize, DEFAULT_GROWTH_STEP);
     }
 
-    public Heap(HazelVM vm, int initialHeapSize, int limit){
-        this(vm, initialHeapSize, limit, DEFAULT_GROWTH_STEP);
-    }
-
-    public Heap(HazelVM vm, int initialHeapSize, int limit, int step){
+    public Heap(HazelVM vm, int initialHeapSize, int step){
         this.vm = vm;
-        this.limit = limit;
         this.step = step;
         memory = new Object[initialHeapSize];
         allocator = new BitFieldAllocator(initialHeapSize);
         gc = new GarbageCollector(vm, this);
         // TODO - support GC pinning, and pin this so that the GC can never free the null pointer and allow it to be used.
+        allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
     }
 
     public Object read(double ptr){
@@ -83,9 +78,6 @@ public final class Heap {
 
     public double allocateAndWrite(Object obj){
         var ptr = allocate();
-        if(ptr == ALLOC_FAILURE){
-            new Exception().printStackTrace();
-        }
         write(ptr, obj);
         return Value.makePointer(ptr);
     }
@@ -93,9 +85,11 @@ public final class Heap {
     public long allocate(){
         var ptr = allocator.allocate();
         if(ptr == ALLOC_FAILURE){
-            System.out.println("Running GC");
             gc.collect();
             ptr = allocator.allocate();
+            if(ptr == ALLOC_FAILURE){
+                throw new HeapOverflowException(Value.NULL_POINTER, "Heap is full");
+            }
         }
         return ptr;
     }
@@ -107,6 +101,7 @@ public final class Heap {
 
     private void growHeap(long outOfBoundsPtr){
         try{
+            var limit = vm.limits().heapSlots();
             if(outOfBoundsPtr >= limit){
                 throw new HeapOverflowException(outOfBoundsPtr, "Required new heap size would exceed array size limits");
             }
