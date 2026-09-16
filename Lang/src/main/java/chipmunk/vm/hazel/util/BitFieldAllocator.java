@@ -81,5 +81,9 @@ public class BitFieldAllocator {
         state.resize(newSize);
     }
 
+    public BitField allocated(){
+        return state;
+    }
+
 }
 

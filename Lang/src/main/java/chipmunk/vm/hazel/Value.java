@@ -74,8 +74,8 @@ public class Value {
         return makeValue(address, POINTER_TYPE_FLAG);
     }
 
-    public static long getPointer(double v){
-        return toBits(v) ^ NAN_MASK ^ TYPE_MASK;
+    public static int getPointer(double v){
+        return (int) (toBits(v) ^ NAN_MASK ^ TYPE_MASK);
     }
 
     public static int toIntBits(double v){

@@ -61,12 +61,16 @@ public class HazelVM {
 
     protected volatile boolean yieldRequested;
 
-    public HazelVM(ModuleLoader moduleLoader) {
+    public HazelVM(ModuleLoader moduleLoader, Limits limits) {
         this.moduleLoader = moduleLoader;
-        limits = new Limits();
+        this.limits = limits;
         memoryStats = new MemoryStats();
-        heap = new Heap(this);
+        heap = new Heap(this, Math.min(limits.heapSlots(), Heap.DEFAULT_INITIAL_HEAP_SIZE));
         linker = new Linker();
+    }
+
+    public HazelVM(ModuleLoader moduleLoader) {
+        this(moduleLoader, new Limits());
     }
 
     public Optional<Object> run(){

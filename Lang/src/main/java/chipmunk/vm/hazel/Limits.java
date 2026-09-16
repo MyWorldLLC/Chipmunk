@@ -34,6 +34,17 @@ public class Limits {
         fiberCount = HazelVM.DEFAULT_FIBER_COUNT_LIMIT;
     }
 
+    public Limits(int heapSlots, int callStackDepth, int stackStorage, int fiberCount) {
+        this.heapSlots = heapSlots;
+        this.callStackDepth = callStackDepth;
+        this.stackStorage = stackStorage;
+        this.fiberCount = fiberCount;
+
+        if(!Heap.isValidHeapSize(heapSlots)){
+            throw new IllegalArgumentException("Invalid heap size, must be a multiple of 64: " + heapSlots);
+        }
+    }
+
     public int callStackDepth() {
         return callStackDepth;
     }

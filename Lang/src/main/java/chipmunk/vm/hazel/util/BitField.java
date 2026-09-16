@@ -57,6 +57,13 @@ public final class BitField {
         }
     }
 
+    public void intersect(BitField other){
+        var size = Math.min(words.length, other.words.length);
+        for(var word = 0; word < size; word++){
+            words[word] = words[word] & other.words[word];
+        }
+    }
+
     public long wordFor(int bitIndex){
         return words[bitIndex / 64];
     }

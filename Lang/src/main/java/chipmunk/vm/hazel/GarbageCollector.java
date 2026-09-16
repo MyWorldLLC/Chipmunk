@@ -35,6 +35,10 @@ public class GarbageCollector {
             this.grey = grey;
         }
 
+        public void visit(double ptr){
+            collector.markIfPointer(this, ptr);
+        }
+
         public void visitStorage(double[] storage){
             collector.visitStorage(this, storage);
         }
@@ -42,10 +46,16 @@ public class GarbageCollector {
 
     protected final HazelVM vm;
     protected final Heap heap;
+    protected final CollectionStats stats;
 
     public GarbageCollector(HazelVM vm, Heap heap) {
         this.vm = vm;
         this.heap = heap;
+        stats = new CollectionStats();
+    }
+
+    public CollectionStats collectionStats() {
+        return stats;
     }
 
     public void collect(){
@@ -58,6 +68,8 @@ public class GarbageCollector {
         // once and re-used until an entire collection cycle completes, because once a reference is in the white set
         // it will never be reachable again.
 
+        stats.reset();
+
         var black = new BitField(heap.allocator().bitCount());
         // Note: we should probably use a queue rather than a bitfield for efficiently tracking the grey set, but for
         // now the bitfield has much better space efficiency.
@@ -67,8 +79,12 @@ public class GarbageCollector {
 
         var allocator = heap.allocator();
 
+        // TODO - support full pinning?
+        black.set(0); // Null pointer is always considered black - never free it
+
         // Mark initial black set
         vm.allCModules().forEach(module -> {
+            collection.black.set(Value.getPointer(module.selfPtr()));
             visitStorage(collection, module.getFields());
         });
 
@@ -98,19 +114,22 @@ public class GarbageCollector {
         }
 
 
-        // Once the grey set is empty, negating the black set gives the white set.
+        // Once the grey set is empty, negating the black set gives the set of all unvisited pointers.
+        // The white set is the intersection of all unvisited pointers with the allocated pointers.
         black.negate();
+        black.intersect(allocator.allocated());
         for(int i = 0; i < black.bitCount(); i++){
             if(black.isSet(i)){
                 allocator.free(i);
                 // TODO - estimate and record overall memory impact of freeing these objects
+                stats.slotFreed();
             }
         }
     }
 
     private void markIfPointer(GCCollection collection, double v){
         if(Value.isPointer(v)){
-            var ptr = (int) Value.getPointer(v);
+            var ptr = Value.getPointer(v);
             if(ptr != 0){
                 collection.black.set(ptr);
                 var obj = heap.read(ptr);
@@ -130,7 +149,7 @@ public class GarbageCollector {
     protected void visitStorage(GCCollection collection, double[] storage){
         for(var p : storage){
             if(Value.isPointer(p)){
-                var ptr = (int) Value.getPointer(p);
+                var ptr = Value.getPointer(p);
                 if(ptr != Value.NULL_POINTER){
                     if(!collection.black.isSet(ptr)){
                         collection.grey.set(ptr);

@@ -315,6 +315,37 @@ class ExpressionVisitorSpecification extends Specification {
 		then:
 		result == 2
 	}
+
+	def "Evaluate 0x2 | 0x1"(){
+		when:
+		def result = parseAndCall("""0x2 | 0x1""")
+
+		then:
+		result == 0x3
+	}
+
+	def "Evaluate 0x2 & 0x1"(){
+		when:
+		def result = parseAndCall("""0x2 & 0x2""")
+
+		then:
+		result == 0x2
+	}
+
+	def "Evaluate 0x3 ^ 0x1"(){
+		when:
+		def result = parseAndCall("""0x3 ^ 0x1""")
+
+		then:
+		result == 0x2
+	}
+	def "Evaluate ~0b1010_1010"(){
+		when:
+		def result = parseAndCall("""~0b1010_1010""")
+
+		then:
+		(0xFF & (int) result) == 0b0101_0101
+	}
 	
 	def parseAndCall(String expression){
 

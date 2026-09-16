@@ -46,6 +46,12 @@ public final class Heap {
     }
 
     public Heap(HazelVM vm, int initialHeapSize, int step){
+        if(!isValidHeapSize(initialHeapSize)){
+            throw new IllegalArgumentException("Invalid heap size, must be a multiple of 64: " + initialHeapSize);
+        }
+        if(!isValidHeapSize(step)){
+            throw new IllegalArgumentException("Invalid heap step, must be a multiple of 64: " + step);
+        }
         this.vm = vm;
         this.step = step;
         memory = new Object[initialHeapSize];
@@ -59,21 +65,29 @@ public final class Heap {
         return read(Value.getPointer(ptr));
     }
 
-    public Object read(long ptr){
-        return memory[(int) ptr];
+    public Object read(int ptr){
+        return memory[ptr];
     }
 
-    public void write(long ptr, Object value){
+    public void write(int ptr, Object value){
         try{
-            memory[(int) ptr] = value;
+            memory[ptr] = value;
         }catch(ArrayIndexOutOfBoundsException e){
             growHeap(ptr);
-            memory[(int) ptr] = value;
+            memory[ptr] = value;
         }
     }
 
     public BitFieldAllocator allocator(){
         return allocator;
+    }
+
+    public GarbageCollector gc(){
+        return gc;
+    }
+
+    public int freeSpace(){
+        return allocator.freeSpace();
     }
 
     public double allocateAndWrite(Object obj){
@@ -82,7 +96,7 @@ public final class Heap {
         return Value.makePointer(ptr);
     }
 
-    public long allocate(){
+    public int allocate(){
         var ptr = allocator.allocate();
         if(ptr == ALLOC_FAILURE){
             gc.collect();
@@ -91,15 +105,18 @@ public final class Heap {
                 throw new HeapOverflowException(Value.NULL_POINTER, "Heap is full");
             }
         }
+        if(ptr >= memory.length){
+            growHeap(ptr);
+        }
         return ptr;
     }
 
-    public void free(long ptr){
-        memory[(int) ptr] = null;
-        allocator.free((int) ptr);
+    public void free(int ptr){
+        memory[ptr] = null;
+        allocator.free(ptr);
     }
 
-    private void growHeap(long outOfBoundsPtr){
+    private void growHeap(int outOfBoundsPtr){
         try{
             var limit = vm.limits().heapSlots();
             if(outOfBoundsPtr >= limit){
@@ -112,5 +129,9 @@ public final class Heap {
         } catch (ArithmeticException ex) {
             throw new HeapOverflowException(outOfBoundsPtr, "Required new heap size would exceed array size limits");
         }
+    }
+
+    public static boolean isValidHeapSize(int size){
+        return size % 64 == 0;
     }
 }
