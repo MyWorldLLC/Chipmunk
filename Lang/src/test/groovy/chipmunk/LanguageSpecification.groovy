@@ -471,4 +471,20 @@ class LanguageSpecification extends Specification {
 		then:
 		result ==  [5, 3, 3, 15, 3]
 	}
+
+	def "Run ObjectComparisons.chp"(){
+		when:
+		def result = compileAndRun("ObjectComparisons.chp", true)
+
+		then:
+		result == 5
+	}
+
+	def "Run ObjectTruth.chp"(){
+		when:
+		def result = compileAndRun("ObjectTruth.chp", true)
+
+		then:
+		result == 5
+	}
 }

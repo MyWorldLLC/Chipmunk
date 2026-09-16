@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
@@ -30,7 +31,6 @@ public class UnaryCondition extends CallingInstruction {
 
     public static final int COND_TRUE = 0;
     public static final int COND_NOT = 1;
-    public static final int COND_NULL = 2; // TODO - don't think there's any way to use this - null will probably always be checked with pointer equality
 
     protected final int condition;
     protected final int target;
@@ -50,17 +50,32 @@ public class UnaryCondition extends CallingInstruction {
         var stack = fiber.stack;
         var a = stack[bp + sp - 1];
         boolean result = false;
-        if (chipmunk.vm.hazel.Value.isNumber(a)) {
+        if (Value.isNumber(a)) {
             result = switch (condition) {
                 case COND_TRUE -> Value.isNumber(a) && a != 0.0;
                 case COND_NOT -> !(Value.isNumber(a) && a != 0.0);
-                case COND_NULL -> Value.isPointer(a) && Value.isNullPointer(a);
                 default -> false;
             };
+        }else if(Value.isNullPointer(a)){
+            result = false;
         }else{
-            // TODO - object truth & branch
+            fiber.continueWith((f, frame) -> {
+                var dValue = stack[bp + sp - 1];
+                var cResult = switch (condition) {
+                    case COND_TRUE -> Value.isTruthy(dValue);
+                    case COND_NOT -> !Value.isTruthy(dValue);
+                    default -> false;
+                };
+                frame.continuation = null;
+                frame.ip = handleResult(ip, stack, bp, cResult);
+            });
+            return dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 1);
         }
 
+        return handleResult(ip, stack, bp, result);
+    }
+
+    private int handleResult(int ip, double[] stack, int bp, boolean result){
         if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){

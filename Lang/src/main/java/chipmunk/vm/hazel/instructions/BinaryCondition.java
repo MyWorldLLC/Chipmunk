@@ -20,6 +20,8 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.CObject;
+import chipmunk.vm.OpcodeNames;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
@@ -78,20 +80,35 @@ public class BinaryCondition extends CallingInstruction {
                 default -> false;
             };
         }else{
-            // TODO - object truth & comparison
-            result = switch (condition) {
-                case COND_LT -> a < b;
-                case COND_LE -> a <= b;
-                case COND_EQ -> a == b;
-                case COND_NE -> a != b;
-                case COND_GE -> a >= b;
-                case COND_GT -> a > b;
-                case COND_IS -> Value.getPointer(a) == Value.getPointer(b);
-                case COND_INSTANCEOF -> false; // TODO
-                default -> false;
-            };
+            switch (condition) {
+                case COND_IS -> result = Value.getPointer(a) == Value.getPointer(b);
+                case COND_INSTANCEOF -> result = Value.getPointer(((CObject) fiber.vm().heap().read(a)).classPtr()) == Value.getPointer(b); // TODO - trait support for instanceof
+                default -> {
+                    fiber.continueWith((f, frame) -> {
+                        var dValue = stack[bp + sp - 2];
+                        var iValue = (int) dValue;
+                        var cResult = switch (condition) {
+                            case COND_LT -> iValue < 0;
+                            case COND_LE -> iValue <= 0;
+                            case COND_EQ -> Value.isTruthy(dValue);
+                            case COND_NE -> !Value.isTruthy(dValue);
+                            case COND_GE -> iValue >= 0;
+                            case COND_GT -> iValue > 0;
+                            default -> false;
+                        };
+                        frame.continuation = null;
+                        frame.ip = handleResult(ip, stack, bp, cResult);
+                    });
+                    var method = condition == COND_EQ || condition == COND_NE ? OpcodeNames.EQ : OpcodeNames.COMPARE;
+                    return dynamicCall(fiber, ip, bp, sp, method, 2);
+                }
+            }
         }
 
+        return handleResult(ip, stack, bp, result);
+    }
+
+    private int handleResult(int ip, double[] stack, int bp, boolean result){
         if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){

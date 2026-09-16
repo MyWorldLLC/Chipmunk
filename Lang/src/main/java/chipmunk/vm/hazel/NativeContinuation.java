@@ -20,8 +20,8 @@
 
 package chipmunk.vm.hazel;
 
-public abstract class NativeContinuation {
+public interface NativeContinuation {
 
-    public abstract void resume(Fiber fiber, Fiber.Frame frame);
+    void resume(Fiber fiber, Fiber.Frame frame);
 
 }

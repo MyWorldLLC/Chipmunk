@@ -80,7 +80,7 @@ public class GarbageCollector {
         var allocator = heap.allocator();
 
         // TODO - support full pinning?
-        black.set(0); // Null pointer is always considered black - never free it
+        black.set(0); // Null pointer must always be in the black set since we don't have pinning yet.
 
         // Mark initial black set
         vm.allCModules().forEach(module -> {

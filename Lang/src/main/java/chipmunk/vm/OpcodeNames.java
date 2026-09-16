@@ -47,10 +47,7 @@ public class OpcodeNames {
 
     // Comparison/Boolean operations
     public static final String EQ = "equals";
-    public static final String GT = "compare";
-    public static final String LT = "compare";
-    public static final String GE = "compare";
-    public static final String LE = "compare";
+    public static final String COMPARE = "compareTo";
 
     // Object operations
     public static final String INSTANCEOF = "instanceOf";

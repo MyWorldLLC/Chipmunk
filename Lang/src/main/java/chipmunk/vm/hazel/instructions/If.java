@@ -27,6 +27,8 @@ import chipmunk.vm.hazel.invoke.Linker;
 
 public class If extends CallingInstruction {
 
+    public static final int NO_JUMP = Integer.MIN_VALUE;
+
     protected final int target;
 
     public If(int sp, Linker linker, int target) {
@@ -44,10 +46,19 @@ public class If extends CallingInstruction {
         }else if(Value.isNullPointer(a)){
             result = false;
         }else{
-            dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 1);
+            fiber.continueWith((f, frame) -> {
+                var dValue = stack[bp + sp - 1];
+                frame.continuation = null;
+                frame.ip = handleResult(ip, stack, bp, Value.isTruthy(dValue));
+            });
+            return dynamicCall(fiber, ip, bp, sp, OpcodeNames.TRUTH, 1);
         }
 
-        if(target != Integer.MIN_VALUE){
+        return handleResult(ip, stack, bp, result);
+    }
+
+    private int handleResult(int ip, double[] stack, int bp, boolean result){
+        if(target != NO_JUMP){
             // Note that branches use inverse of result - if the condition does not hold, the branch is taken
             if(!result){
                 return target;
