@@ -21,7 +21,6 @@ open module chipmunk.lang {
     exports chipmunk.modules.lang;
     exports chipmunk.modules.math;
     exports chipmunk.modules.uuid;
-    exports chipmunk.nut;
     exports chipmunk.runtime;
     exports chipmunk.util;
     exports chipmunk.util.pattern;
