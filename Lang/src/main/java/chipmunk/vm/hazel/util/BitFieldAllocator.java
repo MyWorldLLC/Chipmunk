@@ -30,7 +30,6 @@ public class BitFieldAllocator {
     public static final int ALLOC_FAILURE = -1;
 
     private final BitField state;
-    private int lastFree = 0;
     private int allocated = 0;
 
     public BitFieldAllocator(int initialSize){
@@ -38,14 +37,6 @@ public class BitFieldAllocator {
     }
 
     public int allocate(){
-        if(lastFree != -1){
-            state.set(lastFree);
-            var ptr = lastFree;
-            lastFree = -1;
-            allocated++;
-            return ptr;
-        }
-
         for(int i = 0; i < state.wordCount(); i++){
             var word = state.word(i);
             var freeBit = Long.highestOneBit(~word);
@@ -66,7 +57,6 @@ public class BitFieldAllocator {
     public void free(int ptr){
         allocated--;
         state.clear(ptr);
-        lastFree = ptr;
     }
 
     public int bitCount(){
