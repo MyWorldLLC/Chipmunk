@@ -20,43 +20,26 @@
 
 package chipmunk.vm;
 
-import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.modules.lang.LangModule;
-import chipmunk.runtime.ChipmunkModule;
-import chipmunk.runtime.MethodBinding;
-import chipmunk.runtime.NativeTypeLib;
 import chipmunk.vm.hazel.EntryPoint;
-import chipmunk.vm.invoke.ChipmunkLibraries;
-import chipmunk.vm.invoke.ChipmunkLinker;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.hazel.Limits;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import chipmunk.vm.jvm.*;
 import chipmunk.vm.scheduler.Scheduler;
-import jdk.dynalink.linker.GuardedInvocation;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 public class ChipmunkVM {
 
 	protected volatile LinkingPolicy defaultLinkPolicy;
-	protected volatile ChipmunkLibraries defaultLibraries;
-	protected volatile JvmCompilerConfig defaultJvmCompilerConfig;
-	protected volatile TrapHandler defaultTrapHandler;
 
 	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
 	protected final AtomicLong scriptIds;
@@ -64,27 +47,25 @@ public class ChipmunkVM {
 	protected final Scheduler scheduler;
 	protected final ModuleLoader rootLoader;
 
+	protected Limits defaultLimits;
+
 	public ChipmunkVM() {
-		this(SecurityMode.ALLOWING);
+		this(SecurityMode.DENYING);
 	}
 
 	public ChipmunkVM(SecurityMode securityMode) {
 
 		defaultLinkPolicy = new LinkingPolicy(securityMode);
-		defaultLibraries = new ChipmunkLibraries();
-		defaultLibraries.registerLibrary(new NativeTypeLib());
 
 		runningScripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
 		scriptExecutor = Executors.newVirtualThreadPerTaskExecutor();
 		scheduler = new Scheduler();
 
-		defaultJvmCompilerConfig = new JvmCompilerConfig(defaultLinkPolicy, new TrapConfig());
-
-		defaultTrapHandler = new TrapHandler() {};
-
 		rootLoader = new ModuleLoader();
 		rootLoader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
+
+		defaultLimits = new Limits();
 	}
 
 	public ModuleLoader rootLoader(){
@@ -97,18 +78,6 @@ public class ChipmunkVM {
 
 	public void setDefaultLinkPolicy(LinkingPolicy policy){
 		defaultLinkPolicy = policy;
-	}
-
-	public void setDefaultLibraries(ChipmunkLibraries libraries){
-		defaultLibraries = libraries;
-	}
-
-	public ChipmunkLibraries getDefaultLibraries(){
-		return defaultLibraries;
-	}
-
-	public TrapHandler getDefaultTrapHandler(){
-		return defaultTrapHandler;
 	}
 
 	public void start() {
@@ -124,8 +93,7 @@ public class ChipmunkVM {
 		return scheduler;
 	}
 
-
-	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk, IOException, BinaryFormatException {
+	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk {
 		Compilation compilation = new Compilation();
 		compilation.addSource(new ChipmunkSource(is, fileName));
 		return compileScript(compilation);
@@ -144,7 +112,7 @@ public class ChipmunkVM {
 	public ChipmunkScript compileScript(EntryPoint entryPoint, BinaryModule... modules) {
 
 		var script = new ChipmunkScript(this, scriptIds.incrementAndGet(), new ModuleLoader(rootLoader, Arrays.asList(modules)));
-		// TODO - configure default HVM limits
+		script.getHazelVM().limits().copyFrom(defaultLimits);
 		script.getHazelVM().entryPoint(entryPoint);
 
 		return script;
@@ -163,34 +131,7 @@ public class ChipmunkVM {
 		return result.get();
 	}
 
-	/*@AllowChipmunkLinkage
-	public ChipmunkModule getModule(String moduleName) throws Throwable {
-		return getModule(ChipmunkScript.getCurrentScript(), moduleName);
-	}*/
-
-	/*public ChipmunkModule getModule(ChipmunkScript script, String moduleName) throws Throwable {
-		script.getModuleLoader().load(moduleName);
-		ChipmunkModule module = script.modules.get(moduleName);
-		if(module != null){
-			return module;
-		}
-
-		module = script.getModuleLoader().load(moduleName, script.getJvmCompiler());
-
-		if(module == null){
-			throw new ModuleLoadException(String.format("Module %s not found", moduleName));
-		}
-
-		script.modules.put(moduleName, module);
-		module.initialize(this);
-		return module;
-	}*/
-
-	public Object invoke(Object target, String methodName) throws Throwable {
-		return invoke(target, methodName, null);
-	}
-
-	public Object invoke(Object target, String methodName, Object[] params) throws Throwable {
+	/*public Object invoke(Object target, String methodName, Object[] params) throws Throwable {
 
 		ChipmunkLinker linker = new ChipmunkLinker();
 		ChipmunkLinker.setLibrariesForThread(defaultLibraries);
@@ -207,9 +148,9 @@ public class ChipmunkVM {
 				.getInvocationHandle(MethodHandles.lookup(), target, MethodType.methodType(Object.class), methodName, callParams, false);
 
 		return invoker.getInvocation().invokeWithArguments(callParams);
-	}
+	}*/
 
-	public Object invoke(ChipmunkScript script, Object target, String methodName){
+	/*public Object invoke(ChipmunkScript script, Object target, String methodName){
 		return invoke(script, target, methodName, null);
 	}
 
@@ -232,9 +173,9 @@ public class ChipmunkVM {
 			//ChipmunkScript.setCurrentScript(null);
 			scheduler.notifyInvocationEnded(script);
 		}
-	}
+	}*/
 
-	public CompletableFuture<Object> runAsync(ChipmunkScript script) {
+	/*public CompletableFuture<Object> runAsync(ChipmunkScript script) {
 		return invokeAsync(script, script, "run");
 	}
 
@@ -253,9 +194,9 @@ public class ChipmunkVM {
 			ChipmunkScript.setCurrentScript(null);
 			return value;
 		}, scriptExecutor);
-	}
+	}*/
 
-	public CompletableFuture<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
+	/*public CompletableFuture<Object> runInScriptPool(ChipmunkScript script, Callable<Object> task){
 		scheduler.notifyQueuedForInvocation(script);
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -279,115 +220,6 @@ public class ChipmunkVM {
 				scheduler.notifyInvocationEnded(script);
 			}
 		}, scriptExecutor);
-	}
-
-	/*@AllowChipmunkLinkage
-	public MethodBinding bind(Object target, String methodName) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-		return (MethodBinding) getBinding(target, methodName).getConstructor(Object.class, String.class).newInstance(target, methodName);
-	}
-
-	@AllowChipmunkLinkage
-	public MethodBinding bindArgs(MethodBinding delegate, int pos, Object[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-		return (MethodBinding) getArgBinding(delegate.getClass(), pos, args.length).getConstructor(MethodBinding.class, int.class, Object[].class).newInstance(delegate, pos, args);
-	}
-
-	public Class<?> getBinding(Object target, String method){
-
-		Objects.requireNonNull(target, "Cannot bind to null");
-
-		var targetType = target.getClass();
-
-		var bindingName = MethodBinding.class.getName() + "$" + targetType.getName().replace('.', '_') + "$" + method;
-
-		var script = ChipmunkScript.getCurrentScript();
-		try {
-			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
-		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().bindingFor(script.getModuleLoader().getClassLoader(), bindingName, targetType, method);
-		}
-	}
-
-	public Class<?> getArgBinding(Class<? extends MethodBinding> delegateType, int pos, int argCount){
-		var bindingName = delegateType.getName() + "$bound$%d$%d".formatted(pos, argCount);
-
-		var script = ChipmunkScript.getCurrentScript();
-		try {
-			return script.getModuleLoader().getClassLoader().loadClass(bindingName);
-		} catch (ClassNotFoundException e) {
-			return script.getJvmCompiler().argBindingFor(script.getModuleLoader().getClassLoader(), bindingName, delegateType, pos, argCount);
-		}
 	}*/
-
-	/*@SuppressWarnings("unchecked")
-	public <T> T proxy(Class<T> interfaceType, Object target) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-		if(!interfaceType.isInterface()){
-			throw new IllegalArgumentException(interfaceType.getName() + " is not an interface type");
-		}
-
-		var isSamType = isSamType(interfaceType);
-
-		if(target instanceof MethodBinding && !isSamType){
-			throw new IllegalArgumentException("MethodBinding target may only be cast to a functional interface");
-		}
-
-		var proxyName = "chipmunk.proxy." + interfaceType.getName() + "$Proxy$" + target.getClass().getName().replace('.', '$');
-
-		var script = ChipmunkScript.getCurrentScript();
-		var classloader = script.getModuleLoader().getClassLoader();
-
-		Class<T> proxyType;
-		try {
-			proxyType = (Class<T>) classloader.loadClass(proxyName);
-		} catch (ClassNotFoundException e) {
-			proxyType = script.getJvmCompiler()
-					.makeProxyInterfaceImpl(script.getModuleLoader().getClassLoader(), proxyName, interfaceType, isSamType);
-		}
-
-		return proxyType.getConstructor(ChipmunkScript.class, Object.class).newInstance(script, target);
-	}*/
-
-	protected boolean isSamType(Class<?> interfaceType){
-		var nonDefaults = 0;
-		for(var method : interfaceType.getDeclaredMethods()){
-			if(!method.isDefault()){
-				nonDefaults++;
-			}
-		}
-		return nonDefaults == 1;
-	}
-
-	private static void handleTrap(Consumer<TrapHandler> h){
-		var script = ChipmunkScript.getCurrentScript();
-		if(script != null){
-			var handler = script.getTrapHandler();
-			if(handler != null){
-				h.accept(handler);
-			}
-		}
-	}
-
-	public static void trap(Object payload){
-		handleTrap(handler -> handler.runtimeTrap(payload));
-	}
-
-	public static void backJump(TrapSite site){
-		handleTrap(handler -> handler.backJump(site));
-	}
-
-	public static void trapObjectAlloc(TrapSite site, Class<?> objectType){
-		handleTrap(hander -> hander.objectAlloc(site, objectType));
-	}
-
-	public static void trapArrayAlloc(TrapSite site, Class<?> arrayType, int dimensions, int capacity){
-		handleTrap(handler -> handler.arrayAlloc(site, arrayType, dimensions, capacity));
-	}
-
-	public static void trapMethodCall(TrapSite site, MethodIdentifier method){
-		handleTrap(handler -> handler.methodCall(site, method));
-	}
-
-	public static void trapObjectInit(TrapSite site, Object object){
-		handleTrap(handler -> handler.postObjectInit(site, object));
-	}
 
 }

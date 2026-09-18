@@ -32,16 +32,16 @@ public class CMethodBinding extends HostCObject implements GCCollectable {
 
     protected MethodInvoker method;
     protected int callIndex;
-    protected double[] args;
+    protected CList args;
 
-    public CMethodBinding(double target, String methodName, Linker linker) {
+    public CMethodBinding(HazelVM vm, double target, String methodName, Linker linker) {
         this.target = target;
         this.methodName = methodName;
         this.linker = linker;
-        args = new double[0];
+        args = new CList(vm);
     }
 
-    public void bindArgs(int callIndex, double[] args) {
+    public void bindArgs(int callIndex, CList args) {
         this.callIndex = callIndex;
         this.args = args;
     }
@@ -58,7 +58,7 @@ public class CMethodBinding extends HostCObject implements GCCollectable {
         return callIndex;
     }
 
-    public double[] args(){
+    public CList args(){
         return args;
     }
 
@@ -80,6 +80,6 @@ public class CMethodBinding extends HostCObject implements GCCollectable {
 
     @Override
     public void gcVisit(GarbageCollector.GCCollection collection) {
-        collection.visitStorage(args);
+        args.gcVisit(collection);
     }
 }

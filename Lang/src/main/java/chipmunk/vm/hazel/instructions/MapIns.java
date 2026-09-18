@@ -20,6 +20,7 @@
 
 package chipmunk.vm.hazel.instructions;
 
+import chipmunk.runtime.CMap;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
@@ -36,7 +37,7 @@ public class MapIns extends Instruction {
 
     @Override
     public int apply(Fiber fiber, int ip, int bp) {
-        fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(new HashMap<>(elements));
+        fiber.stack[bp + sp] = fiber.vm().heap().allocateAndWrite(new CMap(fiber.vm(), elements));
         return ip + 1;
     }
 }

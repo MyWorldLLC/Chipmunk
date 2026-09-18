@@ -361,8 +361,8 @@ public class NativeTypeLib implements ChipmunkLibrary {
     public static ArrayList<Object> sort(ArrayList<Object> a, Object comparator){
         ChipmunkScript script = ChipmunkScript.getCurrentScript();
         ChipmunkVM vm = script.getVM();
-        Collections.sort(a, (b, c) ->
-            (Integer) vm.invoke(script, comparator, "compare", new Object[]{b, c})
+        Collections.sort(a, (b, c) -> 0
+            // (Integer) vm.invoke(script, comparator, "compare", new Object[]{b, c})
         );
         return a;
     }

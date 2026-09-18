@@ -255,7 +255,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("IfElseExpressions.chp", true)
 
 		then:
-		result == [2, 5]
+		result.toList() == [2, 5]
 	}
 	
 	def "Run Mandelbrot.chp"(){
@@ -351,15 +351,15 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("ListSort.chp")
 
 		then:
-		result == [1, 2, 3]
+		result.toList() == [1, 2, 3]
 	}
 
-	def "Run ListSortWithComparator.chp"(){
+	def "Run ListSortWithKeys.chp"(){
 		when:
-		def result = compileAndRun("ListSortWithComparator.chp")
+		def result = compileAndRun("ListSortWithKeys.chp")
 
 		then:
-		result == [1, 2, 3]
+		result.toList() == [1, 2, 3]
 	}
 
 	def "Run ClassMethodBinding.chp"(){
@@ -391,7 +391,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("BoundMethodArgs.chp", true)
 
 		then:
-		result == [11, 10, 14, 11, 11]
+		result.toList() == [11, 10, 14, 11, 11]
 	}
 
 	def "Run UnimplementedMethod.chp"(){
@@ -407,7 +407,7 @@ class LanguageSpecification extends Specification {
 		when:
 		def result = compileAndRun("Upvalues.chp", true)
 
-		then: result == [5, 3, 3, 15, 3]
+		then: result.toList() == [5, 3, 3, 15, 3]
 	}
 
 	@Ignore
@@ -469,7 +469,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("TypeAnnotations.chp", true)
 
 		then:
-		result ==  [5, 3, 3, 15, 3]
+		result.toList() ==  [5, 3, 3, 15, 3]
 	}
 
 	def "Run ObjectComparisons.chp"(){

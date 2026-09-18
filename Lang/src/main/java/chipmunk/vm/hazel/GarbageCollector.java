@@ -79,7 +79,6 @@ public class GarbageCollector {
 
         var allocator = heap.allocator();
 
-        // TODO - support full pinning?
         black.set(0); // Null pointer must always be in the black set since we don't have pinning yet.
 
         // Mark initial black set

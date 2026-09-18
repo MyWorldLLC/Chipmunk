@@ -40,7 +40,7 @@ public class Linker {
     protected final NativeBinding binding;
 
     public Linker() {
-        this(new LinkingPolicy(SecurityMode.ALLOWING));
+        this(new LinkingPolicy(SecurityMode.DENYING));
     }
 
     public Linker(LinkingPolicy linkingPolicy) {

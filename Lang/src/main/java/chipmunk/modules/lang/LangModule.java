@@ -20,6 +20,7 @@
 
 package chipmunk.modules.lang;
 
+import chipmunk.ChipmunkException;
 import chipmunk.runtime.*;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.hazel.TypeError;
@@ -82,31 +83,53 @@ public class LangModule implements NativeModule {
         });
 
 
-        binding.register(ArrayList.class, builder -> {
+        binding.register(CList.class, builder -> {
+
+            builder.withNativeMethod("add", ((fiber, ip, bp, sp, argCount, target) -> {
+                var value = fiber.readArg(bp, sp, 2, 1);
+                ((CList) target).add(value);
+                fiber.pushResult(bp, sp, 2, value);
+                return ip + 1;
+            }));
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = (int) fiber.readArg(bp, sp, 2, 1);
-                var value = ((ArrayList) target).get(index);
+                var value = ((CList) target).get(index);
                 fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = (int) fiber.readArg(bp, sp, 3, 1);
-                var prior = ((ArrayList) target).set(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
+                var prior = ((CList) target).set(index, fiber.readArg(bp, sp, 3, 2));
                 fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
                 return ip + 1;
             }));
 
             builder.withNativeMethod("sort", ((fiber, ip, bp, sp, argCount, target) -> {
-                ((ArrayList) target).sort(Comparator.naturalOrder());
-                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // Return self as the result
+                if(argCount == 2){
+                    try{
+                        ((CList) target).sort((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1)));
+                        fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // Return self as the result
+                    } catch (Exception e) {
+                        throw new ChipmunkException(fiber, e.getMessage(), e);
+                    }
+                }else{
+                    ((CList) target).sort();
+                    fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // Return self as the result
+                }
                 return ip + 1;
             }));
 
             builder.withNativeMethod("iterator", ((fiber, ip, bp, sp, argCount, target) -> {
-                var it = new CListIterator((List)fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0)));
+                var it = new CListIterator((CList)fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0)));
                 fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(it));
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("compact", ((fiber, ip, bp, sp, argCount, target) -> {
+                ((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1))).compact();
+                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // return self
                 return ip + 1;
             }));
 
@@ -124,19 +147,19 @@ public class LangModule implements NativeModule {
             }));
         });
 
-        binding.register(HashMap.class, builder -> {
+        binding.register(CMap.class, builder -> {
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {
-                var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
-                var value = ((HashMap) target).get(index);
-                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
+                var index = fiber.readArg(bp, sp, 2, 1);
+                var value = ((CMap) target).get(index);
+                fiber.pushResult(bp, sp, 2, value);
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
-                var index = fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 1));
-                var prior = ((HashMap) target).put(index, fiber.vm().toHostValue(fiber.readArg(bp, sp, 3, 2)));
-                fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
+                var index = fiber.readArg(bp, sp, 3, 1);
+                var prior = ((CMap) target).insert(index, fiber.readArg(bp, sp, 3, 2));
+                fiber.pushResult(bp, sp, 3, prior);
                 return ip + 1;
             }));
 
@@ -156,38 +179,32 @@ public class LangModule implements NativeModule {
                 var methodBinding = (CMethodBinding) target;
 
                 var boundArgs = methodBinding.args();
-                var totalArgs = argCount + boundArgs.length;
+                var totalArgs = argCount + boundArgs.size();
 
                 // We use a +1 offset so that parameter indices align with the method's formal parameter list, skipping self
                 var argIndex = methodBinding.callIndex() + 1;
 
                 // Shift the current args up the stack (skipping self)
-                System.arraycopy(fiber.stack, bp + sp - argCount + argIndex, fiber.stack, bp + sp - argCount + argIndex + boundArgs.length, argCount - 1);
+                System.arraycopy(fiber.stack, bp + sp - argCount + argIndex, fiber.stack, bp + sp - argCount + argIndex + boundArgs.size(), argCount - 1);
 
                 // Bulk copy the bound args to the stack
-                System.arraycopy(boundArgs, 0, fiber.stack, bp + sp - argCount + argIndex, boundArgs.length);
+                System.arraycopy(boundArgs.rawStorage(), 0, fiber.stack, bp + sp - argCount + argIndex, boundArgs.size());
 
                 // Overwrite self
                 fiber.pushResult(bp, sp, argCount, methodBinding.target());
-                return methodBinding.dynamicCall(fiber, ip, bp, sp + boundArgs.length, methodBinding.methodName(), totalArgs);
+                return methodBinding.dynamicCall(fiber, ip, bp, sp + boundArgs.size(), methodBinding.methodName(), totalArgs);
             }));
 
             builder.withNativeMethod("bindArgs", ((fiber, ip, bp, sp, argCount, target) -> {
                 var methodBinding = (CMethodBinding) target;
                 var heap = fiber.vm().heap();
-                var argList = (List) heap.read(fiber.readArg(bp, sp, argCount, 2));
                 var argIndex = fiber.readArg(bp, sp, argCount, 1);
                 if(!Value.isNumber(argIndex)){
                     throw new TypeError(fiber, "argIndex must be a number");
                 }
 
-                var boundArgs = new double[argList.size()];
-
-                // TODO - use a Chipmunk-native list so we don't have to do Chipmunk-host-Chipmunk round trips.
-                for(int i = 0; i < boundArgs.length; i++){
-                    boundArgs[i] = fiber.vm().fromHostValue(argList.get(i));
-                }
-                methodBinding.bindArgs((int) argIndex, boundArgs);
+                var argList = (CList) heap.read(fiber.readArg(bp, sp, argCount, 2));
+                methodBinding.bindArgs((int) argIndex, argList);
 
                 return ip + 1;
             }));

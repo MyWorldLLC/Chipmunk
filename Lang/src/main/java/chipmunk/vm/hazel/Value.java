@@ -79,7 +79,7 @@ public class Value {
     }
 
     public static int toIntBits(double v){
-        return (int) v;
+        return (int) toBits(v);
     }
 
     public static double fromIntBits(int v){

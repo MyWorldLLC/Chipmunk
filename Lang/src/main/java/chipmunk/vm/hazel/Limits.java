@@ -92,4 +92,11 @@ public class Limits {
     public boolean canSpawn(int currentFibers){
         return currentFibers + 1 <= fiberCount;
     }
+
+    public void copyFrom(Limits other){
+        this.callStackDepth = other.callStackDepth;
+        this.stackStorage = other.stackStorage;
+        this.heapSlots = other.heapSlots;
+        this.fiberCount = other.fiberCount;
+    }
 }

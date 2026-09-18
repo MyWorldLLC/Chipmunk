@@ -27,6 +27,7 @@ import chipmunk.vm.HeapOverflowError;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.Uncatchable;
 import chipmunk.vm.hazel.invoke.Linker;
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
 
 import java.io.IOException;
 import java.util.*;
@@ -92,8 +93,6 @@ public class HazelVM {
                 if(main == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
                 }
-                /*System.out.println("===== Method: " + main.name() + " =====");
-                System.out.println(main.dumpCode());*/
                 spawnFiber(main);
             }
 
@@ -162,6 +161,37 @@ public class HazelVM {
         return modules.values().stream()
                 .filter(chipmunkModule -> chipmunkModule instanceof CModule)
                 .map(chipmunkModule -> (CModule) chipmunkModule);
+    }
+
+    public Fiber spawnFiber(CObject self, String name, Object... args){
+        var convertedArgs = new double[args.length + 1];
+        convertedArgs[0] = fromHostValue(self);
+        for(int i = 0; i < args.length; i++){
+            convertedArgs[i + 1] = fromHostValue(args[i]);
+        }
+        var cls = (CClass) heap.read(self.classPtr());
+        var method = cls.findMethod(cls.instanceMethodDefs(), name, convertedArgs.length);
+        return spawnFiber(method, convertedArgs);
+    }
+
+    public Fiber spawnFiber(CModule self, String name, Object... args){
+        var convertedArgs = new double[args.length + 1];
+        convertedArgs[0] = fromHostValue(self);
+        for(int i = 0; i < args.length; i++){
+            convertedArgs[i + 1] = fromHostValue(args[i]);
+        }
+        var method = self.getMethod(name, convertedArgs.length);
+        return spawnFiber(method, convertedArgs);
+    }
+
+    public Fiber spawnFiber(CClass self, String name, Object... args){
+        var convertedArgs = new double[args.length + 1];
+        convertedArgs[0] = fromHostValue(self);
+        for(int i = 0; i < args.length; i++){
+            convertedArgs[i + 1] = fromHostValue(args[i]);
+        }
+        var method = self.findMethod(self.sharedMethodDefs(), name, convertedArgs.length);
+        return spawnFiber(method, convertedArgs);
     }
 
     protected Fiber spawnFiber(CMethod method, double... args){
@@ -622,10 +652,16 @@ public class HazelVM {
                         }
                     }
                 }catch(Throwable t){
-                    if(t instanceof Uncatchable){
-                        throw t;
+                    ChipmunkException ex;
+                    if(t instanceof Uncatchable u){
+                        throw u;
                     }else if(t instanceof ChipmunkException e){
                         e.populateStackTrace();
+                        ex = e;
+                    }else{
+                        var e = new ChipmunkException(fiber, t.getMessage(), t);
+                        e.populateStackTrace();
+                        ex = e;
                     }
                     var handled = false;
                     for(var block : frame.method.exceptionTable()){
@@ -640,7 +676,7 @@ public class HazelVM {
                         }
                     }
                     if(!handled){
-                        throw t;
+                        throw ex;
                     }
                 }
             }
@@ -648,8 +684,11 @@ public class HazelVM {
 
         if(!fiber.completed()){
             enqueue(fiber);
-        }else if(fiber.isBlocking()){
-            fiber.unblock();
+        }else{
+            if(fiber.isBlocking()){
+                fiber.unblock();
+            }
+            fiber.fillCompletion();
         }
 
     }
@@ -707,6 +746,7 @@ public class HazelVM {
         return moduleLoader;
     }
 
+    @AllowChipmunkLinkage
     public ChipmunkModule getModule(String name){
         try {
             var module = modules.get(name);
@@ -755,7 +795,7 @@ public class HazelVM {
             }
             return module;
         } catch (IOException | BinaryFormatException e) {
-            throw new RuntimeException(e); // TODO
+            throw new ChipmunkException(currentFiber, "Error while getting module " + name, e);
         }
     }
 

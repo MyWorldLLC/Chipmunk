@@ -20,20 +20,12 @@
 
 package chipmunk.vm;
 
-import chipmunk.runtime.ChipmunkModule;
 import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.hazel.HazelVM;
-import chipmunk.vm.invoke.ChipmunkLibraries;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
-import chipmunk.vm.jvm.JvmCompiler;
-import chipmunk.vm.jvm.JvmCompilerConfig;
-
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChipmunkScript {
@@ -51,35 +43,23 @@ public class ChipmunkScript {
         return currentScript.get();
     }
 
-    public static void trap(Object payload){
-        var handler = getCurrentScript().getTrapHandler();
-        if(handler != null){
-            handler.runtimeTrap(payload);
-        }
-    }
-
     protected final ChipmunkVM cvm;
-    protected final long id;
     protected final HazelVM vm;
-
+    protected final long id;
     protected final List<Object> tags;
-
-    protected TrapHandler trapHandler;
-    protected ChipmunkLibraries libs;
     protected LinkingPolicy linkPolicy;
 
-    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader){
-        this(cvm, id, loader, null);
+    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader) {
+        this(cvm, id, loader, new LinkingPolicy(SecurityMode.DENYING));
     }
 
-    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader, TrapHandler trapHandler) {
+    public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader, LinkingPolicy linkPolicy) {
         this.cvm = cvm;
         this.id = id;
-        this.trapHandler = trapHandler;
         vm = new HazelVM(loader);
         tags = new CopyOnWriteArrayList<>();
 
-        linkPolicy = new LinkingPolicy(SecurityMode.ALLOWING);
+        this.linkPolicy = linkPolicy;
     }
 
     public ChipmunkVM getVM() {
@@ -116,20 +96,8 @@ public class ChipmunkScript {
         return linkPolicy;
     }
 
-    public void setLinkPolicy(LinkingPolicy policy){
-        linkPolicy = policy;
-    }
-
     public long getId(){
         return id;
-    }
-
-    public void setTrapHandler(TrapHandler trapHandler){
-        this.trapHandler = trapHandler;
-    }
-
-    public TrapHandler getTrapHandler(){
-        return trapHandler != null ? trapHandler : cvm.getDefaultTrapHandler();
     }
 
     public ModuleLoader getModuleLoader(){
@@ -154,14 +122,6 @@ public class ChipmunkScript {
 
     public boolean isYielded(){
         return vm.isYieldRequested();
-    }
-
-    public void setLibs(ChipmunkLibraries libs){
-        this.libs = libs;
-    }
-
-    public ChipmunkLibraries getLibs(){
-        return libs;
     }
 
 }

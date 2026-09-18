@@ -35,4 +35,5 @@ open module chipmunk.lang {
     exports chipmunk.vm.hazel.invoke;
     exports chipmunk.vm.hazel.invoke.binding;
     exports chipmunk.vm.hazel.util;
+    exports chipmunk.runtime.util;
 }

@@ -23,7 +23,9 @@ package chipmunk.modules
 
 import chipmunk.runtime.ChipmunkModule
 import chipmunk.vm.Uncatchable
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage
 
+@AllowChipmunkLinkage
 class TestModule implements ChipmunkModule {
 
     static final String TEST_MODULE_NAME = "chipmunk.test"

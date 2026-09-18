@@ -25,6 +25,7 @@ import chipmunk.runtime.CMethod;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 public final class Fiber {
@@ -40,7 +41,7 @@ public final class Fiber {
     public enum State {
         RUNNABLE,
         BLOCKED,
-        TRAPPED
+        COMPLETED
     }
 
     public static class Frame {
@@ -60,6 +61,7 @@ public final class Fiber {
 
     private final HazelVM vm;
     private final CMethod startMethod;
+    private final CompletableFuture<Object> completion;
 
     private Fiber blockedBy;
     private Fiber blocking;
@@ -81,6 +83,7 @@ public final class Fiber {
 
         callFrames = new Frame[initialCallFrames];
         callFramePtr = 0;
+        completion = new CompletableFuture<>();
     }
 
     public HazelVM vm() {
@@ -201,6 +204,15 @@ public final class Fiber {
     public Stream<Frame> stackTrace(){
         return Arrays.stream(callFrames)
                 .filter(Objects::nonNull);
+    }
+
+    protected void fillCompletion(){
+        state = State.COMPLETED;
+        completion.complete(vm.toHostValue(lastReturned()));
+    }
+
+    public CompletableFuture<Object> completion(){
+        return completion;
     }
 
 }

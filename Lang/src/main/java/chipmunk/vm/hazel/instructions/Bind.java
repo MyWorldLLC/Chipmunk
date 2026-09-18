@@ -44,7 +44,7 @@ public class Bind extends Instruction {
         var targetPtr = fiber.stack[bp + sp - 1];
         if(Value.isPointer(targetPtr)){
             var heap = fiber.vm().heap();
-            var binding = new CMethodBinding(targetPtr, method, linker);
+            var binding = new CMethodBinding(fiber.vm(), targetPtr, method, linker);
             var ptr = heap.allocateAndWrite(binding);
             binding.selfPtr(ptr);
             fiber.stack[bp + sp - 1] = ptr;

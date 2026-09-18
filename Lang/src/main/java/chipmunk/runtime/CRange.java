@@ -20,6 +20,8 @@
 
 package chipmunk.runtime;
 
+import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+
 public class CRange {
 
     protected final double start;
@@ -50,6 +52,7 @@ public class CRange {
         return inclusive;
     }
 
+    @AllowChipmunkLinkage
     public RangeIterator iterator() {
         return new RangeIterator();
     }
@@ -57,10 +60,12 @@ public class CRange {
     public class RangeIterator {
         double current = start;
 
+        @AllowChipmunkLinkage
         public double hasNext(){
             return (current < end || (inclusive && current == end)) ? 1 : 0;
         }
 
+        @AllowChipmunkLinkage
         public double next(){
             var v = current;
             current += step;

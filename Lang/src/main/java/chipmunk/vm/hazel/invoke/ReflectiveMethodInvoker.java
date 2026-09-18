@@ -28,6 +28,7 @@ import chipmunk.vm.hazel.Value;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class ReflectiveMethodInvoker extends MethodInvoker {
 

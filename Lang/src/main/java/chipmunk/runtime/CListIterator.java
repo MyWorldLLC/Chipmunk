@@ -20,14 +20,12 @@
 
 package chipmunk.runtime;
 
-import java.util.List;
-
 public class CListIterator extends HostCObject {
 
-    protected final List<?> list;
+    protected final CList list;
     private int index = 0;
 
-    public CListIterator(List<?> list) {
+    public CListIterator(CList list) {
         this.list = list;
     }
 
