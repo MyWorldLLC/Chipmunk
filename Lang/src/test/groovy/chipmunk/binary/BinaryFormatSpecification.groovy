@@ -42,7 +42,7 @@ class BinaryFormatSpecification  extends Specification {
         module = writeAndRead(module)
         def script = vm.compileScript(module)
         script.setEntryPoint(new EntryPoint("test", "main"))
-        def result = script.run().get()
+        def result = script.run().value()
 
         then:
         noExceptionThrown()

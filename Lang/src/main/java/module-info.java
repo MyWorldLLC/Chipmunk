@@ -29,7 +29,6 @@ open module chipmunk.lang {
     exports chipmunk.vm.invoke.security;
     exports chipmunk.vm.jvm;
     exports chipmunk.vm.locators;
-    exports chipmunk.vm.scheduler;
     exports chipmunk.vm.hazel;
     exports chipmunk.vm.hazel.invoke;
     exports chipmunk.vm.hazel.invoke.binding;

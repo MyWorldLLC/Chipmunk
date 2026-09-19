@@ -22,13 +22,23 @@ package chipmunk.vm;
 
 import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.hazel.HazelVM;
+import chipmunk.vm.hazel.ScriptResult;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ChipmunkScript {
+
+    public enum Status {
+        RUNNABLE,
+        RUNNING,
+        EXITED
+    }
 
     private static final ThreadLocal<ChipmunkScript> currentScript;
     static {
@@ -49,6 +59,11 @@ public class ChipmunkScript {
     protected final List<Object> tags;
     protected LinkingPolicy linkPolicy;
 
+    protected Consumer<ChipmunkScript> exitHandler;
+    protected BiConsumer<ChipmunkScript, Throwable> errorHandler;
+
+    protected final AtomicReference<Status> status = new AtomicReference<>(Status.RUNNABLE);
+
     public ChipmunkScript(ChipmunkVM cvm, long id, ModuleLoader loader) {
         this(cvm, id, loader, new LinkingPolicy(SecurityMode.DENYING));
     }
@@ -68,6 +83,14 @@ public class ChipmunkScript {
 
     public HazelVM getHazelVM() {
         return vm;
+    }
+
+    public Status getStatus() {
+        return status.get();
+    }
+
+    protected Status setStatus(Status status) {
+        return this.status.getAndSet(status);
     }
 
     public void tag(Object tag){
@@ -112,7 +135,7 @@ public class ChipmunkScript {
         vm.entryPoint(entryPoint);
     }
 
-    public Optional<Object> run(){
+    public ScriptResult run(){
         return vm.run();
     }
 
@@ -120,8 +143,20 @@ public class ChipmunkScript {
         vm.yield();
     }
 
-    public boolean isYielded(){
-        return vm.isYieldRequested();
+    public void setExitHandler(Consumer<ChipmunkScript> exitHandler){
+        this.exitHandler = exitHandler;
+    }
+
+    protected Consumer<ChipmunkScript> exitHandler(){
+        return exitHandler;
+    }
+
+    public void setErrorHandler(BiConsumer<ChipmunkScript, Throwable> errorHandler){
+        this.errorHandler = errorHandler;
+    }
+
+    protected BiConsumer<ChipmunkScript, Throwable> errorHandler(){
+        return errorHandler;
     }
 
 }

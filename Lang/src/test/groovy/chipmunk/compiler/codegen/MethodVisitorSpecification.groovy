@@ -20,17 +20,13 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.vm.ModuleLoader
 import chipmunk.vm.hazel.EntryPoint
 import chipmunk.vm.hazel.Value
-import chipmunk.vm.jvm.CompilationUnit
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -406,8 +402,8 @@ class MethodVisitorSpecification extends Specification {
 		ChipmunkScript script = vm.compileScript(new EntryPoint("exp", "method"), binary)
 		println(ChipmunkDisassembler.disassemble(binary))
 		try{
-			def result = script.run()
-			return result.orElse(null)
+			def result = vm.run(script).get()
+			return result
 		}catch (Throwable t){
 			println(ChipmunkDisassembler.disassemble(binary))
 			throw t

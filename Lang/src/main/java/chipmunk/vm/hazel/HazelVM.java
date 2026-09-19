@@ -74,7 +74,7 @@ public class HazelVM {
         this(moduleLoader, new Limits());
     }
 
-    public Optional<Object> run(){
+    public ScriptResult run(){
         try{
             if(state == State.NEW) {
                 var module = (CModule) getModule(entryPoint.module());
@@ -106,7 +106,7 @@ public class HazelVM {
                 lastFiber = currentFiber;
                 if(lastFiber.state() == Fiber.State.RUNNABLE && checkAndClearYield()){
                     state = State.SUSPENDED;
-                    return Optional.empty(); // This fiber yielded due to an external request
+                    return ScriptResult.empty(); // This fiber yielded due to an external request
                 }
                 currentFiber = nextFiber();
             }
@@ -115,7 +115,7 @@ public class HazelVM {
 
             // Return empty when yielded, return value of last fiber when normal exit happens.
             var value = lastFiber.lastReturned();
-            return Optional.ofNullable(toHostValue(value));
+            return ScriptResult.of(toHostValue(value));
 
         } catch (Throwable t) {
             throw t;
@@ -140,6 +140,10 @@ public class HazelVM {
 
     public MemoryStats memoryStats() {
         return memoryStats;
+    }
+
+    public State state(){
+        return state;
     }
 
     public Heap heap(){

@@ -27,11 +27,11 @@ import chipmunk.compiler.Compilation;
 import chipmunk.compiler.CompileChipmunk;
 import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.hazel.EntryPoint;
+import chipmunk.vm.hazel.HazelVM;
 import chipmunk.vm.hazel.Limits;
 import chipmunk.vm.invoke.security.LinkingPolicy;
 import chipmunk.vm.invoke.security.SecurityMode;
-import chipmunk.vm.jvm.*;
-import chipmunk.vm.scheduler.Scheduler;
+
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.*;
@@ -41,7 +41,7 @@ public class ChipmunkVM {
 
 	protected volatile LinkingPolicy defaultLinkPolicy;
 
-	protected final ConcurrentHashMap<Long, ChipmunkScript> runningScripts;
+	protected final ConcurrentHashMap<Long, ChipmunkScript> scripts;
 	protected final AtomicLong scriptIds;
 	protected final ExecutorService scriptExecutor;
 	protected final Scheduler scheduler;
@@ -50,22 +50,31 @@ public class ChipmunkVM {
 	protected Limits defaultLimits;
 
 	public ChipmunkVM() {
-		this(SecurityMode.DENYING);
+		this(SecurityMode.DENYING, (int) (Runtime.getRuntime().availableProcessors() * 0.5) + 1);
 	}
 
-	public ChipmunkVM(SecurityMode securityMode) {
+	public ChipmunkVM(SecurityMode securityMode, int threadCount){
+		this(securityMode, threadCount, Executors.newFixedThreadPool(threadCount,
+				(task) -> Thread.ofPlatform()
+						.name("ChipmunkRunner")
+						.unstarted(task)));
+	}
+
+	public ChipmunkVM(SecurityMode securityMode, int threadCount, ExecutorService threads) {
 
 		defaultLinkPolicy = new LinkingPolicy(securityMode);
 
-		runningScripts = new ConcurrentHashMap<>();
+		scripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
-		scriptExecutor = Executors.newVirtualThreadPerTaskExecutor();
-		scheduler = new Scheduler();
+		scriptExecutor = threads;
+		scheduler = new Scheduler(threadCount, scriptExecutor, (script) -> 0);
 
 		rootLoader = new ModuleLoader();
 		rootLoader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 
 		defaultLimits = new Limits();
+
+		scheduler.start();
 	}
 
 	public ModuleLoader rootLoader(){
@@ -80,17 +89,9 @@ public class ChipmunkVM {
 		defaultLinkPolicy = policy;
 	}
 
-	public void start() {
-		scheduler.start();
-	}
-
 	public void stop(){
 		scriptExecutor.shutdown();
 		scheduler.shutdown();
-	}
-
-	public Scheduler getScheduler(){
-		return scheduler;
 	}
 
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk {
@@ -115,6 +116,8 @@ public class ChipmunkVM {
 		script.getHazelVM().limits().copyFrom(defaultLimits);
 		script.getHazelVM().entryPoint(entryPoint);
 
+		scripts.put(script.getId(), script);
+
 		return script;
 	}
 
@@ -128,7 +131,23 @@ public class ChipmunkVM {
 			result = script.run();
 		}
 
-		return result.get();
+		return result.value();
+	}
+
+	public CompletableFuture<Object> run(ChipmunkScript script){
+		return scheduler.enqueue(script);
+	}
+
+	public boolean exitScript(ChipmunkScript script, boolean force) {
+		if(force || script.getHazelVM().state() == HazelVM.State.EXITED){
+			script.setStatus(ChipmunkScript.Status.EXITED);
+			if(script.exitHandler() != null){
+				script.exitHandler().accept(script);
+			}
+			scripts.remove(script.getId());
+			return true;
+		}
+		return false;
 	}
 
 }

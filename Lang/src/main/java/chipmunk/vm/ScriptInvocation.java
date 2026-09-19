@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,23 +18,27 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.scheduler;
+package chipmunk.vm;
 
-import chipmunk.vm.ChipmunkScript;
+import java.util.concurrent.CompletableFuture;
 
 public class ScriptInvocation {
 
     protected volatile long queueTime;
     protected volatile long startTime;
+    protected final float priority;
     protected final ChipmunkScript script;
+    protected final CompletableFuture<Object> future;
 
-    public ScriptInvocation(ChipmunkScript script){
-        this(System.nanoTime(), script);
-    }
-
-    public ScriptInvocation(long queueTime, ChipmunkScript script){
+    public ScriptInvocation(long queueTime, ChipmunkScript script, float priority, CompletableFuture<Object> future){
         this.queueTime = queueTime;
         this.script = script;
+        this.priority = priority;
+        this.future = future;
+    }
+
+    public float priority(){
+        return priority;
     }
 
     public long getStartTime() {
@@ -55,5 +59,9 @@ public class ScriptInvocation {
 
     public ChipmunkScript getScript() {
         return script;
+    }
+
+    public CompletableFuture<Object> getFuture(){
+        return future;
     }
 }
