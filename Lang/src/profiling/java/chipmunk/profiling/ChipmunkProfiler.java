@@ -69,7 +69,7 @@ public class ChipmunkProfiler {
 		while(true){
 			Object value;
 			long startTime = System.nanoTime();
-			value = hazelVM.run().get();
+			value = hazelVM.run().value();
 			long endTime = System.nanoTime();
 
 			System.out.println("Value: " + value + ", Time: " + (endTime - startTime) / 1e9 + " seconds");

@@ -197,7 +197,14 @@ public class Scheduler {
             if(invocation != null){
                 var script = invocation.getScript();
                 invocation.setStartTime(System.nanoTime());
-                invocations.put(script.getId(), invocation);
+                var running = invocations.put(script.getId(), invocation);
+                if(running != null){
+                    // Verify that this script isn't currently executing on another runner. If it is, re-enqueue - this
+                    // guarantees that all requested invocations will run. Extra enqueues are OK because they will be no-ops
+                    // from the perspective of the script.
+                    scriptQueue.add(invocation);
+                    continue;
+                }
 
                 try{
                     if(script.setStatus(ChipmunkScript.Status.RUNNING) == ChipmunkScript.Status.RUNNABLE){

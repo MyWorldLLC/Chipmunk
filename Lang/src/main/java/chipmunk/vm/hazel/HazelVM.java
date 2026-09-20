@@ -101,10 +101,11 @@ public class HazelVM {
             // As long as we have fibers in the queue, run until a fiber yields. Optional.empty() is returned until
             // the last fiber exits, at which point the result is boxed and returned.
             currentFiber = nextFiber();
-            while (currentFiber != null) {
+            while (currentFiber != null && currentFiber.state() == Fiber.State.RUNNABLE) {
                 runFiber(currentFiber);
                 lastFiber = currentFiber;
-                if(lastFiber.state() == Fiber.State.RUNNABLE && checkAndClearYield()){
+                var yielded = checkAndClearYield();
+                if(lastFiber.state() == Fiber.State.RUNNABLE && yielded){
                     state = State.SUSPENDED;
                     return ScriptResult.empty(); // This fiber yielded due to an external request
                 }
@@ -224,7 +225,7 @@ public class HazelVM {
      * will be dispatched next.
      */
     protected void runFiber(Fiber fiber){
-        while(!checkAndClearYield() && !fiber.completed()){
+        while(!checkYield() && !fiber.completed()){
             var frame = fiber.currentFrame();
             var ip = frame.ip;
             var bp = frame.bp;
