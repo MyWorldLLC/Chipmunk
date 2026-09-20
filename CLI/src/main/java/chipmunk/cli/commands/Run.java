@@ -37,7 +37,6 @@ import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.hazel.EntryPoint;
-import chipmunk.vm.jvm.CompilationUnit;
 import chipmunk.vm.locators.FileModuleLocator;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
