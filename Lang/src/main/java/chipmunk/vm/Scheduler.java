@@ -32,6 +32,7 @@ public class Scheduler {
 
     public static final int DEFAULT_POLLING_PERIOD = 1;
     public static final int DEFAULT_MINIMUM_EXEC_WINDOW = 1;
+    public static final int DEFAULT_REPRIORITIZATION_FREQUENCY = 2;
 
     protected final ConcurrentHashMap<Long, ScriptInvocation> invocations;
     protected final Thread schedulingThread;
@@ -42,6 +43,7 @@ public class Scheduler {
 
     protected volatile int minimumExecWindow;
     protected volatile int pollingPeriod;
+    protected volatile int reprioritizationFrequency;
     protected final int threadCount;
     protected volatile boolean shutdownRequested;
 
@@ -54,6 +56,7 @@ public class Scheduler {
         schedulingThread = new Thread(this::schedule, "Chipmunk Scheduler");
         pollingPeriod = DEFAULT_POLLING_PERIOD;
         minimumExecWindow = DEFAULT_MINIMUM_EXEC_WINDOW;
+        reprioritizationFrequency = DEFAULT_REPRIORITIZATION_FREQUENCY;
         this.threadCount = threadCount;
     }
 
@@ -87,6 +90,14 @@ public class Scheduler {
         this.minimumExecWindow = minimumExecWindow;
     }
 
+    public int getReprioritizationFrequency() {
+        return reprioritizationFrequency;
+    }
+
+    public void setReprioritizationFrequency(int reprioritizationFrequency) {
+        this.reprioritizationFrequency = reprioritizationFrequency;
+    }
+
     public int getThreadCount() {
         return threadCount;
     }
@@ -109,8 +120,11 @@ public class Scheduler {
     }
 
     private void schedule(){
+
+        var reprioritizationCounter = 0;
+
         while(!Thread.interrupted()){
-            // yield scripts that have run for too long
+            // Yield scripts that have run for too long
             for(var entry : invocations.entrySet()){
                 var invocation = entry.getValue();
                 var script = invocation.getScript();
@@ -123,6 +137,32 @@ public class Scheduler {
                     }
                 }
             }
+
+            reprioritizationCounter++;
+            if(reprioritizationCounter >= reprioritizationFrequency){
+                reprioritizationCounter = 0;
+
+                // Rebuild the queue to ensure that scripts that have been enqueued the longest get the highest priority.
+                var depth = queueDepth(); // This is a concurrent queue, so we process as many entries as were present when we started
+                for(int i = 0; i < depth; i++){
+                    var invocation = scriptQueue.poll();
+                    // Workers could potentially run invocations faster than we rebuild the queue, so always check for null.
+                    if(invocation == null){
+                        break;
+                    }
+
+                    var millisQueued = (System.nanoTime() - invocation.getQueueTime()) / 1_000_000;
+                    var windowsMissed = millisQueued / minimumExecWindow;
+                    var basePriority = priorityFunction.priority(invocation.getScript());
+                    // Exponentially increase priority with every missed window. Note that a growth constant of 0.2 means
+                    // that a script that's missed:
+                    // 2 execution windows -> ~3x higher than base priority
+                    // 6 execution windows -> ~20x higher than base priority
+                    var newPriority = (float) (basePriority * Math.exp(0.2 * windowsMissed));
+                    scriptQueue.add(new ScriptInvocation(invocation.getQueueTime(), invocation.getScript(), newPriority, invocation.getFuture()));
+                }
+            }
+
             try {
                 Thread.sleep(pollingPeriod);
             } catch (InterruptedException e) {
