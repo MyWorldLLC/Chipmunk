@@ -27,7 +27,7 @@ import chipmunk.vm.HeapOverflowError;
 import chipmunk.vm.ModuleLoader;
 import chipmunk.vm.Uncatchable;
 import chipmunk.vm.hazel.invoke.Linker;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 import java.io.IOException;
 import java.util.*;

@@ -22,7 +22,7 @@ package chipmunk.vm;
 
 import chipmunk.compiler.ChipmunkCompiler;
 import chipmunk.vm.hazel.EntryPoint;
-import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.invoke.SecurityMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

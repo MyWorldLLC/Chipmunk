@@ -29,8 +29,8 @@ import chipmunk.modules.lang.LangModule;
 import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.hazel.HazelVM;
 import chipmunk.vm.hazel.Limits;
-import chipmunk.vm.invoke.security.LinkingPolicy;
-import chipmunk.vm.invoke.security.SecurityMode;
+import chipmunk.vm.invoke.LinkingPolicy;
+import chipmunk.vm.invoke.SecurityMode;
 
 import java.io.InputStream;
 import java.util.Arrays;

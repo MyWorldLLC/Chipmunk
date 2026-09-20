@@ -22,12 +22,11 @@ package chipmunk.runtime;
 
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
-import chipmunk.vm.invoke.ChipmunkLibrary;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 import java.util.*;
 
-public class NativeTypeLib implements ChipmunkLibrary {
+public class NativeTypeLib /*implements ChipmunkLibrary*/ {
 
     // ================================ Integer Math ================================
     public static Object as(Integer a, Class<?> type){
@@ -82,13 +81,13 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a - 1;
     }
 
-    public static IntegerRange range(Integer start, Integer end, Boolean inclusive){
+    /*public static IntegerRange range(Integer start, Integer end, Boolean inclusive){
         return new IntegerRange(start, end, 1, inclusive);
     }
 
     public static IntegerRange range(Integer start, Integer end, Integer step, Boolean inclusive){
         return new IntegerRange(start, end, step, inclusive);
-    }
+    }*/
 
     public static Float div(Integer a, Integer b){
         return a / (float)b;
@@ -215,6 +214,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return Float.compare(a, b);
     }
 
+/*
     public static FloatRange range(Float start, Float end, Boolean inclusive){
         return new FloatRange(start, end, 1.0f, inclusive);
     }
@@ -222,6 +222,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
     public static FloatRange range(Float start, Float end, Float step, Boolean inclusive){
         return new FloatRange(start, end, step, inclusive);
     }
+*/
 
     // ================================ Boolean Operations ================================
 
@@ -316,7 +317,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
         return a.get(listIndex(a, i));
     }
 
-    public static ArrayList<Object> getAt(ArrayList<Object> a, IntegerRange r) {
+/*    public static ArrayList<Object> getAt(ArrayList<Object> a, IntegerRange r) {
         int beginIndex = listIndex(a, r.getStart());
         int endIndex = r.isInclusive() ? listIndex(a, r.getEnd()) + 1 : listIndex(a, r.getEnd());
         ArrayList<Object> newList = new ArrayList<>(endIndex - beginIndex);
@@ -324,7 +325,7 @@ public class NativeTypeLib implements ChipmunkLibrary {
             newList.add(a.get(i));
         }
         return newList;
-    }
+    }*/
 
     public static Object setAt(ArrayList<Object> a, Integer i, Object element){
         return a.set(listIndex(a, i), element);

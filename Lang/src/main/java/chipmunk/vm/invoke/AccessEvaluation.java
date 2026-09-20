@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,11 +18,8 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm;
+package chipmunk.vm.invoke;
 
-public class ChipmunkClassLoader extends ClassLoader {
-
-    public Class<?> define(String name, byte[] bytes){
-        return super.defineClass(name, bytes, 0, bytes.length);
-    }
+public enum AccessEvaluation {
+    ALLOWED, DENIED, UNSPECIFIED
 }

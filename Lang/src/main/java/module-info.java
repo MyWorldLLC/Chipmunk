@@ -26,8 +26,6 @@ open module chipmunk.lang {
     exports chipmunk.util.pattern;
     exports chipmunk.vm;
     exports chipmunk.vm.invoke;
-    exports chipmunk.vm.invoke.security;
-    exports chipmunk.vm.jvm;
     exports chipmunk.vm.locators;
     exports chipmunk.vm.hazel;
     exports chipmunk.vm.hazel.invoke;

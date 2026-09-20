@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -20,10 +20,6 @@
 
 package chipmunk.vm.invoke;
 
-public interface ChipmunkLibrary {
-
-    default String moduleName(){
-        return getClass().getName();
-    }
-
+public enum SecurityMode {
+    ALLOWING, DENYING
 }

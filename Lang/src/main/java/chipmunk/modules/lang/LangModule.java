@@ -26,7 +26,7 @@ import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.binding.NativeBinding;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 import java.util.*;
 
@@ -51,12 +51,12 @@ public class LangModule implements NativeModule {
         throw new UnimplementedMethodException();
     }
 
-    @AllowChipmunkLinkage
+    /*@AllowChipmunkLinkage
     public ChipmunkModule getModule(String name){
         return ChipmunkScript.getCurrentScript()
                 .getHazelVM()
                 .getModule(name);
-    }
+    }*/
 
     @Override
     public String getName(){

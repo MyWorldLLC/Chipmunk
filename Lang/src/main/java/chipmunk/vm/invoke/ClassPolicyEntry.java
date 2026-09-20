@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,7 +18,7 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.invoke.security;
+package chipmunk.vm.invoke;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,54 +26,54 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public class PackagePolicyEntry extends BasePolicyEntry {
+public class ClassPolicyEntry extends BasePolicyEntry {
 
-    protected final Set<Package> packages;
+    protected final Set<Class<?>> packages;
 
-    public PackagePolicyEntry(){
-        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Package::getName));
+    public ClassPolicyEntry(){
+        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Class::getName));
     }
 
-    public PackagePolicyEntry(SecurityMode mode){
+    public ClassPolicyEntry(SecurityMode mode){
         super(mode);
-        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Package::getName));
+        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Class::getName));
     }
 
-    public PackagePolicyEntry(SecurityMode methodMode, SecurityMode fieldSetMode, SecurityMode fieldGetMode){
+    public ClassPolicyEntry(SecurityMode methodMode, SecurityMode fieldSetMode, SecurityMode fieldGetMode){
         super(methodMode, fieldSetMode, fieldGetMode);
-        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Package::getName));
+        packages = new ConcurrentSkipListSet<>(Comparator.comparing(Class::getName));
     }
 
-    public Set<Package> getPackages(){
+    public Set<Class<?>> getClasses(){
         return packages;
     }
 
-    public PackagePolicyEntry add(Package p){
-        packages.add(p);
+    public ClassPolicyEntry add(Class<?> c){
+        packages.add(c);
         return this;
     }
 
-    public void remove(Package p){
-        packages.remove(p);
+    public void remove(Class<?> c){
+        packages.remove(c);
     }
 
     @Override
     public AccessEvaluation allowMethodCall(Object receiver, Method m){
-        return super.evaluateMethodAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateMethodAccess(isSpecifiedByPolicy(m.getDeclaringClass()));
     }
 
     @Override
     public AccessEvaluation allowFieldSet(Object receiver, Field f){
-        return super.evaluateFieldSetAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateFieldSetAccess(isSpecifiedByPolicy(f.getDeclaringClass()));
     }
 
     @Override
     public AccessEvaluation allowFieldGet(Object receiver, Field f){
-        return super.evaluateFieldGetAccess(isSpecifiedByPolicy(receiver));
+        return super.evaluateFieldGetAccess(isSpecifiedByPolicy(f.getDeclaringClass()));
     }
 
-    protected boolean isSpecifiedByPolicy(Object receiver){
-        return packages.contains(receiver.getClass().getPackage());
+    protected boolean isSpecifiedByPolicy(Class<?> receiverType){
+        return packages.contains(receiverType);
     }
 
 }

@@ -21,7 +21,7 @@
 package chipmunk.modules.imports;
 
 import chipmunk.vm.ChipmunkScript;
-import chipmunk.vm.invoke.security.LinkingPolicy;
+import chipmunk.vm.invoke.LinkingPolicy;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

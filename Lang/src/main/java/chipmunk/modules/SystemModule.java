@@ -21,7 +21,7 @@
 package chipmunk.modules;
 
 import chipmunk.runtime.ChipmunkModule;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 import java.util.List;
 import java.util.Map;

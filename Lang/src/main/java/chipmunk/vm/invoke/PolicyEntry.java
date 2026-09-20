@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 MyWorld, LLC
+ * Copyright (C) 2026 MyWorld, LLC
  * All rights reserved.
  *
  * This file is part of Chipmunk.
@@ -18,15 +18,27 @@
  * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package chipmunk.vm.jvm;
+package chipmunk.vm.invoke;
 
-public enum TrapFlag {
-    BACK_JUMP,
-    METHOD_CALL,
-    PRE_METHOD_CALL,
-    POST_METHOD_CALL,
-    ARRAY_ALLOC,
-    POST_ARRAY_ALLOC,
-    OBJECT_ALLOC,
-    OBJECT_INIT
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+public interface PolicyEntry {
+
+    default AccessEvaluation allowInstantiation(Class<?> targetClass){
+        return AccessEvaluation.UNSPECIFIED;
+    }
+
+    default AccessEvaluation allowMethodCall(Object target, Method method) {
+        return AccessEvaluation.UNSPECIFIED;
+    }
+
+    default AccessEvaluation allowFieldSet(Object target, Field field) {
+        return AccessEvaluation.UNSPECIFIED;
+    }
+
+    default AccessEvaluation allowFieldGet(Object target, Field field) {
+        return AccessEvaluation.UNSPECIFIED;
+    }
+
 }

@@ -21,7 +21,6 @@
 package chipmunk.vm.hazel.instructions;
 
 import chipmunk.runtime.CMethodBinding;
-import chipmunk.runtime.MethodBinding;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.TypeError;

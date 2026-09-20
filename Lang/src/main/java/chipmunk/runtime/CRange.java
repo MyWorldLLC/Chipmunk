@@ -20,7 +20,7 @@
 
 package chipmunk.runtime;
 
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 public class CRange {
 

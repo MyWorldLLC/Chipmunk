@@ -28,11 +28,9 @@ import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.binding.NativeBinding;
 import chipmunk.vm.invoke.ChipmunkName;
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage;
-import chipmunk.vm.invoke.security.LinkingPolicy;
-import chipmunk.vm.invoke.security.SecurityMode;
-
-import java.util.Arrays;
+import chipmunk.vm.invoke.AllowChipmunkLinkage;
+import chipmunk.vm.invoke.LinkingPolicy;
+import chipmunk.vm.invoke.SecurityMode;
 
 public class Linker {
 

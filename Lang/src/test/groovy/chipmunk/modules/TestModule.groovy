@@ -23,7 +23,7 @@ package chipmunk.modules
 
 import chipmunk.runtime.ChipmunkModule
 import chipmunk.vm.Uncatchable
-import chipmunk.vm.invoke.security.AllowChipmunkLinkage
+import chipmunk.vm.invoke.AllowChipmunkLinkage
 
 @AllowChipmunkLinkage
 class TestModule implements ChipmunkModule {
