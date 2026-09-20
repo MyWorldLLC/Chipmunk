@@ -154,11 +154,11 @@ public class Scheduler {
                     var millisQueued = (System.nanoTime() - invocation.getQueueTime()) / 1_000_000;
                     var windowsMissed = millisQueued / minimumExecWindow;
                     var basePriority = priorityFunction.priority(invocation.getScript());
-                    // Exponentially increase priority with every missed window. Note that a growth constant of 0.2 means
+                    // Exponentially increase priority with every missed window. Note that a growth constant of 0.3 means
                     // that a script that's missed:
-                    // 2 execution windows -> ~3x higher than base priority
-                    // 6 execution windows -> ~20x higher than base priority
-                    var newPriority = (float) (basePriority * Math.exp(0.2 * windowsMissed));
+                    // 2 execution windows -> ~2x higher than base priority
+                    // 6 execution windows -> ~6x higher than base priority
+                    var newPriority = (float) (basePriority * Math.exp(0.3 * windowsMissed));
                     scriptQueue.add(new ScriptInvocation(invocation.getQueueTime(), invocation.getScript(), newPriority, invocation.getFuture()));
                 }
             }
@@ -181,10 +181,10 @@ public class Scheduler {
         var next = scriptQueue.peek();
         if(next != null){
             // This uses a decaying exponential, where time is the number of milliseconds since the executing script began.
-            // The decay constant of 0.9 means that the priority cuts approximately in half after 1 ms of execution time, and
+            // The decay constant of 0.3 means that the priority cuts approximately in half after 2 ms of execution time, and
             // decays exponentially towards zero after that. This time decayed priority is compared to the priority of the next
             // item in line, meaning that relatively high priority tasks won't always be yielded immediately.
-            var decayedPriority = execWeight * Math.exp(-0.9*execTime);
+            var decayedPriority = execWeight * Math.exp(-0.3*execTime);
             return decayedPriority <= next.priority();
         }
         return false;
