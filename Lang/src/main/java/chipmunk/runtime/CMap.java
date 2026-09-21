@@ -58,6 +58,7 @@ public class CMap extends HostCObject implements GCCollectable {
         this.vm = vm;
 
         this.loadFactor = loadFactor;
+        initialSize = Math.max(1, initialSize);
         nominalSize = initialSize;
         slots = Math.max(1, (int) (initialSize / loadFactor));
 
@@ -193,7 +194,7 @@ public class CMap extends HostCObject implements GCCollectable {
         vm.memoryStats().instanceCreated(slots * 2); // TODO - error if we go above limits and GC can't claim enough to satisfy our request
 
         var oldTable = storage;
-        slots += (int) (0.5 * slots); // TODO - configurable growth factor
+        slots += Math.max(1, (int) (0.5 * slots)); // TODO - configurable growth factor
         nominalSize = (int) (slots * loadFactor);
         storage = new double[slots * 2];
         Arrays.fill(storage, Value.NULL_PTR_VALUE);
@@ -235,10 +236,10 @@ public class CMap extends HostCObject implements GCCollectable {
 
     private int hashKey(double k){
         if(Value.isNumber(k)){
-            return Double.hashCode(k);
+            return Math.abs(Double.hashCode(k));
         }else{
             var key = vm.toHostValue(k);
-            return key == null ? 0 : key.hashCode();
+            return Math.abs(key == null ? 0 : key.hashCode());
         }
     }
 

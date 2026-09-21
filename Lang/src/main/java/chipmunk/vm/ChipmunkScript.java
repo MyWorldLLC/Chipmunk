@@ -135,6 +135,7 @@ public class ChipmunkScript {
     }
 
     public ScriptResult run(){
+        ChipmunkScript.setCurrentScript(this);
         return vm.run();
     }
 

@@ -228,6 +228,7 @@ public class HazelVM {
         while(!checkYield() && !fiber.completed()){
             var frame = fiber.currentFrame();
             var ip = frame.ip;
+            System.out.println("Frame IP is " + ip);
             var bp = frame.bp;
 
             if(frame.continuation != null) {
@@ -240,14 +241,15 @@ public class HazelVM {
             for(int i = 0; i < code.length; i++){
                 System.out.println(i + ": " + code[i]);
             }
-            System.out.println("======================");
+            System.out.println("======================");*/
             System.out.println("Executing " + frame.method.name() + " IP: " + ip + " BP: " + bp);
-            System.out.println(dumpStack(fiber, bp, code[Math.abs(ip)].sp));*/
+            System.out.println(dumpStack(fiber, bp, code[Math.abs(ip)].sp));
 
             while(Math.abs(ip) < code.length){
                 // Function calls, returns, loops, etc. will all cause this to be hit frequently.
                 if(checkYield()){
                     ip = Math.abs(ip);
+                    System.out.println("Hit yield, setting frame ip");
                     frame.ip = ip;
                     break;
                 }
@@ -661,10 +663,12 @@ public class HazelVM {
                     if(t instanceof Uncatchable u){
                         throw u;
                     }else if(t instanceof ChipmunkException e){
+                        frame.ip = ip + 1; // Save the current frame IP before populating stack trace
                         e.populateStackTrace();
                         ex = e;
                     }else{
                         var e = new ChipmunkException(fiber, t.getMessage(), t);
+                        frame.ip = ip + 1; // Save the current frame IP before populating stack trace
                         e.populateStackTrace();
                         ex = e;
                     }

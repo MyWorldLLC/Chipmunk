@@ -47,7 +47,7 @@ public class CList extends HostCObject implements GCCollectable {
 
     public void add(double e){
         if(insertIndex == storage.length){
-            var newStorage = new double[storage.length * 2];
+            var newStorage = new double[Math.max(1, storage.length * 2)];
             System.arraycopy(storage, 0, newStorage, 0, storage.length);
             storage = newStorage;
         }
@@ -56,20 +56,32 @@ public class CList extends HostCObject implements GCCollectable {
     }
 
     public double get(int i){
+        i = normalizedIndex(i);
         return storage[i];
     }
 
     public double set(int i, double e){
+        i = normalizedIndex(i);
         var prior = storage[i];
         storage[i] = e;
         return prior;
     }
 
     public double remove(int i){
+        i = normalizedIndex(i);
         var prior = storage[i];
         System.arraycopy(storage, i + 1, storage, i, storage.length - i - 1);
         insertIndex--;
         return prior;
+    }
+
+    public boolean contains(double value){
+        for(int i = 0; i < insertIndex; i++){
+            if(storage[i] == value){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void compact(){
@@ -123,6 +135,17 @@ public class CList extends HostCObject implements GCCollectable {
                 .limit(size())
                 .boxed()
                 .toList();
+    }
+
+    public Object[] toHostArray(){
+        return Arrays.stream(storage)
+                .limit(size())
+                .mapToObj(vm::toHostValue)
+                .toArray(Object[]::new);
+    }
+
+    private int normalizedIndex(int index){
+        return index >= 0 ? index : insertIndex - Math.abs(index);
     }
 
     @Override

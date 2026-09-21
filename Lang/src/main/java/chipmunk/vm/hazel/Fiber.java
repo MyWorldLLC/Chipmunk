@@ -111,6 +111,7 @@ public final class Fiber {
         frame.bp = bp;
         frame.ip = 0;
         frame.method = callMethod;
+        frame.continuation = null;
         return frame;
     }
 
@@ -121,6 +122,7 @@ public final class Fiber {
             try{
                 callFrames[callFramePtr] = frame;
             }catch(ArrayIndexOutOfBoundsException e){
+                System.out.println("Expanding callstack");
                 if(callFrames.length + DEFAULT_CALL_FRAMES > vm.limits().callStackDepth()){
                     throw new ChipmunkException(this, "Call stack depth limit exceeded: " + callFrames.length);
                 }
@@ -130,15 +132,13 @@ public final class Fiber {
                 callFrames[callFramePtr] = frame;
             }
         }
+        System.out.println("Returning next frame " + callFramePtr);
         callFramePtr++;
         return frame;
     }
 
-    public Frame pushCallFrame(int ip, int bp, int sp){
-        return pushCallFrame(null, bp);
-    }
-
     public Frame currentFrame(){
+        System.out.println("Returning current frame " + (callFramePtr - 1));
         return callFrames[callFramePtr - 1];
     }
 

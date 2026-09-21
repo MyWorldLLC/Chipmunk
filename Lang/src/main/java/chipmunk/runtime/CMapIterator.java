@@ -20,23 +20,24 @@
 
 package chipmunk.runtime;
 
-public class CListIterator extends HostCObject {
+public class CMapIterator extends HostCObject {
 
-    protected final CList list;
+    protected final CMap map;
+    protected final double[] keys;
     private int index = 0;
 
-    public CListIterator(CList list) {
-        this.list = list;
+    public CMapIterator(CMap map) {
+        this.map = map;
+        keys = map.keys();
     }
 
     public boolean hasNext(){
-        return index < list.size();
+        return index < keys.length;
     }
 
     public double next(){
-        var r = list.get(index);
+        var r = keys[index];
         index++;
         return r;
     }
-
 }

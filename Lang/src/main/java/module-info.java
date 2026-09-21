@@ -16,6 +16,7 @@ open module chipmunk.lang {
     exports chipmunk.compiler.parser.subparsers;
     exports chipmunk.compiler.symbols;
     exports chipmunk.compiler.types;
+    exports chipmunk.modules;
     exports chipmunk.modules.buffer;
     exports chipmunk.modules.imports;
     exports chipmunk.modules.lang;

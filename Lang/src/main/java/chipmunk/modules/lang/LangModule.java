@@ -89,20 +89,29 @@ public class LangModule implements NativeModule {
                 var value = fiber.readArg(bp, sp, 2, 1);
                 ((CList) target).add(value);
                 fiber.pushResult(bp, sp, 2, value);
+                System.out.println("Added result");
                 return ip + 1;
             }));
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = (int) fiber.readArg(bp, sp, 2, 1);
                 var value = ((CList) target).get(index);
-                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(value));
+                System.out.println("Returning " + index + ": " + value);
+                fiber.pushResult(bp, sp, 2, value);
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = (int) fiber.readArg(bp, sp, 3, 1);
                 var prior = ((CList) target).set(index, fiber.readArg(bp, sp, 3, 2));
-                fiber.pushResult(bp, sp, 3, fiber.vm().fromHostValue(prior));
+                fiber.pushResult(bp, sp, 3, prior);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("remove", ((fiber, ip, bp, sp, argCount, target) -> {
+                var index = (int) fiber.readArg(bp, sp, 2, 1);
+                var prior = ((CList) target).remove(index);
+                fiber.pushResult(bp, sp, 2, prior);
                 return ip + 1;
             }));
 
@@ -110,7 +119,7 @@ public class LangModule implements NativeModule {
                 if(argCount == 2){
                     try{
                         ((CList) target).sort((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1)));
-                        fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // Return self as the result
+                        fiber.pushResult(bp, sp, 2, fiber.readArg(bp, sp, 2, 0)); // Return self as the result
                     } catch (Exception e) {
                         throw new ChipmunkException(fiber, e.getMessage(), e);
                     }
@@ -121,6 +130,13 @@ public class LangModule implements NativeModule {
                 return ip + 1;
             }));
 
+            builder.withNativeMethod("has", ((fiber, ip, bp, sp, argCount, target) -> {
+                var value = fiber.readArg(bp, sp, 2, 1);
+                var has = ((CList) target).contains(value);
+                fiber.pushResult(bp, sp, 2, has ? 1 : 0);
+                return ip + 1;
+            }));
+
             builder.withNativeMethod("iterator", ((fiber, ip, bp, sp, argCount, target) -> {
                 var it = new CListIterator((CList)fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0)));
                 fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(it));
@@ -128,8 +144,20 @@ public class LangModule implements NativeModule {
             }));
 
             builder.withNativeMethod("compact", ((fiber, ip, bp, sp, argCount, target) -> {
-                ((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1))).compact();
+                ((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).compact();
                 fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // return self
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("clear", ((fiber, ip, bp, sp, argCount, target) -> {
+                ((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).clear();
+                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // return self
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("size", ((fiber, ip, bp, sp, argCount, target) -> {
+                var size = ((CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).size();
+                fiber.pushResult(bp, sp, 1, size);
                 return ip + 1;
             }));
 
@@ -142,7 +170,7 @@ public class LangModule implements NativeModule {
            }));
 
             builder.withNativeMethod("next", ((fiber, ip, bp, sp, argCount, target) -> {
-                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(((CListIterator) target).next()));
+                fiber.pushResult(bp, sp, 1, ((CListIterator) target).next());
                 return ip + 1;
             }));
         });
@@ -150,19 +178,69 @@ public class LangModule implements NativeModule {
         binding.register(CMap.class, builder -> {
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {
-                var index = fiber.readArg(bp, sp, 2, 1);
-                var value = ((CMap) target).get(index);
+                var key = fiber.readArg(bp, sp, 2, 1);
+                var value = ((CMap) target).get(key);
                 fiber.pushResult(bp, sp, 2, value);
                 return ip + 1;
             }));
 
             builder.withNativeMethod("setAt", ((fiber, ip, bp, sp, argCount, target) -> {
-                var index = fiber.readArg(bp, sp, 3, 1);
-                var prior = ((CMap) target).insert(index, fiber.readArg(bp, sp, 3, 2));
+                var key = fiber.readArg(bp, sp, 3, 1);
+                var prior = ((CMap) target).insert(key, fiber.readArg(bp, sp, 3, 2));
                 fiber.pushResult(bp, sp, 3, prior);
                 return ip + 1;
             }));
 
+            builder.withNativeMethod("has", ((fiber, ip, bp, sp, argCount, target) -> {
+                var key = fiber.readArg(bp, sp, 2, 1);
+                var value = ((CMap) target).contains(key);
+                fiber.pushResult(bp, sp, 2, value ? 1 : 0);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("remove", ((fiber, ip, bp, sp, argCount, target) -> {
+                var key = (int) fiber.readArg(bp, sp, 2, 1);
+                var prior = ((CMap) target).remove(key);
+                fiber.pushResult(bp, sp, 2, prior);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("iterator", ((fiber, ip, bp, sp, argCount, target) -> {
+                var it = new CMapIterator((CMap)fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0)));
+                fiber.pushResult(bp, sp, 1, fiber.vm().fromHostValue(it));
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("compact", ((fiber, ip, bp, sp, argCount, target) -> {
+                ((CMap) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).compact();
+                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // return self
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("clear", ((fiber, ip, bp, sp, argCount, target) -> {
+                ((CMap) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).clear();
+                fiber.pushResult(bp, sp, 1, fiber.readArg(bp, sp, 1, 0)); // return self
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("size", ((fiber, ip, bp, sp, argCount, target) -> {
+                var size = ((CMap) fiber.vm().toHostValue(fiber.readArg(bp, sp, 1, 0))).size();
+                fiber.pushResult(bp, sp, 1, size);
+                return ip + 1;
+            }));
+
+        });
+
+        binding.register(CMapIterator.class, builder -> {
+            builder.withNativeMethod("hasNext", ((fiber, ip, bp, sp, argCount, target) -> {
+                fiber.pushResult(bp, sp, 1, ((CMapIterator) target).hasNext() ? 1 : 0);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("next", ((fiber, ip, bp, sp, argCount, target) -> {
+                fiber.pushResult(bp, sp, 1, ((CMapIterator) target).next());
+                return ip + 1;
+            }));
         });
 
         binding.register(String.class, builder -> {
@@ -170,6 +248,20 @@ public class LangModule implements NativeModule {
                 var v = fiber.readArg(bp, sp, 2, 1);
                 var other = Value.isNumber(v) ? Double.toString(v) : Objects.toString(fiber.vm().heap().read(v));
                 fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(((String) target).concat(other)));
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("equals", ((fiber, ip, bp, sp, argCount, target) -> {
+                var s = (String) target;
+                var other = fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
+                fiber.pushResult(bp, sp, 2, s.equals(other) ? 1 : 0);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("mod", ((fiber, ip, bp, sp, argCount, target) -> {
+                var params = (CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, 2, 1));
+                var formatted = ((String) target).formatted(params.toHostArray());
+                fiber.pushResult(bp, sp, 2, fiber.vm().fromHostValue(formatted));
                 return ip + 1;
             }));
         });

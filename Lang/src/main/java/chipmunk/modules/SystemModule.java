@@ -20,7 +20,10 @@
 
 package chipmunk.modules;
 
+import chipmunk.runtime.CList;
+import chipmunk.runtime.CMap;
 import chipmunk.runtime.ChipmunkModule;
+import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.invoke.AllowChipmunkLinkage;
 
 import java.util.List;
@@ -37,13 +40,13 @@ public class SystemModule implements ChipmunkModule {
     protected final Consumer<Object> err;
 
     @AllowChipmunkLinkage
-    public final List<Object> args;
+    public final CList args;
 
     @AllowChipmunkLinkage
-    public final Map<String, Object> env;
+    public final CMap env;
 
 
-    public SystemModule(List<Object> args, Map<String, Object> env, Supplier<String> in, Consumer<Object> out, Consumer<Object> err) {
+    public SystemModule(ChipmunkScript script, List<Object> args, Map<String, Object> env, Supplier<String> in, Consumer<Object> out, Consumer<Object> err) {
         if(args == null){
             args = List.of();
         }
@@ -52,8 +55,25 @@ public class SystemModule implements ChipmunkModule {
             env = Map.of();
         }
 
-        this.args = args;
-        this.env = env;
+        if(script != null){
+            // Script will be null if this is instantiated during compilation.
+            var vm = script.getHazelVM();
+
+            this.args = new CList(vm, args.size());
+            for(var arg : args){
+                var argPtr = vm.fromHostValue(arg);
+                this.args.add(argPtr);
+            }
+
+            this.env = new CMap(vm, env.size());
+            for(var envKey : env.keySet()){
+                this.env.insert(vm.fromHostValue(envKey), vm.fromHostValue(env.get(envKey)));
+            }
+        }else{
+            this.args = null;
+            this.env = null;
+        }
+
 
         this.in = in;
         this.out = out;
@@ -62,6 +82,8 @@ public class SystemModule implements ChipmunkModule {
 
     @AllowChipmunkLinkage
     public void println(Object msg){
+        System.out.println("Calling println @:");
+        new Exception().printStackTrace(System.out);
         out.accept(msg);
     }
 

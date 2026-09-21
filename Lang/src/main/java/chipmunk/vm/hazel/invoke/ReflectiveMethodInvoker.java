@@ -52,12 +52,6 @@ public class ReflectiveMethodInvoker extends MethodInvoker {
     public int invokeMethod(Fiber fiber, int ip, int bp, int sp, Object target) {
         var heap = fiber.vm().heap();
 
-        // TODO - probably not necessary since we already have a native reference to the object
-        var targetPtr = fiber.stack[bp + sp - argCount];
-        if(!Value.isPointer(targetPtr)) {
-            throw new TypeError(fiber, "Not a reference to an object");
-        }
-
         // We have to adjust parameter count due to the fact that Chipmunk includes the 'self' parameter in the count,
         // while Java does not.
         var pCount = argCount - 1;
@@ -65,7 +59,7 @@ public class ReflectiveMethodInvoker extends MethodInvoker {
         if(pCount > 0){
             params = new Object[pCount];
             for(int i = 0; i < pCount; i++) {
-                var p = fiber.stack[bp + sp - argCount + i + 1];
+                var p = fiber.readArg(bp, sp, argCount, i + 1);
                 if(Value.isPointer(p)){
                     params[i] = heap.read(p);
                 }else{
@@ -75,19 +69,7 @@ public class ReflectiveMethodInvoker extends MethodInvoker {
         }
         try {
             var result = method.invoke(target, params);
-            fiber.stack[bp + sp - argCount] = switch (result){
-                case Double d -> d;
-                case null -> Value.NULL_PTR_VALUE;
-                case HostCObject cObj -> {
-                    if(!Value.isNullPointer(cObj.selfPtr())){
-                        yield cObj.selfPtr();
-                    }
-                    var ptr = heap.allocateAndWrite(cObj);
-                    cObj.selfPtr(ptr);
-                    yield ptr;
-                }
-                default -> heap.allocateAndWrite(result);
-            };
+            fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(result));
             return ip + 1;
         }catch (IllegalAccessException e) {
             throw new TypeError(fiber, target.getClass().getName() + "." + name + "(" + (argCount - 1) + ") is not callable: " + e.getMessage(), e);

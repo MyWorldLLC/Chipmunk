@@ -28,7 +28,7 @@ public class OpcodeNames {
     public static final String MUL = "mul";
     public static final String DIV = "div";
     public static final String FDIV = "fdiv";
-    public static final String MOD = "%";
+    public static final String MOD = "mod";
     public static final String POW = "pow";
     public static final String INC = "inc";
     public static final String DEC = "dec";
