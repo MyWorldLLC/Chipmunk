@@ -82,8 +82,6 @@ public class SystemModule implements ChipmunkModule {
 
     @AllowChipmunkLinkage
     public void println(Object msg){
-        System.out.println("Calling println @:");
-        new Exception().printStackTrace(System.out);
         out.accept(msg);
     }
 

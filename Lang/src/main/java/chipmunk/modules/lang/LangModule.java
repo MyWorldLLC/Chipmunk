@@ -89,14 +89,12 @@ public class LangModule implements NativeModule {
                 var value = fiber.readArg(bp, sp, 2, 1);
                 ((CList) target).add(value);
                 fiber.pushResult(bp, sp, 2, value);
-                System.out.println("Added result");
                 return ip + 1;
             }));
 
             builder.withNativeMethod("getAt", ((fiber, ip, bp, sp, argCount, target) -> {
                 var index = (int) fiber.readArg(bp, sp, 2, 1);
                 var value = ((CList) target).get(index);
-                System.out.println("Returning " + index + ": " + value);
                 fiber.pushResult(bp, sp, 2, value);
                 return ip + 1;
             }));
