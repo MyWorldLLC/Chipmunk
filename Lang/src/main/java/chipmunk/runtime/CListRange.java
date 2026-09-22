@@ -23,37 +23,18 @@ package chipmunk.runtime;
 import chipmunk.vm.hazel.GCCollectable;
 import chipmunk.vm.hazel.GarbageCollector;
 
-public class CListRangeIterator extends HostCObject implements GCCollectable {
+public class CListRange extends HostCObject implements GCCollectable {
 
     protected final CList list;
-    protected final int start;
-    protected final int end;
-    protected int current;
+    protected final CRange range;
 
-    public CListRangeIterator(CList list, CRange range) {
+    public CListRange(CList list, CRange range) {
         this.list = list;
-        this.start = (int) range.start();
-        var tmpEnd = (int) range.end();
-
-        if(tmpEnd < 0) {
-            tmpEnd = list.size() - Math.abs(tmpEnd);
-        }
-        if(!range.isInclusive()){
-            tmpEnd--;
-        }
-
-        this.end = tmpEnd;
-        current = start;
+        this.range = range;
     }
 
-    public double hasNext(){
-        return current < end ? 1 : 0;
-    }
-
-    public double next(){
-        var v = list.get(current);
-        current++;
-        return v;
+    public CListRangeIterator iterator(){
+        return new CListRangeIterator(list, range);
     }
 
     @Override

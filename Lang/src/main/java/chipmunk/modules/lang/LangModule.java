@@ -144,8 +144,8 @@ public class LangModule implements NativeModule {
             builder.withNativeMethod("range", ((fiber, ip, bp, sp, argCount, target) -> {
                 var list = (CList) fiber.vm().toHostValue(fiber.readArg(bp, sp, argCount, 0));
                 var range = (CRange) fiber.vm().toHostValue(fiber.readArg(bp, sp, argCount, 1));
-                var it = new CListRangeIterator(list, range.iterator());
-                fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(it));
+                var listRange = new CListRange(list, range);
+                fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(listRange));
                 return ip + 1;
             }));
 
@@ -177,6 +177,14 @@ public class LangModule implements NativeModule {
 
             builder.withNativeMethod("next", ((fiber, ip, bp, sp, argCount, target) -> {
                 fiber.pushResult(bp, sp, argCount, ((CListIterator) target).next());
+                return ip + 1;
+            }));
+        });
+
+        binding.register(CListRange.class, builder -> {
+            builder.withNativeMethod("iterator", ((fiber, ip, bp, sp, argCount, target) -> {
+                var range = (CListRange)fiber.vm().toHostValue(fiber.readArg(bp, sp, argCount, 0));
+                fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(range.iterator()));
                 return ip + 1;
             }));
         });
