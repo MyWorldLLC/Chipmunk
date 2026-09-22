@@ -20,7 +20,10 @@
 
 package chipmunk.runtime;
 
-public class CListIterator extends HostCObject {
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
+
+public class CListIterator extends HostCObject implements GCCollectable {
 
     protected final CList list;
     private int index = 0;
@@ -39,4 +42,8 @@ public class CListIterator extends HostCObject {
         return r;
     }
 
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visit(list.selfPtr());
+    }
 }

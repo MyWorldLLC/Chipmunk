@@ -23,29 +23,27 @@ package chipmunk.runtime;
 import chipmunk.vm.hazel.GCCollectable;
 import chipmunk.vm.hazel.GarbageCollector;
 
-public class CMapIterator extends HostCObject implements GCCollectable {
+public class CListRangeIterator extends HostCObject implements GCCollectable {
 
-    protected final CMap map;
-    protected final double[] keys;
-    private int index = 0;
+    protected final CList list;
+    protected final CRange.RangeIterator iterator;
 
-    public CMapIterator(CMap map) {
-        this.map = map;
-        keys = map.keys();
+    public CListRangeIterator(CList list, CRange.RangeIterator iterator) {
+        this.list = list;
+        this.iterator = iterator;
     }
 
-    public boolean hasNext(){
-        return index < keys.length;
+    public double hasNext(){
+        return iterator.hasNext();
     }
 
     public double next(){
-        var r = keys[index];
-        index++;
-        return r;
+        return list.get((int) iterator.next());
     }
 
     @Override
     public void gcVisit(GarbageCollector.GCCollection collection) {
-        collection.visit(map.selfPtr());
+        collection.visit(list.selfPtr());
     }
+
 }

@@ -43,6 +43,9 @@ public class CFieldInvoker extends FieldInvoker {
     @Override
     public boolean canInvoke(Object target) {
         // TODO - should specialize for each case
+        if(target == null){
+            return false;
+        }
         return switch (target){
             case CObject ins -> Value.pointersEqual(ins.storage()[0], typePtr);
             case CModule module -> Value.pointersEqual(module.selfPtr(), typePtr);

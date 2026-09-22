@@ -166,6 +166,7 @@ public class Run implements Callable<Integer> {
             }
 
             ChipmunkScript script = vm.compileScript(hvmEntry, modules);
+            script.getHazelVM().limits().maximums();
             script.run();
 
             return 0;

@@ -81,17 +81,16 @@ public class GarbageCollector {
 
         black.set(0); // Null pointer must always be in the black set since we don't have pinning yet.
 
-        // Mark initial black set
+        // Mark modules and fiber stacks
         vm.allCModules().forEach(module -> {
-            collection.black.set(Value.getPointer(module.selfPtr()));
-            visitStorage(collection, module.getFields());
+            collection.grey.set(Value.getPointer(module.selfPtr()));
         });
 
         vm.allFibers().forEach(fiber-> {
             var stack = fiber.stack();
             var frame = fiber.currentFrame();
             var stackDepth = frame.bp + frame.method.maxStack();
-            for(int i = frame.bp; i < frame.bp + stackDepth; i++){
+            for(int i = 0; i < frame.bp + stackDepth; i++){
                 markIfPointer(collection, stack[i]);
             }
         });
@@ -119,7 +118,7 @@ public class GarbageCollector {
         black.intersect(allocator.allocated());
         for(int i = 0; i < black.bitCount(); i++){
             if(black.isSet(i)){
-                allocator.free(i);
+                heap.free(i);
                 // TODO - estimate and record overall memory impact of freeing these objects
                 stats.slotFreed();
             }
@@ -130,7 +129,7 @@ public class GarbageCollector {
         if(Value.isPointer(v)){
             var ptr = Value.getPointer(v);
             if(ptr != 0){
-                collection.black.set(ptr);
+                collection.grey.set(ptr);
                 var obj = heap.read(ptr);
                 markFields(collection, obj);
             }

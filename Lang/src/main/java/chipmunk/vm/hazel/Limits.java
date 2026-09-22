@@ -99,4 +99,11 @@ public class Limits {
         this.heapSlots = other.heapSlots;
         this.fiberCount = other.fiberCount;
     }
+
+    public void maximums(){
+        callStackDepth = Integer.MAX_VALUE;
+        stackStorage = Integer.MAX_VALUE;
+        heapSlots = Integer.MAX_VALUE;
+        fiberCount = Integer.MAX_VALUE;
+    }
 }

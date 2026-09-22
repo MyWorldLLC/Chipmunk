@@ -68,4 +68,9 @@ public class If extends CallingInstruction {
         }
         return ip + 1;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " " + target;
+    }
 }

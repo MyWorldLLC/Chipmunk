@@ -57,8 +57,9 @@ public final class Heap {
         memory = new Object[initialHeapSize];
         allocator = new BitFieldAllocator(initialHeapSize);
         gc = new GarbageCollector(vm, this);
-        // TODO - support GC pinning, and pin this so that the GC can never free the null pointer and allow it to be used.
-        allocate(); // Allocate once to reserve the null pointer so that "real" allocations never result in null.
+        // Allocate once to reserve the null pointer so that "real" allocations never result in null.
+        // The GC specifically marks the null pointer so that it's not collected.
+        allocate();
     }
 
     public Object read(double ptr){
@@ -102,11 +103,12 @@ public final class Heap {
             gc.collect();
             ptr = allocator.allocate();
             if(ptr == ALLOC_FAILURE){
-                throw new HeapOverflowException(Value.NULL_POINTER, "Heap is full");
+                growHeap(memory.length);
+                ptr = allocator.allocate();
+                if(ptr == ALLOC_FAILURE){
+                    throw new HeapOverflowException(Value.NULL_POINTER, "Heap is full");
+                }
             }
-        }
-        if(ptr >= memory.length){
-            growHeap(ptr);
         }
         return ptr;
     }
