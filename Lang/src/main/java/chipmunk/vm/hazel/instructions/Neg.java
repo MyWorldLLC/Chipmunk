@@ -25,7 +25,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class Neg extends CallingInstruction {
+public final class Neg extends CallingInstruction {
 
     public Neg(int sp, Linker linker) {
         super(sp, linker);

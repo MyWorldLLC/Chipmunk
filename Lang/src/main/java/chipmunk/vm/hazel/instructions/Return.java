@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class Return extends Instruction {
+public final class Return extends Instruction {
 
     public Return(int sp) {
         super(sp);

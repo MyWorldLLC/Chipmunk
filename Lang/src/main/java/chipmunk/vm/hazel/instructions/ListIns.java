@@ -26,7 +26,7 @@ import chipmunk.vm.hazel.Instruction;
 
 import java.util.ArrayList;
 
-public class ListIns extends Instruction {
+public final class ListIns extends Instruction {
 
     protected final int elements;
 

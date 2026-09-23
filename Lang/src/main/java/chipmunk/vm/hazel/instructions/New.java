@@ -24,7 +24,7 @@ import chipmunk.runtime.CClass;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class New extends CallingInstruction {
+public final class New extends CallingInstruction {
 
     protected final int argCount;
 

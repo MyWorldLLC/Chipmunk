@@ -24,7 +24,7 @@ import chipmunk.runtime.CRange;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class Range extends Instruction {
+public final class Range extends Instruction {
 
     protected final boolean inclusive;
 

@@ -25,7 +25,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class Div extends CallingInstruction {
+public final class Div extends CallingInstruction {
 
     public Div(int sp, Linker linker) {
         super(sp, linker);

@@ -25,7 +25,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class Band extends CallingInstruction {
+public final class Band extends CallingInstruction {
 
     public Band(int sp, Linker linker) {
         super(sp, linker);

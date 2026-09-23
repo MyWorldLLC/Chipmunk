@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class LocalSet extends Instruction {
+public final class LocalSet extends Instruction {
 
     protected final int local;
 

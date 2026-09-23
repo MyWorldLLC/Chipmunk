@@ -24,7 +24,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.Value;
 
-public class Push extends Instruction {
+public final class Push extends Instruction {
 
     protected final Object value;
 

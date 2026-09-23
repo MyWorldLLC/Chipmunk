@@ -25,7 +25,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class UnaryCondition extends CallingInstruction {
+public final class UnaryCondition extends CallingInstruction {
 
     public static final int NO_JUMP = Integer.MIN_VALUE;
 

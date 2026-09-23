@@ -24,7 +24,7 @@ import chipmunk.runtime.Upvalue;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class InitUpvalue extends Instruction {
+public final class InitUpvalue extends Instruction {
 
     protected final int local;
 

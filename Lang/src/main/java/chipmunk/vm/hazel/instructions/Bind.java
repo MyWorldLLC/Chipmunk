@@ -27,7 +27,7 @@ import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class Bind extends Instruction {
+public final class Bind extends Instruction {
 
     protected final String method;
     protected final Linker linker;

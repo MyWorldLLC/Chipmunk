@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class Call extends CallingInstruction {
+public final class Call extends CallingInstruction {
 
     protected final String methodName;
     protected final int argCount;

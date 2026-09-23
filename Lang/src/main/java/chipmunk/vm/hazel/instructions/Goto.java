@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class Goto extends Instruction {
+public final class Goto extends Instruction {
 
     protected final int target;
 

@@ -25,7 +25,7 @@ import chipmunk.vm.hazel.TypeError;
 import chipmunk.vm.hazel.Value;
 import chipmunk.vm.hazel.invoke.Linker;
 
-public class GetField extends FieldInstruction {
+public final class GetField extends FieldInstruction {
 
     protected final String field;
 

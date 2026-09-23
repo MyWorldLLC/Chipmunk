@@ -24,7 +24,7 @@ import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 import chipmunk.vm.hazel.ThrownValue;
 
-public class Throw extends Instruction {
+public final class Throw extends Instruction {
 
     public Throw(int sp) {
         super(sp);

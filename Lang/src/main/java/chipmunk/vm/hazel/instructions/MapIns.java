@@ -26,7 +26,7 @@ import chipmunk.vm.hazel.Instruction;
 
 import java.util.HashMap;
 
-public class MapIns extends Instruction {
+public final class MapIns extends Instruction {
 
     protected final int elements;
 

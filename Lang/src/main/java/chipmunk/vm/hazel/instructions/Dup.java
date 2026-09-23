@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class Dup extends Instruction {
+public final class Dup extends Instruction {
 
     public Dup(int sp) {
         super(sp);

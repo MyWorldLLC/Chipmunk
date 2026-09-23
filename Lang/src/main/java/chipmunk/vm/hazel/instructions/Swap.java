@@ -23,7 +23,7 @@ package chipmunk.vm.hazel.instructions;
 import chipmunk.vm.hazel.Fiber;
 import chipmunk.vm.hazel.Instruction;
 
-public class Swap extends Instruction {
+public final class Swap extends Instruction {
 
     public Swap(int sp) {
         super(sp);
