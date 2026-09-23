@@ -257,6 +257,14 @@ class LanguageSpecification extends Specification {
 		then:
 		result.toList() == [2, 5]
 	}
+
+	def "Run CallingConditional.chp"(){
+		when:
+		def result = compileAndRun("CallingConditional.chp", true)
+
+		then:
+		result == 7
+	}
 	
 	def "Run Mandelbrot.chp"(){
 		when:

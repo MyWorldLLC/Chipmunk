@@ -23,6 +23,7 @@ package chipmunk.runtime;
 import chipmunk.vm.hazel.GCCollectable;
 import chipmunk.vm.hazel.GarbageCollector;
 import chipmunk.vm.hazel.HazelVM;
+import chipmunk.vm.hazel.Value;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,13 +76,35 @@ public class CList extends HostCObject implements GCCollectable {
         return prior;
     }
 
+    public boolean removeValue(double v){
+        var index = indexOf(v);
+        if(index == -1){
+            return false;
+        }
+        remove(index);
+        return true;
+    }
+
     public boolean contains(double value){
-        for(int i = 0; i < insertIndex; i++){
-            if(storage[i] == value){
-                return true;
+        return indexOf(value) >= 0;
+    }
+
+    public int indexOf(double value){
+        var isNumber = Value.isNumber(value);
+        var ptr = Value.getPointer(value);
+        for(int i = 0; i < size(); i++){
+            if(isNumber){
+                if(storage[i] == value){
+                    return i;
+                }
+            }else{
+                var stored = storage[i];
+                if(Value.isPointer(stored) && Value.getPointer(storage[i]) == ptr){
+                    return i;
+                }
             }
         }
-        return false;
+        return -1;
     }
 
     public void compact(){

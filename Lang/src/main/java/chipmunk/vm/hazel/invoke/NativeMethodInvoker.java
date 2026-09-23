@@ -40,6 +40,10 @@ public class NativeMethodInvoker extends MethodInvoker {
 
     @Override
     public int invokeMethod(Fiber fiber, int ip, int bp, int sp, Object target) {
-        return method.invoke(fiber, ip, bp, sp, argCount, target);
+        var nextIp = method.invoke(fiber, ip, bp, sp, argCount, target);
+        if(nextIp != Fiber.RETURN_SIGNAL){
+            fiber.currentFrame().ip = nextIp;
+        }
+        return Fiber.RETURN_SIGNAL;
     }
 }

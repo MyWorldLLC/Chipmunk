@@ -29,6 +29,7 @@ public class CListRangeIterator extends HostCObject implements GCCollectable {
     protected final int start;
     protected final int end;
     protected int current;
+    protected final int step;
 
     public CListRangeIterator(CList list, CRange range) {
         this.list = list;
@@ -44,15 +45,16 @@ public class CListRangeIterator extends HostCObject implements GCCollectable {
 
         this.end = tmpEnd;
         current = start;
+        step = end > start ? 1 : -1;
     }
 
     public double hasNext(){
-        return current < end ? 1 : 0;
+        return (step > 0 && current <= end) || (step < 0 && current >= start) ? 1 : 0;
     }
 
     public double next(){
         var v = list.get(current);
-        current++;
+        current += step;
         return v;
     }
 
