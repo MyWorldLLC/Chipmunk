@@ -51,6 +51,8 @@ public class ClassVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		
 		if(node.is(NodeType.CLASS)){
+
+			node.getSymbolTable().setDebugSymbol(node.getSymbol().getName());
 			
 			if(cls == null) {
 				cls = new BinaryClass(node.getSymbol().getName(), module);
