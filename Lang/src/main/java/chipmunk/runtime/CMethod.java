@@ -28,9 +28,9 @@ public class CMethod extends NamedHostObject {
 
     public record ExceptionBlock(int beginIp, int endIp, int catchIp, int exceptionLocalIndex) {}
 
-    protected final CModule module;
     protected final Instruction[] code;
     protected String debugName;
+    protected String moduleName;
     protected DebugEntry[] debugTable;
     protected ExceptionBlock[] exceptionTable;
     protected final int argCount;
@@ -38,18 +38,13 @@ public class CMethod extends NamedHostObject {
     protected final int defaultArgCount;
     protected final int maxStack;
 
-    public CMethod(CModule module, String name, Instruction[] code, int argCount, int localCount, int defaultArgCount, int maxStack) {
+    public CMethod(String name, Instruction[] code, int argCount, int localCount, int defaultArgCount, int maxStack) {
         super(name);
-        this.module = module;
         this.code = code;
         this.argCount = argCount;
         this.localCount = localCount;
         this.defaultArgCount = defaultArgCount;
         this.maxStack = maxStack;
-    }
-
-    public CModule module() {
-        return module;
     }
 
     public Instruction[] code() {
@@ -86,6 +81,14 @@ public class CMethod extends NamedHostObject {
 
     public String debugName(){
         return debugName;
+    }
+
+    public void moduleName(String name){
+        moduleName = name;
+    }
+
+    public String moduleName(){
+        return moduleName;
     }
 
     public DebugEntry[] debugTable() {

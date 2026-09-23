@@ -89,11 +89,10 @@ public class HazelVM {
                     throw new IllegalStateException("Entry point module " + entryPoint.module() + " not found");
                 }
 
-                var main = module.getMethod(entryPoint.method());
-                if(main == null){
+                if(module.getMethod(entryPoint.method()) == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
                 }
-                spawnFiber(main);
+                spawnFiber(module, entryPoint.method());
             }
 
             state = State.RUNNING;
@@ -204,9 +203,8 @@ public class HazelVM {
             throw new ChipmunkException(currentFiber, "Cannot spawn fiber, fiber limit has been reached");
         }
         var fiber = new Fiber(this, method);
-        fiber.stack[0] = method.module().selfPtr();
         for(int i = 0; i < args.length; i++){
-            fiber.stack[i + 1] = args[i];
+            fiber.stack[i] = args[i];
         }
         fiber.pushCallFrame(method, 0);
         enqueue(fiber);
@@ -757,7 +755,9 @@ public class HazelVM {
     public ChipmunkModule getModule(String name){
         try {
             var module = modules.get(name);
-            if(module == null){
+            if(module != null){
+                return module;
+            }else{
                 module = moduleLoader.load(name, bin -> new BinaryLoader(linker).loadModule(heap, bin));
                 if(module instanceof NativeModule nModule){
                     nModule.registerTypeBindings(linker.binding());
@@ -793,7 +793,7 @@ public class HazelVM {
                 var init = cModule.getMethod("$module_init$");
                 if(init != null && !cModule.isInitialized()){
                     cModule.markInitialized();
-                    var initFiber = spawnFiber(init, heap.allocateAndWrite(this));
+                    var initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
                     if(currentFiber != null){
                         initFiber.block(currentFiber);
                         this.yield();
@@ -835,12 +835,10 @@ public class HazelVM {
             case Double d -> d;
             case null -> Value.NULL_PTR_VALUE;
             case HostCObject cObj -> {
-                if(!Value.isNullPointer(cObj.selfPtr())){
-                    yield cObj.selfPtr();
+                if(Value.isNullPointer(cObj.selfPtr())){
+                    cObj.selfPtr(heap.allocateAndWrite(cObj));
                 }
-                var ptr = heap.allocateAndWrite(cObj);
-                cObj.selfPtr(ptr);
-                yield ptr;
+                yield cObj.selfPtr();
             }
             default -> heap.allocateAndWrite(v);
         };

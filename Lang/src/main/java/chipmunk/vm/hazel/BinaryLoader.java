@@ -488,10 +488,11 @@ public class BinaryLoader {
         postProcessors.forEach(Runnable::run);
         var maxStack = Arrays.stream(stackDepths).max().getAsInt() + 1;
 
-        var method = new CMethod(module, entry.getName(), instructions.toArray(Instruction[]::new),
+        var method = new CMethod(entry.getName(), instructions.toArray(Instruction[]::new),
                 argCount, localCount, binaryMethod.getDefaultArgCount(), maxStack);
 
         method.debugName(binaryMethod.getDeclarationSymbol());
+        method.moduleName(module.getName());
         method.debugTable(Arrays.stream(binaryMethod.getDebugTable())
                         .map(binEntry ->
                                 new CMethod.DebugEntry(

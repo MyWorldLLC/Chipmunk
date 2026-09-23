@@ -123,4 +123,17 @@ public class CModule extends HostNamespaced implements ChipmunkModule, GCCollect
     public void gcVisit(GarbageCollector.GCCollection collection) {
         collection.visitStorage(fields);
     }
+
+    public CModule copy(){
+        var copy = new CModule(this.name, this.fileName);
+        copy.constantPool = this.constantPool;
+        copy.classDefs = Arrays.stream(this.classDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+        copy.methods = this.methods;
+        copy.imports = this.imports;
+
+        copy.setFields(this.fieldDefs);
+        return copy;
+    }
 }

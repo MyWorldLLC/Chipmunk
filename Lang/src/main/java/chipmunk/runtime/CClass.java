@@ -165,4 +165,24 @@ public class CClass extends NamedHostObject implements GCCollectable {
     public void gcVisit(GarbageCollector.GCCollection collection) {
         collection.visitStorage(sharedFields);
     }
+
+    public CClass copy(){
+        var copy = new CClass(this.name);
+        copy.module = this.module;
+        copy.sharedMethodDefs = this.sharedMethodDefs;
+        copy.instanceMethodDefs = this.instanceMethodDefs;
+
+        copy.sharedFieldDefs(this.sharedFieldDefs);
+        copy.instanceFieldDefs(this.instanceFieldDefs);
+
+        copy.sharedClassDefs = Arrays.stream(this.sharedClassDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+
+        copy.instanceClassDefs = Arrays.stream(this.instanceClassDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+
+        return copy;
+    }
 }
