@@ -57,6 +57,7 @@ public class ChipmunkProfiler {
 		var compiler = new ChipmunkCompiler();
 		var modules = compiler.compile(program.getIs(), program.getFileName());
 		var hazelVM = new HazelVM(new ModuleLoader());
+		hazelVM.limits().maximums();
 		hazelVM.moduleLoader().addToLoaded(List.of(modules));
 		hazelVM.entryPoint(new EntryPoint("profiling", "main"));
 		for(var module : modules){

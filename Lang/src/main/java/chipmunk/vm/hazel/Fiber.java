@@ -116,23 +116,25 @@ public final class Fiber {
     }
 
     public Frame pushFrame(){
-        var frame = callFrames[callFramePtr];
-        if(frame == null){
-            frame = new Frame();
-            try{
-                callFrames[callFramePtr] = frame;
-            }catch(ArrayIndexOutOfBoundsException e){
-                if(callFrames.length + DEFAULT_CALL_FRAMES > vm.limits().callStackDepth()){
-                    throw new ChipmunkException(this, "Call stack depth limit exceeded: " + callFrames.length);
-                }
-                var tmp = new Frame[callFrames.length * 2];
-                System.arraycopy(callFrames, 0, tmp, 0, callFrames.length);
-                callFrames = tmp;
-                callFrames[callFramePtr] = frame;
+        try{
+            var frame = callFrames[callFramePtr];
+            if(frame == null)
+                frame = new Frame();
+            callFrames[callFramePtr] = frame;
+            callFramePtr++;
+            return frame;
+        }catch(ArrayIndexOutOfBoundsException e){
+            if(callFrames.length + DEFAULT_CALL_FRAMES > vm.limits().callStackDepth()){
+                throw new ChipmunkException(this, "Call stack depth limit exceeded: " + callFrames.length);
             }
+            var tmp = new Frame[callFrames.length * 2];
+            System.arraycopy(callFrames, 0, tmp, 0, callFrames.length);
+            callFrames = tmp;
+            var frame = new Frame();
+            callFrames[callFramePtr] = frame;
+            callFramePtr++;
+            return frame;
         }
-        callFramePtr++;
-        return frame;
     }
 
     public Frame currentFrame(){
