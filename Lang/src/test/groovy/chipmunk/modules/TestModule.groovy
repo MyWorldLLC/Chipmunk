@@ -20,9 +20,12 @@
 
 package chipmunk.modules
 
-import chipmunk.runtime.ChipmunkModule
-import chipmunk.vm.jvm.Uncatchable
 
+import chipmunk.runtime.ChipmunkModule
+import chipmunk.vm.Uncatchable
+import chipmunk.vm.invoke.AllowChipmunkLinkage
+
+@AllowChipmunkLinkage
 class TestModule implements ChipmunkModule {
 
     static final String TEST_MODULE_NAME = "chipmunk.test"
@@ -32,7 +35,7 @@ class TestModule implements ChipmunkModule {
     }
 
     void println(Object o){
-        System.out.println(o);
+        SystemModule.println(o);
     }
 
     String getName() {

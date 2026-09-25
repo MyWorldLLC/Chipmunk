@@ -23,7 +23,7 @@ package chipmunk.compiler;
 import chipmunk.binary.*;
 import chipmunk.compiler.assembler.InvalidOpcodeChipmunk;
 
-import static chipmunk.compiler.assembler.Opcodes.*;
+import static chipmunk.vm.Opcodes.*;
 
 public class ChipmunkDisassembler {
 
@@ -117,6 +117,18 @@ public class ChipmunkDisassembler {
 				builder.append(padding);
 				builder.append(INDENTATION);
 				builder.append("def ");
+				builder.append(entry.getName());
+				builder.append(":\n");
+				builder.append(disassemble(entry.getBinaryMethod().getCode(), entry.getBinaryMethod().getConstantPool(), false, padding + INDENTATION));
+				builder.append("\n\n");
+			}
+		}
+
+		for(BinaryNamespace.Entry entry : cls.getSharedNamespace()){
+			if(entry.getType() == FieldType.METHOD){
+				builder.append(padding);
+				builder.append(INDENTATION);
+				builder.append("shared def ");
 				builder.append(entry.getName());
 				builder.append(":\n");
 				builder.append(disassemble(entry.getBinaryMethod().getCode(), entry.getBinaryMethod().getConstantPool(), false, padding + INDENTATION));

@@ -22,6 +22,7 @@ package chipmunk.binary
 
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkCompiler
+import chipmunk.vm.hazel.EntryPoint
 import spock.lang.Specification
 
 class BinaryFormatSpecification  extends Specification {
@@ -40,7 +41,8 @@ class BinaryFormatSpecification  extends Specification {
 
         module = writeAndRead(module)
         def script = vm.compileScript(module)
-        def result = vm.runAsync(script).get()
+        script.setEntryPoint(new EntryPoint("test", "main"))
+        def result = script.run().value()
 
         then:
         noExceptionThrown()

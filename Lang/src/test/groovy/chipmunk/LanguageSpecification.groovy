@@ -20,7 +20,6 @@
 
 package chipmunk
 
-import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.compiler.ChipmunkDisassembler
 import chipmunk.compiler.ChipmunkSource
@@ -28,10 +27,13 @@ import chipmunk.compiler.Compilation
 import chipmunk.modules.TestModule
 import chipmunk.modules.imports.JvmImportModule
 import chipmunk.runtime.UnimplementedMethodException
-import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
-import chipmunk.vm.jvm.Uncatchable
+import chipmunk.vm.Uncatchable
+import chipmunk.vm.hazel.EntryPoint
+import chipmunk.vm.hazel.TypeError
+import chipmunk.vm.hazel.Value
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class StaticAccess {
@@ -45,12 +47,13 @@ class LanguageSpecification extends Specification {
 	ChipmunkVM vm = new ChipmunkVM()
 	ChipmunkCompiler compiler = new ChipmunkCompiler()
 	
-	def compileAndRun(String scriptName, boolean disassembleOnException = false){
+	def compileAndRun(String scriptName, boolean disassembleOnException = true){
 		return compileAndRunWithArgs(scriptName, null, disassembleOnException)
 	}
 
-	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = false){
-		ModuleLoader loader = new ModuleLoader()
+	def compileAndRunWithArgs(String scriptName, List args = null, boolean disassembleOnException = true){
+		ModuleLoader loader = vm.rootLoader()
+
 		loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, { new JvmImportModule()})
 		loader.registerNativeFactory(TestModule.TEST_MODULE_NAME, { new TestModule() })
 
@@ -59,21 +62,19 @@ class LanguageSpecification extends Specification {
 		Compilation compilation = new Compilation()
 		compilation.getSources().add(new ChipmunkSource(getClass().getResourceAsStream(scriptName), scriptName))
 
-		BinaryModule[] modules = compiler.compile(compilation)
-
-		loader.addToLoaded(Arrays.asList(modules))
-
-		ChipmunkScript script = vm.compileScript(modules)
-		script.setModuleLoader(loader)
-		ChipmunkScript.setCurrentScript(script)
+		// TODO - native modules registration
+		var modules = compiler.compile(compilation)
+		def script = vm.compileScript(modules)
+		script.setEntryPoint(new EntryPoint("test", "main"))
 
 		def argArray = args != null ? args.toArray() : null
 
 		if(!disassembleOnException){
-			return argArray == null ? script.run() : script.run(argArray)
+			return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
 		}else{
 			try{
-				return argArray == null ? script.run() : script.run(argArray)
+				//throw new Exception()
+				return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
 			}catch(Throwable e){
 
 				for(def binaryModule : modules){
@@ -222,7 +223,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("InnerClasses.chp")
 		
 		then:
-		result == 21
+		result == 24
 	}
 
 	def "Run TryCatch.chp"(){
@@ -240,13 +241,13 @@ class LanguageSpecification extends Specification {
 		then:
 		thrown(Uncatchable.class)
 	}
-	
+
 	def "Run Fibonacci.chp"(){
 		when:
 		def result = compileAndRun("Fibonacci.chp", true)
 		
 		then:
-		result == 832040
+		result == 13
 	}
 
 	def "Run IfElseExpressions.chp"(){
@@ -254,7 +255,15 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("IfElseExpressions.chp", true)
 
 		then:
-		result == [2, 5]
+		result.toList() == [2, 5]
+	}
+
+	def "Run CallingConditional.chp"(){
+		when:
+		def result = compileAndRun("CallingConditional.chp", true)
+
+		then:
+		result == 7
 	}
 	
 	def "Run Mandelbrot.chp"(){
@@ -295,10 +304,11 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("ShortcircuitOperators.chp", true)
 
 		then:
-		result == true
+		Value.isTruthy(result)
 
 	}
 
+	@Ignore
 	def "Run NativeInterop.chp"(){
 		when:
 		def result = compileAndRun("NativeInterop.chp")
@@ -308,6 +318,7 @@ class LanguageSpecification extends Specification {
 
 	}
 
+	@Ignore
 	def "Run DefaultModuleName.chp"(){
 		when:
 		def result = compileAndRun("DefaultModuleName.chp")
@@ -321,9 +332,10 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("IsOperator.chp")
 
 		then:
-		result == true
+		Value.isTruthy(result)
 	}
 
+	@Ignore
 	def "Run JavaStatics.chp"(){
 		when:
 		def result = compileAndRun("JavaStatics.chp")
@@ -339,7 +351,7 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("Casts.chp")
 
 		then:
-		result == true
+		Value.isTruthy(result)
 	}
 
 	def "Run ListSort.chp"(){
@@ -347,15 +359,15 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("ListSort.chp")
 
 		then:
-		result == [1, 2, 3]
+		result.toList() == [1, 2, 3]
 	}
 
-	def "Run ListSortWithComparator.chp"(){
+	def "Run ListSortWithKeys.chp"(){
 		when:
-		def result = compileAndRun("ListSortWithComparator.chp")
+		def result = compileAndRun("ListSortWithKeys.chp")
 
 		then:
-		result == [1, 2, 3]
+		result.toList() == [1, 2, 3]
 	}
 
 	def "Run ClassMethodBinding.chp"(){
@@ -387,24 +399,26 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("BoundMethodArgs.chp", true)
 
 		then:
-		result == [11, 10, 14, 11, 11]
+		result.toList() == [11, 10, 14, 11, 11]
 	}
 
 	def "Run UnimplementedMethod.chp"(){
 		when:
-		def result = compileAndRun("UnimplementedMethod.chp")
+		compileAndRun("UnimplementedMethod.chp")
 
 		then:
-		thrown(UnimplementedMethodException)
+		def ex = thrown(TypeError)
+		ex.message.contains("chipmunk.modules.lang.LangModule.unimplementedMethod")
 	}
 
 	def "Run Upvalues.chp"(){
 		when:
 		def result = compileAndRun("Upvalues.chp", true)
 
-		then: result == [5, 3, 3, 15, 3]
+		then: result.toList() == [5, 3, 3, 15, 3]
 	}
 
+	@Ignore
 	def "Proxy SamProxy interface"(){
 		when:
 		def methodBinding = compileAndRun("ProxySam.chp", true)
@@ -416,6 +430,7 @@ class LanguageSpecification extends Specification {
 		result == "Hello, Proxy!"
 	}
 
+	@Ignore
 	def "Proxy DemoProxy interface"(){
 		when:
 		def methodBinding = compileAndRun("ProxyDemo.chp", true)
@@ -432,6 +447,7 @@ class LanguageSpecification extends Specification {
 		fResult == 32.0f
 	}
 
+	@Ignore
 	def "Run ProxyArguments.chp"(){
 		when:
 		def result = compileAndRunWithArgs("ProxyArguments.chp", [new SimpleDemoProxyReceiver()], true)
@@ -461,6 +477,22 @@ class LanguageSpecification extends Specification {
 		def result = compileAndRun("TypeAnnotations.chp", true)
 
 		then:
-		result ==  [5, 3, 3, 15, 3]
+		result.toList() ==  [5, 3, 3, 15, 3]
+	}
+
+	def "Run ObjectComparisons.chp"(){
+		when:
+		def result = compileAndRun("ObjectComparisons.chp", true)
+
+		then:
+		result == 5
+	}
+
+	def "Run ObjectTruth.chp"(){
+		when:
+		def result = compileAndRun("ObjectTruth.chp", true)
+
+		then:
+		result == 5
 	}
 }

@@ -30,6 +30,9 @@ dependencies {
 
     testImplementation 'org.apache.groovy:groovy:4.0.21'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+    testImplementation platform('org.junit:junit-bom:5.13.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
@@ -66,7 +69,7 @@ test {
 
 task genTestFiles(type: JavaExec, dependsOn: compileTestGroovy) {
     classpath = sourceSets.test.runtimeClasspath
-    main = 'chipmunk.doc.TestFileGenerator'
+    mainClass = 'chipmunk.doc.TestFileGenerator'
     workingDir = "$projectDir/src/test/groovy/chipmunk/doc"
     args './generated'
 }

@@ -94,6 +94,16 @@ public class InitializerBuilderVisitor implements AstVisitor {
             AstNode instanceInitializer = Methods.make("$instance_init$");
             node.addChild(1, instanceInitializer);
 
+            var parentInitializer = modulesAndClasses.peek()
+                    .getChild(n -> Methods.isMethodNamed(n, "$module_init$") || Methods.isMethodNamed(n, "$class_init$"));
+
+            Methods.addToBody(parentInitializer,
+                    Methods.makeInvocation(Identifier.make(node.getSymbol().getName()), "$class_init$"));
+
+            // Note: This is really the wrong place for this, but we don't have another good spot right now.
+            // This *must* go ahead of all other variable declarations so that it's var 0. The interpreter depends on it.
+            node.addChild(0, VarDec.makeImplicit("$class"));
+
             modulesAndClasses.push(node);
 
             node.visitChildren(this);
@@ -118,23 +128,24 @@ public class InitializerBuilderVisitor implements AstVisitor {
 
             VarDec.removeAssignment(node);
 
-            if (owner.is(NodeType.MODULE)) {
-                var initializer = owner.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));
-                // Sort assignments to '$' fields (imported modules) to the front of the initializer,
-                // so that the writes happen before any potential reads of those fields in the initializer.
-                if(VarDec.getVarName(node).startsWith("$")){
-                    Methods.addToBody(initializer,0, assignStatement);
-                }else{
-                    Methods.addToBody(initializer, assignStatement);
-                }
-            } else if (owner.is(NodeType.CLASS)) {
-                if (node.getSymbol().isShared()) {
-                    Methods.addToBody(owner.getChild(0), assignStatement);
-                } else {
-                    Methods.addToBody(owner.getChild(1), assignStatement);
+            if(!node.getSymbol().getName().equals("$class")){
+                if (owner.is(NodeType.MODULE)) {
+                    var initializer = owner.getChild(n -> Methods.isMethodNamed(n, "$module_init$"));
+                    // Sort assignments to '$' fields (imported modules) to the front of the initializer,
+                    // so that the writes happen before any potential reads of those fields in the initializer.
+                    if(VarDec.getVarName(node).startsWith("$")){
+                        Methods.addToBody(initializer,0, assignStatement);
+                    }else{
+                        Methods.addToBody(initializer, assignStatement);
+                    }
+                } else if (owner.is(NodeType.CLASS)) {
+                    if (node.getSymbol().isShared()) {
+                        Methods.addToBody(owner.getChild(c -> c.getSymbol().getName().equals("$class_init$")), assignStatement);
+                    } else {
+                        Methods.addToBody(owner.getChild(c -> c.getSymbol().getName().equals("$instance_init$")), assignStatement);
+                    }
                 }
             }
-
 
         }
 

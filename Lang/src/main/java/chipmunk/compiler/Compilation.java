@@ -20,15 +20,12 @@
 
 package chipmunk.compiler;
 
-import chipmunk.vm.jvm.JvmCompilerConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Compilation {
 
     protected final List<ChipmunkSource> sources;
-    protected JvmCompilerConfig jvmCompilerConfig;
 
     public Compilation(){
         sources = new ArrayList<>();
@@ -42,11 +39,4 @@ public class Compilation {
         sources.add(source);
     }
 
-    public JvmCompilerConfig getJvmCompilerConfig() {
-        return jvmCompilerConfig;
-    }
-
-    public void setJvmCompilerConfig(JvmCompilerConfig jvmCompilerConfig) {
-        this.jvmCompilerConfig = jvmCompilerConfig;
-    }
 }

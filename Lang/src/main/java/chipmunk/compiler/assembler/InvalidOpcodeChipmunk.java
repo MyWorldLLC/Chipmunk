@@ -20,9 +20,9 @@
 
 package chipmunk.compiler.assembler;
 
-import chipmunk.ChipmunkRuntimeException;
+import chipmunk.ChipmunkException;
 
-public class InvalidOpcodeChipmunk extends ChipmunkRuntimeException {
+public class InvalidOpcodeChipmunk extends ChipmunkException {
 	private static final long serialVersionUID = -8090867885080049997L;
 	
 	protected byte opcode;

@@ -175,22 +175,19 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             if (symbol.isShared() && !scope.isSharedMethodScope()) {
                 // Symbol is a shared field AND we are not accessing it from a shared method
-                // Rewrite to self.getChipmunkClass().symbol
+                // Rewrite to self.$class.symbol
 
-                AstNode getClassCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
                 AstNode varDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
                 AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
 
-                AstNode getClass = new AstNode(NodeType.ID, new Token("getChipmunkClass", TokenType.IDENTIFIER, index, line, column));
+                AstNode getClass = new AstNode(NodeType.ID, new Token("$class", TokenType.IDENTIFIER, index, line, column));
 
                 selfDotNode.addChild(self);
                 selfDotNode.addChild(getClass);
 
-                getClassCallNode.addChild(selfDotNode);
-
-                varDotNode.addChild(getClassCallNode);
+                varDotNode.addChild(selfDotNode);
                 varDotNode.addChild(child);
 
                 return varDotNode;

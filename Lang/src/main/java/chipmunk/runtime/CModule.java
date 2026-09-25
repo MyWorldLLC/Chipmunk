@@ -1,0 +1,139 @@
+/*
+ * Copyright (C) 2026 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package chipmunk.runtime;
+
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
+
+import java.util.Arrays;
+
+public class CModule extends HostNamespaced implements ChipmunkModule, GCCollectable {
+
+    protected final String fileName;
+    protected Object[] constantPool;
+
+    protected CImport[] imports;
+
+    protected double[] fields;
+    protected CField[] fieldDefs;
+
+    protected CClass[] classDefs; // Note that these are stored as fields, so having this separate is a convenience for the API rather than the VM.
+
+    protected CMethod[] methods;
+    protected boolean initialized;
+
+    public CModule(String name, String fileName) {
+        super(name);
+        this.fileName = fileName;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public double[] getFields() {
+        return fields;
+    }
+
+    public CField[] getFieldDefs() {
+        return fieldDefs;
+    }
+
+    public Object[] constants(){
+        return constantPool;
+    }
+
+    public CMethod getMethod(String name){
+        return getMethod(name, -1);
+    }
+
+    public CMethod getMethod(String name, int args){
+        return Arrays.stream(methods)
+                .filter(m -> m.name().equals(name) && (args < 0 || m.argCount() == args))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public int getField(String name){
+        for(int i = 0; i < fieldDefs.length; i++){
+            if(fieldDefs[i].name().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void setFields(CField[] fields){
+        this.fields = new double[fields.length];
+        this.fieldDefs = fields;
+    }
+
+    public void setMethods(CMethod[] methods){
+        this.methods = methods;
+    }
+
+    public void setClasses(CClass[] classes){
+        classDefs = classes;
+    }
+
+    public void setConstantPool(Object[] constantPool){
+        this.constantPool = constantPool;
+    }
+
+    public CImport[] imports() {
+        return imports;
+    }
+
+    public void imports(CImport[] imports) {
+        this.imports = imports;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void markInitialized(){
+        initialized = true;
+    }
+
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(fields);
+    }
+
+    public CModule copy(){
+        var copy = new CModule(this.name, this.fileName);
+        copy.constantPool = this.constantPool;
+        copy.classDefs = Arrays.stream(this.classDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+        copy.methods = this.methods;
+        copy.imports = this.imports;
+
+        copy.setFields(this.fieldDefs);
+        return copy;
+    }
+}

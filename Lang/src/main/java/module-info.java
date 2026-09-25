@@ -16,19 +16,20 @@ open module chipmunk.lang {
     exports chipmunk.compiler.parser.subparsers;
     exports chipmunk.compiler.symbols;
     exports chipmunk.compiler.types;
+    exports chipmunk.modules;
     exports chipmunk.modules.buffer;
     exports chipmunk.modules.imports;
     exports chipmunk.modules.lang;
     exports chipmunk.modules.math;
     exports chipmunk.modules.uuid;
-    exports chipmunk.nut;
     exports chipmunk.runtime;
     exports chipmunk.util;
     exports chipmunk.util.pattern;
     exports chipmunk.vm;
     exports chipmunk.vm.invoke;
-    exports chipmunk.vm.invoke.security;
-    exports chipmunk.vm.jvm;
     exports chipmunk.vm.locators;
-    exports chipmunk.vm.scheduler;
+    exports chipmunk.vm.hazel;
+    exports chipmunk.vm.hazel.invoke;
+    exports chipmunk.vm.hazel.invoke.binding;
+    exports chipmunk.vm.hazel.util;
 }
