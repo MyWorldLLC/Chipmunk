@@ -1,0 +1,188 @@
+/*
+ * Copyright (C) 2026 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package chipmunk.runtime;
+
+import chipmunk.vm.hazel.GCCollectable;
+import chipmunk.vm.hazel.GarbageCollector;
+import chipmunk.vm.hazel.HazelVM;
+
+import java.util.Arrays;
+
+public class CClass extends NamedHostObject implements GCCollectable {
+
+    protected double[] sharedFields;
+    protected CClass[] sharedClassDefs;
+    protected CField[] sharedFieldDefs;
+    protected CMethod[] sharedMethodDefs;
+
+    protected CClass[] instanceClassDefs;
+    protected CField[] instanceFieldDefs;
+    protected int[] traitFields;
+    protected CMethod[] instanceMethodDefs;
+    protected double[] instanceFields; // This is initialized with the instance-nested CClasses
+
+    protected CModule module;
+
+    public CClass(String name) {
+        super(name);
+    }
+
+    public CModule module() {
+        return module;
+    }
+
+    public void module(CModule module) {
+        this.module = module;
+    }
+
+    public double[] sharedFields() {
+        return sharedFields;
+    }
+
+    public void sharedFields(double[] sharedFields) {
+        this.sharedFields = sharedFields;
+    }
+
+    public CField[] sharedFieldDefs() {
+        return sharedFieldDefs;
+    }
+
+    public void sharedFieldDefs(CField[] sharedFieldDefs) {
+        sharedFields = new double[sharedFieldDefs.length];
+        this.sharedFieldDefs = sharedFieldDefs;
+    }
+
+    public CField[] instanceFieldDefs() {
+        return instanceFieldDefs;
+    }
+
+    public void instanceFieldDefs(CField[] instanceFieldDefs) {
+        this.instanceFieldDefs = instanceFieldDefs;
+        instanceFields = new double[instanceFieldDefs.length];
+        var traitCount = (int) Arrays.stream(instanceFieldDefs).filter(CField::isTrait).count();
+        if(traitCount > 0){
+            traitFields = new int[traitCount];
+            for (int i = 0, t = 0; i < instanceFieldDefs.length; i++) {
+                if(instanceFieldDefs[i].isTrait()) {
+                    traitFields[t] = i;
+                    t++;
+                }
+            }
+        }
+    }
+
+    public void sharedMethodDefs(CMethod[] sharedMethodDefs) {
+        this.sharedMethodDefs = sharedMethodDefs;
+    }
+
+    public CMethod[] sharedMethodDefs() {
+        return sharedMethodDefs;
+    }
+
+    public void instanceMethodDefs(CMethod[] instanceMethodDefs) {
+        this.instanceMethodDefs = instanceMethodDefs;
+    }
+
+    public CMethod[] instanceMethodDefs() {
+        return instanceMethodDefs;
+    }
+
+    public CObject createInstance(HazelVM vm){
+        vm.memoryStats().instanceCreated(instanceFieldDefs.length);
+        var storage = new double[instanceFieldDefs.length];
+        System.arraycopy(instanceFields, 0, storage, 0, instanceFieldDefs.length);
+        storage[0] = selfPtr;
+        TraitGuard[] guards = null;
+        if(traitFields != null){
+            guards = new TraitGuard[traitFields.length];
+            for (int i = 0; i < traitFields.length; i++) {
+                guards[i] = new TraitGuard(traitFields[i]);
+            }
+        }
+        return new CObject(storage, guards);
+    }
+
+    public CClass[] sharedClassDefs() {
+        return sharedClassDefs;
+    }
+
+    public void sharedClassDefs(CClass[] sharedClassDefs) {
+        this.sharedClassDefs = sharedClassDefs;
+    }
+
+    public CClass[] instanceClassDefs() {
+        return instanceClassDefs;
+    }
+
+    public void instanceClassDefs(CClass[] instanceClassDefs) {
+        this.instanceClassDefs = instanceClassDefs;
+    }
+
+    public double[] instanceFields(){
+        return instanceFields;
+    }
+
+    public CMethod findMethod(CMethod[] methods, String name, int argCount){
+        return Arrays.stream(methods)
+                .filter(m -> m.name().equals(name) && m.argCount() == argCount)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public int getField(CField[] fields, String name){
+        for(int i = 0; i < fields.length; i++){
+            if(fields[i].name().equals(name)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public String toString(){
+        return "CClass[" + name + "]";
+    }
+
+    @Override
+    public void gcVisit(GarbageCollector.GCCollection collection) {
+        collection.visitStorage(sharedFields);
+    }
+
+    public CClass copy(){
+        var copy = new CClass(this.name);
+        copy.module = this.module;
+        copy.sharedMethodDefs = this.sharedMethodDefs;
+        copy.instanceMethodDefs = this.instanceMethodDefs;
+
+        copy.sharedFieldDefs(this.sharedFieldDefs);
+        copy.instanceFieldDefs(this.instanceFieldDefs);
+
+        copy.sharedClassDefs = Arrays.stream(this.sharedClassDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+
+        copy.instanceClassDefs = Arrays.stream(this.instanceClassDefs)
+                .map(CClass::copy)
+                .toArray(CClass[]::new);
+
+        return copy;
+    }
+}

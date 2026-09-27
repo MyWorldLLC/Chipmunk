@@ -39,7 +39,8 @@ public class Methods {
         var node = new AstNode(NodeType.METHOD, def);
         node.setSymbol(new Symbol(name.text()));
         node.addChild(new AstNode(NodeType.PARAM_LIST));
-        addParam(node, Identifier.make("self", name.line()));
+        addParam(node, VarDec.makeImplicit("self"));
+        node.getSymbol().setReferent(node);
         return node;
     }
 
@@ -115,7 +116,7 @@ public class Methods {
 
     public static void visitParams(AstNode node, AstVisitor visitor){
         ensureMethod(node);
-        node.getChild(0).visit(visitor);
+        node.getChild(0).visitChildren(visitor);
     }
 
     public static void visitBody(AstNode node, AstVisitor visitor){

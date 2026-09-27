@@ -232,18 +232,14 @@ public class SymbolTable {
 		List<String> symbols = new ArrayList<>();
 		
 		if(parent != null) {
-			
 			SymbolTable debugParent = parent;
-			while(debugParent != null) {
-				String parentSymbol = debugParent.getDebugSymbol();
-				if(parentSymbol != null) {
-					if("".equals(parentSymbol)) {
-						symbols.add("<anon>");
-					} else {
-						symbols.add(debugParent.getDebugSymbol());
-					}
+			String parentSymbol = debugParent.getDebugSymbol();
+			if(parentSymbol != null) {
+				if("".equals(parentSymbol)) {
+					symbols.add("<anon>");
+				} else {
+					symbols.add(debugParent.getDebugSymbol());
 				}
-				debugParent = debugParent.getParent();
 			}
 		}
 		

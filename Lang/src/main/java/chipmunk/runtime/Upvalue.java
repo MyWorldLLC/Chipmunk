@@ -2,14 +2,14 @@ package chipmunk.runtime;
 
 public class Upvalue {
 
-    protected volatile Object value;
+    protected double value;
 
-    public Object set(Object value){
+    public double set(double value){
         this.value = value;
         return value;
     }
 
-    public Object get(){
+    public double get(){
         return value;
     }
 }

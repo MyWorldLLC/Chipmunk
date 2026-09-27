@@ -43,7 +43,7 @@ public enum TokenType {
     HEXLITERAL("(0x|0X)[a-fA-F0-9_]+", false, true),
     FLOATLITERAL("[0-9]*\\.[0-9]+((e|E)-?[0-9]+)?", false, true),
     INTLITERAL("[0-9][0-9_]*", false, true),
-    BOOLLITERAL("true|false", true, true),
+    BOOLLITERAL("true|false", false, true),
     STRINGLITERAL("\"(\\\\\"|[^\"])*\"|'(\\\\\'|[^\'])*'", false, true),
 
     // blocks, indexing, grouping, and calling

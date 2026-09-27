@@ -20,15 +20,13 @@
 
 package chipmunk.compiler.codegen
 
-import chipmunk.binary.BinaryMethod
 import chipmunk.binary.BinaryModule
 import chipmunk.compiler.ChipmunkCompiler
 import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.compiler.ChipmunkDisassembler
-import chipmunk.vm.ModuleLoader
-import chipmunk.vm.jvm.CompilationUnit
-import spock.lang.Ignore
+import chipmunk.vm.hazel.EntryPoint
+import chipmunk.vm.hazel.Value
 import spock.lang.Specification
 
 class MethodVisitorSpecification extends Specification {
@@ -50,7 +48,6 @@ class MethodVisitorSpecification extends Specification {
 		""")
 		
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -63,7 +60,6 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -89,7 +85,6 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof Integer
 		result == 4
 	}
 	
@@ -104,7 +99,6 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof Integer
 		result == 5
 	}
 	
@@ -122,7 +116,6 @@ class MethodVisitorSpecification extends Specification {
 		}""")
 		
 		then:
-		result instanceof Integer
 		result == 6
 	}
 	
@@ -138,8 +131,7 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 	
 	def "Basic if - return after if"(){
@@ -155,8 +147,7 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Boolean
-		result == true
+		Value.isTruthy(result)
 	}
 	
 	def "Multibranch if"(){
@@ -176,7 +167,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 1
 	}
 	
@@ -197,7 +187,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 2
 	}
 	
@@ -218,7 +207,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -239,7 +227,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 125
 	}
 	
@@ -256,7 +243,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 0
 	}
 	
@@ -273,7 +259,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 5
 	}
 	
@@ -287,10 +272,9 @@ class MethodVisitorSpecification extends Specification {
 				}
 				return v1
 			}
-			""", "")
+			""")
 			
 		then:
-		result instanceof Integer
 		result == 5
 	}
 	
@@ -310,7 +294,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -331,7 +314,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 4
 	}
 	
@@ -351,7 +333,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
@@ -372,7 +353,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 5
 	}
 
@@ -386,7 +366,6 @@ class MethodVisitorSpecification extends Specification {
 			""")
 			
 		then:
-		result instanceof Integer
 		result == 1
 	}
 
@@ -398,10 +377,9 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a) a
 				return v1(1)
 			}
-			""", "")
+			""")
 			
 		then:
-		result instanceof Integer
 		result == 1
 	}
 
@@ -412,36 +390,25 @@ class MethodVisitorSpecification extends Specification {
 				var v1 = def(a, b) a + b
 				return v1(1, 2)
 			}
-			""", "")
+			""")
 			
 		then:
-		result instanceof Integer
 		result == 3
 	}
 	
-	def parseAndCall(String methodBody, String test = ""){
+	def parseAndCall(String methodBody){
 
 		BinaryModule binary = compiler.compileMethod(methodBody)
-
-		CompilationUnit unit = new CompilationUnit()
-		unit.setEntryModule("exp")
-		unit.setEntryMethodName("method")
-
-		ModuleLoader loader = new ModuleLoader()
-		loader.addToLoaded(binary)
-		unit.setModuleLoader(loader)
-
-		ChipmunkScript script = vm.compileScript(unit)
-		
-		if(test != ""){
-			BinaryMethod method = binary.getNamespace().getEntries()[0].getBinaryMethod()
-			println()
-			println("============= ${test} =============")
-			println("Local Count: ${method.getLocalCount()}")
-			println(ChipmunkDisassembler.disassemble(method.getCode(), binary.getConstantPool()))
+		ChipmunkScript script = vm.compileScript(new EntryPoint("exp", "method"), binary)
+		println(ChipmunkDisassembler.disassemble(binary))
+		try{
+			def result = vm.run(script).get()
+			return result
+		}catch (Throwable t){
+			println(ChipmunkDisassembler.disassemble(binary))
+			throw t
 		}
-		
-		return vm.runAsync(script).get()
+
 	}
 
 }

@@ -44,6 +44,9 @@ dependencies {
 
 	testImplementation 'org.apache.groovy:groovy:4.0.21'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+	testImplementation platform('org.junit:junit-bom:5.13.3')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     jmh 'org.openjdk.jmh:jmh-core:1.32'
 	jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.32'
@@ -142,7 +145,7 @@ task jmh(type: JavaExec, dependsOn: jmhCompile) {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-	main = 'chipmunk.benchmark.ChipmunkBenchmarks'
+	mainClass = 'chipmunk.benchmark.ChipmunkBenchmarks'
 
 	classpath = sourceSets.jmh.runtimeClasspath +
 			sourceSets.jmh.compileClasspath +
@@ -161,6 +164,6 @@ task runProfiler(type:JavaExec) {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-    main = 'chipmunk.profiling.ChipmunkProfiler'
+    mainClass = 'chipmunk.profiling.ChipmunkProfiler'
     classpath = sourceSets.profiling.runtimeClasspath + sourceSets.profiling.compileClasspath
 }

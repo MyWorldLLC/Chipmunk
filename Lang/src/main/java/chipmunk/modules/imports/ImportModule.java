@@ -31,7 +31,8 @@ public class ImportModule implements ChipmunkModule {
     public ChipmunkModule importModule(String moduleName) throws Throwable {
         ChipmunkScript script = ChipmunkScript.getCurrentScript();
         ChipmunkVM vm = script.getVM();
-        return vm.getModule(script, moduleName);
+        return null; // TODO
+        //return vm.getModule(script, moduleName);
     }
 
     @Override

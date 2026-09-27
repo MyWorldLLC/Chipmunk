@@ -21,33 +21,31 @@
 package chipmunk.cli.commands;
 
 import chipmunk.binary.BinaryModule;
-import chipmunk.binary.BinaryNamespace;
-import chipmunk.binary.FieldType;
 import chipmunk.cli.CLIUtil;
 import chipmunk.cli.ChipmunkCLI;
 import chipmunk.compiler.ChipmunkCompiler;
+import chipmunk.compiler.ChipmunkDisassembler;
 import chipmunk.compiler.ChipmunkSource;
 import chipmunk.compiler.Compilation;
 import chipmunk.modules.buffer.BufferModule;
 import chipmunk.modules.imports.JvmImportModule;
 import chipmunk.modules.math.MathModule;
-import chipmunk.modules.system.SystemModule;
+import chipmunk.modules.SystemModule;
 import chipmunk.pkg.Entrypoint;
 import chipmunk.vm.ChipmunkScript;
 import chipmunk.vm.ChipmunkVM;
 import chipmunk.vm.ModuleLoader;
-import chipmunk.vm.jvm.CompilationUnit;
+import chipmunk.vm.hazel.EntryPoint;
 import chipmunk.vm.locators.FileModuleLocator;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 @Command(name = "run")
@@ -75,7 +73,12 @@ public class Run implements Callable<Integer> {
 
     public void registerBuiltins(ModuleLoader loader) {
         // Register all builtin Chipmunk & Native modules
-        loader.registerNativeFactory(SystemModule.SYSTEM_MODULE_NAME, () -> new SystemModule(args, System.getenv()));
+        loader.registerNativeFactory(SystemModule.SYSTEM_MODULE_NAME,
+                () -> new SystemModule(ChipmunkScript.getCurrentScript(), List.of(args), (Map) System.getenv(),
+                    () -> "", // TODO
+                    System.out::println,
+                    System.err::println
+                ));
         loader.registerNativeFactory(JvmImportModule.IMPORT_MODULE_NAME, JvmImportModule::new);
         loader.registerNativeFactory(BufferModule.BUFFER_MODULE_NAME, BufferModule::new);
         loader.registerNativeFactory(MathModule.MATH_MODULE_NAME, MathModule::new);
@@ -90,13 +93,11 @@ public class Run implements Callable<Integer> {
 
             ChipmunkVM vm = new ChipmunkVM();
 
-            ModuleLoader loader = new ModuleLoader();
+            ModuleLoader loader = vm.rootLoader();
             registerBuiltins(loader);
 
             List<Path> sourcePaths = new ArrayList<>();
             List<ChipmunkSource> sources = new ArrayList<>();
-
-            codePath = codePath.trim();
 
             // If no script specified, read from System.in
             if (codePath.equals(NO_SOURCE)) {
@@ -104,6 +105,7 @@ public class Run implements Callable<Integer> {
                     sources.add(new ChipmunkSource(System.in, "Script.chp"));
                 }
             } else {
+                codePath = codePath.trim();
                 if(!codePath.endsWith(ChipmunkCLI.CHIPMUNK_SRC_EXTENSION)){
                     System.out.println("Invalid file: extension must be .chp");
                     return 1;
@@ -137,7 +139,7 @@ public class Run implements Callable<Integer> {
                 sources.add(new ChipmunkSource(Files.newInputStream(sourcePath), sourcePath.getFileName().toString()));
             }
 
-            if(sources.size() == 0){
+            if(sources.isEmpty()){
                 System.out.println("No source specified, exiting");
                 return 1;
             }
@@ -147,36 +149,25 @@ public class Run implements Callable<Integer> {
             compilation.getSources().addAll(sources);
 
             ChipmunkCompiler compiler = new ChipmunkCompiler(loader);
-            compiler.setModuleLoader(loader);
             BinaryModule[] modules  = compiler.compile(compilation);
 
-            loader.addToLoaded(Arrays.asList(modules));
-
-            CompilationUnit unit = new CompilationUnit();
-            unit.setModuleLoader(loader);
-            unit.setEntryModule("main");
-            unit.setEntryMethodName("main");
-
-            if(entryPoint != null){
-                Entrypoint newEntrypoint = Entrypoint.fromString(entryPoint);
-                unit.setEntryModule(newEntrypoint.getModule());
-                unit.setEntryMethodName(newEntrypoint.getMethod());
-            }else{
-                // Verify default entrypoint is findable, search compiled modules for
-                // main module if not
-                BinaryModule mainModule = loader.loadBinary(unit.getEntryModule());
-                if(mainModule == null || !(mainModule.getNamespace().has("main") && mainModule.getNamespace().getEntry("main").getType() == FieldType.METHOD)){
-                    for(BinaryModule module : modules){
-                        BinaryNamespace.Entry entry = module.getNamespace().getEntry("main");
-                        if(entry != null && entry.getType() == FieldType.METHOD){
-                            unit.setEntryModule(module.getName());
-                        }
-                    }
+            if(debug){
+                for(var module : modules){
+                    System.out.println("=========== " + module.getName() + " ===========");
+                    System.out.println(ChipmunkDisassembler.disassemble(module));
+                    System.out.println("================================================");
                 }
             }
 
-            ChipmunkScript script = vm.compileScript(unit);
-            vm.runAsync(script).get();
+            var hvmEntry = EntryPoint.DEFAULT;
+            if(entryPoint != null){
+                Entrypoint newEntrypoint = Entrypoint.fromString(entryPoint);
+                hvmEntry = new EntryPoint(newEntrypoint.getModule(), newEntrypoint.getMethod());
+            }
+
+            ChipmunkScript script = vm.compileScript(hvmEntry, modules);
+            script.getHazelVM().limits().maximums();
+            script.run();
 
             return 0;
         } catch (Exception e) {

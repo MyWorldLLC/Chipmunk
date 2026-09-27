@@ -51,6 +51,8 @@ public class ClassVisitor implements AstVisitor {
 	public void visit(AstNode node) {
 		
 		if(node.is(NodeType.CLASS)){
+
+			node.getSymbolTable().setDebugSymbol(node.getSymbol().getName());
 			
 			if(cls == null) {
 				cls = new BinaryClass(node.getSymbol().getName(), module);
@@ -98,7 +100,7 @@ public class ClassVisitor implements AstVisitor {
 			MethodVisitor visitor = null;
 
 			// this is the constructor
-			if(node.getSymbol().getName().equals(cls.getName())){
+			if(node.getSymbol().getName().equals("$" + cls.getName())){
 				if(alreadyReachedConstructor){
 					// TODO - throw error until we have support for multi-methods
 					throw new IllegalStateException("Only one constructor per class allowed");

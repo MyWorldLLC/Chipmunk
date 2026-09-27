@@ -128,25 +128,34 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
             return child;
         }
 
-        // If the symbol is found in the module scope call getModule() & emit access at module level
+        // If the symbol is found in the module scope emit access at module level
         if (symbol.getDeclaringScope() == SymbolTable.Scope.MODULE && !Methods.isNameOfMethodNode(scope.getNode(), child.getToken().text())) {
 
             // Method reference to a module-level symbol
-            // Rewrite to self.getModule().symbol
-            AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
-            AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
+
             AstNode varDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
-            AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
+            if(scope.isModuleMethodScope()){
+                // Rewrite to just self.symbol
+                AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
+                varDotNode.addChild(self);
+            }else{
+                // Rewrite to self.getModule().symbol
+                AstNode getModuleCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
+                AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
-            AstNode getModule = new AstNode(NodeType.ID, new Token("getModule", TokenType.IDENTIFIER, index, line, column));
+                AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
 
-            selfDotNode.addChild(self);
-            selfDotNode.addChild(getModule);
+                AstNode getModule = new AstNode(NodeType.ID, new Token("getModule", TokenType.IDENTIFIER, index, line, column));
 
-            getModuleCallNode.addChild(selfDotNode);
+                selfDotNode.addChild(self);
+                selfDotNode.addChild(getModule);
 
-            varDotNode.addChild(getModuleCallNode);
+                getModuleCallNode.addChild(selfDotNode);
+
+                varDotNode.addChild(getModuleCallNode);
+            }
+
             if (symbol.isImported()) {
                 // If this symbol is imported, we have to rewrite access to
                 // self.getModule().$module_field_name.symbol
@@ -175,22 +184,19 @@ public class SymbolAccessRewriteVisitor implements AstVisitor {
 
             if (symbol.isShared() && !scope.isSharedMethodScope()) {
                 // Symbol is a shared field AND we are not accessing it from a shared method
-                // Rewrite to self.getChipmunkClass().symbol
+                // Rewrite to self.$class.symbol
 
-                AstNode getClassCallNode = new AstNode(NodeType.OPERATOR, new Token("(", TokenType.LPAREN, index, line, column));
                 AstNode selfDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
                 AstNode varDotNode = new AstNode(NodeType.OPERATOR, new Token(".", TokenType.DOT, index, line, column));
 
                 AstNode self = new AstNode(NodeType.ID, new Token("self", TokenType.IDENTIFIER, index, line, column));
 
-                AstNode getClass = new AstNode(NodeType.ID, new Token("getChipmunkClass", TokenType.IDENTIFIER, index, line, column));
+                AstNode getClass = new AstNode(NodeType.ID, new Token("$class", TokenType.IDENTIFIER, index, line, column));
 
                 selfDotNode.addChild(self);
                 selfDotNode.addChild(getClass);
 
-                getClassCallNode.addChild(selfDotNode);
-
-                varDotNode.addChild(getClassCallNode);
+                varDotNode.addChild(selfDotNode);
                 varDotNode.addChild(child);
 
                 return varDotNode;

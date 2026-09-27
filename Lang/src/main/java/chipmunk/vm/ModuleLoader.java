@@ -24,8 +24,6 @@ import chipmunk.binary.BinaryFormatException;
 import chipmunk.binary.BinaryModule;
 import chipmunk.binary.BinaryReader;
 import chipmunk.modules.lang.LangModule;
-import chipmunk.vm.jvm.ChipmunkClassLoader;
-import chipmunk.vm.jvm.JvmCompiler;
 import chipmunk.runtime.ChipmunkModule;
 
 import java.io.IOException;
@@ -36,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 
 public class ModuleLoader {
 
@@ -43,13 +42,11 @@ public class ModuleLoader {
 	protected final List<ModuleLocator> locators;
 	protected final Map<String, BinaryModule> loadedModules;
 	protected final Map<String, NativeModuleFactory> nativeFactories;
-	protected final ChipmunkClassLoader classLoader;
 
 	public ModuleLoader(){
 		locators = new CopyOnWriteArrayList<>();
 		loadedModules = new ConcurrentHashMap<>();
 		nativeFactories = new ConcurrentHashMap<>();
-		classLoader = new ChipmunkClassLoader();
 
 		registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
 	}
@@ -74,10 +71,6 @@ public class ModuleLoader {
 
 	public void setDelegate(ModuleLoader delegate){
 		this.delegate = delegate;
-	}
-
-	public ChipmunkClassLoader getClassLoader(){
-		return classLoader;
 	}
 
 	public void addLocator(ModuleLocator locator){
@@ -143,11 +136,11 @@ public class ModuleLoader {
 		return nativeFactory.createModule();
 	}
 
-	public ChipmunkModule load(String moduleName, JvmCompiler compiler) throws IOException, BinaryFormatException {
+	public ChipmunkModule load(String moduleName, Function<BinaryModule, ChipmunkModule> loader) throws IOException, BinaryFormatException {
 		BinaryModule binMod = loadBinary(moduleName);
 
 		if(binMod != null){
-			return compiler.compileModule(binMod);
+			return loader.apply(binMod);
 		}
 
 		return loadNative(moduleName);

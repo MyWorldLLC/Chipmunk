@@ -21,6 +21,7 @@ class TestClass {
 	
 	class InnerClass {
 		var baz = 7
+		shared var bazinga = 3
 	}
 	
 	shared class SharedInnerClass {
@@ -29,6 +30,6 @@ class TestClass {
 }
 
 def main(){
-	var inner = TestClass.new().InnerClass.new()
-	return TestClass.new().InnerClass.new().baz + inner.baz + TestClass.SharedInnerClass.new().bar
+	var inner = TestClass.InnerClass.new()
+	return TestClass.InnerClass.new().baz + inner.baz + TestClass.SharedInnerClass.new().bar + TestClass.InnerClass.bazinga
 }

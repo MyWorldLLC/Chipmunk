@@ -1,0 +1,549 @@
+/*
+ * Copyright (C) 2026 MyWorld, LLC
+ * All rights reserved.
+ *
+ * This file is part of Chipmunk.
+ *
+ * Chipmunk is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Chipmunk is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Chipmunk.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package chipmunk.vm.hazel;
+
+import chipmunk.binary.BinaryModule;
+import chipmunk.binary.BinaryNamespace;
+import chipmunk.binary.FieldType;
+import chipmunk.runtime.*;
+import chipmunk.vm.hazel.instructions.*;
+import chipmunk.vm.hazel.instructions.Range;
+import chipmunk.vm.hazel.invoke.Linker;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static chipmunk.vm.Opcodes.*;
+
+public class BinaryLoader {
+
+    protected final Linker linker;
+
+    public BinaryLoader() {
+        this(new Linker());
+    }
+
+    public BinaryLoader(Linker linker) {
+        this.linker = linker;
+    }
+
+    public CModule loadModule(Heap heap, BinaryModule module) {
+        var namespace = module.getNamespace();
+        var cModule = new CModule(module.getName(), module.getFileName());
+        cModule.setConstantPool(module.getConstantPool());
+
+        cModule.imports(Arrays.stream(module.getImports())
+                        .map(imp -> {
+                            if(imp.isImportAll()){
+                                return new CImport(imp.getName());
+                            }else if(imp.isAliased()){
+                                return new CImport(imp.getName(), imp.getSymbols(), imp.getAliases());
+                            }else{
+                                return new CImport(imp.getName(), imp.getSymbols());
+                            }
+                        })
+                .toArray(CImport[]::new));
+
+        cModule.setFields(collectFields(namespace));
+        cModule.setMethods(collectMethods(cModule, namespace));
+
+        var classes = collectClasses(cModule, namespace, heap);
+        for (CClass cClass : classes) {
+            cClass.selfPtr(heap.allocateAndWrite(cClass));
+            var field = cModule.getField(cClass.name());
+            cModule.getFields()[field] = cClass.selfPtr();
+        }
+
+        cModule.setClasses(classes);
+        return cModule;
+    }
+
+    public CField[] collectFields(BinaryNamespace namespace){
+        return namespace.getEntries().stream()
+                .filter(e -> e.getType() == FieldType.DYNAMIC_VAR || e.getType() == FieldType.CLASS)
+                .map(this::entryField)
+                .toArray(CField[]::new);
+    }
+
+    public CField entryField(BinaryNamespace.Entry entry){
+        return new CField(entry.getName(), entry.getFlags());
+    }
+
+    public CClass[] collectClasses(CModule module, BinaryNamespace namespace, Heap heap){
+        return namespace.getEntries().stream()
+                .filter(e -> e.getType() == FieldType.CLASS)
+                .map(e -> entryClass(module, e, heap))
+                .toArray(CClass[]::new);
+    }
+
+    public CClass entryClass(CModule module, BinaryNamespace.Entry entry, Heap heap){
+        var cls = entry.getBinaryClass();
+        var cClass = new CClass(entry.getName());
+        cClass.module(module);
+
+        var insNamespace = cls.getInstanceNamespace();
+        cClass.instanceFieldDefs(collectFields(insNamespace));
+        cClass.instanceMethodDefs(collectMethods(module, insNamespace));
+
+        var instanceClasses = collectClasses(module, insNamespace, heap);
+        for (CClass iClass : instanceClasses) {
+            iClass.selfPtr(heap.allocateAndWrite(iClass));
+            var field = cClass.getField(cClass.instanceFieldDefs(), iClass.name());
+            cClass.instanceFields()[field] = iClass.selfPtr();
+        }
+
+        cClass.instanceClassDefs(instanceClasses);
+
+        var sharedNamespace = cls.getSharedNamespace();
+        cClass.sharedFieldDefs(collectFields(sharedNamespace));
+        cClass.sharedMethodDefs(collectMethods(module, sharedNamespace));
+
+        var sharedClasses = collectClasses(module, sharedNamespace, heap);
+        for (CClass sClass : sharedClasses) {
+            sClass.selfPtr(heap.allocateAndWrite(sClass));
+            var field = cClass.getField(cClass.sharedFieldDefs(), sClass.name());
+            cClass.sharedFields()[field] = sClass.selfPtr();
+        }
+        cClass.sharedClassDefs(sharedClasses);
+
+        return cClass;
+    }
+
+    public CMethod[] collectMethods(CModule module, BinaryNamespace namespace){
+        return namespace.getEntries().stream()
+                .filter(e -> e.getType() == FieldType.METHOD)
+                .map(e -> entryMethod(module, e))
+                .toArray(CMethod[]::new);
+    }
+
+    public CMethod entryMethod(CModule module, BinaryNamespace.Entry entry){
+        var binaryMethod = entry.getBinaryMethod();
+        var code = binaryMethod.getCode();
+        final var argCount = binaryMethod.getArgCount();
+        final var localCount = binaryMethod.getLocalCount();
+
+        // This maps every IP in the code array that contains an opcode to an
+        // instruction index. This is used to remap jump targets from binary code indices
+        // to logical instruction indices.
+        var remapping = new int[code.length]; //buildRemappingTable(code);
+
+        // This tracks the stack depth at each instruction. This is longer than needed since it
+        // is allocated with the length of the bytecode rather than the length of the logical instructions,
+        // but bytecode is fairly dense so this isn't a big problem. Indices are made with bytecode instruction pointers.
+        var stackDepths = new int[code.length];
+
+        // For jump retargeting, a second pass is needed. This list
+        // holds runnables that will be applied after the initial translation
+        // pass is complete. Each one is intended to replace a single instruction.
+        var postProcessors = new ArrayList<Runnable>();
+        var instructions = new ArrayList<Instruction>();
+
+        int ip = 0;
+        // SP - the "stack pointer." This always references the index on the stack (relative to this method's frame)
+        // where the next value will be pushed. Reads always happen relative to SP - for example, TOS value is always
+        // bp + sp - 1, TOS - 1 is bp + sp - 2, etc. This starts at the index just past the last local variable.
+        int sp = localCount;
+        while(ip < code.length){
+            var op = code[ip];
+            // We can't just do a simple increment because pop doesn't emit a runtime instruction, conditional fusing
+            // merges multiple bytecodes into a single dispatch instruction, etc.
+            var instruction = instructions.size();
+            remapping[ip] = instruction;
+
+            if(stackDepths[ip] == 0){
+                stackDepths[ip] = sp;
+            }else{
+                sp = stackDepths[ip];
+            }
+
+            switch(op){
+                case ADD -> {
+                    instructions.add(new Add(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case SUB -> {
+                    instructions.add(new Sub(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case MUL -> {
+                    instructions.add(new Mul(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case DIV -> {
+                    instructions.add(new Div(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case FDIV -> {
+                    instructions.add(new FDiv(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case MOD -> {
+                    instructions.add(new Mod(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case POW -> {
+                    instructions.add(new Pow(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case INC -> {
+                    instructions.add(new Inc(sp, linker));
+                    ip++;
+                }
+                case DEC -> {
+                    instructions.add(new Dec(sp, linker));
+                    ip++;
+                }
+                case POS -> {
+                    instructions.add(new Pos(sp, linker));
+                    ip++;
+                }
+                case NEG -> {
+                    instructions.add(new Neg(sp, linker));
+                    ip++;
+                }
+                case BXOR -> {
+                    instructions.add(new Bxor(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case BAND -> {
+                    instructions.add(new Band(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case BOR -> {
+                    instructions.add(new Bor(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case BNEG -> {
+                    instructions.add(new BNeg(sp, linker));
+                    ip++;
+                }
+                case LSHIFT -> {
+                    instructions.add(new LShift(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case RSHIFT -> {
+                    instructions.add(new RShift(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case URSHIFT -> {
+                    instructions.add(new URShift(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case PUSH -> {
+                    instructions.add(new Push(sp, module.constants()[fetchInt(code, ip + 1)]));
+                    sp++;
+                    ip += 5;
+                }
+                case POP -> {
+                    // Pop is a no-op at runtime. Since stack depth is encoded in the instruction rather than tracked
+                    // at runtime we don't need to actually do anything for a pop. In the worst case, we might
+                    // leave a collectible pointer on the stack for slightly longer than it needs to be there.
+                    sp--;
+                    ip++;
+                }
+                case DUP -> {
+                    instructions.add(new Dup(sp));
+                    sp++;
+                    ip++;
+                }
+                case SWAP -> {
+                    instructions.add(new Swap(sp));
+                    ip++;
+                }
+                case GETLOCAL -> {
+                    instructions.add(new LocalGet(sp, code[ip + 1]));
+                    sp++;
+                    ip += 2;
+                }
+                case SETLOCAL -> {
+                    instructions.add(new LocalSet(sp, code[ip + 1]));
+                    sp--;
+                    ip += 2;
+                }
+                case GOTO -> {
+                    var target = fetchInt(code, ip + 1);
+                    var replace = instruction;
+                    instructions.add(null);
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new Goto(stackDepths[target], jumpTo));
+                    });
+                    ip += 5;
+                }
+                case RETURN -> {
+                    instructions.add(new Return(sp));
+                    sp--; // Necessary for correctly tracking SP across branches
+                    ip++;
+                }
+                case LT, GT, LE, GE, EQ, IS, INSTANCEOF -> {
+                    // Attempt to fuse COND -> IF sequences in the raw bytecode for dispatch efficiency.
+                    var jump = code[ip + 1] == IF;
+                    var target = jump ? fetchInt(code, ip + 2) : BinaryCondition.NO_JUMP;
+                    var condition = switch (op){
+                        case LT -> BinaryCondition.COND_LT;
+                        case GT -> BinaryCondition.COND_GT;
+                        case LE -> BinaryCondition.COND_LE;
+                        case GE -> BinaryCondition.COND_GE;
+                        case EQ -> BinaryCondition.COND_EQ;
+                        case IS -> BinaryCondition.COND_IS;
+                        case INSTANCEOF -> BinaryCondition.COND_INSTANCEOF;
+                        default -> 0; // This should never be possible to hit, need it here to keep the compiler happy
+                    };
+                    var replace = instruction;
+                    var cIp = ip;
+                    instructions.add(null);
+                    postProcessors.add(() -> {
+                        var jumpTo = BinaryCondition.NO_JUMP;
+                        if(jump){
+                            jumpTo = remapping[target];
+                            if(jumpTo < replace){
+                                jumpTo = -jumpTo;
+                            }
+                        }
+                        instructions.set(replace, new BinaryCondition(stackDepths[cIp], linker, condition, jumpTo));
+                    });
+                    sp -= jump ? 2 : 1;
+                    if(jump){
+                        stackDepths[target] = sp;
+                    }
+                    ip += jump ? 6 : 1;
+                }
+                case TRUTH, NOT -> {
+                    // Attempt to fuse COND -> IF sequences in the raw bytecode for dispatch efficiency.
+                    var jump = code[ip + 1] == IF;
+                    var target = jump ? fetchInt(code, ip + 2) : UnaryCondition.NO_JUMP;
+                    var condition = switch (op){
+                        case TRUTH -> UnaryCondition.COND_TRUE;
+                        case NOT -> UnaryCondition.COND_NOT;
+                        default -> 0; // This should never be possible to hit, need it here to keep the compiler happy
+                    };
+                    var replace = instruction;
+                    var cIp = ip;
+                    instructions.add(null);
+                    postProcessors.add(() -> {
+                        var jumpTo = UnaryCondition.NO_JUMP;
+                        if(jump){
+                            jumpTo = remapping[target];
+                            if(jumpTo < replace){
+                                jumpTo = -jumpTo;
+                            }
+                        }
+                        instructions.set(replace, new UnaryCondition(stackDepths[cIp], linker, condition, jumpTo));
+                    });
+                    sp -= jump ? 1 : 0;
+                    if(jump){
+                        stackDepths[target] = sp;
+                    }
+                    ip += jump ? 6 : 1;
+                }
+                case IF -> {
+                    var target = fetchInt(code, ip + 1);
+                    var replace = instruction;
+                    var cIp = ip;
+                    instructions.add(null);
+                    postProcessors.add(() -> {
+                        var jumpTo = remapping[target];
+                        if(jumpTo < replace){
+                            jumpTo = -jumpTo;
+                        }
+                        instructions.set(replace, new If(stackDepths[cIp], linker, jumpTo));
+                    });
+                    sp--;
+                    stackDepths[target] = sp;
+                    ip += 5;
+                }
+                case CALL -> {
+                    // Callsite args don't include self, which is always present. For simplicity within the interpreter,
+                    // call instructions always include the full argument count.
+                    instructions.add(new Call(sp, linker, "call", code[ip + 1] + 1));
+                    // Reduce the stack pointer by the total arg count - 1, which means that the "self" position on the
+                    // stack gets overwritten with the call result
+                    sp -= code[ip + 1];
+                    ip += 2;
+                }
+                case CALLAT -> {
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 2)];
+                    if(name.equals("new")){
+                        instructions.add(new New(sp, linker, code[ip + 1] + 1));
+                    }else{
+                        instructions.add(new Call(sp, linker, name, code[ip + 1] + 1));
+                    }
+                    sp -= code[ip + 1];
+                    ip += 6;
+                }
+                case THROW -> {
+                    instructions.add(new Throw(sp));
+                    sp--;
+                    ip++;
+                }
+                case GETATTR -> {
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new GetField(sp, linker, name));
+                    ip += 5;
+                }
+                case SETATTR -> {
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new SetField(sp, linker, name));
+                    sp--;
+                    ip += 5;
+                }
+                case GETAT -> {
+                    instructions.add(new Call(sp, linker, "getAt", 2));
+                    sp--;
+                    ip++;
+                }
+                case SETAT -> {
+                    instructions.add(new Call(sp, linker, "setAt", 3));
+                    sp -= 2;
+                    ip++;
+                }
+                case AS -> {
+                    instructions.add(new As(sp, linker));
+                    sp--;
+                    ip++;
+                }
+                case ITER -> {
+                    instructions.add(new Call(sp, linker, "iterator", 1));
+                    ip++;
+                }
+                case RANGE -> {
+                    var inclusive = code[ip + 1] != 0;
+                    instructions.add(new Range(sp, inclusive));
+                    sp--;
+                    ip += 2;
+                }
+                case LIST -> {
+                    var elements = fetchInt(code, ip + 1);
+                    instructions.add(new ListIns(sp, elements));
+                    sp++;
+                    ip += 5;
+                }
+                case MAP -> {
+                    var elements = fetchInt(code, ip + 1);
+                    instructions.add(new MapIns(sp, elements));
+                    sp++;
+                    ip += 5;
+                }
+                case INITUPVALUE -> {
+                    var localIndex = code[ip + 1];
+                    instructions.add(new InitUpvalue(sp, localIndex));
+                    ip += 2;
+                }
+                case GETUPVALUE -> {
+                    var localIndex = code[ip + 1];
+                    instructions.add(new GetUpvalue(sp, localIndex));
+                    sp++;
+                    ip += 2;
+                }
+                case SETUPVALUE -> {
+                    var localIndex = code[ip + 1];
+                    instructions.add(new SetUpvalue(sp, localIndex));
+                    sp--;
+                    ip += 2;
+                }
+                case BIND -> {
+                    var name = (String) binaryMethod.getConstantPool()[fetchInt(code, ip + 1)];
+                    instructions.add(new Bind(sp, name, linker));
+                    ip += 5;
+                }
+                default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X at ip=%d".formatted(op, ip));
+            }
+
+        }
+
+        postProcessors.forEach(Runnable::run);
+        var maxStack = Arrays.stream(stackDepths).max().getAsInt() + 1;
+
+        var method = new CMethod(entry.getName(), instructions.toArray(Instruction[]::new),
+                argCount, localCount, binaryMethod.getDefaultArgCount(), maxStack);
+
+        method.debugName(binaryMethod.getDeclarationSymbol());
+        method.moduleName(module.getName());
+        method.debugTable(Arrays.stream(binaryMethod.getDebugTable())
+                        .map(binEntry ->
+                                new CMethod.DebugEntry(
+                                        remapping[binEntry.beginIndex],
+                                        remapping[binEntry.endIndex],
+                                        binEntry.lineNumber))
+                .toArray(CMethod.DebugEntry[]::new));
+
+        method.exceptionTable(Arrays.stream(binaryMethod.getExceptionTable())
+                        .map(binEntry -> new CMethod.ExceptionBlock(
+                                remapping[binEntry.startIndex],
+                                remapping[binEntry.endIndex],
+                                remapping[binEntry.catchIndex],
+                                binEntry.exceptionLocalIndex))
+                        .toArray(CMethod.ExceptionBlock[]::new));
+
+        return method;
+    }
+
+    public int[] buildRemappingTable(byte[] code){
+        // This maps every IP in the code array that contains an opcode to an
+        // instruction index. This is used to remap jump targets from binary code indices
+        // to logical instruction indices.
+        var remapping = new int[code.length];
+        var instruction = 0;
+        var ip = 0;
+        while(ip < code.length){
+            var op = code[ip];
+            remapping[ip] = instruction;
+            switch(op){
+                case ADD, ITER, SETAT, AS, GETAT, RETURN, THROW, SWAP, DUP, POP, URSHIFT, RSHIFT, LSHIFT, BNEG, BOR,
+                     BAND, BXOR, NEG, POS, DEC, INC, SUB, MUL, DIV, FDIV, MOD, POW -> ip++;
+                case PUSH, LIST, BIND, GOTO, IF, GETATTR, SETATTR, MAP -> ip += 5;
+                case GETLOCAL, RANGE, SETUPVALUE, INITUPVALUE, GETUPVALUE, CALL, SETLOCAL -> ip += 2;
+                case LT, GT, LE, GE, EQ, IS, INSTANCEOF, TRUTH, NOT -> {
+                    var jump = code[ip + 1] == IF;
+                    ip += jump ? 6 : 1;
+                }
+                case CALLAT -> ip += 6;
+                default -> throw new IllegalArgumentException("Invalid opcode: 0x%2X at ip=%d".formatted(op, ip));
+            }
+            instruction++;
+        }
+        return remapping;
+    }
+
+    public static int fetchInt(byte[] instructions, int ip) {
+        int b1 = instructions[ip] & 0xFF;
+        int b2 = instructions[ip + 1] & 0xFF;
+        int b3 = instructions[ip + 2] & 0xFF;
+        int b4 = instructions[ip + 3] & 0xFF;
+        return (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+    }
+}

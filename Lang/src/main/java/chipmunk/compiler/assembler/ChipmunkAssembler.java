@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chipmunk.binary.DebugEntry;
+import chipmunk.vm.Opcodes;
 
 public class ChipmunkAssembler {
 	
