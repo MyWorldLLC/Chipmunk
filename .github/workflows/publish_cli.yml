@@ -80,7 +80,7 @@ jobs:
         run: ./gradlew :CLI:jpackage --info
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.env.INSTALLER_NAME }} Installer - ${{ needs.get_version.outputs.version }}
           path: CLI/build/installer/*.${{ matrix.env.INSTALLER_EXT }}
