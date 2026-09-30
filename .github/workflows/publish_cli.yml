@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-2019, macos-11 ]
+        os: [ ubuntu-latest, windows-2022, macos-14 ]
         include:
           - os: ubuntu-latest
             env:
@@ -49,14 +49,14 @@ jobs:
               INSTALLER_EXT: deb
               INSTALLER_MEDIA_TYPE: application/vnd.debian.binary-package
 
-          - os: windows-2019
+          - os: windows-2022
             env:
               PLATFORM: win
               INSTALLER_NAME: Windows
               INSTALLER_EXT: exe
               INSTALLER_MEDIA_TYPE: application/vnd.microsoft.portable-executable
 
-          - os: macos-11
+          - os: macos-14
             env:
               PLATFORM: mac
               INSTALLER_NAME: Mac
