@@ -19,7 +19,7 @@
  */
 
 plugins {
-    id "org.panteleyev.jpackageplugin" version "1.5.0"
+    id "org.panteleyev.jpackageplugin" version "2.1.0"
 }
 
 apply plugin: 'java'
@@ -97,8 +97,8 @@ def sanitizedVersion(){
 }
 
 jpackage {
-    input = 'build/libs'
-    destination = 'build/installer'
+    input = file('build/libs')
+    destination = file('build/installer')
     appName = 'chipmunk'
 
     // Remove leading non-digits from version string, as some platforms (such as Debian) do not permit this
@@ -106,9 +106,9 @@ jpackage {
 
     mainClass = 'chipmunk.cli.ChipmunkCLI'
     mainJar = "${jar.archiveFile.get().asFile.getName()}"
-    verbose = "verbose"
+    verbose = true
 
-    resourceDir = 'jpackage'
+    resourceDir = file('jpackage')
     temp = 'build/jpackage-tmp'
 
     winConsole = true
