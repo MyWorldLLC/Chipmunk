@@ -108,6 +108,11 @@ public class ChipmunkException extends RuntimeException {
 	}
 
 	@Override
+	public String toString(){
+		return formatStackTrace();
+	}
+
+	@Override
 	public void printStackTrace(){
 		printStackTrace(System.err);
 	}

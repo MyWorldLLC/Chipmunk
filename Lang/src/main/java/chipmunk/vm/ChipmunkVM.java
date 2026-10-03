@@ -115,6 +115,7 @@ public class ChipmunkVM {
 		var script = new ChipmunkScript(this, scriptIds.incrementAndGet(), new ModuleLoader(rootLoader, Arrays.asList(modules)));
 		script.getHazelVM().limits().copyFrom(defaultLimits);
 		script.getHazelVM().entryPoint(entryPoint);
+		script.setExitHandler(s -> scripts.remove(script.getId()));
 
 		scripts.put(script.getId(), script);
 
@@ -140,7 +141,7 @@ public class ChipmunkVM {
 
 	public boolean exitScript(ChipmunkScript script, boolean force) {
 		if(force || script.getHazelVM().state() == HazelVM.State.EXITED){
-			script.setStatus(ChipmunkScript.Status.EXITED);
+			script.yield();
 			if(script.exitHandler() != null){
 				script.exitHandler().accept(script);
 			}
