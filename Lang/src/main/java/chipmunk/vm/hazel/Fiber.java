@@ -66,7 +66,7 @@ public final class Fiber {
     private Fiber blockedBy;
     private Fiber blocking;
 
-    private State state;
+    private volatile State state;
     public double[] stack;
     public Frame[] callFrames;
     public int callFramePtr;
@@ -176,16 +176,29 @@ public final class Fiber {
         return callStackDepth() == 0;
     }
 
-    public void block(Fiber f){
-        f.state = State.BLOCKED;
+    public void blockOther(Fiber f){
+        f.block();
         f.blockedBy = this;
         blocking = f;
     }
 
+    public void block(){
+        state = State.BLOCKED;
+    }
+
+    /**
+     * Note: this can be called by any host thread to unblock a fiber.
+     */
     public void unblock(){
-        blocking.state = State.RUNNABLE;
-        blocking.blockedBy = null;
-        blocking = null;
+        state = State.RUNNABLE;
+    }
+
+    public void unblockOther(){
+        if(blocking != null){
+            blocking.state = State.RUNNABLE;
+            blocking.blockedBy = null;
+            blocking = null;
+        }
     }
 
     public boolean isBlocked(){

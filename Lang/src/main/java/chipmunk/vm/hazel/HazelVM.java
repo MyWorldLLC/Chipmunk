@@ -691,7 +691,7 @@ public class HazelVM {
             enqueue(fiber);
         }else{
             if(fiber.isBlocking()){
-                fiber.unblock();
+                fiber.unblockOther();
             }
             fiber.fillCompletion();
         }
@@ -795,7 +795,7 @@ public class HazelVM {
                     cModule.markInitialized();
                     var initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
                     if(currentFiber != null){
-                        initFiber.block(currentFiber);
+                        initFiber.blockOther(currentFiber);
                         this.yield();
                     }
                 }
