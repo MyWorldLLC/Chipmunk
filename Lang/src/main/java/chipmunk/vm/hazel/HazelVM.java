@@ -148,6 +148,13 @@ public class HazelVM {
         this.yield();
     }
 
+    /**
+     * This can be called by any thread
+     */
+    public void clearSleep(Fiber f){
+        f.sleep(0, 0);
+    }
+
     public Fiber currentFiber(){
         return currentFiber;
     }

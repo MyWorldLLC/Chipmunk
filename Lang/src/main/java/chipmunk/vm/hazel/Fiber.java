@@ -72,8 +72,8 @@ public final class Fiber {
     public Frame[] callFrames;
     public int callFramePtr;
 
-    private long sleepStartNanos;
-    private long sleepFor;
+    private volatile long sleepStartNanos;
+    private volatile long sleepFor;
 
     public Fiber(HazelVM vm, CMethod startMethod) {
         this(vm, startMethod, DEFAULT_INITIAL_STACK, DEFAULT_CALL_FRAMES);
@@ -223,7 +223,7 @@ public final class Fiber {
         sleepFor = millis;
     }
 
-    public boolean sleepExpired(long currentNanos){
+    protected boolean sleepExpired(long currentNanos){
         return (currentNanos - sleepStartNanos) / 1_000_000 >= sleepFor;
     }
 
