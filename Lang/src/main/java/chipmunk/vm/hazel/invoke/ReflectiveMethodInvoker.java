@@ -70,7 +70,8 @@ public class ReflectiveMethodInvoker extends MethodInvoker {
         try {
             var result = method.invoke(target, params);
             fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(result));
-            return ip + 1;
+            fiber.currentFrame().ip = ip + 1;
+            return Fiber.RETURN_SIGNAL;
         }catch (IllegalAccessException e) {
             throw new TypeError(fiber, target.getClass().getName() + "." + name + "(" + (argCount - 1) + ") is not callable: " + e.getMessage(), e);
         }catch(InvocationTargetException e){

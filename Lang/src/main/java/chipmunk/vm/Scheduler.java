@@ -207,7 +207,7 @@ public class Scheduler {
                 }
 
                 try{
-                    if(script.setStatus(ChipmunkScript.Status.RUNNING) == ChipmunkScript.Status.RUNNABLE){
+                    if(script.setIfStatus(ChipmunkScript.Status.RUNNING, ChipmunkScript.Status.RUNNABLE) == ChipmunkScript.Status.RUNNABLE){
                         script.run().ifPresent(o -> invocation.getFuture().complete(o));
                         var exited = script.getHazelVM().state() == HazelVM.State.EXITED;
                         script.setStatus(exited ? ChipmunkScript.Status.EXITED : ChipmunkScript.Status.RUNNABLE);

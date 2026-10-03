@@ -92,6 +92,10 @@ public class ChipmunkScript {
         return this.status.getAndSet(status);
     }
 
+    protected Status setIfStatus(Status status, Status expected){
+        return this.status.compareAndExchange(expected, status);
+    }
+
     public void tag(Object tag){
         tags.add(tag);
     }
@@ -136,7 +140,11 @@ public class ChipmunkScript {
 
     public ScriptResult run(){
         ChipmunkScript.setCurrentScript(this);
-        return vm.run();
+        var result = vm.run();
+        if(vm.state() == HazelVM.State.EXITED){
+            setStatus(Status.EXITED);
+        }
+        return result;
     }
 
     public void yield(){

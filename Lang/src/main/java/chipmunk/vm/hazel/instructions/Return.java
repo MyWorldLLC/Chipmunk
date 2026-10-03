@@ -30,7 +30,7 @@ public final class Return extends Instruction {
     }
 
     @Override
-    public final int apply(Fiber fiber, int ip, int bp) {
+    public int apply(Fiber fiber, int ip, int bp) {
         fiber.stack[bp] = fiber.stack[bp + sp - 1];
         fiber.popFrame();
         return Fiber.RETURN_SIGNAL;

@@ -40,6 +40,7 @@ public final class Fiber {
 
     public enum State {
         RUNNABLE,
+        SLEEPING,
         BLOCKED,
         COMPLETED
     }
@@ -70,6 +71,9 @@ public final class Fiber {
     public double[] stack;
     public Frame[] callFrames;
     public int callFramePtr;
+
+    private long sleepStartNanos;
+    private long sleepFor;
 
     public Fiber(HazelVM vm, CMethod startMethod) {
         this(vm, startMethod, DEFAULT_INITIAL_STACK, DEFAULT_CALL_FRAMES);
@@ -211,6 +215,16 @@ public final class Fiber {
 
     public boolean isBlocking(){
         return blocking != null;
+    }
+
+    protected void sleep(long currentNanos, long millis){
+        state = millis > 0 ? State.SLEEPING : State.RUNNABLE;
+        sleepStartNanos = currentNanos;
+        sleepFor = millis;
+    }
+
+    public boolean sleepExpired(long currentNanos){
+        return (currentNanos - sleepStartNanos) / 1_000_000 >= sleepFor;
     }
 
     public Stream<Frame> stackTrace(){

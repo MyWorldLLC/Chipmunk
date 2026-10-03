@@ -100,13 +100,15 @@ public class HazelVM {
             // As long as we have fibers in the queue, run until a fiber yields. Optional.empty() is returned until
             // the last fiber exits, at which point the result is boxed and returned.
             currentFiber = nextFiber();
-            while (currentFiber != null && currentFiber.state() == Fiber.State.RUNNABLE) {
-                runFiber(currentFiber);
-                lastFiber = currentFiber;
-                var yielded = checkAndClearYield();
-                if(lastFiber.state() == Fiber.State.RUNNABLE && yielded){
-                    state = State.SUSPENDED;
-                    return ScriptResult.empty(); // This fiber yielded due to an external request
+            while (!fibers.isEmpty() || currentFiber != null) {
+                if(currentFiber != null){
+                    runFiber(currentFiber);
+                    lastFiber = currentFiber;
+                    var yielded = checkAndClearYield();
+                    if(lastFiber.state() != Fiber.State.COMPLETED && yielded){
+                        state = State.SUSPENDED;
+                        return ScriptResult.empty(); // This fiber yielded or blocked due to an external request
+                    }
                 }
                 currentFiber = nextFiber();
             }
@@ -129,9 +131,21 @@ public class HazelVM {
             if (fiber.state() == Fiber.State.RUNNABLE) {
                 it.remove();
                 return fiber;
+            }else if(fiber.state() == Fiber.State.SLEEPING){
+                if(fiber.sleepExpired(System.nanoTime())){
+                    // Done with sleep, so clear status and return this fiber.
+                    fiber.sleep(0, 0);
+                    it.remove();
+                    return fiber;
+                }
             }
         }
         return null;
+    }
+
+    public void sleep(long millis){
+        currentFiber.sleep(System.nanoTime(), millis);
+        this.yield();
     }
 
     public Fiber currentFiber(){

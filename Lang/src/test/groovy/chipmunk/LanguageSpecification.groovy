@@ -27,6 +27,7 @@ import chipmunk.compiler.Compilation
 import chipmunk.modules.TestModule
 import chipmunk.modules.imports.JvmImportModule
 import chipmunk.runtime.UnimplementedMethodException
+import chipmunk.vm.ChipmunkScript
 import chipmunk.vm.ChipmunkVM
 import chipmunk.vm.ModuleLoader
 import chipmunk.vm.Uncatchable
@@ -70,11 +71,11 @@ class LanguageSpecification extends Specification {
 		def argArray = args != null ? args.toArray() : null
 
 		if(!disassembleOnException){
-			return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
+			return runToCompletion(script, argArray)
 		}else{
 			try{
 				//throw new Exception()
-				return argArray == null ? script.run().orElse(null) : script.run(argArray).orElse(null)
+				return runToCompletion(script, argArray)
 			}catch(Throwable e){
 
 				for(def binaryModule : modules){
@@ -88,6 +89,18 @@ class LanguageSpecification extends Specification {
 				throw e
 			}
 		}
+	}
+
+	def runToCompletion(ChipmunkScript script, Object[] argArray){
+		def result
+		while(script.getStatus() != ChipmunkScript.Status.EXITED){
+			if(argArray == null) {
+				result = script.run().orElse(null)
+			}else{
+				result = script.run(argArray).orElse(null)
+			}
+		}
+		return result
 	}
 
 	def "Run ShorthandMethods.chp"(){
@@ -494,5 +507,16 @@ class LanguageSpecification extends Specification {
 
 		then:
 		result == 5
+	}
+
+	def "Run Sleep.chp"(){
+		when:
+		def startTime = System.nanoTime()
+		def result = compileAndRun("Sleep.chp", true)
+		def elapsedTime = (System.nanoTime() - startTime) / 1_000_000
+
+		then:
+		result == 7
+		elapsedTime > 500
 	}
 }

@@ -51,12 +51,11 @@ public class LangModule implements NativeModule {
         throw new UnimplementedMethodException();
     }
 
-    /*@AllowChipmunkLinkage
-    public ChipmunkModule getModule(String name){
-        return ChipmunkScript.getCurrentScript()
-                .getHazelVM()
-                .getModule(name);
-    }*/
+    @AllowChipmunkLinkage
+    public void sleep(double millis){
+        var script = ChipmunkScript.getCurrentScript();
+        script.getHazelVM().sleep((long) millis);
+    }
 
     @Override
     public String getName(){
