@@ -134,6 +134,10 @@ public class HazelVM {
         return null;
     }
 
+    public Fiber currentFiber(){
+        return currentFiber;
+    }
+
     public Limits limits() {
         return limits;
     }
