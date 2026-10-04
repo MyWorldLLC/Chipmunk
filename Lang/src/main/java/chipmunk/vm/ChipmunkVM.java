@@ -102,6 +102,7 @@ public class ChipmunkVM {
 
 	public ChipmunkScript compileScript(Compilation compilation) {
 		var compiler = new ChipmunkCompiler();
+		compiler.setModuleLoader(rootLoader);
 		var modules = compiler.compile(compilation);
 		return compileScript(modules);
 	}
