@@ -216,7 +216,13 @@ public class Scheduler {
                             if(exitHandler != null){
                                 exitHandler.accept(script);
                             }
+                        }else{
+                            // We ran but did not complete. Re-enqueue with fresh time stamp & priority.
+                            scriptQueue.add(new ScriptInvocation(System.nanoTime(), script, priorityFunction.priority(script), invocation.getFuture()));
                         }
+                    }else{
+                        // We couldn't attempt to run now - re-enqueue current invocation
+                        scriptQueue.add(invocation);
                     }
                     // Do nothing if the script is already running in another runner.
                 }catch(Throwable t){
