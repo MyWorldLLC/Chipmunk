@@ -109,6 +109,9 @@ public class HazelVM {
                         state = State.SUSPENDED;
                         return ScriptResult.empty(); // This fiber yielded or blocked due to an external request
                     }
+                }else{
+                    // There are still fibers in the queue but none are currently runnable (all are blocked, sleeping, etc.)
+                    return ScriptResult.empty();
                 }
                 currentFiber = nextFiber();
             }
