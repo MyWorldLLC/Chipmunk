@@ -81,6 +81,17 @@ public class LangModule implements NativeModule {
             }));
         });
 
+        binding.register(Boolean.class, builder -> {
+            builder.withNativeMethod("truth", ((fiber, ip, bp, sp, argCount, target) -> {
+                fiber.pushResult(bp, sp, argCount, ((Boolean) target) ? 1 : 0);
+                return ip + 1;
+            }));
+
+            builder.withNativeMethod("toString", ((fiber, ip, bp, sp, argCount, target) -> {
+                fiber.pushResult(bp, sp, argCount, fiber.vm().fromHostValue(Objects.toString(target)));
+                return ip + 1;
+            }));
+        });
 
         binding.register(CList.class, builder -> {
 
