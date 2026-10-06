@@ -30,30 +30,30 @@ public class CFuture {
 
     protected final HazelVM vm;
 
-    protected volatile double value;
-    protected volatile boolean isSet;
-    protected volatile boolean isFailed;
-    protected volatile Fiber waiting;
-    protected volatile boolean blockingWait;
+    protected double value;
+    protected boolean isSet;
+    protected boolean isFailed;
+    protected Fiber waiting;
+    protected boolean blockingWait;
 
     public CFuture(HazelVM vm) {
         this.vm = vm;
     }
 
-    public void success(Object value) {
+    public synchronized void success(Object value) {
         this.value = vm.fromHostValue(value);
         isSet = true;
         wakeUp();
     }
 
-    public void failed(String message) {
+    public synchronized void failed(String message) {
         value = vm.fromHostValue(message);
         isFailed = true;
         isSet = true;
         wakeUp();
     }
 
-    private void wakeUp(){
+    private synchronized void wakeUp(){
         if(waiting != null){
             if(blockingWait){
                 waiting.unblock();
@@ -75,13 +75,15 @@ public class CFuture {
      */
     @AllowChipmunkLinkage
     @ChipmunkName("wait")
-    public void _wait(){
-        var script = ChipmunkScript.getCurrentScript();
-        var fiber = script.getHazelVM().currentFiber();
-        fiber.block();
-        waiting = fiber;
-        script.yield();
-        blockingWait = true;
+    public synchronized void _wait(){
+        if(!isSet){
+            var script = ChipmunkScript.getCurrentScript();
+            var fiber = script.getHazelVM().currentFiber();
+            fiber.block();
+            waiting = fiber;
+            script.yield();
+            blockingWait = true;
+        }
     }
 
     /**
@@ -90,30 +92,32 @@ public class CFuture {
      * @param millis maximum milliseconds to sleep for
      */
     @AllowChipmunkLinkage
-    public void waitFor(double millis){
-        var script = ChipmunkScript.getCurrentScript();
-        waiting = script.getHazelVM().currentFiber();
-        script.getHazelVM().sleep((long)millis);
-        blockingWait = false;
+    public synchronized void waitFor(double millis){
+        if(!isSet){
+            var script = ChipmunkScript.getCurrentScript();
+            waiting = script.getHazelVM().currentFiber();
+            script.getHazelVM().sleep((long)millis);
+            blockingWait = false;
+        }
     }
 
     @AllowChipmunkLinkage
-    public double getValue() {
+    public synchronized double getValue() {
         return value;
     }
 
     @AllowChipmunkLinkage
-    public boolean isComplete() {
+    public synchronized boolean isComplete() {
         return isSet;
     }
 
     @AllowChipmunkLinkage
-    public boolean isFailed() {
+    public synchronized boolean isFailed() {
         return isFailed;
     }
 
     @AllowChipmunkLinkage
-    public boolean isSuccess() {
+    public synchronized boolean isSuccess() {
         return isSet && !isFailed;
     }
 
