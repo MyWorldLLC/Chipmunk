@@ -143,7 +143,7 @@ public class ChipmunkVM {
 	}
 
 	public boolean exitScript(ChipmunkScript script, boolean force) {
-		if(force || script.getHazelVM().state() == HazelVM.State.EXITED){
+		if(force || script.getStatus() == ChipmunkScript.Status.EXITED){
 			script.yield();
 			if(script.exitHandler() != null){
 				script.exitHandler().accept(script);

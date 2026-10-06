@@ -812,7 +812,7 @@ public class HazelVM {
                 cModule.selfPtr(ptr);
 
                 // Note: All sorts of funkiness can happen with import cycles between modules. That won't cause a runtime
-                // error in and of itself, but may result in null errors because module values being read before their
+                // error in and of itself, but may result in null errors because of module values being read before their
                 // initializer runs. This is intentional.
 
                 // Do imports before this module initializer runs so that their initializers get queued ahead of ours
@@ -828,13 +828,13 @@ public class HazelVM {
 
                 var init = cModule.getMethod("$module_init$");
                 if(init != null && !cModule.isInitialized()){
-                    cModule.markInitialized();
                     var initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
                     if(currentFiber != null){
                         initFiber.blockOther(currentFiber);
                         this.yield();
                     }
                 }
+                cModule.markInitialized();
             }
             return module;
         } catch (IOException | BinaryFormatException e) {
