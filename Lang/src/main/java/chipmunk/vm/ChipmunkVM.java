@@ -33,7 +33,9 @@ import chipmunk.vm.invoke.LinkingPolicy;
 import chipmunk.vm.invoke.SecurityMode;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -150,6 +152,10 @@ public class ChipmunkVM {
 			return true;
 		}
 		return false;
+	}
+
+	public List<ChipmunkScript> getScripts(){
+		return new ArrayList<>(scripts.values());
 	}
 
 }
