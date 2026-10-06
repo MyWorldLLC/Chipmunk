@@ -195,7 +195,7 @@ public class HazelVM {
         return Stream.concat(
                 Stream.ofNullable(currentFiber),
                 fibers.stream()
-        );
+        ).distinct();
     }
 
     public Stream<CModule> allCModules(){
