@@ -49,7 +49,7 @@ public class Scheduler {
 
     public Scheduler(int threadCount, ExecutorService threads, PriorityFunction priorityFunction){
         invocations = new ConcurrentHashMap<>();
-        scriptQueue = new PriorityBlockingQueue<>(10, Comparator.comparing(ScriptInvocation::priority));
+        scriptQueue = new PriorityBlockingQueue<>(10, Comparator.comparingDouble(ScriptInvocation::priority).reversed());
         this.priorityFunction = priorityFunction;
         this.threads = threads;
 
@@ -209,23 +209,22 @@ public class Scheduler {
                 try{
                     if(script.setIfStatus(ChipmunkScript.Status.RUNNING, ChipmunkScript.Status.RUNNABLE) == ChipmunkScript.Status.RUNNABLE){
                         script.run().ifPresent(o -> invocation.getFuture().complete(o));
-                        var exited = script.getHazelVM().state() == HazelVM.State.EXITED;
-                        script.setStatus(exited ? ChipmunkScript.Status.EXITED : ChipmunkScript.Status.RUNNABLE);
-                        if(exited){
+                        if(script.getStatus() == ChipmunkScript.Status.EXITED){
                             var exitHandler = script.exitHandler();
                             if(exitHandler != null){
                                 exitHandler.accept(script);
                             }
-                        }/*else{
-                            // TODO - this seems like it should be necessary, but fails the scheduler tests when present.
+                        }else{
                             // We ran but did not complete. Re-enqueue with fresh time stamp & priority.
-                            scriptQueue.add(new ScriptInvocation(System.nanoTime(), script, priorityFunction.priority(script), invocation.getFuture()));
-                        }*/
+                            script.setStatus(ChipmunkScript.Status.RUNNABLE);
+                            enqueueInternal(script, invocation.getFuture());
+                        }
                     }else{
-                        // We couldn't attempt to run now - re-enqueue current invocation
-                        scriptQueue.add(invocation);
+                        // We couldn't attempt to run now - re-enqueue current invocation if the script hasn't exited
+                        if(script.getStatus() != ChipmunkScript.Status.EXITED){
+                            scriptQueue.add(invocation);
+                        }
                     }
-                    // Do nothing if the script is already running in another runner.
                 }catch(Throwable t){
                     var handler = script.errorHandler();
                     if(handler != null){
@@ -243,6 +242,7 @@ public class Scheduler {
             }
 
         }
+        System.out.println("Runner exiting");
     }
 
 }
