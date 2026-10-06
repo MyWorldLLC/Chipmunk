@@ -216,10 +216,11 @@ public class Scheduler {
                             if(exitHandler != null){
                                 exitHandler.accept(script);
                             }
-                        }else{
+                        }/*else{
+                            // TODO - this seems like it should be necessary, but fails the scheduler tests when present.
                             // We ran but did not complete. Re-enqueue with fresh time stamp & priority.
                             scriptQueue.add(new ScriptInvocation(System.nanoTime(), script, priorityFunction.priority(script), invocation.getFuture()));
-                        }
+                        }*/
                     }else{
                         // We couldn't attempt to run now - re-enqueue current invocation
                         scriptQueue.add(invocation);

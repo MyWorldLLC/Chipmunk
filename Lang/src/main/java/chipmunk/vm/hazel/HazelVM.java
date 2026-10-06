@@ -92,7 +92,16 @@ public class HazelVM {
                 if(module.getMethod(entryPoint.method()) == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
                 }
-                spawnFiber(module, entryPoint.method());
+                var maybeInit = !fibers.isEmpty() ? fibers.getLast() : null;
+                var entryFiber = spawnFiber(module, entryPoint.method());
+                if(state == State.NEW && maybeInit != null){
+                    // If this is a new VM and there are fibers on the stack, that means that they are module initializers.
+                    // The last initializer to be pushed will be the main module, so block execution of the main method until
+                    // that fiber has completed. We have to do this here rather than relying on the fiber blocking done by
+                    // getModule() since we can't spawn the main run fiber until after getModule() returns.
+                    maybeInit.blockOther(entryFiber);
+                }
+
             }
 
             state = State.RUNNING;
@@ -807,8 +816,7 @@ public class HazelVM {
                 // initializer runs. This is intentional.
 
                 // Do imports before this module initializer runs so that their initializers get queued ahead of ours
-                // if they're not already initialized.
-                // TODO - this won't work if yields happen while initializers are running.
+                // if they're not already initialized. Also block the currently running fiber until the initializer completes.
                 for(var imp : cModule.imports()){
                     var field = cModule.getField("$" + imp.name().replace('.', '_'));
                     var impModule = getModule(imp.name());
