@@ -22,6 +22,7 @@ package chipmunk.runtime;
 
 import chipmunk.vm.hazel.GCCollectable;
 import chipmunk.vm.hazel.GarbageCollector;
+import chipmunk.vm.hazel.Value;
 
 import java.util.Arrays;
 
@@ -88,6 +89,7 @@ public class CModule extends HostNamespaced implements ChipmunkModule, GCCollect
 
     public void setFields(CField[] fields){
         this.fields = new double[fields.length];
+        Arrays.fill(this.fields, Value.NULL_PTR_VALUE);
         this.fieldDefs = fields;
     }
 

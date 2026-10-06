@@ -23,6 +23,7 @@ package chipmunk.runtime;
 import chipmunk.vm.hazel.GCCollectable;
 import chipmunk.vm.hazel.GarbageCollector;
 import chipmunk.vm.hazel.HazelVM;
+import chipmunk.vm.hazel.Value;
 
 import java.util.Arrays;
 
@@ -108,6 +109,7 @@ public class CClass extends NamedHostObject implements GCCollectable {
     public CObject createInstance(HazelVM vm){
         vm.memoryStats().instanceCreated(instanceFieldDefs.length);
         var storage = new double[instanceFieldDefs.length];
+        Arrays.fill(storage, Value.NULL_PTR_VALUE);
         System.arraycopy(instanceFields, 0, storage, 0, instanceFieldDefs.length);
         storage[0] = selfPtr;
         TraitGuard[] guards = null;
