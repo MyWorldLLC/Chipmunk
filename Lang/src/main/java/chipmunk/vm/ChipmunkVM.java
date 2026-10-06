@@ -69,7 +69,7 @@ public class ChipmunkVM {
 		scripts = new ConcurrentHashMap<>();
 		scriptIds = new AtomicLong();
 		scriptExecutor = threads;
-		scheduler = new Scheduler(threadCount, scriptExecutor, (script) -> 0);
+		scheduler = new Scheduler(threadCount, scriptExecutor, (script) -> 10);
 
 		rootLoader = new ModuleLoader();
 		rootLoader.registerNativeFactory(LangModule.MODULE_NAME, LangModule::new);
