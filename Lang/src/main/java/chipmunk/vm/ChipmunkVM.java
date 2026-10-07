@@ -96,6 +96,11 @@ public class ChipmunkVM {
 		scheduler.shutdown();
 	}
 
+	public void forceShutdown(){
+		scriptExecutor.shutdown();
+		scheduler.forceShutdown();
+	}
+
 	public ChipmunkScript compileScript(InputStream is, String fileName) throws CompileChipmunk {
 		Compilation compilation = new Compilation();
 		compilation.addSource(new ChipmunkSource(is, fileName));
