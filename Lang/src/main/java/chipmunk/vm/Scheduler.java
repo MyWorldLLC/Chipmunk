@@ -68,6 +68,7 @@ public class Scheduler {
     }
 
     public void shutdown(){
+        shutdownRequested = true;
         schedulingThread.interrupt();
     }
 
@@ -119,11 +120,16 @@ public class Scheduler {
         scriptQueue.add(new ScriptInvocation(System.nanoTime(), script, priorityFunction.priority(script), future));
     }
 
+    private boolean continueRunning(){
+        // Make sure to fully drain the queue before exiting
+        return !shutdownRequested || (shutdownRequested && !scriptQueue.isEmpty());
+    }
+
     private void schedule(){
 
         var reprioritizationCounter = 0;
 
-        while(!Thread.interrupted()){
+        while(continueRunning()){
             // Yield scripts that have run for too long
             for(var entry : invocations.entrySet()){
                 var invocation = entry.getValue();
@@ -191,8 +197,7 @@ public class Scheduler {
     }
 
     private void run(){
-        // Make sure to fully drain the queue before exiting
-        while(!shutdownRequested || (shutdownRequested && !scriptQueue.isEmpty())){
+        while(continueRunning()){
             var invocation = scriptQueue.poll();
             if(invocation != null){
                 var script = invocation.getScript();
@@ -242,7 +247,6 @@ public class Scheduler {
             }
 
         }
-        System.out.println("Runner exiting");
     }
 
 }
