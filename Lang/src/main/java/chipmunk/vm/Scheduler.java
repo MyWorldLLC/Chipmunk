@@ -46,6 +46,7 @@ public class Scheduler {
     protected volatile int reprioritizationFrequency;
     protected final int threadCount;
     protected volatile boolean shutdownRequested;
+    protected volatile boolean forceShutdown;
 
     public Scheduler(int threadCount, ExecutorService threads, PriorityFunction priorityFunction){
         invocations = new ConcurrentHashMap<>();
@@ -70,6 +71,10 @@ public class Scheduler {
     public void shutdown(){
         shutdownRequested = true;
         schedulingThread.interrupt();
+    }
+
+    public void forceShutdown(){
+        forceShutdown = true;
     }
 
     public int getPollingPeriod() {
@@ -122,7 +127,7 @@ public class Scheduler {
 
     private boolean continueRunning(){
         // Make sure to fully drain the queue before exiting
-        return !shutdownRequested || (shutdownRequested && !scriptQueue.isEmpty());
+        return (!shutdownRequested || (shutdownRequested && !scriptQueue.isEmpty()) && !forceShutdown);
     }
 
     private void schedule(){
@@ -130,50 +135,51 @@ public class Scheduler {
         var reprioritizationCounter = 0;
 
         while(continueRunning()){
-            // Yield scripts that have run for too long
-            for(var entry : invocations.entrySet()){
-                var invocation = entry.getValue();
-                var script = invocation.getScript();
-                var elapsed = elapsedMillis(invocation);
-                if(elapsed >= minimumExecWindow){
-                    if(shouldYield(elapsed, invocation.priority())){
-                        script.yield();
-                        // Ignore shutdown status so that invocations requested before shutdown complete.
-                        enqueueInternal(script, invocation.getFuture());
-                    }
-                }
-            }
-
-            reprioritizationCounter++;
-            if(reprioritizationCounter >= reprioritizationFrequency){
-                reprioritizationCounter = 0;
-
-                // Rebuild the queue to ensure that scripts that have been enqueued the longest get the highest priority.
-                var depth = queueDepth(); // This is a concurrent queue, so we process as many entries as were present when we started
-                for(int i = 0; i < depth; i++){
-                    var invocation = scriptQueue.poll();
-                    // Workers could potentially run invocations faster than we rebuild the queue, so always check for null.
-                    if(invocation == null){
-                        break;
-                    }
-
-                    var millisQueued = (System.nanoTime() - invocation.getQueueTime()) / 1_000_000;
-                    var windowsMissed = millisQueued / minimumExecWindow;
-                    var basePriority = priorityFunction.priority(invocation.getScript());
-                    // Exponentially increase priority with every missed window. Note that a growth constant of 0.3 means
-                    // that a script that's missed:
-                    // 2 execution windows -> ~2x higher than base priority
-                    // 6 execution windows -> ~6x higher than base priority
-                    var newPriority = (float) (basePriority * Math.exp(0.3 * windowsMissed));
-                    scriptQueue.add(new ScriptInvocation(invocation.getQueueTime(), invocation.getScript(), newPriority, invocation.getFuture()));
-                }
-            }
-
             try {
-                Thread.sleep(pollingPeriod);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch(Throwable t){
+
+                // Yield scripts that have run for too long
+                for (var entry : invocations.entrySet()) {
+                    var invocation = entry.getValue();
+                    var script = invocation.getScript();
+                    var elapsed = elapsedMillis(invocation);
+                    if (elapsed >= minimumExecWindow) {
+                        if (shouldYield(elapsed, invocation.priority())) {
+                            script.yield();
+                            // Ignore shutdown status so that invocations requested before shutdown complete.
+                            enqueueInternal(script, invocation.getFuture());
+                        }
+                    }
+                }
+
+                reprioritizationCounter++;
+                if (reprioritizationCounter >= reprioritizationFrequency) {
+                    reprioritizationCounter = 0;
+
+                    // Rebuild the queue to ensure that scripts that have been enqueued the longest get the highest priority.
+                    var depth = queueDepth(); // This is a concurrent queue, so we process as many entries as were present when we started
+                    for (int i = 0; i < depth; i++) {
+                        var invocation = scriptQueue.poll();
+                        // Workers could potentially run invocations faster than we rebuild the queue, so always check for null.
+                        if (invocation == null) {
+                            break;
+                        }
+
+                        var millisQueued = (System.nanoTime() - invocation.getQueueTime()) / 1_000_000;
+                        var windowsMissed = millisQueued / minimumExecWindow;
+                        var basePriority = priorityFunction.priority(invocation.getScript());
+                        // Exponentially increase priority with every missed window. Note that a growth constant of 0.3 means
+                        // that a script that's missed:
+                        // 2 execution windows -> ~2x higher than base priority
+                        // 6 execution windows -> ~6x higher than base priority
+                        var newPriority = (float) (basePriority * Math.exp(0.3 * windowsMissed));
+                        scriptQueue.add(new ScriptInvocation(invocation.getQueueTime(), invocation.getScript(), newPriority, invocation.getFuture()));
+                    }
+                }
+
+                try {
+                    Thread.sleep(pollingPeriod);
+                } catch (InterruptedException e) {}
+            } catch (Throwable t) {
                 // This keeps the scheduler alive if checking/yield throws an exception
             }
         }
@@ -241,9 +247,7 @@ public class Scheduler {
             }else{
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+                } catch (InterruptedException e) {}
             }
 
         }
