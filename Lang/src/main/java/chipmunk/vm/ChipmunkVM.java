@@ -145,6 +145,9 @@ public class ChipmunkVM {
 	public boolean exitScript(ChipmunkScript script, boolean force) {
 		if(force || script.getStatus() == ChipmunkScript.Status.EXITED){
 			script.yield();
+			// In the case where the script has already exited this is redundant, however if it is currently
+			// running when this is called (forced exit) then it is not.
+			script.setStatus(ChipmunkScript.Status.EXITED);
 			if(script.exitHandler() != null){
 				script.exitHandler().accept(script);
 			}
