@@ -59,7 +59,7 @@ public class ChipmunkScript {
     protected LinkingPolicy linkPolicy;
 
     protected Consumer<ChipmunkScript> exitHandler;
-    protected BiConsumer<ChipmunkScript, Throwable> errorHandler;
+    protected ErrorHandler errorHandler;
 
     protected final AtomicReference<Status> status = new AtomicReference<>(Status.RUNNABLE);
 
@@ -159,11 +159,11 @@ public class ChipmunkScript {
         return exitHandler;
     }
 
-    public void setErrorHandler(BiConsumer<ChipmunkScript, Throwable> errorHandler){
+    public void setErrorHandler(ErrorHandler errorHandler){
         this.errorHandler = errorHandler;
     }
 
-    protected BiConsumer<ChipmunkScript, Throwable> errorHandler(){
+    protected ErrorHandler errorHandler(){
         return errorHandler;
     }
 

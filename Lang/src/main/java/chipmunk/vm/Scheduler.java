@@ -237,9 +237,13 @@ public class Scheduler {
                         }
                     }
                 }catch(Throwable t){
-                    var handler = script.errorHandler();
-                    if(handler != null){
-                        handler.accept(script, t);
+                    try{
+                        var handler = script.errorHandler();
+                        if(handler != null){
+                            handler.handleError(script, t, invocation.getFuture());
+                        }
+                    }catch(Throwable t2){
+                        // Make sure error handler can't crash a runner
                     }
                 }finally{
                     invocations.remove(script.getId());

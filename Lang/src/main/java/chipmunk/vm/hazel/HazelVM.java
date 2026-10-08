@@ -76,13 +76,6 @@ public class HazelVM {
 
     public ScriptResult run(){
         try{
-            if(state == State.NEW) {
-                var module = (CModule) getModule(entryPoint.module());
-                if(module == null){
-                    throw new IllegalStateException("Entry point module " + entryPoint.module() + " not found");
-                }
-            }
-
             if(state == State.NEW || state == State.EXITED) {
                 var module = (CModule) getModule(entryPoint.module());
                 if(module == null){
@@ -92,7 +85,7 @@ public class HazelVM {
                 if(module.getMethod(entryPoint.method()) == null){
                     throw new IllegalStateException("Entry point method " + entryPoint.method() + " not found");
                 }
-                var maybeInit = !fibers.isEmpty() ? fibers.getLast() : null;
+                var maybeInit = fibers.peekLast();
                 var entryFiber = spawnFiber(module, entryPoint.method());
                 if(state == State.NEW && maybeInit != null){
                     // If this is a new VM and there are fibers on the stack, that means that they are module initializers.
@@ -101,7 +94,6 @@ public class HazelVM {
                     // getModule() since we can't spawn the main run fiber until after getModule() returns.
                     maybeInit.blockOther(entryFiber);
                 }
-
             }
 
             state = State.RUNNING;
@@ -696,12 +688,12 @@ public class HazelVM {
                     if(t instanceof Uncatchable u){
                         throw u;
                     }else if(t instanceof ChipmunkException e){
-                        frame.ip = ip + 1; // Save the current frame IP before populating stack trace
+                        frame.ip = ip; // Save the current frame IP before populating stack trace
                         e.populateStackTrace();
                         ex = e;
                     }else{
                         var e = new ChipmunkException(fiber, t.getMessage(), t);
-                        frame.ip = ip + 1; // Save the current frame IP before populating stack trace
+                        frame.ip = ip; // Save the current frame IP before populating stack trace
                         e.populateStackTrace();
                         ex = e;
                     }
@@ -828,8 +820,19 @@ public class HazelVM {
 
                 var init = cModule.getMethod("$module_init$");
                 if(init != null && !cModule.isInitialized()){
-                    var initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
-                    if(currentFiber != null){
+                    Fiber initFiber;
+                    if(currentFiber == null){
+                        // This is a new script instance, and in this case, the import before this one will be the last
+                        // fiber in the queue
+                        var priorFiber = fibers.peekLast();
+                        initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
+                        if(priorFiber != null){
+                            priorFiber.blockOther(initFiber);
+                            this.yield();
+                        }
+                    }else{
+                        // This is called mid-run, so block the currently executing fiber until the initializer runs
+                        initFiber = spawnFiber(init, cModule.selfPtr(), heap.allocateAndWrite(this));
                         initFiber.blockOther(currentFiber);
                         this.yield();
                     }

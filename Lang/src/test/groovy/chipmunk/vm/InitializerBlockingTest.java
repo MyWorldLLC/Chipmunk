@@ -30,10 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SchedulingTest {
+public class InitializerBlockingTest {
 
     private ChipmunkVM vm;
     private List<ChipmunkScript> scripts;
@@ -42,29 +43,30 @@ public class SchedulingTest {
     public void setupVM(){
         vm = new ChipmunkVM(SecurityMode.DENYING, 2);
         var compiler = new ChipmunkCompiler();
-        var compiled = compiler.compile(getClass().getResourceAsStream("/chipmunk/CountToAMillion.chp"), "CountToAMillion.chp");
+        var compiled = compiler.compile(getClass().getResourceAsStream("/chipmunk/InitializerBlockingTest.chp"), "InitializerBlockingTest.chp");
 
         scripts = new ArrayList<>();
-        for(int i = 0; i < 10; i++){
-            scripts.add(vm.compileScript(new EntryPoint("test", "main"), compiled));
+        for(int i = 0; i < 250; i++){
+            var script = vm.compileScript(new EntryPoint("test", "main"), compiled);
+            script.setErrorHandler((s, t, f) -> {
+                f.completeExceptionally(t);
+                throw new RuntimeException(t);
+            });
+            scripts.add(script);
         }
     }
 
     @Test
-    public void testRunToCompletion() throws ExecutionException, InterruptedException {
+    public void testInitOrderUnderLoad() throws ExecutionException, InterruptedException, TimeoutException {
         var futures = new ArrayList<CompletableFuture<Object>>();
         for(ChipmunkScript script : scripts){
             futures.add(vm.run(script));
         }
 
-        var total = 0.0;
         for(CompletableFuture<Object> future : futures){
-            var v = future.get();
-            total += ((Number)v).doubleValue();
+            assertEquals(10.0, future.get());
         }
 
-        assertEquals(10_000_000.0, total);
         vm.stop();
     }
-
 }
